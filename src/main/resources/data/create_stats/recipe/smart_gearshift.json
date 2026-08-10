@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EGE",
+    "RAR",
+    "BCB"
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "create:precision_mechanism"
+    },
+    "R": {
+      "item": "create:rotation_speed_controller"
+    },
+    "A": {
+      "item": "create_stats:auto_transmission_clutch"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "C": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "result": {
+    "id": "create_stats:smart_gearshift",
+    "count": 1
+  }
+}

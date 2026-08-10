@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EGE",
+    "SAS",
+    "ERE"
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:rotation_speed_controller"
+    },
+    "A": {
+      "item": "create_stats:safety_clutch"
+    },
+    "R": {
+      "item": "create:polished_rose_quartz"
+    }
+  },
+  "result": {
+    "id": "create_stats:auto_transmission_clutch",
+    "count": 1
+  }
+}

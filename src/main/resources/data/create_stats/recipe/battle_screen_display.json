@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SGS",
+    "RDR",
+    "SBS"
+  ],
+  "key": {
+    "S": {
+      "item": "create:sturdy_sheet"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "R": {
+      "item": "create:redstone_link"
+    },
+    "D": {
+      "item": "create_stats:stats_display_panel"
+    },
+    "B": {
+      "item": "create:brass_casing"
+    }
+  },
+  "result": {
+    "id": "create_stats:battle_screen_display",
+    "count": 1
+  }
+}

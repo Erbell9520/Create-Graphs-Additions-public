@@ -1,0 +1,46 @@
+{
+  "variants": {
+    "axis=x,shape=closed": {
+      "model": "create_stats:block/overflow_gate/straight"
+    },
+    "axis=x,shape=cross": {
+      "model": "create_stats:block/overflow_gate/cross"
+    },
+    "axis=x,shape=straight": {
+      "model": "create_stats:block/overflow_gate/straight"
+    },
+    "axis=x,shape=t_left": {
+      "model": "create_stats:block/overflow_gate/t_left"
+    },
+    "axis=x,shape=t_right": {
+      "model": "create_stats:block/overflow_gate/t_right"
+    },
+    "axis=x,shape=window": {
+      "model": "create_stats:block/overflow_gate/window"
+    },
+    "axis=z,shape=closed": {
+      "model": "create_stats:block/overflow_gate/straight",
+      "y": 90
+    },
+    "axis=z,shape=cross": {
+      "model": "create_stats:block/overflow_gate/cross",
+      "y": 90
+    },
+    "axis=z,shape=straight": {
+      "model": "create_stats:block/overflow_gate/straight",
+      "y": 90
+    },
+    "axis=z,shape=t_left": {
+      "model": "create_stats:block/overflow_gate/t_left",
+      "y": 90
+    },
+    "axis=z,shape=t_right": {
+      "model": "create_stats:block/overflow_gate/t_right",
+      "y": 90
+    },
+    "axis=z,shape=window": {
+      "model": "create_stats:block/overflow_gate/window",
+      "y": 90
+    }
+  }
+}

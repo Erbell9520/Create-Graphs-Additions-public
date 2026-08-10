@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_stats:block/open_frame_dynamo"
+    }
+  }
+}

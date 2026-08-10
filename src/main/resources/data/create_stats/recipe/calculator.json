@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RGR",
+    "AnA",
+    " D "
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "n": {
+      "item": "minecraft:gold_nugget"
+    },
+    "D": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "id": "create_stats:calculator",
+    "count": 1
+  },
+  "show_notification": true
+}

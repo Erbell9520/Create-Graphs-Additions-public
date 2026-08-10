@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "ATA",
+    " D "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:paper"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "T": {
+      "item": "minecraft:redstone_torch"
+    }
+  },
+  "result": {
+    "id": "create_stats:governor_card",
+    "count": 1
+  }
+}

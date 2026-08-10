@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BEB",
+    "RCR",
+    "BPB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "minecraft:comparator"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "id": "create_stats:factory_logic_controller",
+    "count": 1
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "PPP",
+    " E "
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:freight_manifest_clipboard",
+    "count": 1
+  }
+}

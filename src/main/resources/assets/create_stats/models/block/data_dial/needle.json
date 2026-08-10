@@ -1,0 +1,31 @@
+{
+  "textures": {
+    "needle": "create_stats:block/data_dial_needle"
+  },
+  "elements": [
+    {
+      "from": [8.0, 7.7, 2.72],
+      "to": [12.7, 8.3, 3.02],
+      "faces": {
+        "north": { "uv": [1, 1, 10, 2], "texture": "#needle" },
+        "south": { "uv": [1, 1, 10, 2], "texture": "#needle" },
+        "east":  { "uv": [8, 1, 10, 2], "texture": "#needle" },
+        "west":  { "uv": [1, 1, 2, 2], "texture": "#needle" },
+        "up":    { "uv": [1, 1, 10, 2], "texture": "#needle" },
+        "down":  { "uv": [1, 1, 10, 2], "texture": "#needle" }
+      }
+    },
+    {
+      "from": [7.35, 7.35, 2.66],
+      "to": [8.65, 8.65, 3.08],
+      "faces": {
+        "north": { "uv": [0, 0, 2, 2], "texture": "#needle" },
+        "south": { "uv": [0, 0, 2, 2], "texture": "#needle" },
+        "east":  { "uv": [0, 0, 2, 2], "texture": "#needle" },
+        "west":  { "uv": [0, 0, 2, 2], "texture": "#needle" },
+        "up":    { "uv": [0, 0, 2, 2], "texture": "#needle" },
+        "down":  { "uv": [0, 0, 2, 2], "texture": "#needle" }
+      }
+    }
+  ]
+}

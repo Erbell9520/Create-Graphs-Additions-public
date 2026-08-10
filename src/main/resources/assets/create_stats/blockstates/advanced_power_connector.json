@@ -1,0 +1,130 @@
+{
+  "variants": {
+    "anchor=center,facing=up": {
+      "model": "create_stats:block/advanced_power_connector_up"
+    },
+    "anchor=down,facing=up": {
+      "model": "create_stats:block/advanced_power_connector_up"
+    },
+    "anchor=up,facing=up": {
+      "model": "create_stats:block/advanced_power_connector_up"
+    },
+    "anchor=north,facing=up": {
+      "model": "create_stats:block/advanced_power_connector_up_north"
+    },
+    "anchor=south,facing=up": {
+      "model": "create_stats:block/advanced_power_connector_up_south"
+    },
+    "anchor=west,facing=up": {
+      "model": "create_stats:block/advanced_power_connector_up_west"
+    },
+    "anchor=east,facing=up": {
+      "model": "create_stats:block/advanced_power_connector_up_east"
+    },
+    "anchor=center,facing=down": {
+      "model": "create_stats:block/advanced_power_connector_down"
+    },
+    "anchor=down,facing=down": {
+      "model": "create_stats:block/advanced_power_connector_down"
+    },
+    "anchor=up,facing=down": {
+      "model": "create_stats:block/advanced_power_connector_down"
+    },
+    "anchor=north,facing=down": {
+      "model": "create_stats:block/advanced_power_connector_down_north"
+    },
+    "anchor=south,facing=down": {
+      "model": "create_stats:block/advanced_power_connector_down_south"
+    },
+    "anchor=west,facing=down": {
+      "model": "create_stats:block/advanced_power_connector_down_west"
+    },
+    "anchor=east,facing=down": {
+      "model": "create_stats:block/advanced_power_connector_down_east"
+    },
+    "anchor=center,facing=north": {
+      "model": "create_stats:block/advanced_power_connector_north"
+    },
+    "anchor=down,facing=north": {
+      "model": "create_stats:block/advanced_power_connector_north_down"
+    },
+    "anchor=up,facing=north": {
+      "model": "create_stats:block/advanced_power_connector_north_up"
+    },
+    "anchor=north,facing=north": {
+      "model": "create_stats:block/advanced_power_connector_north"
+    },
+    "anchor=south,facing=north": {
+      "model": "create_stats:block/advanced_power_connector_north"
+    },
+    "anchor=west,facing=north": {
+      "model": "create_stats:block/advanced_power_connector_north_west"
+    },
+    "anchor=east,facing=north": {
+      "model": "create_stats:block/advanced_power_connector_north_east"
+    },
+    "anchor=center,facing=south": {
+      "model": "create_stats:block/advanced_power_connector_south"
+    },
+    "anchor=down,facing=south": {
+      "model": "create_stats:block/advanced_power_connector_south_down"
+    },
+    "anchor=up,facing=south": {
+      "model": "create_stats:block/advanced_power_connector_south_up"
+    },
+    "anchor=north,facing=south": {
+      "model": "create_stats:block/advanced_power_connector_south"
+    },
+    "anchor=south,facing=south": {
+      "model": "create_stats:block/advanced_power_connector_south"
+    },
+    "anchor=west,facing=south": {
+      "model": "create_stats:block/advanced_power_connector_south_west"
+    },
+    "anchor=east,facing=south": {
+      "model": "create_stats:block/advanced_power_connector_south_east"
+    },
+    "anchor=center,facing=west": {
+      "model": "create_stats:block/advanced_power_connector_west"
+    },
+    "anchor=down,facing=west": {
+      "model": "create_stats:block/advanced_power_connector_west_down"
+    },
+    "anchor=up,facing=west": {
+      "model": "create_stats:block/advanced_power_connector_west_up"
+    },
+    "anchor=north,facing=west": {
+      "model": "create_stats:block/advanced_power_connector_west_north"
+    },
+    "anchor=south,facing=west": {
+      "model": "create_stats:block/advanced_power_connector_west_south"
+    },
+    "anchor=west,facing=west": {
+      "model": "create_stats:block/advanced_power_connector_west"
+    },
+    "anchor=east,facing=west": {
+      "model": "create_stats:block/advanced_power_connector_west"
+    },
+    "anchor=center,facing=east": {
+      "model": "create_stats:block/advanced_power_connector_east"
+    },
+    "anchor=down,facing=east": {
+      "model": "create_stats:block/advanced_power_connector_east_down"
+    },
+    "anchor=up,facing=east": {
+      "model": "create_stats:block/advanced_power_connector_east_up"
+    },
+    "anchor=north,facing=east": {
+      "model": "create_stats:block/advanced_power_connector_east_north"
+    },
+    "anchor=south,facing=east": {
+      "model": "create_stats:block/advanced_power_connector_east_south"
+    },
+    "anchor=west,facing=east": {
+      "model": "create_stats:block/advanced_power_connector_east"
+    },
+    "anchor=east,facing=east": {
+      "model": "create_stats:block/advanced_power_connector_east"
+    }
+  }
+}

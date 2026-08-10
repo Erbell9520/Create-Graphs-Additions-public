@@ -1,0 +1,91 @@
+{
+  "gui_light": "front",
+  "textures": {
+    "particle": "create:block/brass_casing",
+    "brass": "create:block/brass_casing",
+    "andesite": "create:block/andesite_casing",
+    "copper": "minecraft:block/copper_block",
+    "redstone": "minecraft:block/redstone_block"
+  },
+  "elements": [
+    {
+      "from": [4.5, 0, 4.5],
+      "to": [11.5, 2, 11.5],
+      "faces": {
+        "north": { "uv": [0, 0, 7, 2], "texture": "#andesite" },
+        "south": { "uv": [0, 0, 7, 2], "texture": "#andesite" },
+        "east": { "uv": [0, 0, 7, 2], "texture": "#andesite" },
+        "west": { "uv": [0, 0, 7, 2], "texture": "#andesite" },
+        "up": { "uv": [0, 0, 7, 7], "texture": "#andesite" },
+        "down": { "uv": [0, 0, 7, 7], "texture": "#andesite" }
+      }
+    },
+    {
+      "from": [5.5, 2, 5.5],
+      "to": [10.5, 4, 10.5],
+      "faces": {
+        "north": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "south": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "east": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "west": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "up": { "uv": [0, 0, 5, 5], "texture": "#brass" },
+        "down": { "uv": [0, 0, 5, 5], "texture": "#brass" }
+      }
+    },
+    {
+      "from": [7.1, 4, 7.1],
+      "to": [8.9, 14, 8.9],
+      "faces": {
+        "north": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "south": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "east": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "west": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "up": { "uv": [0, 0, 2, 2], "texture": "#copper" },
+        "down": { "uv": [0, 0, 2, 2], "texture": "#copper" }
+      }
+    },
+    {
+      "from": [3.5, 10.5, 7],
+      "to": [12.5, 12, 9],
+      "faces": {
+        "north": { "uv": [0, 0, 9, 2], "texture": "#brass" },
+        "south": { "uv": [0, 0, 9, 2], "texture": "#brass" },
+        "east": { "uv": [0, 0, 2, 2], "texture": "#brass" },
+        "west": { "uv": [0, 0, 2, 2], "texture": "#brass" },
+        "up": { "uv": [0, 0, 9, 2], "texture": "#brass" },
+        "down": { "uv": [0, 0, 9, 2], "texture": "#brass" }
+      }
+    },
+    {
+      "from": [7, 9.5, 3.5],
+      "to": [9, 11.5, 12.5],
+      "faces": {
+        "north": { "uv": [0, 0, 2, 2], "texture": "#brass" },
+        "south": { "uv": [0, 0, 2, 2], "texture": "#brass" },
+        "east": { "uv": [0, 0, 9, 2], "texture": "#brass" },
+        "west": { "uv": [0, 0, 9, 2], "texture": "#brass" },
+        "up": { "uv": [0, 0, 2, 9], "texture": "#brass" },
+        "down": { "uv": [0, 0, 2, 9], "texture": "#brass" }
+      }
+    },
+    {
+      "from": [6, 13, 6],
+      "to": [10, 16, 10],
+      "faces": {
+        "north": { "uv": [0, 0, 4, 3], "texture": "#redstone" },
+        "south": { "uv": [0, 0, 4, 3], "texture": "#redstone" },
+        "east": { "uv": [0, 0, 4, 3], "texture": "#redstone" },
+        "west": { "uv": [0, 0, 4, 3], "texture": "#redstone" },
+        "up": { "uv": [0, 0, 4, 4], "texture": "#redstone" },
+        "down": { "uv": [0, 0, 4, 4], "texture": "#redstone" }
+      }
+    }
+  ],
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.76, 0.76, 0.76] },
+    "ground": { "translation": [0, 3, 0], "scale": [0.35, 0.35, 0.35] },
+    "fixed": { "rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [0.56, 0.56, 0.56] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.42, 0.42, 0.42] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 2, 0], "scale": [0.45, 0.45, 0.45] }
+  }
+}

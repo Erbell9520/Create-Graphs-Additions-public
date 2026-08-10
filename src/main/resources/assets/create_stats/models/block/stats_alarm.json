@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "create_stats:block/stats_alarm_top",
+    "front": "create_stats:block/stats_alarm_front",
+    "side": "create_stats:block/stats_alarm_side"
+  }
+}

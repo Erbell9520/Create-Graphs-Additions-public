@@ -1,0 +1,85 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.pilot_helmet",
+				"texture_width": 64,
+				"texture_height": 64,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 2,
+				"visible_bounds_offset": [0, 1, 0]
+			},
+			"bones": [
+				{
+					"name": "armorHead",
+					"pivot": [0, 24, 0],
+					"cubes": [
+						{ "name": "dome",      "origin": [-4, 29.4, -4],   "size": [8, 2.6, 8], "inflate": 1.0,  "uv": [0, 0] },
+						{ "name": "back_band", "origin": [-4, 24.0, 2.2],  "size": [8, 6, 2],   "inflate": 0.85, "uv": [0, 12] },
+						{ "name": "side_l",    "origin": [3.2, 24.0, -4],  "size": [1.2, 6, 7.6], "inflate": 0.6, "uv": [40, 0] },
+						{ "name": "side_r",    "origin": [-4.4, 24.0, -4], "size": [1.2, 6, 7.6], "inflate": 0.6, "uv": [40, 16] },
+						{ "name": "brow",      "origin": [-4, 29.0, -4.6], "size": [8, 2.2, 1.0], "inflate": 0.4, "uv": [0, 21] },
+						{ "name": "crest",     "origin": [-0.5, 32.4, -3.5], "size": [1, 1.2, 7], "uv": [0, 26] }
+					]
+				},
+				{
+					"name": "earcup_l",
+					"parent": "armorHead",
+					"pivot": [4, 28, 0],
+					"cubes": [
+						{ "name": "earcup_l", "origin": [4.7, 25.5, -2.5], "size": [1.5, 5, 5], "uv": [38, 34] }
+					]
+				},
+				{
+					"name": "earcup_r",
+					"parent": "armorHead",
+					"pivot": [-4, 28, 0],
+					"cubes": [
+						{ "name": "earcup_r", "origin": [-6.2, 25.5, -2.5], "size": [1.5, 5, 5], "uv": [38, 50] }
+					]
+				},
+				{
+					"name": "vent",
+					"parent": "armorHead",
+					"pivot": [0, 32, 0],
+					"cubes": [
+						{ "name": "vent", "origin": [-3.5, 32.1, 0.5], "size": [7, 1.0, 3], "uv": [20, 12] }
+					]
+				},
+				{
+					"name": "mic_root",
+					"parent": "earcup_r",
+					"pivot": [-5.0, 26.5, -2.0],
+					"cubes": [
+						{ "name": "mic_arm", "origin": [-5.3, 26.0, -6.5], "size": [0.6, 0.6, 4.5], "uv": [0, 36] }
+					]
+				},
+				{
+					"name": "mic_boom",
+					"parent": "mic_root",
+					"pivot": [-5.0, 26.3, -6.0],
+					"cubes": [
+						{ "name": "mic_tip", "origin": [-5.5, 24.8, -6.8], "size": [1, 1.5, 1], "uv": [14, 36] }
+					]
+				},
+				{
+					"name": "visor",
+					"parent": "armorHead",
+					"pivot": [0, 30.6, -3.0],
+					"cubes": [
+						{ "name": "visor_frame", "origin": [-4.85, 25.0, -5.4], "size": [9.7, 5.0, 0.9], "uv": [0, 50] }
+					]
+				},
+				{
+					"name": "hud_glass",
+					"parent": "visor",
+					"pivot": [0, 30.6, -3.0],
+					"cubes": [
+						{ "name": "lens", "origin": [-4.2, 25.5, -5.5], "size": [8.4, 4.0, 0.2], "uv": [24, 50] }
+					]
+				}
+			]
+		}
+	]
+}

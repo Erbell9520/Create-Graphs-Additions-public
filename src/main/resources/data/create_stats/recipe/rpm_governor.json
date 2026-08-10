@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BPB",
+    "SRC",
+    "BEB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create_stats:smart_gearshift"
+    },
+    "R": {
+      "item": "create:redstone_link"
+    },
+    "C": {
+      "item": "create_stats:control_clutch"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:rpm_governor",
+    "count": 1
+  }
+}

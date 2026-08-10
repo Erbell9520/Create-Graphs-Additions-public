@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "ARA",
+    " D "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:paper"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "create_stats:machine_selection_card",
+    "count": 1
+  }
+}

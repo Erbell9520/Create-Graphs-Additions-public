@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "create_stats:item/safety_clutch_link_card"
+  }
+}

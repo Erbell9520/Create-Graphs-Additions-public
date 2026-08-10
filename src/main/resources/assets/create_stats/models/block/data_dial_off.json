@@ -1,0 +1,6 @@
+{
+  "parent": "create_stats:block/data_dial_base",
+  "textures": {
+    "face": "create_stats:block/data_dial_face_dim"
+  }
+}

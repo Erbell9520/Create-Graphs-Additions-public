@@ -1,0 +1,17 @@
+{
+  "__comment": "FACING property preserved for world-load compat. Each facing maps to one of the smart_gearshift-derived axis models (axis_x for east/west, axis_y for up/down, axis_z for north/south) plus rotation. visual_state toggles between neutral (idle) and throttle (FCC-active) variants.",
+  "variants": {
+    "facing=east,visual_state=idle":     { "model": "create_stats:block/rpm_governor/axis_x_neutral" },
+    "facing=east,visual_state=active":   { "model": "create_stats:block/rpm_governor/axis_x_throttle" },
+    "facing=west,visual_state=idle":     { "model": "create_stats:block/rpm_governor/axis_x_neutral", "y": 180 },
+    "facing=west,visual_state=active":   { "model": "create_stats:block/rpm_governor/axis_x_throttle", "y": 180 },
+    "facing=up,visual_state=idle":       { "model": "create_stats:block/rpm_governor/axis_y_neutral" },
+    "facing=up,visual_state=active":     { "model": "create_stats:block/rpm_governor/axis_y_throttle" },
+    "facing=down,visual_state=idle":     { "model": "create_stats:block/rpm_governor/axis_y_neutral", "x": 180 },
+    "facing=down,visual_state=active":   { "model": "create_stats:block/rpm_governor/axis_y_throttle", "x": 180 },
+    "facing=north,visual_state=idle":    { "model": "create_stats:block/rpm_governor/axis_z_neutral" },
+    "facing=north,visual_state=active":  { "model": "create_stats:block/rpm_governor/axis_z_throttle" },
+    "facing=south,visual_state=idle":    { "model": "create_stats:block/rpm_governor/axis_z_neutral", "y": 180 },
+    "facing=south,visual_state=active":  { "model": "create_stats:block/rpm_governor/axis_z_throttle", "y": 180 }
+  }
+}

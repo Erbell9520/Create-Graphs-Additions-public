@@ -1,0 +1,112 @@
+{
+  "variants": {
+    "level=0,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=1,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=2,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=3,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=4,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=5,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=6,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=7,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=8,segment=single": {
+      "model": "create_stats:block/capacitor_bank_single"
+    },
+    "level=0,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=1,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=2,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=3,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=4,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=5,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=6,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=7,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=8,segment=bottom": {
+      "model": "create_stats:block/capacitor_bank_bottom"
+    },
+    "level=0,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=1,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=2,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=3,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=4,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=5,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=6,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=7,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=8,segment=middle": {
+      "model": "create_stats:block/capacitor_bank_middle"
+    },
+    "level=0,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=1,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=2,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=3,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=4,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=5,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=6,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=7,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    },
+    "level=8,segment=top": {
+      "model": "create_stats:block/capacitor_bank_top"
+    }
+  }
+}

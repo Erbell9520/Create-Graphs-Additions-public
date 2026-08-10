@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "GCG",
+    "RER"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "G": {
+      "item": "minecraft:gold_nugget"
+    },
+    "C": {
+      "item": "minecraft:clock"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:table_alarm_clock",
+    "count": 1
+  }
+}

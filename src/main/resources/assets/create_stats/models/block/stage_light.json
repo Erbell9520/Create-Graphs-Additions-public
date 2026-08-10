@@ -1,0 +1,7 @@
+{
+  "__comment": "Empty baked model: the Stage Light is drawn entirely by its block-entity renderer (base + animated yoke + head). Particle only.",
+  "parent": "block/block",
+  "textures": {
+    "particle": "create:block/brass_casing"
+  }
+}

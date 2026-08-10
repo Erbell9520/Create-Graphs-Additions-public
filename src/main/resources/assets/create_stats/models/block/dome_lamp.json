@@ -1,0 +1,374 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "brass": "create_stats:block/lamp_brass",
+    "enamel": "create_stats:block/lamp_enamel",
+    "diffuser": "create_stats:block/lamp_diffuser",
+    "particle": "create_stats:block/lamp_brass"
+  },
+  "elements": [
+    {
+      "__comment": "plate",
+      "from": [
+        4.4,
+        0,
+        4.4
+      ],
+      "to": [
+        11.6,
+        0.8,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "__comment": "gallery",
+      "from": [
+        4.8,
+        0.8,
+        4.8
+      ],
+      "to": [
+        11.2,
+        1.6,
+        11.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#enamel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#enamel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#enamel"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#enamel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#enamel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#enamel"
+        }
+      }
+    },
+    {
+      "__comment": "glass_a",
+      "from": [
+        4.6,
+        1.6,
+        4.6
+      ],
+      "to": [
+        11.4,
+        3.0,
+        11.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "__comment": "glass_b",
+      "from": [
+        5.6,
+        3.0,
+        5.6
+      ],
+      "to": [
+        10.4,
+        4.2,
+        10.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5,
+            5
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5,
+            5
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "__comment": "glass_c",
+      "from": [
+        6.8,
+        4.2,
+        6.8
+      ],
+      "to": [
+        9.2,
+        4.9,
+        9.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#diffuser",
+          "tintindex": 0
+        }
+      }
+    }
+  ]
+}

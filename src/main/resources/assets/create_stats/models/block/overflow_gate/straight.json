@@ -1,0 +1,10 @@
+{
+  "parent": "create:block/belt_tunnel/straight",
+  "textures": {
+    "direction": "create_stats:block/overflow_gate/direction",
+    "frame": "create_stats:block/overflow_gate/frame",
+    "particle": "create_stats:block/overflow_gate/tunnel",
+    "top": "create_stats:block/overflow_gate/top",
+    "tunnel": "create_stats:block/overflow_gate/tunnel"
+  }
+}

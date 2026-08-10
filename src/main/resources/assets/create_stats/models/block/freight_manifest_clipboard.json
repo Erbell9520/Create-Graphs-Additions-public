@@ -1,0 +1,47 @@
+{
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "board": "create_stats:block/freight_manifest_clipboard",
+    "clip": "create_stats:block/freight_manifest_clip",
+    "particle": "#board"
+  },
+  "elements": [
+    {
+      "from": [4, 0, 4],
+      "to": [12, 1, 12],
+      "faces": {
+        "down":  { "texture": "#board", "uv": [4, 4, 12, 12] },
+        "up":    { "texture": "#board", "uv": [4, 4, 12, 12] },
+        "north": { "texture": "#board", "uv": [4, 15, 12, 16] },
+        "south": { "texture": "#board", "uv": [4, 15, 12, 16] },
+        "west":  { "texture": "#board", "uv": [4, 15, 12, 16] },
+        "east":  { "texture": "#board", "uv": [4, 15, 12, 16] }
+      }
+    },
+    {
+      "from": [3, 1, 7],
+      "to": [13, 15, 9],
+      "faces": {
+        "down":  { "texture": "#board", "uv": [3, 7, 13, 9] },
+        "up":    { "texture": "#board", "uv": [3, 7, 13, 9] },
+        "north": { "texture": "#board", "uv": [3, 1, 13, 15] },
+        "south": { "texture": "#board", "uv": [3, 1, 13, 15] },
+        "west":  { "texture": "#board", "uv": [7, 1, 9, 15] },
+        "east":  { "texture": "#board", "uv": [7, 1, 9, 15] }
+      }
+    },
+    {
+      "from": [5, 12, 6.5],
+      "to": [11, 16, 9.5],
+      "faces": {
+        "down":  { "texture": "#clip", "uv": [5, 6, 11, 9] },
+        "up":    { "texture": "#clip", "uv": [5, 6, 11, 9] },
+        "north": { "texture": "#clip", "uv": [5, 0, 11, 4] },
+        "south": { "texture": "#clip", "uv": [5, 0, 11, 4] },
+        "west":  { "texture": "#clip", "uv": [6, 0, 9, 4] },
+        "east":  { "texture": "#clip", "uv": [6, 0, 9, 4] }
+      }
+    }
+  ]
+}

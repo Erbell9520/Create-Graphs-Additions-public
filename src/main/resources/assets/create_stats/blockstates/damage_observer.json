@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "active=true,facing=north,wall_mount=false": { "model": "create_stats:block/damage_observer" },
+    "active=true,facing=south,wall_mount=false": { "model": "create_stats:block/damage_observer", "y": 180 },
+    "active=true,facing=east,wall_mount=false": { "model": "create_stats:block/damage_observer", "y": 90 },
+    "active=true,facing=west,wall_mount=false": { "model": "create_stats:block/damage_observer", "y": 270 },
+    "active=false,facing=north,wall_mount=false": { "model": "create_stats:block/damage_observer_off" },
+    "active=false,facing=south,wall_mount=false": { "model": "create_stats:block/damage_observer_off", "y": 180 },
+    "active=false,facing=east,wall_mount=false": { "model": "create_stats:block/damage_observer_off", "y": 90 },
+    "active=false,facing=west,wall_mount=false": { "model": "create_stats:block/damage_observer_off", "y": 270 },
+    "active=true,facing=north,wall_mount=true": { "model": "create_stats:block/damage_observer_wall" },
+    "active=true,facing=south,wall_mount=true": { "model": "create_stats:block/damage_observer_wall", "y": 180 },
+    "active=true,facing=east,wall_mount=true": { "model": "create_stats:block/damage_observer_wall", "y": 90 },
+    "active=true,facing=west,wall_mount=true": { "model": "create_stats:block/damage_observer_wall", "y": 270 },
+    "active=false,facing=north,wall_mount=true": { "model": "create_stats:block/damage_observer_wall_off" },
+    "active=false,facing=south,wall_mount=true": { "model": "create_stats:block/damage_observer_wall_off", "y": 180 },
+    "active=false,facing=east,wall_mount=true": { "model": "create_stats:block/damage_observer_wall_off", "y": 90 },
+    "active=false,facing=west,wall_mount=true": { "model": "create_stats:block/damage_observer_wall_off", "y": 270 }
+  }
+}

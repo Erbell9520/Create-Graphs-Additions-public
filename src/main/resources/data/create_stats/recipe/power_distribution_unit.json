@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CBC",
+    "RGR",
+    "CBC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "B": {
+      "item": "create:brass_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "G": {
+      "item": "create_stats:power_connector"
+    }
+  },
+  "result": {
+    "id": "create_stats:power_distribution_unit",
+    "count": 1
+  },
+  "show_notification": true
+}

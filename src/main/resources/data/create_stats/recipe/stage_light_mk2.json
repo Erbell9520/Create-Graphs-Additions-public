@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "GSG",
+    "BPB"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "S": {
+      "item": "create_stats:stage_light"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "create:polished_rose_quartz"
+    }
+  },
+  "result": {
+    "id": "create_stats:stage_light_mk2",
+    "count": 1
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "__comment": "FE Motor MK2 skin.",
+  "parent": "create_stats:block/fe_motor/housing",
+  "textures": {
+    "casing": "create_stats:block/motor_casing_dark",
+    "bezel": "create_stats:block/motor_bezel_dark",
+    "hub": "create_stats:block/motor_hub_dark",
+    "rib": "create_stats:block/motor_rib",
+    "terminal": "create_stats:block/motor_terminal",
+    "skid": "create_stats:block/motor_skid",
+    "skid_top": "create_stats:block/motor_skid_top",
+    "stud": "create_stats:block/motor_stud",
+    "plate": "create_stats:block/motor_plate"
+  }
+}

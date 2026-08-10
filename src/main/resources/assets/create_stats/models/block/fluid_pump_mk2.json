@@ -1,0 +1,17 @@
+{
+  "__comment": "FE Fluid Pump MK II: darker heavy-duty housing with copper stubs and a gilded dial, so the higher grade reads at a glance.",
+  "parent": "create_stats:block/fluid_pump/housing",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "body": "minecraft:block/netherite_block",
+    "copper": "minecraft:block/copper_block",
+    "grille": "create:block/brass_block",
+    "dial": "minecraft:block/gold_block",
+    "motor": "create:block/industrial_iron_block",
+    "glass": "minecraft:block/glass",
+    "fluid": "minecraft:block/water_still",
+    "gauge": "minecraft:block/gold_block",
+    "led": "minecraft:block/sea_lantern",
+    "arrow": "minecraft:block/netherite_block"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CGC",
+    "BOB",
+    "BEB"
+  ],
+  "key": {
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "O": {
+      "item": "create:content_observer"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:damage_observer",
+    "count": 1
+  }
+}

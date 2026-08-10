@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BEB",
+    "PPP",
+    "BRB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "create_stats:dispatch_board",
+    "count": 1
+  }
+}

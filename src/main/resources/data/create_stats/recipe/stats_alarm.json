@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EBE",
+    "BCB",
+    "ERE"
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "C": {
+      "item": "minecraft:bell"
+    },
+    "R": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "result": {
+    "id": "create_stats:stats_alarm",
+    "count": 1
+  }
+}

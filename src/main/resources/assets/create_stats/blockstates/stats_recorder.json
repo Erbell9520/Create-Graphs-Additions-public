@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "create_stats:block/stats_recorder" },
+    "facing=south": { "model": "create_stats:block/stats_recorder", "y": 180 },
+    "facing=east": { "model": "create_stats:block/stats_recorder", "y": 90 },
+    "facing=west": { "model": "create_stats:block/stats_recorder", "y": 270 }
+  }
+}

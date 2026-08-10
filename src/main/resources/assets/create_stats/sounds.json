@@ -1,0 +1,38 @@
+{
+  "alarm_ring": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "create_stats:alarm_ring",
+        "stream": false
+      }
+    ]
+  },
+  "flywheel_loop": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "create_stats:flywheel_loop",
+        "stream": false
+      }
+    ]
+  },
+  "flywheel_overstress": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "create_stats:flywheel_overstress",
+        "stream": false
+      }
+    ]
+  },
+  "flywheel_charged": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "create_stats:flywheel_charged",
+        "stream": false
+      }
+    ]
+  }
+}

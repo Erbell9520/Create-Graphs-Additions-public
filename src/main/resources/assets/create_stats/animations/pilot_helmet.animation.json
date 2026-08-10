@@ -1,0 +1,30 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"deploy": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 0.35,
+			"bones": {
+				"visor": {
+					"rotation": {
+						"0.0": [-100, 0, 0],
+						"0.24": [7, 0, 0],
+						"0.35": [0, 0, 0]
+					}
+				}
+			}
+		},
+		"retract": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 0.3,
+			"bones": {
+				"visor": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.3": [-100, 0, 0]
+					}
+				}
+			}
+		}
+	}
+}

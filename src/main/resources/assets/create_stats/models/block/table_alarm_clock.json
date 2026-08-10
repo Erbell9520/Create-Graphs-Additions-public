@@ -1,0 +1,9 @@
+﻿{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front":    "create_stats:block/table_alarm_clock_front",
+    "side":     "create_stats:block/table_alarm_clock_side",
+    "top":      "create_stats:block/table_alarm_clock_top",
+    "particle": "create_stats:block/table_alarm_clock_side"
+  }
+}

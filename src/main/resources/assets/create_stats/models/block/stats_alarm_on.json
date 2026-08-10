@@ -1,0 +1,6 @@
+{
+  "parent": "create_stats:block/stats_alarm",
+  "textures": {
+    "front": "create_stats:block/stats_alarm_front_on"
+  }
+}

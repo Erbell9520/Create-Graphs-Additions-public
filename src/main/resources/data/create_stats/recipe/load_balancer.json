@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "B B",
+    "EGE",
+    "B B"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "create:gearbox"
+    }
+  },
+  "result": {
+    "id": "create_stats:load_balancer",
+    "count": 1
+  },
+  "show_notification": true
+}

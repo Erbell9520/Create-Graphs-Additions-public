@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "mount=standing,facing=north": { "model": "create_stats:block/freight_manifest_clipboard" },
+    "mount=standing,facing=east":  { "model": "create_stats:block/freight_manifest_clipboard", "y": 90, "uvlock": true },
+    "mount=standing,facing=south": { "model": "create_stats:block/freight_manifest_clipboard", "y": 180, "uvlock": true },
+    "mount=standing,facing=west":  { "model": "create_stats:block/freight_manifest_clipboard", "y": 270, "uvlock": true },
+    "mount=wall,facing=north":     { "model": "create_stats:block/freight_manifest_clipboard_wall" },
+    "mount=wall,facing=east":      { "model": "create_stats:block/freight_manifest_clipboard_wall", "y": 90, "uvlock": true },
+    "mount=wall,facing=south":     { "model": "create_stats:block/freight_manifest_clipboard_wall", "y": 180, "uvlock": true },
+    "mount=wall,facing=west":      { "model": "create_stats:block/freight_manifest_clipboard_wall", "y": 270, "uvlock": true }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "create_stats:block/dispatch_board_wall" },
+    "facing=east":  { "model": "create_stats:block/dispatch_board_wall", "y": 90, "uvlock": true },
+    "facing=south": { "model": "create_stats:block/dispatch_board_wall", "y": 180, "uvlock": true },
+    "facing=west":  { "model": "create_stats:block/dispatch_board_wall", "y": 270, "uvlock": true }
+  }
+}

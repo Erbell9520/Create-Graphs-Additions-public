@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    " B ",
+    " P "
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "create:andesite_alloy"
+    }
+  },
+  "result": {
+    "id": "create_stats:small_signal_antenna",
+    "count": 1
+  }
+}

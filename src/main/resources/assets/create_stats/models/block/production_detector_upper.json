@@ -1,0 +1,49 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "body": "create_stats:block/production_detector_base",
+    "front": "create_stats:block/production_detector_front",
+    "side": "create_stats:block/production_detector_side",
+    "back": "create_stats:block/production_detector_back",
+    "casing": "create:block/andesite_casing",
+    "particle": "create_stats:block/production_detector_base"
+  },
+  "elements": [
+    {
+      "from": [1, -6, 4],
+      "to": [15, 8, 6],
+      "faces": {
+        "north": { "uv": [1, 2, 15, 16], "texture": "#casing" },
+        "south": { "uv": [1, 2, 15, 16], "texture": "#front" },
+        "east":  { "uv": [10, 2, 12, 16], "texture": "#casing" },
+        "west":  { "uv": [10, 2, 12, 16], "texture": "#casing" },
+        "up":    { "uv": [1, 10, 15, 12], "texture": "#body" },
+        "down":  { "uv": [1, 10, 15, 12], "texture": "#body" }
+      }
+    },
+    {
+      "from": [0, 0, 6],
+      "to": [1, 8, 7],
+      "faces": {
+        "north": { "uv": [0, 2, 1, 10], "texture": "#casing" },
+        "south": { "uv": [0, 2, 1, 10], "texture": "#casing" },
+        "east":  { "uv": [9, 2, 10, 10], "texture": "#casing" },
+        "west":  { "uv": [9, 2, 10, 10], "texture": "#casing" },
+        "up":    { "uv": [0, 6, 1, 7], "texture": "#casing" },
+        "down":  { "uv": [0, 6, 1, 7], "texture": "#casing" }
+      }
+    },
+    {
+      "from": [15, 0, 6],
+      "to": [16, 8, 7],
+      "faces": {
+        "north": { "uv": [15, 2, 16, 10], "texture": "#casing" },
+        "south": { "uv": [15, 2, 16, 10], "texture": "#casing" },
+        "east":  { "uv": [9, 2, 10, 10], "texture": "#casing" },
+        "west":  { "uv": [9, 2, 10, 10], "texture": "#casing" },
+        "up":    { "uv": [15, 6, 16, 7], "texture": "#casing" },
+        "down":  { "uv": [15, 6, 16, 7], "texture": "#casing" }
+      }
+    }
+  ]
+}

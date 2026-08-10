@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "axis=x,active=false": {
+      "model": "create_stats:block/control_clutch/axis_x_off"
+    },
+    "axis=x,active=true": {
+      "model": "create_stats:block/control_clutch/axis_x_on"
+    },
+    "axis=y,active=false": {
+      "model": "create_stats:block/control_clutch/axis_y_off"
+    },
+    "axis=y,active=true": {
+      "model": "create_stats:block/control_clutch/axis_y_on"
+    },
+    "axis=z,active=false": {
+      "model": "create_stats:block/control_clutch/axis_z_off"
+    },
+    "axis=z,active=true": {
+      "model": "create_stats:block/control_clutch/axis_z_on"
+    }
+  }
+}

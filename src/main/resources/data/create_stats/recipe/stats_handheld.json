@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " E ",
+    "BMB",
+    " B "
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "M": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "result": {
+    "id": "create_stats:stats_handheld",
+    "count": 1
+  }
+}

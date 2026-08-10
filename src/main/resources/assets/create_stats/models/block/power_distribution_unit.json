@@ -1,0 +1,1868 @@
+{
+  "format_version": "1.21.11",
+  "credit": "Made with Blockbench",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_stats:block/power_distribution_unit_frame",
+    "brass": "create_stats:block/power_distribution_unit_frame",
+    "bezel": "create_stats:block/power_distribution_unit_bezel",
+    "panel": "create_stats:block/power_distribution_unit_panel",
+    "rear": "create_stats:block/power_distribution_unit_back",
+    "top": "create_stats:block/power_distribution_unit_top",
+    "screen": "create_stats:block/power_distribution_unit_screen",
+    "input": "create_stats:block/power_distribution_unit_input",
+    "output": "create_stats:block/power_distribution_unit_output",
+    "bus": "create_stats:block/power_distribution_unit_bus",
+    "stud": "create_stats:block/power_distribution_unit_stud",
+    "breaker": "create_stats:block/power_distribution_unit_breaker"
+  },
+  "elements": [
+    {
+      "name": "Heavy console base, full-width plinth",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        3,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            13,
+            16,
+            16
+          ],
+          "texture": "#brass",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            0,
+            13,
+            16,
+            16
+          ],
+          "texture": "#brass",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            0,
+            13,
+            16,
+            16
+          ],
+          "texture": "#brass",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            0,
+            13,
+            16,
+            16
+          ],
+          "texture": "#brass",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brass",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "Terminal shelf, full-width control lip",
+      "from": [
+        0,
+        3,
+        0
+      ],
+      "to": [
+        16,
+        5,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            11,
+            16,
+            13
+          ],
+          "texture": "#panel",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            10,
+            11,
+            16,
+            13
+          ],
+          "texture": "#brass",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            0,
+            11,
+            16,
+            13
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            11,
+            6,
+            13
+          ],
+          "texture": "#brass",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#panel"
+        },
+        "down": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "Instrument body, full-width chassis",
+      "from": [
+        0,
+        5,
+        5
+      ],
+      "to": [
+        16,
+        14,
+        12
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            2,
+            16,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            4,
+            2,
+            11,
+            11
+          ],
+          "texture": "#brass",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            0,
+            2,
+            16,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            5,
+            2,
+            12,
+            11
+          ],
+          "texture": "#brass",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            5,
+            16,
+            12
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            5,
+            16,
+            12
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "Screen panel (recessed 2px behind bezel front at z=2)",
+      "from": [
+        3,
+        6,
+        4
+      ],
+      "to": [
+        13,
+        14,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            2,
+            13,
+            10
+          ],
+          "texture": "#screen"
+        }
+      }
+    },
+    {
+      "name": "Bezel, bottom bar (3px proud of housing)",
+      "from": [
+        2,
+        5,
+        2
+      ],
+      "to": [
+        14,
+        6,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            10,
+            14,
+            11
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            11,
+            10,
+            14,
+            11
+          ],
+          "texture": "#bezel"
+        },
+        "west": {
+          "uv": [
+            2,
+            10,
+            5,
+            11
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            2,
+            11,
+            14,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            2,
+            11,
+            14,
+            14
+          ],
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "name": "Bezel, left bar (3px proud of housing)",
+      "from": [
+        2,
+        6,
+        2
+      ],
+      "to": [
+        3,
+        14,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13,
+            2,
+            14,
+            10
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            11,
+            2,
+            14,
+            10
+          ],
+          "texture": "#bezel"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            5,
+            10
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            2,
+            11,
+            3,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            2,
+            11,
+            3,
+            14
+          ],
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "name": "Bezel, right bar (3px proud of housing)",
+      "from": [
+        13,
+        6,
+        2
+      ],
+      "to": [
+        14,
+        14,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            3,
+            10
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            11,
+            2,
+            14,
+            10
+          ],
+          "texture": "#bezel"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            5,
+            10
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            13,
+            11,
+            14,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            13,
+            11,
+            14,
+            14
+          ],
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "name": "Bezel, top bar (3px proud of housing)",
+      "from": [
+        2,
+        14,
+        2
+      ],
+      "to": [
+        14,
+        15,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            1,
+            14,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            11,
+            1,
+            14,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "west": {
+          "uv": [
+            2,
+            1,
+            5,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            2,
+            11,
+            14,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            2,
+            11,
+            14,
+            14
+          ],
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "name": "Rear housing, shallow equipment box",
+      "from": [
+        2,
+        5,
+        12
+      ],
+      "to": [
+        14,
+        14,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            2,
+            4,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            2,
+            2,
+            14,
+            11
+          ],
+          "texture": "#rear",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            12,
+            2,
+            16,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            14,
+            4
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            2,
+            12,
+            14,
+            16
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "Top vent / crown, full housing width",
+      "from": [
+        0,
+        14,
+        5
+      ],
+      "to": [
+        16,
+        16,
+        12
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            4,
+            0,
+            11,
+            2
+          ],
+          "texture": "#bezel",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "west": {
+          "uv": [
+            5,
+            0,
+            12,
+            2
+          ],
+          "texture": "#bezel",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            4,
+            16,
+            11
+          ],
+          "texture": "#top",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "INPUT terminal boss (west / left side, receive-only from upstream grid)",
+      "from": [
+        -2,
+        6,
+        6
+      ],
+      "to": [
+        0,
+        13,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            4,
+            8,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            8,
+            4,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#input"
+        },
+        "up": {
+          "uv": [
+            6,
+            5,
+            8,
+            10
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            6,
+            5,
+            8,
+            10
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "OUTPUT terminal boss (east / right side, single connector, up to 8 cable links)",
+      "from": [
+        16,
+        6,
+        6
+      ],
+      "to": [
+        18,
+        13,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            4,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#output"
+        },
+        "south": {
+          "uv": [
+            6,
+            4,
+            8,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            8,
+            5,
+            10,
+            10
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            8,
+            5,
+            10,
+            10
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "Bezel bolt, bottom-left",
+      "from": [
+        2,
+        5,
+        1
+      ],
+      "to": [
+        3,
+        6,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "Bezel bolt, bottom-right",
+      "from": [
+        13,
+        5,
+        1
+      ],
+      "to": [
+        14,
+        6,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "Bezel bolt, top-left",
+      "from": [
+        2,
+        14,
+        1
+      ],
+      "to": [
+        3,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "Bezel bolt, top-right",
+      "from": [
+        13,
+        14,
+        1
+      ],
+      "to": [
+        14,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "TOP OUTPUT BUS: raised copper/graphite mounting pad (1px proud of the crown)",
+      "from": [
+        2,
+        16,
+        6
+      ],
+      "to": [
+        14,
+        17,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            6,
+            14,
+            7
+          ],
+          "texture": "#bus"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            11,
+            7
+          ],
+          "texture": "#bus"
+        },
+        "south": {
+          "uv": [
+            2,
+            6,
+            14,
+            7
+          ],
+          "texture": "#bus"
+        },
+        "west": {
+          "uv": [
+            6,
+            6,
+            11,
+            7
+          ],
+          "texture": "#bus"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            15,
+            9
+          ],
+          "texture": "#bus"
+        }
+      }
+    },
+    {
+      "name": "TOP OUTPUT BUS: bridging copper bus bar down the pad centre",
+      "from": [
+        2.5,
+        17,
+        8
+      ],
+      "to": [
+        13.5,
+        18.5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            5,
+            13,
+            8
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            2,
+            5,
+            13,
+            8
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            2,
+            7,
+            13,
+            8
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 1 (front row, col 1)",
+      "from": [
+        2.75,
+        17,
+        6.25
+      ],
+      "to": [
+        4.25,
+        19,
+        7.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 2 (front row, col 2)",
+      "from": [
+        5.75,
+        17,
+        6.25
+      ],
+      "to": [
+        7.25,
+        19,
+        7.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 3 (front row, col 3)",
+      "from": [
+        8.75,
+        17,
+        6.25
+      ],
+      "to": [
+        10.25,
+        19,
+        7.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 4 (front row, col 4)",
+      "from": [
+        11.75,
+        17,
+        6.25
+      ],
+      "to": [
+        13.25,
+        19,
+        7.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 5 (back row, col 1)",
+      "from": [
+        2.75,
+        17,
+        9.25
+      ],
+      "to": [
+        4.25,
+        19,
+        10.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 6 (back row, col 2)",
+      "from": [
+        5.75,
+        17,
+        9.25
+      ],
+      "to": [
+        7.25,
+        19,
+        10.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 7 (back row, col 3)",
+      "from": [
+        8.75,
+        17,
+        9.25
+      ],
+      "to": [
+        10.25,
+        19,
+        10.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Output bus stud, cable tie-point 8 (back row, col 4)",
+      "from": [
+        11.75,
+        17,
+        9.25
+      ],
+      "to": [
+        13.25,
+        19,
+        10.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            4,
+            5,
+            12,
+            11
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Front breaker toggle nub 1 (left), proud on the control shelf below the screen",
+      "from": [
+        4,
+        5,
+        0.25
+      ],
+      "to": [
+        6,
+        7.5,
+        1.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            2,
+            12,
+            14
+          ],
+          "texture": "#breaker"
+        },
+        "east": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            7,
+            5,
+            9,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            5,
+            4,
+            10,
+            9
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Front breaker toggle nub 2 (centre)",
+      "from": [
+        7,
+        5,
+        0.25
+      ],
+      "to": [
+        9,
+        7.5,
+        1.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            2,
+            12,
+            14
+          ],
+          "texture": "#breaker"
+        },
+        "east": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            7,
+            5,
+            9,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            5,
+            4,
+            10,
+            9
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "Front breaker toggle nub 3 (right)",
+      "from": [
+        10,
+        5,
+        0.25
+      ],
+      "to": [
+        12,
+        7.5,
+        1.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            2,
+            12,
+            14
+          ],
+          "texture": "#breaker"
+        },
+        "east": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            7,
+            5,
+            9,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            7,
+            5,
+            8,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            5,
+            4,
+            10,
+            9
+          ],
+          "texture": "#stud"
+        }
+      }
+    },
+    {
+      "name": "BACK CABLE BOSS (rear, low, the panel's one cable output)",
+      "from": [
+        6,
+        5,
+        16
+      ],
+      "to": [
+        10,
+        9,
+        18
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            7,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#output"
+        },
+        "east": {
+          "uv": [
+            6,
+            7,
+            8,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            8,
+            7,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            6,
+            7,
+            10,
+            9
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            6,
+            7,
+            10,
+            9
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "BACK CABLE BOSS collar, where the run lands",
+      "from": [
+        7,
+        6,
+        18
+      ],
+      "to": [
+        9,
+        8,
+        18.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "texture": "#stud"
+        },
+        "south": {
+          "uv": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "texture": "#stud"
+        },
+        "east": {
+          "uv": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "texture": "#stud"
+        },
+        "west": {
+          "uv": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "texture": "#stud"
+        },
+        "up": {
+          "uv": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "texture": "#stud"
+        },
+        "down": {
+          "uv": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "texture": "#stud"
+        }
+      }
+    }
+  ]
+}

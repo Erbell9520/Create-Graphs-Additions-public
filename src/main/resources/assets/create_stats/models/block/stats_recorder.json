@@ -1,0 +1,47 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "front": "create_stats:block/stats_recorder_front",
+    "side": "create_stats:block/stats_recorder_side",
+    "top": "create_stats:block/stats_recorder_top",
+    "brass": "create:block/brass_casing",
+    "casing": "create:block/andesite_casing",
+    "particle": "create_stats:block/stats_recorder_side"
+  },
+  "elements": [
+    {
+      "from": [2, 0, 2],
+      "to": [14, 10, 14],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#front" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#side" },
+        "east": { "uv": [0, 0, 16, 16], "texture": "#side" },
+        "west": { "uv": [0, 0, 16, 16], "texture": "#side" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#top" },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#casing" }
+      }
+    },
+    {
+      "from": [3, 10, 3],
+      "to": [13, 12, 13],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "south": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "east": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "west": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#top" }
+      }
+    },
+    {
+      "from": [3, 2, 1.4],
+      "to": [13, 9, 2.1],
+      "faces": {
+        "north": { "uv": [3, 3, 13, 10], "texture": "#front" },
+        "east": { "uv": [0, 0, 1, 7], "texture": "#brass" },
+        "west": { "uv": [0, 0, 1, 7], "texture": "#brass" },
+        "up": { "uv": [3, 0, 13, 1], "texture": "#brass" },
+        "down": { "uv": [3, 0, 13, 1], "texture": "#brass" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GEG",
+    "BPB",
+    "BRB"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "create_stats:stats_display_panel"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "create_stats:holographic_projector",
+    "count": 1
+  }
+}

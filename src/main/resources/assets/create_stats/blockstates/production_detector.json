@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north,half=lower,powered=false": { "model": "create_stats:block/production_detector_lower" },
+    "facing=south,half=lower,powered=false": { "model": "create_stats:block/production_detector_lower", "y": 180 },
+    "facing=east,half=lower,powered=false":  { "model": "create_stats:block/production_detector_lower", "y": 90  },
+    "facing=west,half=lower,powered=false":  { "model": "create_stats:block/production_detector_lower", "y": 270 },
+    "facing=north,half=lower,powered=true":  { "model": "create_stats:block/production_detector_lower_on" },
+    "facing=south,half=lower,powered=true":  { "model": "create_stats:block/production_detector_lower_on", "y": 180 },
+    "facing=east,half=lower,powered=true":   { "model": "create_stats:block/production_detector_lower_on", "y": 90  },
+    "facing=west,half=lower,powered=true":   { "model": "create_stats:block/production_detector_lower_on", "y": 270 },
+    "facing=north,half=upper,powered=false": { "model": "create_stats:block/production_detector_upper" },
+    "facing=south,half=upper,powered=false": { "model": "create_stats:block/production_detector_upper", "y": 180 },
+    "facing=east,half=upper,powered=false":  { "model": "create_stats:block/production_detector_upper", "y": 90  },
+    "facing=west,half=upper,powered=false":  { "model": "create_stats:block/production_detector_upper", "y": 270 },
+    "facing=north,half=upper,powered=true":  { "model": "create_stats:block/production_detector_upper_on" },
+    "facing=south,half=upper,powered=true":  { "model": "create_stats:block/production_detector_upper_on", "y": 180 },
+    "facing=east,half=upper,powered=true":   { "model": "create_stats:block/production_detector_upper_on", "y": 90  },
+    "facing=west,half=upper,powered=true":   { "model": "create_stats:block/production_detector_upper_on", "y": 270 }
+  }
+}

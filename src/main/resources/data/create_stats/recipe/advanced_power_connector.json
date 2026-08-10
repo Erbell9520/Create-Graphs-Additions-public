@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    "GRG",
+    "PPP"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "R": {
+      "item": "create_stats:power_connector"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stats:advanced_power_connector",
+    "count": 4
+  },
+  "show_notification": true
+}

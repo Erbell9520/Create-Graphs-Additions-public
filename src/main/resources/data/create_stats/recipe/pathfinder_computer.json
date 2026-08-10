@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BPB",
+    "RSR",
+    "CMC"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "R": {
+      "item": "create:redstone_link"
+    },
+    "S": {
+      "item": "create_stats:path_scanner"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "M": {
+      "item": "minecraft:compass"
+    }
+  },
+  "result": {
+    "id": "create_stats:pathfinder_computer",
+    "count": 1
+  }
+}

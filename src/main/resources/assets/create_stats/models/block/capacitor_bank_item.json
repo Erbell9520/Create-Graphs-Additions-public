@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "create_stats:block/capacitor_bank_top",
+    "bottom": "create_stats:block/capacitor_bank_bottom",
+    "side": "create_stats:block/capacitor_bank_item",
+    "particle": "create_stats:block/capacitor_bank_shell"
+  }
+}

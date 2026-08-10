@@ -1,0 +1,6 @@
+{
+  "parent": "create_stats:block/table_alarm_clock",
+  "textures": {
+    "front": "create_stats:block/table_alarm_clock_front_active"
+  }
+}

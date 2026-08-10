@@ -1,0 +1,127 @@
+{
+  "__comment": "Stage Light MK II HEAD (pans with yoke + tilts about the hub axis), rendered by the BER. FACING=up reference. Chunkier long-throw barrel: wider and taller than MK I, four cooling fins, a rear driver box, and a raised gold bezel (lens plane at y=13.3..13.5, matched by MK2_LENS_Y in StageLightRenderer).",
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "metal": "create_stats:block/stage_light_mk2_metal",
+    "brass": "create_stats:block/stage_light_mk2_brass",
+    "dark": "create:block/gearbox",
+    "particle": "#metal"
+  },
+  "elements": [
+    {
+      "__comment": "Lamp barrel between the arms (6x5 footprint, taller than MK I).",
+      "from": [5, 7.4, 5.5],
+      "to": [11, 12.6, 10.5],
+      "faces": {
+        "down":  { "texture": "#metal", "uv": [5, 5, 11, 10] },
+        "up":    { "texture": "#metal", "uv": [5, 5, 11, 10] },
+        "north": { "texture": "#metal", "uv": [5, 7, 11, 13] },
+        "south": { "texture": "#metal", "uv": [5, 7, 11, 13] },
+        "west":  { "texture": "#metal", "uv": [5, 7, 10, 13] },
+        "east":  { "texture": "#metal", "uv": [5, 7, 10, 13] }
+      }
+    },
+    {
+      "__comment": "Rear driver box (gold, sits on the back of the barrel).",
+      "from": [6, 8.2, 4.6],
+      "to": [10, 11.8, 5.5],
+      "faces": {
+        "down":  { "texture": "#brass", "uv": [6, 5, 10, 6] },
+        "up":    { "texture": "#brass", "uv": [6, 5, 10, 6] },
+        "north": { "texture": "#brass", "uv": [6, 8, 10, 12] },
+        "west":  { "texture": "#brass", "uv": [5, 8, 6, 12] },
+        "east":  { "texture": "#brass", "uv": [5, 8, 6, 12] }
+      }
+    },
+    {
+      "__comment": "Cooling fin 1.",
+      "from": [4.6, 8.2, 5.1],
+      "to": [11.4, 8.5, 10.9],
+      "faces": {
+        "up":    { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "down":  { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "north": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "south": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "west":  { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "east":  { "texture": "#dark", "uv": [5, 10, 11, 11] }
+      }
+    },
+    {
+      "__comment": "Cooling fin 2.",
+      "from": [4.6, 9.2, 5.1],
+      "to": [11.4, 9.5, 10.9],
+      "faces": {
+        "up":    { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "down":  { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "north": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "south": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "west":  { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "east":  { "texture": "#dark", "uv": [5, 10, 11, 11] }
+      }
+    },
+    {
+      "__comment": "Cooling fin 3.",
+      "from": [4.6, 10.2, 5.1],
+      "to": [11.4, 10.5, 10.9],
+      "faces": {
+        "up":    { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "down":  { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "north": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "south": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "west":  { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "east":  { "texture": "#dark", "uv": [5, 10, 11, 11] }
+      }
+    },
+    {
+      "__comment": "Cooling fin 4.",
+      "from": [4.6, 11.2, 5.1],
+      "to": [11.4, 11.5, 10.9],
+      "faces": {
+        "up":    { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "down":  { "texture": "#dark", "uv": [5, 5, 11, 11] },
+        "north": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "south": { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "west":  { "texture": "#dark", "uv": [5, 10, 11, 11] },
+        "east":  { "texture": "#dark", "uv": [5, 10, 11, 11] }
+      }
+    },
+    {
+      "__comment": "Gold lens bezel (raised; the lens plane sits on top of this ring).",
+      "from": [5.4, 12.6, 5.9],
+      "to": [10.6, 13.3, 10.1],
+      "faces": {
+        "down":  { "texture": "#brass", "uv": [5, 6, 11, 10] },
+        "up":    { "texture": "#brass", "uv": [5, 6, 11, 10] },
+        "north": { "texture": "#brass", "uv": [5, 11, 11, 12] },
+        "south": { "texture": "#brass", "uv": [5, 11, 11, 12] },
+        "west":  { "texture": "#brass", "uv": [5, 11, 11, 12] },
+        "east":  { "texture": "#brass", "uv": [5, 11, 11, 12] }
+      }
+    },
+    {
+      "__comment": "Left hub pin (bridges to the wider MK II arms).",
+      "from": [4.3, 9.3, 7.3],
+      "to": [5.0, 10.7, 8.7],
+      "faces": {
+        "west":  { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "north": { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "south": { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "up":    { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "down":  { "texture": "#brass", "uv": [7, 7, 8, 8] }
+      }
+    },
+    {
+      "__comment": "Right hub pin.",
+      "from": [11.0, 9.3, 7.3],
+      "to": [11.7, 10.7, 8.7],
+      "faces": {
+        "east":  { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "north": { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "south": { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "up":    { "texture": "#brass", "uv": [7, 7, 8, 8] },
+        "down":  { "texture": "#brass", "uv": [7, 7, 8, 8] }
+      }
+    }
+  ]
+}

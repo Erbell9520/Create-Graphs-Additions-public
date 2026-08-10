@@ -1,0 +1,17 @@
+{
+  "__comment": "FE Fluid Pump MK I: industrial-iron housing with copper pipe stubs and a brass grille.",
+  "parent": "create_stats:block/fluid_pump/housing",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "body": "create:block/industrial_iron_block",
+    "copper": "minecraft:block/copper_block",
+    "grille": "create:block/brass_block",
+    "dial": "create:block/brass_block",
+    "motor": "create:block/brass_block",
+    "glass": "minecraft:block/glass",
+    "fluid": "minecraft:block/water_still",
+    "gauge": "create:block/brass_block",
+    "led": "minecraft:block/sea_lantern",
+    "arrow": "minecraft:block/netherite_block"
+  }
+}

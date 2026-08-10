@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/fe_motor_mk2"
+    },
+    "facing=south": {
+      "model": "create_stats:block/fe_motor_mk2",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "create_stats:block/fe_motor_mk2",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "create_stats:block/fe_motor_mk2",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "create_stats:block/fe_motor_mk2",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "create_stats:block/fe_motor_mk2",
+      "x": 90
+    }
+  }
+}

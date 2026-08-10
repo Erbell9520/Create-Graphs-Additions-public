@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IBI",
+    "BCB",
+    "IBI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:plates/iron"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "C": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stats:kinetic_flywheel",
+    "count": 1
+  }
+}

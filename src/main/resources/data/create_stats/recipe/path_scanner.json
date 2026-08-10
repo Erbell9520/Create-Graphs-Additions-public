@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AGA",
+    "EDE",
+    "BCB"
+  ],
+  "key": {
+    "A": {
+      "item": "create:andesite_casing"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "D": {
+      "item": "create_stats:data_dial"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "C": {
+      "item": "minecraft:compass"
+    }
+  },
+  "result": {
+    "id": "create_stats:path_scanner",
+    "count": 1
+  }
+}

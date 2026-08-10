@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " E ",
+    "ASA",
+    " P "
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "A": {
+      "tag": "c:plates/brass"
+    },
+    "S": {
+      "item": "create_stats:small_signal_antenna"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stats:advanced_signal_antenna",
+    "count": 1
+  }
+}

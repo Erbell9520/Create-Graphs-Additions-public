@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "active=false,facing=north": { "model": "create_stats:block/stats_alarm" },
+    "active=false,facing=south": { "model": "create_stats:block/stats_alarm", "y": 180 },
+    "active=false,facing=east":  { "model": "create_stats:block/stats_alarm", "y": 90 },
+    "active=false,facing=west":  { "model": "create_stats:block/stats_alarm", "y": 270 },
+    "active=true,facing=north":  { "model": "create_stats:block/stats_alarm_on" },
+    "active=true,facing=south":  { "model": "create_stats:block/stats_alarm_on", "y": 180 },
+    "active=true,facing=east":   { "model": "create_stats:block/stats_alarm_on", "y": 90 },
+    "active=true,facing=west":   { "model": "create_stats:block/stats_alarm_on", "y": 270 }
+  }
+}

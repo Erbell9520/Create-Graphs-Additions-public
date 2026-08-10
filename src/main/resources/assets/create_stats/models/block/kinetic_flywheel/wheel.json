@@ -1,0 +1,42 @@
+{
+  "__comment": "Spinning wheel partial for KineticFlywheelRenderer. Modeled centered, disc in the X-Y plane (axle along Z / north) so partialFacing can orient it to the block FACING.",
+  "parent": "block/block",
+  "textures": {
+    "rim": "create:block/brass_block",
+    "hub": "create:block/industrial_iron_block",
+    "weight": "create:block/industrial_iron_block",
+    "particle": "create:block/brass_block"
+  },
+  "elements": [
+    { "name": "rim_top", "from": [2, 12, 6], "to": [14, 14, 10],
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "rim_bottom", "from": [2, 2, 6], "to": [14, 4, 10],
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "rim_left", "from": [2, 4, 6], "to": [4, 12, 10],
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "rim_right", "from": [12, 4, 6], "to": [14, 12, 10],
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "rim_top_45", "from": [2, 12, 6], "to": [14, 14, 10], "rotation": {"origin": [8, 8, 8], "axis": "z", "angle": 45},
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "rim_bottom_45", "from": [2, 2, 6], "to": [14, 4, 10], "rotation": {"origin": [8, 8, 8], "axis": "z", "angle": 45},
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "rim_left_45", "from": [2, 4, 6], "to": [4, 12, 10], "rotation": {"origin": [8, 8, 8], "axis": "z", "angle": 45},
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "rim_right_45", "from": [12, 4, 6], "to": [14, 12, 10], "rotation": {"origin": [8, 8, 8], "axis": "z", "angle": 45},
+      "faces": { "north": {"texture": "#rim"}, "south": {"texture": "#rim"}, "east": {"texture": "#rim"}, "west": {"texture": "#rim"}, "up": {"texture": "#rim"}, "down": {"texture": "#rim"} } },
+    { "name": "spoke_h", "from": [4, 7, 6], "to": [12, 9, 10],
+      "faces": { "north": {"texture": "#hub"}, "south": {"texture": "#hub"}, "east": {"texture": "#hub"}, "west": {"texture": "#hub"}, "up": {"texture": "#hub"}, "down": {"texture": "#hub"} } },
+    { "name": "spoke_v", "from": [7, 4, 6], "to": [9, 12, 10],
+      "faces": { "north": {"texture": "#hub"}, "south": {"texture": "#hub"}, "east": {"texture": "#hub"}, "west": {"texture": "#hub"}, "up": {"texture": "#hub"}, "down": {"texture": "#hub"} } },
+    { "name": "hub", "from": [5, 5, 5], "to": [11, 11, 11],
+      "faces": { "north": {"texture": "#hub"}, "south": {"texture": "#hub"}, "east": {"texture": "#hub"}, "west": {"texture": "#hub"}, "up": {"texture": "#hub"}, "down": {"texture": "#hub"} } },
+    { "name": "weight_top", "from": [5.5, 13, 4], "to": [10.5, 15.5, 12],
+      "faces": { "north": {"texture": "#weight"}, "south": {"texture": "#weight"}, "east": {"texture": "#weight"}, "west": {"texture": "#weight"}, "up": {"texture": "#weight"}, "down": {"texture": "#weight"} } },
+    { "name": "weight_bottom", "from": [5.5, 0.5, 4], "to": [10.5, 3, 12],
+      "faces": { "north": {"texture": "#weight"}, "south": {"texture": "#weight"}, "east": {"texture": "#weight"}, "west": {"texture": "#weight"}, "up": {"texture": "#weight"}, "down": {"texture": "#weight"} } },
+    { "name": "weight_left", "from": [0.5, 5.5, 4], "to": [3, 10.5, 12],
+      "faces": { "north": {"texture": "#weight"}, "south": {"texture": "#weight"}, "east": {"texture": "#weight"}, "west": {"texture": "#weight"}, "up": {"texture": "#weight"}, "down": {"texture": "#weight"} } },
+    { "name": "weight_right", "from": [13, 5.5, 4], "to": [15.5, 10.5, 12],
+      "faces": { "north": {"texture": "#weight"}, "south": {"texture": "#weight"}, "east": {"texture": "#weight"}, "west": {"texture": "#weight"}, "up": {"texture": "#weight"}, "down": {"texture": "#weight"} } }
+  ]
+}

@@ -1,0 +1,291 @@
+{
+  "credit": "Made with Blockbench",
+  "parent": "block/block",
+  "textures": {
+    "top": "create_stats:block/auto_transmission_clutch/top_horizontal_off",
+    "bottom": "create_stats:block/auto_transmission_clutch/bottom_horizontal",
+    "side": "create_stats:block/auto_transmission_clutch/side_neutral",
+    "frame": "create:block/funnel/andesite_funnel_frame",
+    "gearbox": "create:block/gearbox",
+    "shaft": "create:block/axis",
+    "shaft_top": "create:block/axis_top",
+    "particle": "create_stats:block/auto_transmission_clutch/side_neutral"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#frame"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#frame"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#top"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        1.95,
+        1.95,
+        0
+      ],
+      "to": [
+        14.05,
+        14.05,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#gearbox"
+        },
+        "east": {
+          "uv": [
+            0,
+            2,
+            1,
+            14
+          ],
+          "texture": "#gearbox"
+        },
+        "west": {
+          "uv": [
+            15,
+            2,
+            16,
+            14
+          ],
+          "texture": "#gearbox"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            14,
+            1
+          ],
+          "rotation": 180,
+          "texture": "#gearbox"
+        },
+        "down": {
+          "uv": [
+            2,
+            15,
+            14,
+            16
+          ],
+          "rotation": 180,
+          "texture": "#gearbox"
+        }
+      }
+    },
+    {
+      "from": [
+        1.95,
+        1.95,
+        15
+      ],
+      "to": [
+        14.05,
+        14.05,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            15,
+            2,
+            16,
+            14
+          ],
+          "texture": "#gearbox"
+        },
+        "south": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#gearbox"
+        },
+        "west": {
+          "uv": [
+            0,
+            2,
+            1,
+            14
+          ],
+          "texture": "#gearbox"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            14,
+            1
+          ],
+          "texture": "#gearbox"
+        },
+        "down": {
+          "uv": [
+            2,
+            15,
+            14,
+            16
+          ],
+          "texture": "#gearbox"
+        }
+      }
+    },
+    {
+      "name": "Axis",
+      "from": [
+        6,
+        6,
+        0
+      ],
+      "to": [
+        10,
+        10,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "rotation": 180,
+          "texture": "#shaft_top"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#shaft"
+        },
+        "south": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#shaft_top"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "rotation": 270,
+          "texture": "#shaft"
+        },
+        "up": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#shaft"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "rotation": 180,
+          "texture": "#shaft"
+        }
+      }
+    }
+  ],
+  "display": {
+    "fixed": {
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  }
+}

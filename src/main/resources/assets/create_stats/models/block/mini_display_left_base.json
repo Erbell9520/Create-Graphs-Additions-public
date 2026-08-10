@@ -1,0 +1,70 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "brass": "create:block/brass_casing",
+    "face": "create_stats:block/data_dial_face",
+    "particle": "#face"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 2],
+      "faces": {
+        "north": { "texture": "#brass", "uv": [0, 0, 16, 16] },
+        "south": { "texture": "#brass", "uv": [0, 0, 16, 16] },
+        "east": { "texture": "#brass", "uv": [0, 0, 2, 16] },
+        "west": { "texture": "#brass", "uv": [0, 0, 2, 16] },
+        "up": { "texture": "#brass", "uv": [0, 0, 16, 2] },
+        "down": { "texture": "#brass", "uv": [0, 0, 16, 2] }
+      }
+    },
+    {
+      "from": [0, 13.5, 2],
+      "to": [16, 16, 4],
+      "faces": {
+        "north": { "texture": "#brass" },
+        "south": { "texture": "#brass" },
+        "east": { "texture": "#brass" },
+        "west": { "texture": "#brass" },
+        "up": { "texture": "#brass" },
+        "down": { "texture": "#brass" }
+      }
+    },
+    {
+      "from": [0, 0, 2],
+      "to": [16, 2.5, 4],
+      "faces": {
+        "north": { "texture": "#brass" },
+        "south": { "texture": "#brass" },
+        "east": { "texture": "#brass" },
+        "west": { "texture": "#brass" },
+        "up": { "texture": "#brass" },
+        "down": { "texture": "#brass" }
+      }
+    },
+    {
+      "from": [0, 2.5, 2],
+      "to": [2.5, 13.5, 4],
+      "faces": {
+        "north": { "texture": "#brass" },
+        "south": { "texture": "#brass" },
+        "east": { "texture": "#brass" },
+        "west": { "texture": "#brass" },
+        "up": { "texture": "#brass" },
+        "down": { "texture": "#brass" }
+      }
+    },
+    {
+      "from": [1.5, 2.5, 1],
+      "to": [16, 13.5, 2.6],
+      "faces": {
+        "north": { "texture": "#brass" },
+        "south": { "texture": "#face", "uv": [0, 0, 16, 16] },
+        "east": { "texture": "#brass" },
+        "west": { "texture": "#brass" },
+        "up": { "texture": "#brass" },
+        "down": { "texture": "#brass" }
+      }
+    }
+  ]
+}

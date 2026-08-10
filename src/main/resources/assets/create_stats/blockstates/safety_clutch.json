@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x,tripped=false": { "model": "create_stats:block/safety_clutch/axis_x_connected" },
+    "axis=x,tripped=true":  { "model": "create_stats:block/safety_clutch/axis_x_tripped" },
+    "axis=y,tripped=false": { "model": "create_stats:block/safety_clutch/axis_y_connected" },
+    "axis=y,tripped=true":  { "model": "create_stats:block/safety_clutch/axis_y_tripped" },
+    "axis=z,tripped=false": { "model": "create_stats:block/safety_clutch/axis_z_connected" },
+    "axis=z,tripped=true":  { "model": "create_stats:block/safety_clutch/axis_z_tripped" }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_stats:block/industrial_alternator"
+    }
+  }
+}

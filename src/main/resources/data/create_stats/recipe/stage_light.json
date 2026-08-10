@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GPG",
+    "RBR",
+    " I "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "P": {
+      "item": "create:polished_rose_quartz"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "create_stats:stage_light",
+    "count": 1
+  }
+}

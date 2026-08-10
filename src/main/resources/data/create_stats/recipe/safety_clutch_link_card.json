@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "BEB",
+    " P "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:safety_clutch_link_card",
+    "count": 1
+  }
+}

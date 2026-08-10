@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OEO",
+    "NAN",
+    "OPO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "N": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "A": {
+      "item": "create_stats:advanced_signal_antenna"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stats:trt_signal_antenna",
+    "count": 1
+  }
+}

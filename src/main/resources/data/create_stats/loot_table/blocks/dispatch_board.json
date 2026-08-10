@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "create_stats:dispatch_board",
+          "functions": [
+            {
+              "function": "minecraft:copy_custom_data",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "StationLink",
+                  "target": "FreightStationLink",
+                  "op": "replace"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}

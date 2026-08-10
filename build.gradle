@@ -1,0 +1,224 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.107'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+
+neoForge {
+    version = neo_version
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+
+    runs {
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+        }
+
+        client {
+            client()
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+        }
+
+        data {
+            data()
+            programArguments.addAll(
+                '--mod', mod_id,
+                '--all',
+                '--output', file('src/generated/resources/').getAbsolutePath(),
+                '--existing', file('src/main/resources/').getAbsolutePath()
+            )
+        }
+
+        gameTestServer {
+            type = 'gameTestServer'
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+sourceSets {
+    test {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath + sourceSets.main.runtimeClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.compileClasspath + sourceSets.main.runtimeClasspath
+    }
+}
+
+repositories {
+    maven {
+        url = 'https://maven.createmod.net'
+    }
+    maven {
+        url = 'https://maven.ithundxr.dev/snapshots'
+    }
+    maven {
+        // GeckoLib (optional dependency) - animated pilot helmet visor.
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroupByRegex('software\\.bernie.*')
+            includeGroup('com.eliotlash.mclib')
+        }
+    }
+    maven {
+        // JEI (optional dependency) - recipe catalysts + ingredient-list filtering.
+        name = 'BlameJared'
+        url = 'https://maven.blamejared.com'
+    }
+    maven {
+        url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven/'
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter {
+            includeGroup 'maven.modrinth'
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'RyanHCode Maven'
+                url = 'https://maven.ryanhcode.dev/releases'
+            }
+        }
+        filter {
+            includeGroup 'dev.ryanhcode.sable'
+            includeGroup 'dev.ryanhcode.sable-companion'
+        }
+    }
+    // LambDynamicLights (REQUIRED dependency): frame-perfect, shaderpack-correct dynamic lighting
+    // used by the Stage Light's projected world light. API jar is published here.
+    maven {
+        name = 'Gegy'
+        url = 'https://maven.gegy.dev'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+    // Simulated is only published publicly as the bundled Create Aeronautics artifact.
+    compileOnly("maven.modrinth:create-aeronautics:${simulated_version}")
+    // GeckoLib: OPTIONAL dependency for the animated pilot-helmet visor. compileOnly so the mod
+    // compiles against the API; runtimeOnly so the dev client can exercise the animated path. NOT
+    // jarJar'd - players install GeckoLib themselves; without it the helmet falls back to vanilla
+    // armor layers (see com.createstats.compat.geckolib + the ModList.isLoaded("geckolib") guard).
+    compileOnly("software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}")
+    runtimeOnly("software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}")
+    // JEI: OPTIONAL dependency. Recipe-catalyst registration (Induction Heater on Campfire Cooking
+    // pages) and hiding experimental items from the ingredient list. compileOnly so the mod compiles
+    // against the API; runtimeOnly so the dev client can exercise it. NOT jarJar'd - players install
+    // JEI themselves. Without it, com.createstats.compat.jei.CreateStatsJeiPlugin is simply never
+    // instantiated (JEI discovers @JeiPlugin classes via its own bytecode scan; we never reference
+    // this class ourselves).
+    compileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
+    compileOnly("mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}")
+    runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    // sable-companion: thin official API wrapper over Sable physics engine.
+    // Bundled via jarJar so the mod works whether or not Sable itself is installed
+    // (companion ships a no-op DefaultSableCompanion fallback).
+    jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version_range}")) {
+        version {
+            prefer sable_companion_version
+        }
+    }
+    // LambDynamicLights API: REQUIRED dependency for the Stage Light's dynamic world lighting.
+    // compileOnly so we build against the API; the player installs the full LambDynamicLights mod.
+    // On NeoForge the API jar must be requested with the 'mojmap' mappings attribute.
+    compileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:${lambdynamiclights_version}") {
+        attributes {
+            attribute(Attribute.of('net.minecraft.mappings', String), 'mojmap')
+        }
+    }
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+        minecraft_version     : minecraft_version,
+        minecraft_version_range: minecraft_version_range,
+        neo_version           : neo_version,
+        mod_id                : mod_id,
+        mod_name              : mod_name,
+        mod_license           : mod_license,
+        mod_version           : mod_version,
+        mod_authors           : mod_authors,
+        mod_description       : mod_description,
+        create_version_range  : create_version_range,
+        ponder_version        : ponder_version,
+        flywheel_version_range: flywheel_version_range,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+            'Specification-Title'     : mod_id,
+            'Specification-Vendor'    : mod_authors,
+            'Specification-Version'   : '1',
+            'Implementation-Title'    : project.name,
+            'Implementation-Version'  : project.jar.archiveVersion,
+            'Implementation-Vendor'   : mod_authors,
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            'MixinConfigs'            : 'create_stats.mixins.json'
+        ])
+    }
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifact jar
+            artifactId = mod_id
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test').configure {
+    useJUnitPlatform()
+}

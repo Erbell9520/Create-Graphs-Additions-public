@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "ACA",
+    " D "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:paper"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "C": {
+      "item": "create:cogwheel"
+    }
+  },
+  "result": {
+    "id": "create_stats:propeller_card",
+    "count": 1
+  }
+}

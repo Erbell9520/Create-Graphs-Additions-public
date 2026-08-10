@@ -1,0 +1,17 @@
+{
+  "__comment": "Static housing for the Kinetic Flywheel (blockstate). Authored for FACING=north (shaft exits -Z); blockstate rotates it for other facings. The spinning wheel is added by the block entity renderer, so it is NOT part of this model.",
+  "parent": "block/block",
+  "textures": {
+    "casing": "create:block/brass_block",
+    "iron": "create:block/industrial_iron_block",
+    "particle": "create:block/industrial_iron_block"
+  },
+  "elements": [
+    { "name": "back_puck", "from": [3, 3, 11], "to": [13, 13, 16],
+      "faces": { "north": {"texture": "#casing"}, "south": {"texture": "#casing"}, "east": {"texture": "#casing"}, "west": {"texture": "#casing"}, "up": {"texture": "#casing"}, "down": {"texture": "#casing"} } },
+    { "name": "foot", "from": [2, 0, 11], "to": [14, 2, 16],
+      "faces": { "north": {"texture": "#iron"}, "south": {"texture": "#iron"}, "east": {"texture": "#iron"}, "west": {"texture": "#iron"}, "up": {"texture": "#iron"}, "down": {"texture": "#iron"} } },
+    { "name": "collar", "from": [6, 6, 9], "to": [10, 10, 12],
+      "faces": { "north": {"texture": "#iron"}, "south": {"texture": "#iron"}, "east": {"texture": "#iron"}, "west": {"texture": "#iron"}, "up": {"texture": "#iron"}, "down": {"texture": "#iron"} } }
+  ]
+}

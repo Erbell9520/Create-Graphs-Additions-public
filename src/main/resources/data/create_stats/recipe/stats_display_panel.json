@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BGB",
+    "BRB",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "create_stats:stats_display_panel",
+    "count": 2
+  }
+}

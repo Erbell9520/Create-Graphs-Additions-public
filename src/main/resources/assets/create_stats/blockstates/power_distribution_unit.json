@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "create_stats:block/power_distribution_unit" },
+    "facing=south": { "model": "create_stats:block/power_distribution_unit", "y": 180 },
+    "facing=east": { "model": "create_stats:block/power_distribution_unit", "y": 90 },
+    "facing=west": { "model": "create_stats:block/power_distribution_unit", "y": 270 }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BIB",
+    "TTT",
+    "BIB"
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "T": {
+      "item": "create_stats:cable_tray"
+    }
+  },
+  "result": {
+    "id": "create_stats:bus_duct",
+    "count": 3
+  },
+  "show_notification": true
+}

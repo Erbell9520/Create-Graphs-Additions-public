@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "axis=y": { "model": "create_stats:block/flow_meter" },
+    "axis=z": { "model": "create_stats:block/flow_meter", "x": 90 },
+    "axis=x": { "model": "create_stats:block/flow_meter", "x": 90, "y": 90 }
+  }
+}

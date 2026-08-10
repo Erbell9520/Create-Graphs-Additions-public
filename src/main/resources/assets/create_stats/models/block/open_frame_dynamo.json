@@ -1,0 +1,708 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "side": "create_stats:block/dynamo_casing",
+    "iron": "create_stats:block/dynamo_iron",
+    "base": "create_stats:block/dynamo_base",
+    "bottom": "create_stats:block/dynamo_base_bottom",
+    "endbell": "create_stats:block/dynamo_end_bell",
+    "fin": "create_stats:block/dynamo_fin",
+    "band": "create_stats:block/dynamo_band",
+    "armature": "create_stats:block/dynamo_armature",
+    "terminal": "create_stats:block/dynamo_terminal",
+    "brass": "create_stats:block/dynamo_brass",
+    "particle": "create_stats:block/dynamo_casing"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        2,
+        15
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            14,
+            15,
+            16
+          ],
+          "texture": "#base"
+        },
+        "south": {
+          "uv": [
+            1,
+            14,
+            15,
+            16
+          ],
+          "texture": "#base"
+        },
+        "west": {
+          "uv": [
+            1,
+            14,
+            15,
+            16
+          ],
+          "texture": "#base"
+        },
+        "east": {
+          "uv": [
+            1,
+            14,
+            15,
+            16
+          ],
+          "texture": "#base"
+        },
+        "up": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#base"
+        },
+        "down": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#bottom"
+        }
+      },
+      "__comment": "mounting flange"
+    },
+    {
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        1.01,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            14.99,
+            11,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "south": {
+          "uv": [
+            5,
+            14.99,
+            11,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            5,
+            14.99,
+            11,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            5,
+            14.99,
+            11,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#bottom"
+        }
+      },
+      "__comment": "shaft collar over the input face"
+    },
+    {
+      "from": [
+        2,
+        2,
+        5
+      ],
+      "to": [
+        4.5,
+        12,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.5,
+            4,
+            14,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "south": {
+          "uv": [
+            2,
+            4,
+            4.5,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            5,
+            4,
+            11,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            5,
+            4,
+            11,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            2,
+            5,
+            4.5,
+            11
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            2,
+            5,
+            4.5,
+            11
+          ],
+          "texture": "#iron"
+        }
+      },
+      "__comment": "west field pillar"
+    },
+    {
+      "from": [
+        11.5,
+        2,
+        5
+      ],
+      "to": [
+        14,
+        12,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            4,
+            4.5,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "south": {
+          "uv": [
+            11.5,
+            4,
+            14,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            5,
+            4,
+            11,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            5,
+            4,
+            11,
+            14
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            11.5,
+            5,
+            14,
+            11
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            11.5,
+            5,
+            14,
+            11
+          ],
+          "texture": "#iron"
+        }
+      },
+      "__comment": "east field pillar"
+    },
+    {
+      "from": [
+        4.5,
+        5,
+        6
+      ],
+      "to": [
+        5.5,
+        10,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.5,
+            6,
+            11.5,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            4.5,
+            6,
+            5.5,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            6,
+            6,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            6,
+            5.5,
+            10
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            4.5,
+            6,
+            5.5,
+            10
+          ],
+          "texture": "#brass"
+        }
+      },
+      "__comment": "west pole shoe"
+    },
+    {
+      "from": [
+        10.5,
+        5,
+        6
+      ],
+      "to": [
+        11.5,
+        10,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            6,
+            5.5,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            10.5,
+            6,
+            11.5,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            6,
+            6,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            6,
+            11.5,
+            10
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            10.5,
+            6,
+            11.5,
+            10
+          ],
+          "texture": "#brass"
+        }
+      },
+      "__comment": "east pole shoe"
+    },
+    {
+      "from": [
+        2,
+        12.5,
+        6
+      ],
+      "to": [
+        14,
+        14,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            14,
+            3.5
+          ],
+          "texture": "#iron"
+        },
+        "south": {
+          "uv": [
+            2,
+            2,
+            14,
+            3.5
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            6,
+            2,
+            10,
+            3.5
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            6,
+            2,
+            10,
+            3.5
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            2,
+            6,
+            14,
+            10
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            2,
+            6,
+            14,
+            10
+          ],
+          "texture": "#iron"
+        }
+      },
+      "__comment": "top yoke"
+    },
+    {
+      "from": [
+        6,
+        14,
+        6
+      ],
+      "to": [
+        10,
+        15,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            1,
+            10,
+            2
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            6,
+            1,
+            10,
+            2
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            6,
+            1,
+            10,
+            2
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            6,
+            1,
+            10,
+            2
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#endbell"
+        },
+        "down": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#brass"
+        }
+      },
+      "__comment": "bearing boss"
+    },
+    {
+      "from": [
+        6,
+        9,
+        4.6
+      ],
+      "to": [
+        7,
+        11,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            5,
+            10,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "south": {
+          "uv": [
+            6,
+            5,
+            7,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "west": {
+          "uv": [
+            4.6,
+            5,
+            5.5,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "east": {
+          "uv": [
+            10.5,
+            5,
+            11.4,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "up": {
+          "uv": [
+            6,
+            4.6,
+            7,
+            5.5
+          ],
+          "texture": "#terminal"
+        },
+        "down": {
+          "uv": [
+            6,
+            10.5,
+            7,
+            11.4
+          ],
+          "texture": "#terminal"
+        }
+      },
+      "__comment": "brush terminal"
+    },
+    {
+      "from": [
+        9,
+        9,
+        4.6
+      ],
+      "to": [
+        10,
+        11,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            5,
+            7,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "south": {
+          "uv": [
+            9,
+            5,
+            10,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "west": {
+          "uv": [
+            4.6,
+            5,
+            5.5,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "east": {
+          "uv": [
+            10.5,
+            5,
+            11.4,
+            7
+          ],
+          "texture": "#terminal"
+        },
+        "up": {
+          "uv": [
+            9,
+            4.6,
+            10,
+            5.5
+          ],
+          "texture": "#terminal"
+        },
+        "down": {
+          "uv": [
+            9,
+            10.5,
+            10,
+            11.4
+          ],
+          "texture": "#terminal"
+        }
+      },
+      "__comment": "brush terminal"
+    }
+  ]
+}

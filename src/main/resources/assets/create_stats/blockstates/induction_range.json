@@ -1,0 +1,154 @@
+{
+  "variants": {
+    "blaze=none,facing=north,starved=false": {
+      "model": "create_stats:block/induction_range_off"
+    },
+    "blaze=none,facing=north,starved=true": {
+      "model": "create_stats:block/induction_range_off_starved"
+    },
+    "blaze=none,facing=east,starved=false": {
+      "model": "create_stats:block/induction_range_off",
+      "y": 90
+    },
+    "blaze=none,facing=east,starved=true": {
+      "model": "create_stats:block/induction_range_off_starved",
+      "y": 90
+    },
+    "blaze=none,facing=south,starved=false": {
+      "model": "create_stats:block/induction_range_off",
+      "y": 180
+    },
+    "blaze=none,facing=south,starved=true": {
+      "model": "create_stats:block/induction_range_off_starved",
+      "y": 180
+    },
+    "blaze=none,facing=west,starved=false": {
+      "model": "create_stats:block/induction_range_off",
+      "y": 270
+    },
+    "blaze=none,facing=west,starved=true": {
+      "model": "create_stats:block/induction_range_off_starved",
+      "y": 270
+    },
+    "blaze=smouldering,facing=north,starved=false": {
+      "model": "create_stats:block/induction_range_low"
+    },
+    "blaze=smouldering,facing=north,starved=true": {
+      "model": "create_stats:block/induction_range_low_starved"
+    },
+    "blaze=smouldering,facing=east,starved=false": {
+      "model": "create_stats:block/induction_range_low",
+      "y": 90
+    },
+    "blaze=smouldering,facing=east,starved=true": {
+      "model": "create_stats:block/induction_range_low_starved",
+      "y": 90
+    },
+    "blaze=smouldering,facing=south,starved=false": {
+      "model": "create_stats:block/induction_range_low",
+      "y": 180
+    },
+    "blaze=smouldering,facing=south,starved=true": {
+      "model": "create_stats:block/induction_range_low_starved",
+      "y": 180
+    },
+    "blaze=smouldering,facing=west,starved=false": {
+      "model": "create_stats:block/induction_range_low",
+      "y": 270
+    },
+    "blaze=smouldering,facing=west,starved=true": {
+      "model": "create_stats:block/induction_range_low_starved",
+      "y": 270
+    },
+    "blaze=fading,facing=north,starved=false": {
+      "model": "create_stats:block/induction_range_mid"
+    },
+    "blaze=fading,facing=north,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved"
+    },
+    "blaze=fading,facing=east,starved=false": {
+      "model": "create_stats:block/induction_range_mid",
+      "y": 90
+    },
+    "blaze=fading,facing=east,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved",
+      "y": 90
+    },
+    "blaze=fading,facing=south,starved=false": {
+      "model": "create_stats:block/induction_range_mid",
+      "y": 180
+    },
+    "blaze=fading,facing=south,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved",
+      "y": 180
+    },
+    "blaze=fading,facing=west,starved=false": {
+      "model": "create_stats:block/induction_range_mid",
+      "y": 270
+    },
+    "blaze=fading,facing=west,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved",
+      "y": 270
+    },
+    "blaze=kindled,facing=north,starved=false": {
+      "model": "create_stats:block/induction_range_mid"
+    },
+    "blaze=kindled,facing=north,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved"
+    },
+    "blaze=kindled,facing=east,starved=false": {
+      "model": "create_stats:block/induction_range_mid",
+      "y": 90
+    },
+    "blaze=kindled,facing=east,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved",
+      "y": 90
+    },
+    "blaze=kindled,facing=south,starved=false": {
+      "model": "create_stats:block/induction_range_mid",
+      "y": 180
+    },
+    "blaze=kindled,facing=south,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved",
+      "y": 180
+    },
+    "blaze=kindled,facing=west,starved=false": {
+      "model": "create_stats:block/induction_range_mid",
+      "y": 270
+    },
+    "blaze=kindled,facing=west,starved=true": {
+      "model": "create_stats:block/induction_range_mid_starved",
+      "y": 270
+    },
+    "blaze=seething,facing=north,starved=false": {
+      "model": "create_stats:block/induction_range_high"
+    },
+    "blaze=seething,facing=north,starved=true": {
+      "model": "create_stats:block/induction_range_high_starved"
+    },
+    "blaze=seething,facing=east,starved=false": {
+      "model": "create_stats:block/induction_range_high",
+      "y": 90
+    },
+    "blaze=seething,facing=east,starved=true": {
+      "model": "create_stats:block/induction_range_high_starved",
+      "y": 90
+    },
+    "blaze=seething,facing=south,starved=false": {
+      "model": "create_stats:block/induction_range_high",
+      "y": 180
+    },
+    "blaze=seething,facing=south,starved=true": {
+      "model": "create_stats:block/induction_range_high_starved",
+      "y": 180
+    },
+    "blaze=seething,facing=west,starved=false": {
+      "model": "create_stats:block/induction_range_high",
+      "y": 270
+    },
+    "blaze=seething,facing=west,starved=true": {
+      "model": "create_stats:block/induction_range_high_starved",
+      "y": 270
+    }
+  }
+}

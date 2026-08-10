@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "axis=x,visual_state=neutral": { "model": "create_stats:block/smart_gearshift/axis_x_neutral" },
+    "axis=x,visual_state=boost": { "model": "create_stats:block/smart_gearshift/axis_x_boost" },
+    "axis=x,visual_state=throttle": { "model": "create_stats:block/smart_gearshift/axis_x_throttle" },
+    "axis=y,visual_state=neutral": { "model": "create_stats:block/smart_gearshift/axis_y_neutral" },
+    "axis=y,visual_state=boost": { "model": "create_stats:block/smart_gearshift/axis_y_boost" },
+    "axis=y,visual_state=throttle": { "model": "create_stats:block/smart_gearshift/axis_y_throttle" },
+    "axis=z,visual_state=neutral": { "model": "create_stats:block/smart_gearshift/axis_z_neutral" },
+    "axis=z,visual_state=boost": { "model": "create_stats:block/smart_gearshift/axis_z_boost" },
+    "axis=z,visual_state=throttle": { "model": "create_stats:block/smart_gearshift/axis_z_throttle" }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north,visual_status=1": { "model": "create_stats:block/load_balancer/block" },
+    "facing=north,visual_status=2": { "model": "create_stats:block/load_balancer/block_status_2" },
+    "facing=north,visual_status=3": { "model": "create_stats:block/load_balancer/block_status_3" },
+    "facing=north,visual_status=4": { "model": "create_stats:block/load_balancer/block_status_4" },
+    "facing=east,visual_status=1": { "model": "create_stats:block/load_balancer/block", "y": 90 },
+    "facing=east,visual_status=2": { "model": "create_stats:block/load_balancer/block_status_2", "y": 90 },
+    "facing=east,visual_status=3": { "model": "create_stats:block/load_balancer/block_status_3", "y": 90 },
+    "facing=east,visual_status=4": { "model": "create_stats:block/load_balancer/block_status_4", "y": 90 },
+    "facing=south,visual_status=1": { "model": "create_stats:block/load_balancer/block", "y": 180 },
+    "facing=south,visual_status=2": { "model": "create_stats:block/load_balancer/block_status_2", "y": 180 },
+    "facing=south,visual_status=3": { "model": "create_stats:block/load_balancer/block_status_3", "y": 180 },
+    "facing=south,visual_status=4": { "model": "create_stats:block/load_balancer/block_status_4", "y": 180 },
+    "facing=west,visual_status=1": { "model": "create_stats:block/load_balancer/block", "y": 270 },
+    "facing=west,visual_status=2": { "model": "create_stats:block/load_balancer/block_status_2", "y": 270 },
+    "facing=west,visual_status=3": { "model": "create_stats:block/load_balancer/block_status_3", "y": 270 },
+    "facing=west,visual_status=4": { "model": "create_stats:block/load_balancer/block_status_4", "y": 270 }
+  }
+}

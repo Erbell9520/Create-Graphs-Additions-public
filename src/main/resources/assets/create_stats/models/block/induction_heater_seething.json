@@ -1,0 +1,36 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "side": "create_stats:block/induction_heater_side",
+    "bottom": "create_stats:block/induction_heater_bottom",
+    "top": "create_stats:block/induction_heater_top_seething",
+    "particle": "create_stats:block/induction_heater_side"
+  },
+  "elements": [
+    {
+      "__comment": "Chassis body",
+      "from": [0, 0, 0],
+      "to": [16, 10, 16],
+      "faces": {
+        "north": { "uv": [0, 6, 16, 16], "texture": "#side", "cullface": "north" },
+        "south": { "uv": [0, 6, 16, 16], "texture": "#side", "cullface": "south" },
+        "east":  { "uv": [0, 6, 16, 16], "texture": "#side", "cullface": "east" },
+        "west":  { "uv": [0, 6, 16, 16], "texture": "#side", "cullface": "west" },
+        "up":    { "uv": [0, 0, 16, 16], "texture": "#top" },
+        "down":  { "uv": [0, 0, 16, 16], "texture": "#bottom", "cullface": "down" }
+      }
+    },
+    {
+      "__comment": "Glass-ceramic cook plate, white-hot fullbright",
+      "from": [1, 10, 1],
+      "to": [15, 12, 15],
+      "faces": {
+        "north": { "uv": [1, 0, 15, 2], "texture": "#side" },
+        "south": { "uv": [1, 0, 15, 2], "texture": "#side" },
+        "east":  { "uv": [1, 0, 15, 2], "texture": "#side" },
+        "west":  { "uv": [1, 0, 15, 2], "texture": "#side" },
+        "up":    { "uv": [1, 1, 15, 15], "texture": "#top", "neoforge_data": { "block_light": 15, "sky_light": 15 } }
+      }
+    }
+  ]
+}

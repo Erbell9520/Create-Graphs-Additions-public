@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "CCC",
+    "SSS"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:dried_kelp"
+    },
+    "C": {
+      "item": "create_stats:copper_wire"
+    }
+  },
+  "result": {
+    "id": "create_stats:insulated_wire",
+    "count": 3
+  },
+  "show_notification": true
+}

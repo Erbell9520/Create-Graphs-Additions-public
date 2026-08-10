@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "E E",
+    "ACA",
+    " R "
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "A": {
+      "tag": "c:plates/brass"
+    },
+    "C": {
+      "item": "create_stats:safety_clutch"
+    },
+    "R": {
+      "item": "create:polished_rose_quartz"
+    }
+  },
+  "result": {
+    "id": "create_stats:control_clutch",
+    "count": 1
+  }
+}

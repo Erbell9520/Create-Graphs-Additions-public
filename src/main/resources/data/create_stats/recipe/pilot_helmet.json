@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PGP",
+    "THT",
+    "D D"
+  ],
+  "key": {
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "G": {
+      "item": "create:goggles"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "H": {
+      "item": "minecraft:diamond_helmet"
+    },
+    "D": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "create_stats:pilot_helmet",
+    "count": 1
+  }
+}

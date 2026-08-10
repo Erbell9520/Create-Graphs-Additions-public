@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SPS",
+    "RDR",
+    "CKC"
+  ],
+  "key": {
+    "S": {
+      "item": "create:sturdy_sheet"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "R": {
+      "item": "create:redstone_link"
+    },
+    "D": {
+      "item": "create_stats:stats_display_panel"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "K": {
+      "item": "create:linked_controller"
+    }
+  },
+  "result": {
+    "id": "create_stats:flight_control_computer",
+    "count": 1
+  }
+}

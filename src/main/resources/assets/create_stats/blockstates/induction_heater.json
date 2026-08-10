@@ -1,0 +1,9 @@
+{
+  "variants": {
+    "blaze=none": { "model": "create_stats:block/induction_heater_off" },
+    "blaze=smouldering": { "model": "create_stats:block/induction_heater_warm" },
+    "blaze=fading": { "model": "create_stats:block/induction_heater_kindled" },
+    "blaze=kindled": { "model": "create_stats:block/induction_heater_kindled" },
+    "blaze=seething": { "model": "create_stats:block/induction_heater_seething" }
+  }
+}

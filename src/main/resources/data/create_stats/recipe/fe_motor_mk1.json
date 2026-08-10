@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CSC",
+    "WBW",
+    "CIC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "S": {
+      "item": "create:shaft"
+    },
+    "W": {
+      "item": "create_stats:copper_wire"
+    },
+    "B": {
+      "item": "create:brass_casing"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "create_stats:fe_motor_mk1",
+    "count": 1
+  },
+  "show_notification": true
+}

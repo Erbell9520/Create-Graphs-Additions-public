@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " R ",
+    "AKA",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "K": {
+      "item": "minecraft:copper_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "D": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "id": "create_stats:data_dial",
+    "count": 2
+  },
+  "show_notification": true
+}

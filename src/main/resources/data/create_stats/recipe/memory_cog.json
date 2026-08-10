@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " A ",
+    "RCR",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "create:cogwheel"
+    },
+    "D": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "id": "create_stats:memory_cog",
+    "count": 1
+  }
+}

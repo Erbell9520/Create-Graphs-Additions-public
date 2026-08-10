@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "b": {
+      "tag": "c:plates/brass"
+    },
+    "e": {
+      "item": "create:electron_tube"
+    },
+    "t": {
+      "item": "create:brass_tunnel"
+    }
+  },
+  "pattern": [
+    " b ",
+    "ete",
+    " b "
+  ],
+  "result": {
+    "id": "create_stats:overflow_gate",
+    "count": 1
+  },
+  "show_notification": true
+}

@@ -1,0 +1,25 @@
+{
+  "__comment": "Stage Light MK II glowing LENS only, split out so the BER can tint it and render it full-bright. Sits on the raised MK II bezel; the beam apex constant MK2_LENS_Y in StageLightRenderer matches the top face (y=13.5).",
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "lens": "create_stats:block/stage_light_mk2_lens",
+    "particle": "#lens"
+  },
+  "elements": [
+    {
+      "__comment": "Glowing lens (the beam exits here); wider aperture than MK I.",
+      "shade": false,
+      "from": [6, 13.3, 6.5],
+      "to": [10, 13.55, 9.5],
+      "faces": {
+        "up":    { "texture": "#lens", "uv": [1, 1, 15, 15] },
+        "down":  { "texture": "#lens", "uv": [1, 1, 15, 15] },
+        "north": { "texture": "#lens", "uv": [1, 1, 15, 3] },
+        "south": { "texture": "#lens", "uv": [1, 1, 15, 3] },
+        "west":  { "texture": "#lens", "uv": [1, 1, 15, 3] },
+        "east":  { "texture": "#lens", "uv": [1, 1, 15, 3] }
+      }
+    }
+  ]
+}

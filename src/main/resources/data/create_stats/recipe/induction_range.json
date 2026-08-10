@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "CEC",
+    "BRB"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "B": {
+      "item": "create:brass_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "id": "create_stats:induction_range",
+    "count": 1
+  },
+  "show_notification": true
+}

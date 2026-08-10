@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " b ",
+    "rS "
+  ],
+  "key": {
+    "b": {
+      "tag": "c:plates/brass"
+    },
+    "r": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "create_stats:stats_configurator",
+    "count": 1
+  }
+}

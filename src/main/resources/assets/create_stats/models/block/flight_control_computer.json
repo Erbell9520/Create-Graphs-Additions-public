@@ -1,0 +1,13 @@
+{
+  "__comment": "Phase 2 placeholder: reuses Factory Logic Controller geometry with FCC-pathed texture refs. Phase 16 art pass replaces the *.png placeholders with the spec'd navy (#0b2a4a) + cyan (#39c8ff) + gold trim, plus the cyan 'F' rune top, dot-matrix mode segment, and LED state pip.",
+  "parent": "create_stats:block/factory_logic_controller",
+  "textures": {
+    "brass": "create:block/brass_casing",
+    "bezel": "create_stats:block/flight_control_computer_bezel",
+    "panel": "create_stats:block/flight_control_computer_panel",
+    "rear":  "create_stats:block/flight_control_computer_back",
+    "top":   "create_stats:block/flight_control_computer_top",
+    "screen":"create_stats:block/fcc_screen",
+    "particle": "create:block/brass_casing"
+  }
+}

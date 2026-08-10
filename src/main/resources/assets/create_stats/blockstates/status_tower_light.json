@@ -1,0 +1,8 @@
+{
+  "multipart": [
+    { "when": { "visual": "off" }, "apply": { "model": "create_stats:block/status_tower_light_off" } },
+    { "when": { "visual": "green" }, "apply": { "model": "create_stats:block/status_tower_light_green" } },
+    { "when": { "visual": "yellow" }, "apply": { "model": "create_stats:block/status_tower_light_yellow" } },
+    { "when": { "visual": "red" }, "apply": { "model": "create_stats:block/status_tower_light_red" } }
+  ]
+}

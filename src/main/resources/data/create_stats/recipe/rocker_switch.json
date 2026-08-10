@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "SSS",
+    "SRS"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:smooth_stone"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "create_stats:rocker_switch",
+    "count": 2
+  },
+  "show_notification": true
+}

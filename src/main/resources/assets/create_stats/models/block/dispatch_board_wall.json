@@ -1,0 +1,25 @@
+{
+  "parent": "block/block",
+  "ambientocclusion": true,
+  "textures": {
+    "face": "create_stats:block/dispatch_board_front",
+    "side": "minecraft:block/stripped_oak_log",
+    "back": "minecraft:block/oak_planks",
+    "particle": "create_stats:block/dispatch_board_front"
+  },
+  "elements": [
+    {
+      "__comment": "Single slab body, 5px deep, flush against wall. All visual detail comes from the BER dynamic texture.",
+      "from": [0, 0, 11],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": { "texture": "#face", "uv": [0, 0, 16, 16] },
+        "south": { "texture": "#back", "uv": [0, 0, 16, 16], "cullface": "south" },
+        "up":    { "texture": "#side", "uv": [0, 0, 16, 5], "cullface": "up" },
+        "down":  { "texture": "#side", "uv": [0, 11, 16, 16], "cullface": "down" },
+        "east":  { "texture": "#side", "uv": [0, 0, 5, 16], "cullface": "east" },
+        "west":  { "texture": "#side", "uv": [11, 0, 16, 16], "cullface": "west" }
+      }
+    }
+  ]
+}

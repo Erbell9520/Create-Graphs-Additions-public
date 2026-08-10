@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BGB",
+    "VEV",
+    "BRB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "V": {
+      "item": "create:item_vault"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "create_stats:production_detector",
+    "count": 1
+  }
+}

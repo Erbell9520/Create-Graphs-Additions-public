@@ -1,0 +1,24 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "front":    "create_stats:block/calculator_front",
+    "side":     "create_stats:block/calculator_side",
+    "back":     "create_stats:block/calculator_back",
+    "particle": "create_stats:block/calculator_side"
+  },
+  "elements": [
+    {
+      "__comment": "Calculator body, 3px deep so the rendered UI sits flush with the front face",
+      "from": [0, 0, 0],
+      "to":   [16, 16, 3],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#back",  "cullface": "north" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#front", "cullface": "south" },
+        "east":  { "uv": [0, 0,  3, 16], "texture": "#side",  "cullface": "east"  },
+        "west":  { "uv": [0, 0,  3, 16], "texture": "#side",  "cullface": "west"  },
+        "up":    { "uv": [0, 0, 16,  3], "texture": "#side",  "cullface": "up"    },
+        "down":  { "uv": [0, 0, 16,  3], "texture": "#side",  "cullface": "down"  }
+      }
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "__comment": "Stage Light pan drive COG (brass). Rendered by the BER and spun as the head pans, so the mover reads as a real geared, motorised mechanism. FACING=up reference; seats just under the yoke ring on the bearing collar.",
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "brass": "create_stats:block/stage_light_brass",
+    "particle": "#brass"
+  },
+  "elements": [
+    {
+      "__comment": "Gear hub.",
+      "from": [6, 6.0, 6],
+      "to": [10, 6.5, 10],
+      "faces": {
+        "up":    { "texture": "#brass", "uv": [4, 4, 12, 12] },
+        "down":  { "texture": "#brass", "uv": [4, 4, 12, 12] },
+        "north": { "texture": "#brass", "uv": [4, 9, 12, 11] },
+        "south": { "texture": "#brass", "uv": [4, 9, 12, 11] },
+        "west":  { "texture": "#brass", "uv": [4, 9, 12, 11] },
+        "east":  { "texture": "#brass", "uv": [4, 9, 12, 11] }
+      }
+    },
+    {
+      "__comment": "Teeth bar (X axis).",
+      "from": [4.5, 6.05, 7.2],
+      "to": [11.5, 6.45, 8.8],
+      "faces": {
+        "up":    { "texture": "#brass", "uv": [3, 7, 13, 9] },
+        "down":  { "texture": "#brass", "uv": [3, 7, 13, 9] },
+        "north": { "texture": "#brass", "uv": [3, 9, 13, 10] },
+        "south": { "texture": "#brass", "uv": [3, 9, 13, 10] },
+        "west":  { "texture": "#brass", "uv": [7, 9, 9, 10] },
+        "east":  { "texture": "#brass", "uv": [7, 9, 9, 10] }
+      }
+    },
+    {
+      "__comment": "Teeth bar (Z axis).",
+      "from": [7.2, 6.05, 4.5],
+      "to": [8.8, 6.45, 11.5],
+      "faces": {
+        "up":    { "texture": "#brass", "uv": [7, 3, 9, 13] },
+        "down":  { "texture": "#brass", "uv": [7, 3, 9, 13] },
+        "north": { "texture": "#brass", "uv": [7, 9, 9, 10] },
+        "south": { "texture": "#brass", "uv": [7, 9, 9, 10] },
+        "west":  { "texture": "#brass", "uv": [3, 9, 13, 10] },
+        "east":  { "texture": "#brass", "uv": [3, 9, 13, 10] }
+      }
+    },
+    {
+      "__comment": "Teeth bar (X axis, 45 deg).",
+      "from": [4.5, 6.05, 7.2],
+      "to": [11.5, 6.45, 8.8],
+      "rotation": { "origin": [8, 6.25, 8], "axis": "y", "angle": 45 },
+      "faces": {
+        "up":    { "texture": "#brass", "uv": [3, 7, 13, 9] },
+        "down":  { "texture": "#brass", "uv": [3, 7, 13, 9] },
+        "north": { "texture": "#brass", "uv": [3, 9, 13, 10] },
+        "south": { "texture": "#brass", "uv": [3, 9, 13, 10] },
+        "west":  { "texture": "#brass", "uv": [7, 9, 9, 10] },
+        "east":  { "texture": "#brass", "uv": [7, 9, 9, 10] }
+      }
+    },
+    {
+      "__comment": "Teeth bar (Z axis, 45 deg).",
+      "from": [7.2, 6.05, 4.5],
+      "to": [8.8, 6.45, 11.5],
+      "rotation": { "origin": [8, 6.25, 8], "axis": "y", "angle": 45 },
+      "faces": {
+        "up":    { "texture": "#brass", "uv": [7, 3, 9, 13] },
+        "down":  { "texture": "#brass", "uv": [7, 3, 9, 13] },
+        "north": { "texture": "#brass", "uv": [7, 9, 9, 10] },
+        "south": { "texture": "#brass", "uv": [7, 9, 9, 10] },
+        "west":  { "texture": "#brass", "uv": [3, 9, 13, 10] },
+        "east":  { "texture": "#brass", "uv": [3, 9, 13, 10] }
+      }
+    }
+  ]
+}

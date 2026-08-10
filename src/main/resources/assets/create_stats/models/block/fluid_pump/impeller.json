@@ -1,0 +1,236 @@
+{
+  "__comment": "The pump's top cooling fan: four blades on a hub in the X-Z plane on the motor crown (y~14.9-15.5), each on its own Y-layer, spun about Y by FluidPumpRenderer.",
+  "parent": "block/block",
+  "textures": {
+    "rim": "create:block/brass_block",
+    "hub": "create:block/industrial_iron_block",
+    "particle": "create:block/brass_block"
+  },
+  "elements": [
+    {
+      "name": "hub_0",
+      "from": [
+        7.25,
+        14.6,
+        7.25
+      ],
+      "to": [
+        8.75,
+        15.6,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hub"
+        },
+        "south": {
+          "texture": "#hub"
+        },
+        "east": {
+          "texture": "#hub"
+        },
+        "west": {
+          "texture": "#hub"
+        },
+        "up": {
+          "texture": "#hub"
+        },
+        "down": {
+          "texture": "#hub"
+        }
+      }
+    },
+    {
+      "name": "hub_1",
+      "from": [
+        7.25,
+        14.6,
+        7.25
+      ],
+      "to": [
+        8.75,
+        15.6,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hub"
+        },
+        "south": {
+          "texture": "#hub"
+        },
+        "east": {
+          "texture": "#hub"
+        },
+        "west": {
+          "texture": "#hub"
+        },
+        "up": {
+          "texture": "#hub"
+        },
+        "down": {
+          "texture": "#hub"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          15.1,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "name": "blade_x",
+      "from": [
+        5.9,
+        14.85,
+        7.6
+      ],
+      "to": [
+        10.1,
+        15.0,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        },
+        "up": {
+          "texture": "#rim"
+        },
+        "down": {
+          "texture": "#rim"
+        }
+      }
+    },
+    {
+      "name": "blade_xd",
+      "from": [
+        5.9,
+        15.01,
+        7.6
+      ],
+      "to": [
+        10.1,
+        15.16,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        },
+        "up": {
+          "texture": "#rim"
+        },
+        "down": {
+          "texture": "#rim"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          15.1,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "name": "blade_z",
+      "from": [
+        7.6,
+        15.17,
+        5.9
+      ],
+      "to": [
+        8.4,
+        15.32,
+        10.1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        },
+        "up": {
+          "texture": "#rim"
+        },
+        "down": {
+          "texture": "#rim"
+        }
+      }
+    },
+    {
+      "name": "blade_zd",
+      "from": [
+        7.6,
+        15.33,
+        5.9
+      ],
+      "to": [
+        8.4,
+        15.48,
+        10.1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        },
+        "up": {
+          "texture": "#rim"
+        },
+        "down": {
+          "texture": "#rim"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          15.1,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "__comment": "Stage Light glowing LENS only, split out so the BER can tint it with the colour filter and render it full-bright. FACING=up reference; matches the head's lens cuboid position.",
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "lens": "create_stats:block/stage_light_lens",
+    "particle": "#lens"
+  },
+  "elements": [
+    {
+      "__comment": "Glowing lens (the beam exits here).",
+      "shade": false,
+      "from": [6.25, 12.5, 6.75],
+      "to": [9.75, 12.75, 9.25],
+      "faces": {
+        "up":    { "texture": "#lens", "uv": [1, 1, 15, 15] },
+        "down":  { "texture": "#lens", "uv": [1, 1, 15, 15] },
+        "north": { "texture": "#lens", "uv": [1, 1, 15, 3] },
+        "south": { "texture": "#lens", "uv": [1, 1, 15, 3] },
+        "west":  { "texture": "#lens", "uv": [1, 1, 15, 3] },
+        "east":  { "texture": "#lens", "uv": [1, 1, 15, 3] }
+      }
+    }
+  ]
+}

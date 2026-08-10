@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GPG",
+    "WMW",
+    "GNG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "W": {
+      "item": "create_stats:insulated_wire"
+    },
+    "M": {
+      "item": "create_stats:fluid_pump_mk1"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    }
+  },
+  "result": {
+    "id": "create_stats:fluid_pump_mk2",
+    "count": 1
+  },
+  "show_notification": true
+}

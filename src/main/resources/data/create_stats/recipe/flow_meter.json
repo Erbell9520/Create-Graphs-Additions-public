@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "PEP",
+    " G "
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    }
+  },
+  "result": {
+    "id": "create_stats:flow_meter",
+    "count": 1
+  }
+}

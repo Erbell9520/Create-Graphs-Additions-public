@@ -1,0 +1,11 @@
+{
+  "parent": "create_stats:block/control_clutch/axis_x_base",
+  "textures": {
+    "body": "create_stats:block/control_clutch/dog_clutch_body",
+    "trim": "create_stats:block/control_clutch/dog_clutch_trim",
+    "drum": "create_stats:block/control_clutch/dog_clutch_drum",
+    "dial": "create_stats:block/control_clutch/dog_clutch_dial",
+    "lens": "create_stats:block/control_clutch/dog_clutch_body",
+    "particle": "create_stats:block/control_clutch/dog_clutch_body"
+  }
+}

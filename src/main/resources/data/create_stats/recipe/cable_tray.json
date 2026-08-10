@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "I I",
+    "CCC",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "C": {
+      "item": "create_stats:surface_cable"
+    }
+  },
+  "result": {
+    "id": "create_stats:cable_tray",
+    "count": 3
+  },
+  "show_notification": true
+}

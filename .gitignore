@@ -1,0 +1,33 @@
+# Build output
+build/
+.gradle/
+out/
+bin/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.eclipse/
+.settings/
+.project
+.classpath
+*.launch
+.metadata
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Gradle
+gradle-app.setting
+!gradle-wrapper.jar
+
+# Runtime / local dev
+run/
+logs/
+.jdk/
+
+# JVM crash artifacts
+hs_err_pid*.log
+replay_pid*.log

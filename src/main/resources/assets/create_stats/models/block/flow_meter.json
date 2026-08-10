@@ -1,0 +1,79 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "copper": "create:block/copper_casing",
+    "brass": "create:block/brass_casing",
+    "lens": "create_stats:block/flow_meter_lens",
+    "end": "create_stats:block/flow_meter_end",
+    "particle": "create:block/copper_casing"
+  },
+  "elements": [
+    {
+      "name": "pipe",
+      "from": [4, 0, 4],
+      "to": [12, 16, 12],
+      "faces": {
+        "north": { "uv": [4, 0, 12, 16], "texture": "#copper" },
+        "south": { "uv": [4, 0, 12, 16], "texture": "#copper" },
+        "east":  { "uv": [4, 0, 12, 16], "texture": "#copper" },
+        "west":  { "uv": [4, 0, 12, 16], "texture": "#copper" },
+        "up":    { "uv": [4, 4, 12, 12], "texture": "#end", "cullface": "up" },
+        "down":  { "uv": [4, 4, 12, 12], "texture": "#end", "cullface": "down" }
+      }
+    },
+    {
+      "name": "lower_flange",
+      "from": [2.5, 1.5, 2.5],
+      "to": [13.5, 3.5, 13.5],
+      "faces": {
+        "north": { "uv": [2, 12, 14, 14], "texture": "#brass" },
+        "south": { "uv": [2, 12, 14, 14], "texture": "#brass" },
+        "east":  { "uv": [2, 12, 14, 14], "texture": "#brass" },
+        "west":  { "uv": [2, 12, 14, 14], "texture": "#brass" },
+        "up":    { "uv": [2, 2, 14, 14], "texture": "#brass" },
+        "down":  { "uv": [2, 2, 14, 14], "texture": "#brass" }
+      }
+    },
+    {
+      "name": "upper_flange",
+      "from": [2.5, 12.5, 2.5],
+      "to": [13.5, 14.5, 13.5],
+      "faces": {
+        "north": { "uv": [2, 2, 14, 4], "texture": "#brass" },
+        "south": { "uv": [2, 2, 14, 4], "texture": "#brass" },
+        "east":  { "uv": [2, 2, 14, 4], "texture": "#brass" },
+        "west":  { "uv": [2, 2, 14, 4], "texture": "#brass" },
+        "up":    { "uv": [2, 2, 14, 14], "texture": "#brass" },
+        "down":  { "uv": [2, 2, 14, 14], "texture": "#brass" }
+      }
+    },
+    {
+      "name": "housing",
+      "from": [3, 5, 3],
+      "to": [13, 11, 13],
+      "faces": {
+        "north": { "uv": [3, 5, 13, 11], "texture": "#brass" },
+        "south": { "uv": [3, 5, 13, 11], "texture": "#brass" },
+        "east":  { "uv": [3, 5, 13, 11], "texture": "#brass" },
+        "west":  { "uv": [3, 5, 13, 11], "texture": "#brass" },
+        "up":    { "uv": [3, 3, 13, 13], "texture": "#brass" },
+        "down":  { "uv": [3, 3, 13, 13], "texture": "#brass" }
+      }
+    },
+    {
+      "name": "sightglass",
+      "from": [2.5, 6.5, 2.5],
+      "to": [13.5, 9.5, 13.5],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#lens" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#lens" },
+        "east":  { "uv": [0, 0, 16, 16], "texture": "#lens" },
+        "west":  { "uv": [0, 0, 16, 16], "texture": "#lens" },
+        "up":    { "uv": [3, 3, 13, 13], "texture": "#brass" },
+        "down":  { "uv": [3, 3, 13, 13], "texture": "#brass" }
+      }
+    }
+  ]
+}
+
+

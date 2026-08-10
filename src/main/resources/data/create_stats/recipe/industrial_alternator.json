@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    "BSB",
+    "ERE"
+  ],
+  "key": {
+    "B": { "item": "create:brass_ingot" },
+    "S": { "item": "create:shaft" },
+    "E": { "item": "create:electron_tube" },
+    "R": { "item": "minecraft:redstone_block" }
+  },
+  "result": { "id": "create_stats:industrial_alternator", "count": 1 },
+  "show_notification": true
+}

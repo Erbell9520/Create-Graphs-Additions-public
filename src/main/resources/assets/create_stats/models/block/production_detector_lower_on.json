@@ -1,0 +1,7 @@
+{
+  "parent": "create_stats:block/production_detector_lower",
+  "textures": {
+    "front": "create_stats:block/production_detector_front_on",
+    "accent": "create_stats:block/production_detector_front_on"
+  }
+}

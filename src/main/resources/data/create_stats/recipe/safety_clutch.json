@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BEB",
+    "PCP",
+    "BEB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "C": {
+      "item": "create:clutch"
+    }
+  },
+  "result": {
+    "id": "create_stats:safety_clutch",
+    "count": 1
+  }
+}

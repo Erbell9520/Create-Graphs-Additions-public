@@ -1,0 +1,177 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "brass": "create:block/brass_casing",
+    "bezel": "create_stats:block/factory_logic_controller_bezel",
+    "panel": "create_stats:block/factory_logic_controller_panel",
+    "rear": "create_stats:block/factory_logic_controller_back",
+    "top": "create_stats:block/factory_logic_controller_top",
+    "screen": "create_stats:block/flc_screen",
+    "particle": "create:block/brass_casing"
+  },
+  "elements": [
+    {
+      "__comment": "Heavy console base, full-width plinth",
+      "from": [0, 0, 0],
+      "to": [16, 3, 16],
+      "faces": {
+        "north": { "uv": [0, 13, 16, 16], "texture": "#brass", "cullface": "north" },
+        "south": { "uv": [0, 13, 16, 16], "texture": "#brass", "cullface": "south" },
+        "east":  { "uv": [0, 13, 16, 16], "texture": "#brass", "cullface": "east" },
+        "west":  { "uv": [0, 13, 16, 16], "texture": "#brass", "cullface": "west" },
+        "up":    { "uv": [0, 0, 16, 16], "texture": "#brass" },
+        "down":  { "uv": [0, 0, 16, 16], "texture": "#brass", "cullface": "down" }
+      }
+    },
+    {
+      "__comment": "Keyboard shelf, full-width control console",
+      "from": [0, 3, 0],
+      "to": [16, 5, 6],
+      "faces": {
+        "north": { "uv": [0, 11, 16, 13], "texture": "#panel", "cullface": "north" },
+        "south": { "uv": [0, 11, 16, 13], "texture": "#brass" },
+        "east":  { "uv": [10, 11, 16, 13], "texture": "#brass", "cullface": "east" },
+        "west":  { "uv": [0, 11, 6, 13], "texture": "#brass", "cullface": "west" },
+        "up":    { "uv": [0, 10, 16, 16], "texture": "#panel" },
+        "down":  { "uv": [0, 10, 16, 16], "texture": "#brass" }
+      }
+    },
+    {
+      "__comment": "Monitor body, full-width CRT chassis",
+      "from": [0, 5, 5],
+      "to": [16, 14, 12],
+      "faces": {
+        "north": { "uv": [0, 2, 16, 11], "texture": "#brass" },
+        "south": { "uv": [0, 2, 16, 11], "texture": "#brass" },
+        "east":  { "uv": [4, 2, 11, 11], "texture": "#brass", "cullface": "east" },
+        "west":  { "uv": [5, 2, 12, 11], "texture": "#brass", "cullface": "west" },
+        "up":    { "uv": [0, 5, 16, 12], "texture": "#brass" },
+        "down":  { "uv": [0, 5, 16, 12], "texture": "#brass" }
+      }
+    },
+    {
+      "__comment": "Screen panel (recessed 2px behind bezel front at z=2)",
+      "from": [3, 6, 4],
+      "to": [13, 14, 5],
+      "faces": {
+        "north": { "uv": [3, 2, 13, 10], "texture": "#screen" }
+      }
+    },
+    {
+      "__comment": "Bezel, bottom bar (3px proud of housing)",
+      "from": [2, 5, 2],
+      "to": [14, 6, 5],
+      "faces": {
+        "north": { "uv": [2, 10, 14, 11], "texture": "#bezel" },
+        "east":  { "uv": [11, 10, 14, 11], "texture": "#bezel" },
+        "west":  { "uv": [2, 10, 5, 11], "texture": "#bezel" },
+        "up":    { "uv": [2, 11, 14, 14], "texture": "#bezel" },
+        "down":  { "uv": [2, 11, 14, 14], "texture": "#bezel" }
+      }
+    },
+    {
+      "__comment": "Bezel, left bar (3px proud of housing)",
+      "from": [2, 6, 2],
+      "to": [3, 14, 5],
+      "faces": {
+        "north": { "uv": [13, 2, 14, 10], "texture": "#bezel" },
+        "west":  { "uv": [2, 2, 5, 10], "texture": "#bezel" },
+        "east":  { "uv": [11, 2, 14, 10], "texture": "#bezel" },
+        "up":    { "uv": [2, 11, 3, 14], "texture": "#bezel" },
+        "down":  { "uv": [2, 11, 3, 14], "texture": "#bezel" }
+      }
+    },
+    {
+      "__comment": "Bezel, right bar (3px proud of housing)",
+      "from": [13, 6, 2],
+      "to": [14, 14, 5],
+      "faces": {
+        "north": { "uv": [2, 2, 3, 10], "texture": "#bezel" },
+        "east":  { "uv": [11, 2, 14, 10], "texture": "#bezel" },
+        "west":  { "uv": [2, 2, 5, 10], "texture": "#bezel" },
+        "up":    { "uv": [13, 11, 14, 14], "texture": "#bezel" },
+        "down":  { "uv": [13, 11, 14, 14], "texture": "#bezel" }
+      }
+    },
+    {
+      "__comment": "Bezel, top bar (3px proud of housing)",
+      "from": [2, 14, 2],
+      "to": [14, 15, 5],
+      "faces": {
+        "north": { "uv": [2, 1, 14, 2], "texture": "#bezel" },
+        "east":  { "uv": [11, 1, 14, 2], "texture": "#bezel" },
+        "west":  { "uv": [2, 1, 5, 2], "texture": "#bezel" },
+        "up":    { "uv": [2, 11, 14, 14], "texture": "#bezel" },
+        "down":  { "uv": [2, 11, 14, 14], "texture": "#bezel" }
+      }
+    },
+    {
+      "__comment": "CRT tube bulge, deeper (4px), wider (12px), full housing height",
+      "from": [2, 5, 12],
+      "to": [14, 14, 16],
+      "faces": {
+        "south": { "uv": [2, 2, 14, 11], "texture": "#rear", "cullface": "south" },
+        "east":  { "uv": [0, 2, 4, 11], "texture": "#brass" },
+        "west":  { "uv": [12, 2, 16, 11], "texture": "#brass" },
+        "up":    { "uv": [2, 0, 14, 4], "texture": "#brass" },
+        "down":  { "uv": [2, 12, 14, 16], "texture": "#brass" }
+      }
+    },
+    {
+      "__comment": "Top vent / crown, full housing width",
+      "from": [0, 14, 5],
+      "to": [16, 16, 12],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 2], "texture": "#bezel" },
+        "south": { "uv": [0, 0, 16, 2], "texture": "#bezel" },
+        "east":  { "uv": [4, 0, 11, 2], "texture": "#bezel", "cullface": "east" },
+        "west":  { "uv": [5, 0, 12, 2], "texture": "#bezel", "cullface": "west" },
+        "up":    { "uv": [0, 4, 16, 11], "texture": "#top", "cullface": "up" }
+      }
+    },
+    {
+      "__comment": "Bezel bolt, bottom-left",
+      "from": [2, 5, 1],
+      "to": [3, 6, 2],
+      "faces": {
+        "north": { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "west":  { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "up":    { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "down":  { "uv": [0, 0, 1, 1], "texture": "#brass" }
+      }
+    },
+    {
+      "__comment": "Bezel bolt, bottom-right",
+      "from": [13, 5, 1],
+      "to": [14, 6, 2],
+      "faces": {
+        "north": { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "east":  { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "up":    { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "down":  { "uv": [0, 0, 1, 1], "texture": "#brass" }
+      }
+    },
+    {
+      "__comment": "Bezel bolt, top-left",
+      "from": [2, 14, 1],
+      "to": [3, 15, 2],
+      "faces": {
+        "north": { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "west":  { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "up":    { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "down":  { "uv": [0, 0, 1, 1], "texture": "#brass" }
+      }
+    },
+    {
+      "__comment": "Bezel bolt, top-right",
+      "from": [13, 14, 1],
+      "to": [14, 15, 2],
+      "faces": {
+        "north": { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "east":  { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "up":    { "uv": [0, 0, 1, 1], "texture": "#brass" },
+        "down":  { "uv": [0, 0, 1, 1], "texture": "#brass" }
+      }
+    }
+  ]
+}

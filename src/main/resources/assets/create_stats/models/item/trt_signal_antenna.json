@@ -1,0 +1,104 @@
+{
+  "gui_light": "front",
+  "textures": {
+    "particle": "create:block/brass_casing",
+    "brass": "create:block/brass_casing",
+    "andesite": "create:block/andesite_casing",
+    "copper": "minecraft:block/copper_block",
+    "dark": "minecraft:block/deepslate_tiles",
+    "teal": "minecraft:block/oxidized_copper"
+  },
+  "elements": [
+    {
+      "from": [4, 0, 4],
+      "to": [12, 2, 12],
+      "faces": {
+        "north": { "uv": [0, 0, 8, 2], "texture": "#dark" },
+        "south": { "uv": [0, 0, 8, 2], "texture": "#dark" },
+        "east": { "uv": [0, 0, 8, 2], "texture": "#dark" },
+        "west": { "uv": [0, 0, 8, 2], "texture": "#dark" },
+        "up": { "uv": [0, 0, 8, 8], "texture": "#dark" },
+        "down": { "uv": [0, 0, 8, 8], "texture": "#dark" }
+      }
+    },
+    {
+      "from": [5.5, 2, 5.5],
+      "to": [10.5, 4, 10.5],
+      "faces": {
+        "north": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "south": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "east": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "west": { "uv": [0, 0, 5, 2], "texture": "#brass" },
+        "up": { "uv": [0, 0, 5, 5], "texture": "#brass" },
+        "down": { "uv": [0, 0, 5, 5], "texture": "#brass" }
+      }
+    },
+    {
+      "from": [7.1, 4, 7.1],
+      "to": [8.9, 14, 8.9],
+      "faces": {
+        "north": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "south": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "east": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "west": { "uv": [0, 0, 2, 10], "texture": "#copper" },
+        "up": { "uv": [0, 0, 2, 2], "texture": "#copper" },
+        "down": { "uv": [0, 0, 2, 2], "texture": "#copper" }
+      }
+    },
+    {
+      "from": [3, 10.5, 7],
+      "to": [13, 12, 9],
+      "faces": {
+        "north": { "uv": [0, 0, 10, 2], "texture": "#teal" },
+        "south": { "uv": [0, 0, 10, 2], "texture": "#teal" },
+        "east": { "uv": [0, 0, 2, 2], "texture": "#teal" },
+        "west": { "uv": [0, 0, 2, 2], "texture": "#teal" },
+        "up": { "uv": [0, 0, 10, 2], "texture": "#teal" },
+        "down": { "uv": [0, 0, 10, 2], "texture": "#teal" }
+      }
+    },
+    {
+      "from": [7, 9.5, 3],
+      "to": [9, 11.5, 13],
+      "faces": {
+        "north": { "uv": [0, 0, 2, 2], "texture": "#teal" },
+        "south": { "uv": [0, 0, 2, 2], "texture": "#teal" },
+        "east": { "uv": [0, 0, 10, 2], "texture": "#teal" },
+        "west": { "uv": [0, 0, 10, 2], "texture": "#teal" },
+        "up": { "uv": [0, 0, 2, 10], "texture": "#teal" },
+        "down": { "uv": [0, 0, 2, 10], "texture": "#teal" }
+      }
+    },
+    {
+      "from": [5.5, 12.8, 5.5],
+      "to": [10.5, 15.5, 10.5],
+      "faces": {
+        "north": { "uv": [0, 0, 5, 3], "texture": "#dark" },
+        "south": { "uv": [0, 0, 5, 3], "texture": "#dark" },
+        "east": { "uv": [0, 0, 5, 3], "texture": "#dark" },
+        "west": { "uv": [0, 0, 5, 3], "texture": "#dark" },
+        "up": { "uv": [0, 0, 5, 5], "texture": "#dark" },
+        "down": { "uv": [0, 0, 5, 5], "texture": "#dark" }
+      }
+    },
+    {
+      "from": [6.5, 14.5, 6.5],
+      "to": [9.5, 17, 9.5],
+      "faces": {
+        "north": { "uv": [0, 0, 3, 3], "texture": "#teal" },
+        "south": { "uv": [0, 0, 3, 3], "texture": "#teal" },
+        "east": { "uv": [0, 0, 3, 3], "texture": "#teal" },
+        "west": { "uv": [0, 0, 3, 3], "texture": "#teal" },
+        "up": { "uv": [0, 0, 3, 3], "texture": "#teal" },
+        "down": { "uv": [0, 0, 3, 3], "texture": "#teal" }
+      }
+    }
+  ],
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, -1, 0], "scale": [0.72, 0.72, 0.72] },
+    "ground": { "translation": [0, 3, 0], "scale": [0.32, 0.32, 0.32] },
+    "fixed": { "rotation": [0, 180, 0], "translation": [0, -1, 0], "scale": [0.52, 0.52, 0.52] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2, 0], "scale": [0.38, 0.38, 0.38] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 1.5, 0], "scale": [0.42, 0.42, 0.42] }
+  }
+}
