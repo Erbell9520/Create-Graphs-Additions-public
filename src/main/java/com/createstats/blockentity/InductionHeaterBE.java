@@ -34,52 +34,42 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.List;
 
-/** [1] */
+// flat SU per rpm above warm. steeper than a real seething burner on purpose
 public class InductionHeaterBE extends KineticBlockEntity {
-
-    /** RPM floors for each heat band. */
     public static final int RPM_WARM = 64;
     public static final int RPM_KINDLED = 128;
     public static final int RPM_SEETHING = 256;
 
-    /** SU drawn per RPM once the block is doing anything at all (>= RPM_WARM). */
     public static final float STRESS_IMPACT = 32f;
 
-    /** Charge thresholds: floorRpm * 16 s * 20 t/s, so each band takes 16 s at its floor RPM. */
-    private static final float CHARGE_WARM = RPM_WARM * 320f;      // 20 480
-    private static final float CHARGE_KINDLED = RPM_KINDLED * 320f; // 40 960
-    private static final float CHARGE_SEETHING = RPM_SEETHING * 320f; // 81 920
+    private static final float CHARGE_WARM = RPM_WARM * 320f;
+    private static final float CHARGE_KINDLED = RPM_KINDLED * 320f;
+    private static final float CHARGE_SEETHING = RPM_SEETHING * 320f;
 
-    /** Charge bled per tick when above the current RPM band's cap (full cool-down ~32 s). */
     private static final float CHARGE_DECAY = 128f;
 
-    /** Re-push the network stress only when the coefficient moved (mirrors KineticFlywheelBE). */
     private static final float STRESS_PUSH_EPS = 0.5f;
 
-    /** Cook-rate multipliers per tier: Warm cooks at 1x (normal campfire time), Kindled 2x, Seething ~3.33x. */
-    private static final float COOK_RATE_WARM = 1f;             // 1x speed (normal campfire time)
-    private static final float COOK_RATE_KINDLED = 1f / 0.5f;   // 2x speed
-    private static final float COOK_RATE_SEETHING = 1f / 0.3f;  // ~3.33x speed
+    private static final float COOK_RATE_WARM = 1f;
+    private static final float COOK_RATE_KINDLED = 1f / 0.5f;
+    private static final float COOK_RATE_SEETHING = 1f / 0.3f;
 
-    /** Coil wear multiplier at Kindled relative to Seething (0.33x = coil lasts ~3x longer at Kindled). */
     private static final float KINDLED_WEAR_FACTOR = 0.33f;
 
     private float charge;
     private ItemStack coil = ItemStack.EMPTY;
     private float lastPushedStress = Float.NaN;
-    private boolean pushingStress; // re-entrancy guard: updateStressFor re-fires our own onSpeedChanged
+    private boolean pushingStress;
     private float coilWearAccumulator;
     private float lastSyncedCharge = -1;
     private int lastSyncedCoilDamage = -1;
 
-    // cooking station state
-    /** The single plate stack: raw while cooking, flips to cooked atomically when done. */
     private ItemStack cookStack = ItemStack.EMPTY;
-    /** Accumulated progress in base-recipe ticks; advances by the tier's rate multiplier each tick. */
+
     private float cookProgress;
-    /** Base cook time of the current recipe, cached when the stack is inserted. */
+
     private int cookTime;
-    /** True once the current stack has been converted; cleared when the plate is emptied. */
+
     private boolean cooked;
     private final RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> cookCheck =
         RecipeManager.createCheck(RecipeType.CAMPFIRE_COOKING);
@@ -125,7 +115,8 @@ public class InductionHeaterBE extends KineticBlockEntity {
 
         pushStress(false);
 
-        // [2]
+        // sync wear too, the charge sits pinned at cap while superheated and the bar froze
+
         int coilDamage = coil.isEmpty() ? -1 : InductionCoilItem.getWear(coil);
         if (level.getGameTime() % 10 == 0
                 && (Math.abs(charge - lastSyncedCharge) > 256f || coilDamage != lastSyncedCoilDamage)) {
@@ -137,14 +128,13 @@ public class InductionHeaterBE extends KineticBlockEntity {
 
     private float chargeCapFor(float rpm) {
         if (rpm < RPM_WARM) return 0;
-        // [3]
+
         if (!hasCoil()) return CHARGE_WARM;
         if (rpm < RPM_KINDLED) return CHARGE_WARM;
         if (rpm < RPM_SEETHING) return CHARGE_KINDLED;
         return CHARGE_SEETHING;
     }
 
-    /** [4] */
     private HeatLevel currentHeat() {
         if (charge >= CHARGE_SEETHING && hasCoil()) return HeatLevel.SEETHING;
         if (charge >= CHARGE_KINDLED && hasCoil()) return HeatLevel.KINDLED;
@@ -152,10 +142,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         return HeatLevel.NONE;
     }
 
-    /**
-     * Damage the installed coil at a rate that stretches its full durability across the
-     * configured lifetime, independent of what that durability number is.
-     */
     private void wearCoil(float wearFactor) {
         if (coil.isEmpty()) {
             return;
@@ -182,9 +168,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         }
     }
 
-    // cooking station
-
-    /** [5] */
     private void tickCooking(HeatLevel heat) {
         if (cookStack.isEmpty() || cooked) {
             return;
@@ -216,8 +199,7 @@ public class InductionHeaterBE extends KineticBlockEntity {
         }
         cooked = true;
         cookProgress = target;
-        // The "order's up" moment: a bell chime and a burst of steam so finishing a batch
-        // is audible across the kitchen, since nothing is ejected to draw the eye.
+
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.playSound(null, worldPosition, SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.BLOCKS, 1.0f, 1.4f);
             serverLevel.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE,
@@ -228,7 +210,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         sendData();
     }
 
-    /** True when the held stack matches a campfire-cooking recipe (i.e. it is cookable raw food). */
     public boolean isCookableItem(ItemStack stack) {
         if (stack.isEmpty() || level == null) {
             return false;
@@ -248,7 +229,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         return cooked && !cookStack.isEmpty();
     }
 
-    /** [6] */
     private static float countScale(int count) {
         if (count <= 1) {
             return 1f;
@@ -256,7 +236,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         return 1f + 3.65f * ((float) Math.sqrt(count) - 1f);
     }
 
-    /** Total progress (in base-recipe ticks) the current plate needs, scaled by batch size. */
     private float effectiveCookTicks() {
         return cookTime * countScale(cookStack.getCount());
     }
@@ -268,7 +247,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         return Mth.clamp(cookProgress / effectiveCookTicks() * 100f, 0f, 100f);
     }
 
-    /** [7] */
     public int placeFood(ItemStack offered) {
         if (offered.isEmpty() || level == null) {
             return 0;
@@ -296,14 +274,13 @@ public class InductionHeaterBE extends KineticBlockEntity {
             return 0;
         }
         int added = Math.min(room, offered.getCount());
-        // [8]
+
         cookStack.grow(added);
         setChanged();
         sendData();
         return added;
     }
 
-    /** Clears the plate and returns whatever was on it - raw mid-cook (progress is lost) or cooked. */
     public ItemStack takeFood() {
         ItemStack removed = cookStack;
         cookStack = ItemStack.EMPTY;
@@ -325,7 +302,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         }
     }
 
-    /** [9] */
     private void pushStress(boolean force) {
         if (level == null || level.isClientSide || !hasNetwork() || pushingStress) {
             return;
@@ -356,8 +332,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         super.onSpeedChanged(previousSpeed);
         pushStress(true);
     }
-
-    // coil access
 
     public boolean isCoilItem(ItemStack stack) {
         return stack.getItem() instanceof InductionCoilItem;
@@ -390,8 +364,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         }
     }
 
-    // telemetry (goggles + display source)
-
     public HeatLevel getHeat() {
         return getBlockState().getValue(BlazeBurnerBlock.HEAT_LEVEL);
     }
@@ -411,7 +383,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         return 100f * (InductionCoilItem.MAX_WEAR - InductionCoilItem.getWear(coil)) / InductionCoilItem.MAX_WEAR;
     }
 
-    /** Coarse heat tier for telemetry: 0 idle, 1 warm, 2 kindled, 3 superheated. */
     public int getHeatTierOrdinal() {
         return switch (getHeat()) {
             case SEETHING -> 3;
@@ -421,7 +392,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         };
     }
 
-    /** [10] */
     public float getCoilSecondsRemaining() {
         if (coil.isEmpty()) {
             return 0f;
@@ -439,7 +409,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         return Math.max(0f, healthFrac) * lifetimeSec / wearFactor;
     }
 
-    /** [11] */
     public float getCookSecondsRemaining() {
         if (cookStack.isEmpty() || cooked) {
             return 0f;
@@ -459,8 +428,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
         }
         return remainingBase / rate / 20f;
     }
-
-    // persistence
 
     @Override
     protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
@@ -528,10 +495,12 @@ public class InductionHeaterBE extends KineticBlockEntity {
             .append(Component.literal(String.format(" %.0f%%", chargePct)).withStyle(ChatFormatting.GRAY)));
 
         if (hasCoil()) {
-            tooltip.add(Component.literal("    ").append(
-                Component.translatable("block.create_stats.induction_heater.goggle.coil",
-                    String.format("%.0f%%", getCoilHealthPercent()))
-                    .withStyle(ChatFormatting.LIGHT_PURPLE)));
+            if (isPlayerSneaking) {
+                tooltip.add(Component.literal("    ").append(
+                    Component.translatable("block.create_stats.induction_heater.goggle.coil",
+                        String.format("%.0f%%", getCoilHealthPercent()))
+                        .withStyle(ChatFormatting.LIGHT_PURPLE)));
+            }
         } else {
             tooltip.add(Component.literal("    ").append(
                 Component.translatable("block.create_stats.induction_heater.goggle.no_coil")
@@ -552,10 +521,12 @@ public class InductionHeaterBE extends KineticBlockEntity {
                         .withStyle(heat.isAtLeast(HeatLevel.FADING) ? ChatFormatting.GOLD : ChatFormatting.DARK_GRAY)));
             }
         }
+        if (!isPlayerSneaking) {
+            tooltip.add(com.createstats.power.FeGoggle.more());
+        }
         return true;
     }
 
-    /** [12] */
     private final IItemHandler plateHandler = new IItemHandler() {
         private static final int SLOT_COIL = 0;
         private static final int SLOT_FOOD = 1;
@@ -567,8 +538,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
 
         @Override
         public ItemStack getStackInSlot(int slot) {
-            // Coil stays hidden (never steal-able); food is visible only once cooked so
-            // extraction logic in hoppers sees exactly what it is allowed to take.
             return slot == SLOT_FOOD && isCookDone() ? cookStack : ItemStack.EMPTY;
         }
 
@@ -591,7 +560,6 @@ public class InductionHeaterBE extends KineticBlockEntity {
                     return stack;
                 }
                 if (simulate) {
-                    // Mirror placeFood's acceptance rules without mutating state.
                     int accepted;
                     if (cookStack.isEmpty()) {
                         accepted = Math.min(stack.getCount(), Math.min(64, stack.getMaxStackSize()));
@@ -629,7 +597,7 @@ public class InductionHeaterBE extends KineticBlockEntity {
             }
             ItemStack out = cookStack.split(taken);
             if (cookStack.isEmpty()) {
-                takeFood(); // resets progress/cooked bookkeeping
+                takeFood();
             } else {
                 setChanged();
                 sendData();

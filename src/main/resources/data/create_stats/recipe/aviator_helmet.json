@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "LWL",
+    "LGL",
+    "B B"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "W": {
+      "tag": "minecraft:wool"
+    },
+    "G": {
+      "item": "create:goggles"
+    },
+    "B": {
+      "tag": "c:nuggets/brass"
+    }
+  },
+  "result": {
+    "id": "create_stats:aviator_helmet",
+    "count": 1
+  }
+}

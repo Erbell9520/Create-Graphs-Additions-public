@@ -20,12 +20,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/** [1] */
 public class CapacitorBankBlock extends Block implements EntityBlock {
-
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, CapacitorBankBE.LED_SEGMENTS);
 
-    /** [2] */
+    private static final int PLACEMENT_HELPER_ID =
+            net.createmod.catnip.placement.PlacementHelpers.register(new CapacitorBankPlacementHelper());
+
     public enum Segment implements net.minecraft.util.StringRepresentable {
         SINGLE("single"),
         BOTTOM("bottom"),
@@ -52,7 +52,6 @@ public class CapacitorBankBlock extends Block implements EntityBlock {
         registerDefaultState(defaultBlockState().setValue(LEVEL, 0).setValue(SEGMENT, Segment.SINGLE));
     }
 
-    /** Light emission ramp, used at registration. Dark when flat, a soft glow when charged. */
     public static int getLightEmission(BlockState state) {
         final int level = state.hasProperty(LEVEL) ? state.getValue(LEVEL) : 0;
         return level <= 0 ? 0 : 2 + level;
@@ -79,7 +78,53 @@ public class CapacitorBankBlock extends Block implements EntityBlock {
     }
 
     @Override
+    protected net.minecraft.world.ItemInteractionResult useItemOn(
+            ItemStack stack, BlockState state, Level level, BlockPos pos,
+            net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand,
+            net.minecraft.world.phys.BlockHitResult hit) {
+        if (!com.simibubi.create.AllItems.WRENCH.isIn(stack)) {
+            return placeNext(stack, state, level, pos, player, hand, hit);
+        }
+        if (!(level.getBlockEntity(pos) instanceof CapacitorBankBE bank)) {
+            return super.useItemOn(stack, state, level, pos, player, hand, hit);
+        }
+        if (level.isClientSide()) {
+            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        }
+
+        final int rank = player.isShiftKeyDown() ? bank.cycleReserveRankBack() : bank.cycleReserveRank();
+        player.displayClientMessage(
+                Component.literal(com.createstats.power.FeReserve.describe(rank)), true);
+        return net.minecraft.world.ItemInteractionResult.CONSUME;
+    }
+
+    private net.minecraft.world.ItemInteractionResult placeNext(
+            ItemStack stack, BlockState state, Level level, BlockPos pos,
+            net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand,
+            net.minecraft.world.phys.BlockHitResult hit) {
+        final net.createmod.catnip.placement.IPlacementHelper helper =
+                net.createmod.catnip.placement.PlacementHelpers.get(PLACEMENT_HELPER_ID);
+        if (!helper.matchesItem(stack)) {
+            return super.useItemOn(stack, state, level, pos, player, hand, hit);
+        }
+        final net.createmod.catnip.placement.PlacementOffset offset =
+                helper.getOffset(player, level, state, pos, hit);
+        final net.minecraft.world.ItemInteractionResult result =
+                offset.placeInWorld(level, (net.minecraft.world.item.BlockItem) stack.getItem(), player, hand, hit);
+        if (result.consumesAction()
+                && stack.getItem() instanceof com.createstats.item.CapacitorBankItem bank) {
+            bank.completeLayer(level, player, hand, offset.getBlockPos(), hit);
+        }
+        return result;
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.capacitor_bank");
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.capacitor_bank",
+                List.of(com.createstats.util.CreateStatsTooltipHelper.spec("tooltip.create_stats.bank_rate",
+                        com.createstats.power.FeRates.amount(
+                                com.createstats.blockentity.CapacitorBankBE.blockCapacity()),
+                        com.createstats.power.FeRates.perTick(
+                                com.createstats.blockentity.CapacitorBankBE.transferRate()))));
     }
 }

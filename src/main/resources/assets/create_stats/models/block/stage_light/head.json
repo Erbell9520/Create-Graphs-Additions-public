@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light HEAD (pans with yoke + tilts about the hub axis), rendered by the BER. FACING=up reference, lens points up at zero tilt.",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

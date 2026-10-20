@@ -3,15 +3,10 @@ package com.createstats.flight;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * Single source of truth for which sensors each flight mode requires. Phase 11+ will
- * gate mode entry on these requirements; the GUI will use them to grey-out unavailable
- * modes.
- */
 public enum FlightMode {
     OFF        (EnumSet.noneOf(SensorRequirement.class)),
     STANDBY    (EnumSet.of(SensorRequirement.GIMBAL)),
-    // [1]
+
     GO_N       (EnumSet.of(SensorRequirement.GIMBAL, SensorRequirement.VELOCITY)),
     GO_S       (EnumSet.of(SensorRequirement.GIMBAL, SensorRequirement.VELOCITY)),
     GO_E       (EnumSet.of(SensorRequirement.GIMBAL, SensorRequirement.VELOCITY)),

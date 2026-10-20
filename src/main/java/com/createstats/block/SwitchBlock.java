@@ -22,21 +22,48 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-/** [1] */
-public class SwitchBlock extends Block implements net.minecraft.world.level.block.EntityBlock {
-
+public class SwitchBlock extends Block implements net.minecraft.world.level.block.EntityBlock,
+        GirderMounting.Fixture {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
-    /** The second gang. Always false on a single gang switch. */
+
     public static final BooleanProperty POWERED_B = BooleanProperty.create("powered_b");
+
+    public enum Click {
+        ROCKER(SoundEvents.LEVER_CLICK, 0.34f, 0.62f, 0.52f),
+
+        DOLLY(SoundEvents.LEVER_CLICK, 0.30f, 1.45f, 1.20f),
+
+        ISOLATOR(SoundEvents.IRON_TRAPDOOR_CLOSE, 0.30f, 0.85f, 0.70f),
+
+        STOP(SoundEvents.STONE_BUTTON_CLICK_ON, 0.42f, 0.62f, 0.90f);
+
+        private final net.minecraft.sounds.SoundEvent sound;
+        private final float volume;
+        private final float pitchOn;
+        private final float pitchOff;
+
+        Click(net.minecraft.sounds.SoundEvent sound, float volume, float pitchOn, float pitchOff) {
+            this.sound = sound;
+            this.volume = volume;
+            this.pitchOn = pitchOn;
+            this.pitchOff = pitchOff;
+        }
+
+        void play(Level level, BlockPos pos, boolean on) {
+            level.playSound(null, pos, sound, SoundSource.BLOCKS, volume, on ? pitchOn : pitchOff);
+        }
+    }
 
     private final VoxelShape upShape;
     private final boolean twoGang;
+    private final Click click;
 
-    public SwitchBlock(Properties properties, VoxelShape upShape, boolean twoGang) {
+    public SwitchBlock(Properties properties, VoxelShape upShape, boolean twoGang, Click click) {
         super(properties);
         this.upShape = upShape;
         this.twoGang = twoGang;
+        this.click = click;
         registerDefaultState(defaultBlockState()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(POWERED, false)
@@ -51,7 +78,6 @@ public class SwitchBlock extends Block implements net.minecraft.world.level.bloc
     @Override
     @Nullable
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        // Points out of the face that was clicked, so it sits flush on a wall, floor or ceiling.
         return defaultBlockState().setValue(FACING, context.getClickedFace());
     }
 
@@ -60,12 +86,15 @@ public class SwitchBlock extends Block implements net.minecraft.world.level.bloc
         return LampShapes.rotate(upShape, state.getValue(FACING));
     }
 
-    /** A switch needs something behind it, and falls off if that goes. */
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         final Direction facing = state.getValue(FACING);
-        final BlockPos support = pos.relative(facing.getOpposite());
-        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+        return GirderMounting.holds(level, pos.relative(facing.getOpposite()), facing);
+    }
+
+    @Override
+    public boolean isBackedBy(BlockState state, Direction towardSupport) {
+        return state.getValue(FACING) == towardSupport.getOpposite();
     }
 
     @Override
@@ -85,17 +114,33 @@ public class SwitchBlock extends Block implements net.minecraft.world.level.bloc
         }
         final boolean secondGang = twoGang && isSecondGang(state, pos, hit.getLocation());
         final BooleanProperty gang = secondGang ? POWERED_B : POWERED;
-        final boolean now = !state.getValue(gang);
-        final BlockState next = state.setValue(gang, now);
-        level.setBlock(pos, next, Block.UPDATE_ALL);
-        level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3f,
-                now ? 0.6f : 0.5f);
-        updateNeighbours(next, level, pos);
-        onContactsMoved(level, pos);
+        setContacts(level, pos, state, gang, !state.getValue(gang));
         return InteractionResult.CONSUME;
     }
 
-    /** [2] */
+    protected final void setContacts(Level level, BlockPos pos, BlockState state, BooleanProperty gang,
+                                     boolean closed) {
+        final BlockState next = state.setValue(gang, closed);
+        level.setBlock(pos, next, Block.UPDATE_ALL);
+        playContacts(level, pos, closed);
+        updateNeighbours(next, level, pos);
+        onContactsMoved(level, pos);
+    }
+
+    protected void playContacts(Level level, BlockPos pos, boolean closed) {
+        click.play(level, pos, closed);
+    }
+
+    public void tickSwitch(Level level, BlockPos pos, BlockState state,
+                           com.createstats.blockentity.SwitchBE be) {
+    }
+
+    public boolean addGoggleLines(com.createstats.blockentity.SwitchBE be,
+                                  java.util.List<net.minecraft.network.chat.Component> tooltip,
+                                  boolean isPlayerSneaking) {
+        return false;
+    }
+
     private boolean isSecondGang(BlockState state, BlockPos pos, Vec3 hitPos) {
         final Direction facing = state.getValue(FACING);
         final Vec3 local = hitPos.subtract(pos.getX(), pos.getY(), pos.getZ());
@@ -108,8 +153,7 @@ public class SwitchBlock extends Block implements net.minecraft.world.level.bloc
         };
     }
 
-    /** [3] */
-    private void onContactsMoved(Level level, BlockPos pos) {
+    protected void onContactsMoved(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof com.createstats.blockentity.SwitchBE be) {
             be.invalidateBranch();
             be.pushGateToLinked();
@@ -143,7 +187,7 @@ public class SwitchBlock extends Block implements net.minecraft.world.level.bloc
         super.onRemove(state, level, pos, newState, moving);
     }
 
-    private void updateNeighbours(BlockState state, Level level, BlockPos pos) {
+    protected void updateNeighbours(BlockState state, Level level, BlockPos pos) {
         level.updateNeighborsAt(pos, this);
         level.updateNeighborsAt(pos.relative(state.getValue(FACING).getOpposite()), this);
     }
@@ -158,12 +202,11 @@ public class SwitchBlock extends Block implements net.minecraft.world.level.bloc
         if (!twoGang) {
             return state.getValue(POWERED) ? 15 : 0;
         }
-        // Each gang owns one side, which is what makes a double gang two circuits rather than a wide
-        // rocker. Both also drive the block behind, via getDirectSignal below.
+
         final Direction facing = state.getValue(FACING);
         final Direction left = facing.getAxis() == Direction.Axis.Y ? Direction.WEST : facing.getCounterClockWise();
         final Direction right = left.getOpposite();
-        // getSignal is asked from the neighbour's point of view, so the direction arrives reversed.
+
         final Direction asked = direction.getOpposite();
         if (asked == left) {
             return state.getValue(POWERED) ? 15 : 0;
@@ -176,14 +219,19 @@ public class SwitchBlock extends Block implements net.minecraft.world.level.bloc
 
     @Override
     protected int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        // Strong only into the block it is mounted on, exactly like a lever, so a switch on a wall
-        // powers whatever is on the far side of that wall.
         final boolean on = state.getValue(POWERED) || state.getValue(POWERED_B);
         return on && state.getValue(FACING) == direction ? 15 : 0;
     }
 
-    /** True when either gang is on, for the model to pick its pressed variant. */
     public static boolean isOn(BlockState state) {
         return state.getValue(POWERED) || state.getValue(POWERED_B);
+    }
+
+    @Override
+    public void appendHoverText(net.minecraft.world.item.ItemStack stack,
+                                net.minecraft.world.item.Item.TooltipContext context,
+                                java.util.List<net.minecraft.network.chat.Component> tooltip,
+                                net.minecraft.world.item.TooltipFlag flag) {
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, stack.getItem().getDescriptionId());
     }
 }

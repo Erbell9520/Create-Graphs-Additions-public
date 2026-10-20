@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "slice_3": "create_stats:block/toaster_slice_3",
+    "particle": "create_stats:block/toaster_slice_3"
+  },
+  "elements": [
+    {
+      "__comment": "slice",
+      "from": [
+        -0.45,
+        0.0,
+        -2.9
+      ],
+      "to": [
+        0.45,
+        6.4,
+        2.9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#slice_3"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#slice_3"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#slice_3"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#slice_3"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#slice_3"
+        },
+        "down": {
+          "uv": [
+            15,
+            0,
+            16,
+            16
+          ],
+          "texture": "#slice_3"
+        }
+      }
+    }
+  ]
+}

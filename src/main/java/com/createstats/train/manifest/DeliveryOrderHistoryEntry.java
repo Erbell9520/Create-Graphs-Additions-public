@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class DeliveryOrderHistoryEntry {
-
     private final DeliveryOrderHistoryType type;
     private final long tick;
     private final String title;

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "item": "create_stats:unfired_insulator"
+  },
+  "result": {
+    "id": "create_stats:porcelain_insulator"
+  },
+  "experience": 0.35,
+  "cookingtime": 100
+}

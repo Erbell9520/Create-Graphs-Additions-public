@@ -33,6 +33,11 @@ public class LoadBalancerRenderer extends KineticBlockEntityRenderer<LoadBalance
     private static final IndicatorColors WARN_COLORS = new IndicatorColors(0x24, 0x1A, 0x05, 0xFF, 0xD4, 0x45);
     private static final IndicatorColors ERROR_COLORS = new IndicatorColors(0x23, 0x08, 0x0A, 0xF2, 0x4D, 0x52);
 
+    private static final int INPUT_R = 0x5A;
+    private static final int INPUT_G = 0xA9;
+    private static final int INPUT_B = 0xD6;
+    private static final int INPUT_A = 0xD0;
+
     public LoadBalancerRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
@@ -55,8 +60,7 @@ public class LoadBalancerRenderer extends KineticBlockEntityRenderer<LoadBalance
         for (Direction direction : getPorts(state)) {
             final Direction.Axis axis = direction.getAxis();
             SuperByteBuffer shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state, direction);
-            // Apply the per-shaft speed modifier to the source speed BEFORE computing the angle
-            // so that the modulo is taken on the actual output rotation, not a scaled sub-rotation.
+
             float speed = be.getSpeed() * be.getRotationSpeedModifier(direction);
             float offset = getRotationOffsetForPosition(be, pos, axis);
             float angle = (time * speed * 3.0f / 10.0f) % 360.0f;
@@ -76,7 +80,8 @@ public class LoadBalancerRenderer extends KineticBlockEntityRenderer<LoadBalance
         float renderTime = AnimationTickHolder.getRenderTime(be.getLevel());
         Matrix4f pose = ms.last().pose();
         Matrix3f normal = ms.last().normal();
-        VertexConsumer housing = buffer.getBuffer(RenderType.entityTranslucent(WHITE_TEX));
+
+        VertexConsumer housing = Buffers.live(buffer, RenderType.entityTranslucent(WHITE_TEX));
         VertexConsumer lamp = buffer.getBuffer(RenderType.entityTranslucentEmissive(WHITE_TEX));
 
         IndicatorStyle centerStyle = getCenterStyle(be, renderTime);
@@ -93,87 +98,85 @@ public class LoadBalancerRenderer extends KineticBlockEntityRenderer<LoadBalance
         renderFaceWindow(LoadBalancerBlock.getRightOutputFacing(state), pose, normal, housing, lamp, rightStyle, blockLight,
                 5.75f * PX, 10.25f * PX, 5.5f * PX, 10.5f * PX,
                 6.15f * PX, 9.85f * PX, 5.9f * PX, 10.1f * PX);
+        renderInputMarker(LoadBalancerBlock.getInputFacing(state), pose, normal, housing, blockLight);
         renderTopBeacon(pose, normal, housing, lamp, centerStyle, blockLight);
     }
 
+    private void renderInputMarker(Direction face, Matrix4f pose, Matrix3f normal,
+                                   VertexConsumer housing, int blockLight) {
+        final float depth = OUTSET * 1.5f;
+
+        faceQuad(face, housing, pose, normal, 3.0f * PX, 4.5f * PX, 5.5f * PX, 10.5f * PX, depth,
+                INPUT_R, INPUT_G, INPUT_B, INPUT_A, blockLight);
+        faceQuad(face, housing, pose, normal, 11.5f * PX, 13.0f * PX, 5.5f * PX, 10.5f * PX, depth,
+                INPUT_R, INPUT_G, INPUT_B, INPUT_A, blockLight);
+    }
+
+    private static void faceQuad(Direction face, VertexConsumer vc, Matrix4f pose, Matrix3f normal,
+                                 float min, float max, float bottom, float top, float depth,
+                                 int r, int g, int b, int a, int light) {
+        switch (face) {
+            case EAST -> quadEast(vc, pose, normal, 15.0f * PX + depth, min, bottom, max, top,
+                    r, g, b, a, light);
+            case WEST -> quadWest(vc, pose, normal, 1.0f * PX - depth, min, bottom, max, top,
+                    r, g, b, a, light);
+            case SOUTH -> quadSouth(vc, pose, normal, 15.0f * PX + depth, min, bottom, max, top,
+                    r, g, b, a, light);
+            case NORTH -> quadNorth(vc, pose, normal, 1.0f * PX - depth, min, bottom, max, top,
+                    r, g, b, a, light);
+            default -> {
+            }
+        }
+    }
 
     private IndicatorStyle getCenterStyle(LoadBalancerBE be, float renderTime) {
         float phase = stablePhaseOffset(be);
-        if (!be.getSettings().isEnabled()) {
-            return buildStyle(OFF_COLORS, 0.08f, 0.02f);
-        }
-        if (be.getTopologyStatus() == LoadBalancerBE.TopologyStatus.TRUNCATED) {
-            float blink = blink(renderTime / 10.0f + phase);
-            return buildStyle(ERROR_COLORS, 0.24f + blink * 0.76f, 0.16f + blink * 0.84f);
-        }
-        if (isHardError(be)) {
-            return buildStyle(ERROR_COLORS, 0.82f, 0.62f);
-        }
+        LoadBalancerBE.ReportedState state = be.getReportedState();
+        return switch (state) {
+            case DISABLED -> buildStyle(OFF_COLORS, 0.08f, 0.02f);
+            case TOPOLOGY_LIMIT -> {
+                float blink = blink(renderTime / 10.0f + phase);
+                yield buildStyle(ERROR_COLORS, 0.24f + blink * 0.76f, 0.16f + blink * 0.84f);
+            }
+            case WRONG_INPUT, MERGED, BRANCH_SOURCE -> buildStyle(ERROR_COLORS, 0.82f, 0.62f);
 
-        int missingCount = getMissingBranchCount(be);
-        if (missingCount >= 2) {
-            return buildStyle(ERROR_COLORS, 0.78f, 0.48f);
-        }
-        if (missingCount == 1) {
-            float blink = blink(renderTime / 12.0f + phase);
-            return buildStyle(WARN_COLORS, 0.20f + blink * 0.80f, 0.10f + blink * 0.55f);
-        }
-        if (be.getTopologyStatus() == LoadBalancerBE.TopologyStatus.NO_SOURCE) {
-            return buildStyle(OK_COLORS, 0.26f, 0.10f);
-        }
-
-        float pulse = be.isBalancing() ? heartbeat(renderTime / 18.0f + phase) : 0.45f;
-        float lampBrightness = be.isBalancing() ? 0.46f + pulse * 0.54f : 0.68f;
-        float beaconBrightness = be.isBalancing() ? 0.24f + pulse * 0.76f : 0.34f;
-        return buildStyle(OK_COLORS, lampBrightness, beaconBrightness);
+            case NO_BRANCHES, ONE_BRANCH -> {
+                float blink = blink(renderTime / 12.0f + phase);
+                yield buildStyle(WARN_COLORS, 0.20f + blink * 0.80f, 0.10f + blink * 0.55f);
+            }
+            case IDLE -> buildStyle(OK_COLORS, 0.26f, 0.10f);
+            case BALANCING -> {
+                float pulse = heartbeat(renderTime / 18.0f + phase);
+                yield buildStyle(OK_COLORS, 0.46f + pulse * 0.54f, 0.24f + pulse * 0.76f);
+            }
+            case PASS_THROUGH -> buildStyle(OK_COLORS, 0.68f, 0.34f);
+        };
     }
 
     private IndicatorStyle getBranchStyle(LoadBalancerBE be, float renderTime, boolean attached) {
         float phase = stablePhaseOffset(be) + (attached ? 0.0f : 0.19f);
-        if (!be.getSettings().isEnabled()) {
-            return buildStyle(OFF_COLORS, 0.06f, 0.0f);
-        }
-        if (be.getTopologyStatus() == LoadBalancerBE.TopologyStatus.TRUNCATED) {
-            float blink = blink(renderTime / 10.0f + phase);
-            return buildStyle(ERROR_COLORS, 0.18f + blink * 0.82f, 0.0f);
-        }
-        if (isHardError(be)) {
-            return buildStyle(ERROR_COLORS, 0.84f, 0.0f);
-        }
-
-        int missingCount = getMissingBranchCount(be);
-        if (!attached) {
-            if (missingCount >= 2) {
-                return buildStyle(ERROR_COLORS, 0.78f, 0.0f);
+        LoadBalancerBE.ReportedState state = be.getReportedState();
+        return switch (state) {
+            case DISABLED -> buildStyle(OFF_COLORS, 0.06f, 0.0f);
+            case TOPOLOGY_LIMIT -> {
+                float blink = blink(renderTime / 10.0f + phase);
+                yield buildStyle(ERROR_COLORS, 0.18f + blink * 0.82f, 0.0f);
             }
-            float blink = blink(renderTime / 12.0f + phase);
-            return buildStyle(WARN_COLORS, 0.20f + blink * 0.80f, 0.0f);
-        }
-        if (be.getTopologyStatus() == LoadBalancerBE.TopologyStatus.NO_SOURCE) {
-            return buildStyle(OK_COLORS, 0.18f, 0.0f);
-        }
-
-        float pulse = be.isBalancing() ? heartbeat(renderTime / 18.0f + phase) : 0.35f;
-        float lampBrightness = be.isBalancing() ? 0.40f + pulse * 0.50f : 0.58f;
-        return buildStyle(OK_COLORS, lampBrightness, 0.0f);
-    }
-
-    private static boolean isHardError(LoadBalancerBE be) {
-        return switch (be.getTopologyStatus()) {
-            case SIDE_INPUT, MERGED_BRANCHES, BRANCH_SOURCE -> true;
-            default -> false;
+            case WRONG_INPUT, MERGED, BRANCH_SOURCE -> buildStyle(ERROR_COLORS, 0.84f, 0.0f);
+            case NO_BRANCHES, ONE_BRANCH -> {
+                if (attached) {
+                    yield buildStyle(OK_COLORS, 0.58f, 0.0f);
+                }
+                float blink = blink(renderTime / 12.0f + phase);
+                yield buildStyle(WARN_COLORS, 0.20f + blink * 0.80f, 0.0f);
+            }
+            case IDLE -> buildStyle(OK_COLORS, 0.18f, 0.0f);
+            case BALANCING -> {
+                float pulse = heartbeat(renderTime / 18.0f + phase);
+                yield buildStyle(OK_COLORS, 0.40f + pulse * 0.50f, 0.0f);
+            }
+            case PASS_THROUGH -> buildStyle(OK_COLORS, 0.58f, 0.0f);
         };
-    }
-
-    private static int getMissingBranchCount(LoadBalancerBE be) {
-        int missing = 0;
-        if (!be.isLeftBranchAttached()) {
-            missing++;
-        }
-        if (!be.isRightBranchAttached()) {
-            missing++;
-        }
-        return missing;
     }
 
     private IndicatorStyle buildStyle(IndicatorColors colors, float lampBrightness, float beaconBrightness) {
@@ -311,7 +314,6 @@ public class LoadBalancerRenderer extends KineticBlockEntityRenderer<LoadBalance
                 .setLight(light)
                 .setNormal(nx, ny, nz);
     }
-
 
     private static float stablePhaseOffset(LoadBalancerBE be) {
         long seed = be.getBlockPos().asLong();

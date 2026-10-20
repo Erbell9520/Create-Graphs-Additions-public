@@ -10,21 +10,21 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
-/** [1] */
 public final class FePowerFx {
-
     private FePowerFx() {
     }
 
-    /** [2] */
     public static void handleTransition(Level level, BlockPos pos, FeConsumer feConsumer) {
         chargeFromNeighbors(level, pos, feConsumer);
         playTransition(level, pos, feConsumer.pollTransition());
     }
 
-    /** [3] */
+    // pull, the one path that reaches around a PDU. a suppressed consumer doesn't pull
     public static void chargeFromNeighbors(Level level, BlockPos pos, FeConsumer feConsumer) {
         if (level == null || level.isClientSide()) {
+            return;
+        }
+        if (feConsumer.isSuppressed()) {
             return;
         }
         int space = feConsumer.getMaxEnergyStored() - feConsumer.getEnergyStored();
@@ -40,7 +40,7 @@ public final class FePowerFx {
             if (source == null || !source.canExtract()) {
                 continue;
             }
-            // [4]
+
             final int offered = source.extractEnergy(space, true);
             if (offered <= 0) {
                 continue;
@@ -53,21 +53,18 @@ public final class FePowerFx {
             if (drawn <= 0) {
                 continue;
             }
-            // [5]
+
             space -= feConsumer.receiveEnergy(drawn, false);
         }
     }
 
-    /** Variant for owners that already polled the transition themselves. */
     public static void playTransition(Level level, BlockPos pos, int transition) {
         if (transition == 0 || level == null || level.isClientSide()) {
             return;
         }
         if (transition > 0) {
-            // Boot: rising beacon activation, pitched up so it reads as electronics, not a beacon.
             level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.55f, 1.45f);
         } else {
-            // Hard cutoff: capacitor discharge. Descending deactivate plus one spark burst.
             level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.65f, 0.75f);
             if (level instanceof ServerLevel serverLevel) {
                 serverLevel.sendParticles(ParticleTypes.ELECTRIC_SPARK,

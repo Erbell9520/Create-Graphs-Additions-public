@@ -5,21 +5,28 @@ import com.createstats.power.FeLock;
 import com.createstats.power.FePriority;
 import net.minecraft.client.gui.GuiGraphics;
 
-/** [1] */
 public final class PduGlyphs {
-
     private PduGlyphs() {
     }
 
-    /** [2] */
     public static int drawPip(GuiGraphics g, int x, int y, BranchDevice d) {
         final PduTableModel.Status status = PduTableModel.Status.of(d);
         final boolean lockedOn = d.lock() == FeLock.FORCE_ON;
         final int size = 6;
+        if (status == PduTableModel.Status.STORAGE) {
+            final float fill = d.fill();
+            final int colour = fill < 0.15f ? PduTheme.CRIT
+                    : fill < 0.30f ? PduTheme.WARN : PduTheme.INFO;
+            g.fill(x, y, x + size, y + size, PduTheme.BG_DEEP);
+
+            final int lit = Math.max(1, Math.round(size * fill));
+            g.fill(x, y + size - lit, x + size, y + size, colour);
+            return colour;
+        }
         final int colour = switch (status) {
             case OFF -> PduTheme.TEXT_FAINT;
-            case HOLDING, SHED -> PduTheme.WARN;
-            case RUNNING -> lockedOn ? PduTheme.INFO : PduTheme.OK;
+            case HOLDING, SHED, BREAKER -> PduTheme.WARN;
+            case STORAGE, RUNNING -> lockedOn ? PduTheme.INFO : PduTheme.OK;
         };
         switch (status) {
             case OFF -> g.fill(x, y + 2, x + size, y + 4, colour);
@@ -28,12 +35,16 @@ public final class PduGlyphs {
                 g.fill(x, y + 4, x + size, y + 6, colour);
             }
             case SHED -> PduTheme.outline(g, x, y, size, size, colour);
-            case RUNNING -> g.fill(x, y, x + size, y + size, colour);
+
+            case BREAKER -> {
+                g.fill(x, y + 2, x + size / 3, y + 4, colour);
+                g.fill(x + size - size / 3, y + 2, x + size, y + 4, colour);
+            }
+            case STORAGE, RUNNING -> g.fill(x, y, x + size, y + size, colour);
         }
         return colour;
     }
 
-    /** A small padlock in an 8 by 8 box: open shackle for auto, closed for pinned, a minus for off. */
     public static void drawLock(GuiGraphics g, int x, int y, FeLock lock, boolean hovered) {
         final int colour = switch (lock) {
             case NONE -> hovered ? PduTheme.TEXT : PduTheme.TEXT_DIM;
@@ -48,7 +59,6 @@ public final class PduGlyphs {
             PduTheme.outline(g, bx, by, 6, 5, colour);
         }
         if (lock == FeLock.NONE) {
-            // Open shackle: raised, and hooked on one side only, so it reads as unlatched.
             g.fill(bx + 1, y, bx + 5, y + 1, colour);
             g.fill(bx + 1, y + 1, bx + 2, by, colour);
         } else {
@@ -61,7 +71,6 @@ public final class PduGlyphs {
         }
     }
 
-    /** [3] */
     public static int tierColour(FePriority tier) {
         return switch (tier) {
             case CRITICAL -> PduTheme.CRIT;

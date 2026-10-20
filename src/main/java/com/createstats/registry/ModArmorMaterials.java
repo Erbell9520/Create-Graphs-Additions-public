@@ -16,11 +16,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModArmorMaterials {
-
     public static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS =
         DeferredRegister.create(Registries.ARMOR_MATERIAL, CreateStats.MOD_ID);
 
-    /** [1] */
     public static final DeferredHolder<ArmorMaterial, ArmorMaterial> PILOT =
         ARMOR_MATERIALS.register("pilot", () -> new ArmorMaterial(
             buildDefenseMap(),
@@ -45,7 +43,7 @@ public final class ModArmorMaterials {
 
     private static EnumMap<ArmorItem.Type, Integer> buildDefenseMap() {
         EnumMap<ArmorItem.Type, Integer> map = new EnumMap<>(ArmorItem.Type.class);
-        // Match netherite helmet defense; other slots mirror netherite values in case future expansion.
+
         map.put(ArmorItem.Type.HELMET, 3);
         map.put(ArmorItem.Type.CHESTPLATE, 8);
         map.put(ArmorItem.Type.LEGGINGS, 6);

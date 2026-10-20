@@ -23,9 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
 
-/** [1] */
 public class CableItem extends BlockItem {
-
     public CableItem(CableBlock block, Properties properties) {
         super(block, properties);
     }
@@ -48,7 +46,6 @@ public class CableItem extends BlockItem {
             return sneak(context, player, level, clicked);
         }
 
-        // Already running: carry the line on to wherever the player pointed.
         if (CablePlacement.anchorOf(player) != null) {
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
@@ -56,21 +53,19 @@ public class CableItem extends BlockItem {
             return extendRun(context, player, level, clicked, face);
         }
 
-        // [2]
         return startRun(context, player, level, clicked, face);
     }
 
-    /** [3] */
     private InteractionResult sneak(UseOnContext context, Player player, Level level, BlockPos clicked) {
         if (CablePlacement.anchorOf(player) != null) {
             if (!level.isClientSide()) {
-                CablePlacement.clear(player.getUUID());
+                CablePlacement.clear(player);
                 say(player, "message.create_stats.cable.cancelled", ChatFormatting.GRAY);
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
         }
         if (!(level.getBlockState(clicked).getBlock() instanceof CableBlock)) {
-            return super.useOn(context);   // sneaking on a wall is an ordinary placement
+            return super.useOn(context);
         }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
@@ -78,7 +73,6 @@ public class CableItem extends BlockItem {
         return ripUp(player, level, clicked);
     }
 
-    /** [4] */
     private InteractionResult ripUp(Player player, Level level, BlockPos clicked) {
         final List<BlockPos> run = CableRun.collect(
                 CableBlock.linkViewOf(level), clicked, CableRun.MAX_RUN_BLOCKS);
@@ -88,7 +82,7 @@ public class CableItem extends BlockItem {
             if (!(state.getBlock() instanceof CableBlock kind)) {
                 continue;
             }
-            // [5]
+
             int faces = 0;
             for (Direction f : Direction.values()) {
                 if (CableBlock.hasFace(state, f)) {
@@ -111,15 +105,13 @@ public class CableItem extends BlockItem {
         return InteractionResult.CONSUME;
     }
 
-    /** [6] */
     private InteractionResult startRun(UseOnContext context, Player player, Level level,
                                        BlockPos clicked, Direction face) {
         if (level.getBlockState(clicked).getBlock() instanceof CableBlock) {
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            // anchor on the existing block/face the player clicked, so the router starts from a
-            // step that's actually there
+
             final Direction mount = mountedFaceOf(level.getBlockState(clicked), face);
             if (mount == null) {
                 return InteractionResult.PASS;
@@ -133,7 +125,7 @@ public class CableItem extends BlockItem {
         if (!placed.consumesAction() || level.isClientSide()) {
             return placed;
         }
-        // [7]
+
         for (BlockPos landed : new BlockPos[]{clicked.relative(face), clicked}) {
             if (level.getBlockState(landed).getBlock() instanceof CableBlock) {
                 CablePlacement.setAnchor(player, new CableRoute.Step(landed.immutable(), face.getOpposite()));
@@ -144,19 +136,18 @@ public class CableItem extends BlockItem {
         return placed;
     }
 
-    /** [8] */
     private InteractionResult extendRun(UseOnContext context, Player player, Level level,
                                         BlockPos clicked, Direction face) {
         final CableRoute.Step anchor = CablePlacement.anchorOf(player);
         final CableRoute.Step step =
                 CablePlacement.endpointFor(level, clicked, face, context.getClickLocation());
         if (anchor.equals(step)) {
-            return InteractionResult.SUCCESS;   // clicked where the line already ends
+            return InteractionResult.SUCCESS;
         }
         final List<CableRoute.Step> route = CablePlacement.route(level, anchor, step);
         if (route.isEmpty()) {
             say(player, "message.create_stats.cable.no_route", ChatFormatting.RED);
-            return InteractionResult.FAIL;      // keep running so a nearer aim can retry
+            return InteractionResult.FAIL;
         }
         final int needed = CablePlacement.cost(level, route, cable());
         final ItemStack held = context.getItemInHand();
@@ -171,9 +162,9 @@ public class CableItem extends BlockItem {
         if (!player.getAbilities().instabuild) {
             held.shrink(placed);
         }
-        // [9]
+
         if (isPowerTerminal(level, clicked)) {
-            CablePlacement.clear(player.getUUID());
+            CablePlacement.clear(player);
             say(player, "message.create_stats.cable.connected", ChatFormatting.GREEN);
         } else {
             CablePlacement.setAnchor(player, step);
@@ -183,13 +174,11 @@ public class CableItem extends BlockItem {
         return InteractionResult.SUCCESS;
     }
 
-    /** [10] */
     private static DyeColor runColour(Level level, CableRoute.Step anchor) {
         final BlockState at = level.getBlockState(anchor.pos());
         return at.getBlock() instanceof CableBlock ? at.getValue(CableBlock.COLOR) : DyeColor.ORANGE;
     }
 
-    /** The face a cable at this position is mounted on, preferring the one the player pointed at. */
     private static Direction mountedFaceOf(BlockState state, Direction clickedFace) {
         if (CableBlock.hasFace(state, clickedFace.getOpposite())) {
             return clickedFace.getOpposite();
@@ -202,7 +191,6 @@ public class CableItem extends BlockItem {
         return null;
     }
 
-    /** [11] */
     private static boolean isPowerTerminal(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof CableBE) {
             return false;
@@ -217,7 +205,6 @@ public class CableItem extends BlockItem {
                 pos, null) != null;
     }
 
-    /** [12] */
     @Override
     protected BlockState getPlacementState(BlockPlaceContext context) {
         return cable().getStateForPlacement(context);
@@ -229,11 +216,11 @@ public class CableItem extends BlockItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        final String key = getDescriptionId();
-        tooltip.add(Component.translatable(key + ".tooltip").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.create_stats.cable.assist").withStyle(ChatFormatting.DARK_AQUA));
-        tooltip.add(Component.translatable("tooltip.create_stats.cable.colour").withStyle(ChatFormatting.DARK_AQUA));
-        tooltip.add(Component.translatable("tooltip.create_stats.wire_rate", cable().multiplier())
-                .withStyle(ChatFormatting.DARK_GRAY));
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, getDescriptionId(),
+                List.of(com.createstats.util.CreateStatsTooltipHelper.spec("tooltip.create_stats.wire_rate",
+                        com.createstats.power.FeRates.perTick(
+                                com.createstats.power.FeRates.cable(cable().tier())))),
+                List.of(com.createstats.util.CreateStatsTooltipHelper.note("tooltip.create_stats.cable.assist"),
+                        com.createstats.util.CreateStatsTooltipHelper.note("tooltip.create_stats.cable.colour")));
     }
 }

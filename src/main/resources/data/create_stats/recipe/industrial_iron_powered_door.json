@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "LDL",
+    "LGL",
+    "LEL"
+  ],
+  "key": {
+    "L": {
+      "item": "create:iron_sheet"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "D": {
+      "item": "create:andesite_alloy"
+    }
+  },
+  "result": {
+    "id": "create_stats:industrial_iron_powered_door",
+    "count": 2
+  },
+  "show_notification": true
+}

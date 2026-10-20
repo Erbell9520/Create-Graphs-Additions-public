@@ -25,7 +25,6 @@ import net.minecraft.world.level.block.Block;
 import org.joml.Matrix4f;
 
 public class SmartGearshiftRenderer extends KineticBlockEntityRenderer<SmartGearshiftBE> {
-
     private static final float NEEDLE_PIVOT_X = 8.0f / 16.0f;
     private static final float NEEDLE_PIVOT_Z = 8.0f / 16.0f;
     private static final float NEEDLE_START_ANGLE = (float) (Math.PI * 5.0 / 4.0);

@@ -17,8 +17,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class TableAlarmClockBE extends BlockEntity {
-
+public class TableAlarmClockBE extends BlockEntity implements com.createstats.util.CopyableSettings {
     private static final long MAX_TIMER_TICKS = 20L * 60L * 60L * 6L;
     private static final long DEFAULT_TIMER_TICKS = 20L * 60L * 5L;
     private static final long RING_INTERVAL_TICKS = 40L;
@@ -238,6 +237,42 @@ public class TableAlarmClockBE extends BlockEntity {
     }
 
     @Override
+    public String settingsKey() {
+        return "create_stats:table_alarm_clock";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        final CompoundTag clock = new CompoundTag();
+        clock.putString("Mode", this.mode.name());
+        clock.putInt("AlarmMinuteOfDay", this.alarmMinuteOfDay);
+        clock.putBoolean("AlarmEnabled", this.alarmEnabled);
+        clock.putLong("TimerDurationTicks", this.timerDurationTicks);
+        tag.put("ClockState", clock);
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @Nullable net.minecraft.world.entity.player.Player player, boolean simulate) {
+        final CompoundTag clock = tag.getCompound("ClockState");
+        if (!clock.contains("Mode") || !clock.contains("AlarmMinuteOfDay") || !clock.contains("AlarmEnabled")
+                || !clock.contains("TimerDurationTicks")) {
+            return false;
+        }
+        if (simulate || this.alreadyHolds(tag, registries)) {
+            return true;
+        }
+        this.mode = Mode.byName(clock.getString("Mode"));
+        this.alarmMinuteOfDay = Math.floorMod(clock.getInt("AlarmMinuteOfDay"), MINUTES_PER_DAY);
+        this.timerDurationTicks = clampTicks(clock.getLong("TimerDurationTicks"));
+        if (!this.timerRunning) {
+            this.timerRemainingTicks = this.timerDurationTicks;
+        }
+        this.setAlarmEnabled(clock.getBoolean("AlarmEnabled"));
+        return true;
+    }
+
+    @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("ClockState", this.saveClockState());
@@ -407,7 +442,7 @@ public class TableAlarmClockBE extends BlockEntity {
         STOPWATCH("Stopwatch"),
         TIMER("Timer"),
         ALARM("Alarm"),
-        REALTIME("Real Time");  // client-side only: displays real wall-clock time
+        REALTIME("Real Time");
 
         private final String displayName;
 

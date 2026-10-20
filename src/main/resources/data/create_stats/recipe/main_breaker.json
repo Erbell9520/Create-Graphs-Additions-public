@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CLC",
+    "BAB",
+    "III"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "L": {
+      "item": "minecraft:lever"
+    },
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "I": {
+      "item": "create:industrial_iron_block"
+    }
+  },
+  "result": {
+    "id": "create_stats:main_breaker",
+    "count": 1
+  },
+  "show_notification": true
+}

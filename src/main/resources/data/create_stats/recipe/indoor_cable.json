@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CC"
+  ],
+  "key": {
+    "C": {
+      "item": "create_stats:copper_wire"
+    }
+  },
+  "result": {
+    "id": "create_stats:indoor_cable",
+    "count": 8
+  },
+  "show_notification": true
+}

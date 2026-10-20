@@ -1,921 +1,1552 @@
 package com.createstats.client;
 
 import com.createstats.blockentity.ProductionDetectorBE;
+import com.createstats.blockentity.inventory.InventoryBooks;
+import com.createstats.blockentity.inventory.InventoryFace;
+import com.createstats.gui.home.HomeKit;
+import com.createstats.inventory.core.BinCardLedger;
+import com.createstats.inventory.core.ChartHistory;
+import com.createstats.inventory.core.ChartPaperLayout;
+import com.createstats.inventory.core.EnergyReadout;
+import com.createstats.inventory.core.FaceFormat;
+import com.createstats.inventory.core.FlowClock;
+import com.createstats.inventory.core.MarkLadder;
+import com.createstats.inventory.core.SetPointRelay;
+import com.createstats.network.DetectorResetPacket;
+import com.createstats.network.InventoryDisplaySettingsPacket;
+import com.createstats.power.FeConsumer;
+import com.createstats.power.FeLock;
+import com.createstats.renderer.ProductionDetectorTextureManager;
+import com.createstats.renderer.inventory.LampPainter;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.core.Direction;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
-public class ProductionDetectorScreen extends Screen
-{
-    private static final int GUI_VISIBLE_ITEM_ROWS = 8;
-    private static final float ENERGY_FLOW_EPSILON = 0.01f;
-    private final ProductionDetectorBE detector;
-    private final int bg;
-    private final int text;
-    private final int grid;
-    private final int accent;
-    private final int dim;
-    private final int border;
-    private int panelLeft;
-    private int panelTop;
-    private int panelWidth;
-    private int panelHeight;
-    private int itemScrollOffset;
+public class ProductionDetectorScreen extends Screen {
+    private static final int PW = 328;
+    private static final int PH = 216;
+    private static final int TAB_STEP = 27;
+    private static final int LAMP_W = 33;
+    private static final int LAMP_H = 12;
+    private static final int LAMP_STEP = 35;
+    private static final int ROW_H = 18;
+    private static final int SUMMARY_X = 180;
+    private static final int GRID_Y = 42;
 
-    public ProductionDetectorScreen(ProductionDetectorBE detector) {
-        super(Component.translatable("block.create_stats.production_detector"));
-        this.detector = detector;
-        this.bg = 0xFF121719;
-        this.text = 0xFFF5E5C5;
-        this.grid = 0xFF234A4C;
-        this.accent = 0xFF42E3D4;
-        this.dim = 0xFFB8A37F;
-        this.border = 0xFFC69B4A;
+    private static final int INK = 0xFF404040;
+    private static final int GREEN = 0xFF2F7D32;
+    private static final int AMBER = 0xFF8A5A00;
+    private static final int RED = 0xFFA4241B;
+    private static final int WHITE = 0xFFFFFFFF;
+    private static final int LIST_BG = 0xFF51493A;
+    private static final int LIST_DIM = 0xFFA09A8A;
+    private static final int LIST_SUB = 0xFFD8D0C0;
+    private static final int LIST_RULE = 0xFF6E6553;
+    private static final int LIST_RISE = 0xFF8CE07A;
+    private static final int LIST_FALL = 0xFFFFC266;
+    private static final int LIST_PROBLEM = 0xFFFFAFA3;
+    private static final int BAR_GREEN = 0xFF4FA03C;
+    private static final int BAR_AMBER = 0xFFD08A1E;
+    private static final int PIP_OK = 0xFF4FC05A;
+    private static final int TIP_GREY = 0xA8A8A8;
+    private static final int TIP_RISE = 0x8CE07A;
+    private static final int TIP_FALL = 0xFFC266;
+    private static final int CARD_INK = 0xFF23284A;
+    private static final int CARD_HEAD = 0xFF7A2A24;
+
+    private static final ResourceLocation SCROLLER = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller");
+    private static final ResourceLocation SCROLLER_OFF =
+            ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled");
+
+    private static final int HEARTBEAT_TICKS = 100;
+
+    private static final int HOLD_TICKS = 20;
+
+    private static final int PENDING_TICKS = 40;
+
+    private enum Tab {
+        CONTENTS,
+        WATCH,
+        BOOKS
     }
 
-    protected void init() {
-        this.panelWidth = Math.min(430, Math.max(1, this.width - 24));
-        this.panelHeight = Math.min(290, Math.max(1, this.height - 24));
-        this.panelLeft = (this.width - this.panelWidth) / 2;
-        this.panelTop = (this.height - this.panelHeight) / 2;
-        this.itemScrollOffset = 0;
-
-        this.addRenderableWidget(net.minecraft.client.gui.components.Button.builder(
-            Component.literal("Manual"),
-            b -> net.minecraft.client.Minecraft.getInstance().setScreen(new com.createstats.gui.FactoryManualScreen("production_detector")))
-            .bounds(this.panelLeft + 112, this.panelTop + 5, 58, 16).build());
-
-        // Source mode toggle buttons (Round 3)
-        final int btnY = this.panelTop + 50;
-        this.addRenderableWidget(net.minecraft.client.gui.components.Button.builder(
-            Component.literal("Direct"),
-            b -> this.sendSourceMode(ProductionDetectorBE.SourceMode.DIRECT))
-            .bounds(this.panelLeft + 10, btnY, 64, 16).build());
-        this.addRenderableWidget(net.minecraft.client.gui.components.Button.builder(
-            Component.literal("Bridge"),
-            b -> this.sendSourceMode(ProductionDetectorBE.SourceMode.BRIDGE))
-            .bounds(this.panelLeft + 78, btnY, 64, 16).build());
-        if (this.shouldShowDieselStructureButtons()) {
-            final int dieselX = this.panelLeft + this.panelWidth - 146;
-            this.addRenderableWidget(net.minecraft.client.gui.components.Button.builder(
-                Component.literal("Single"),
-                b -> this.sendDieselStructureMode(false))
-                .bounds(dieselX, btnY, 68, 16).build());
-            this.addRenderableWidget(net.minecraft.client.gui.components.Button.builder(
-                Component.literal("Multi"),
-                b -> this.sendDieselStructureMode(true))
-                .bounds(dieselX + 72, btnY, 68, 16).build());
-        }
+    private record Line(String text, int ink) {
     }
 
-    private void sendSourceMode(ProductionDetectorBE.SourceMode mode) {
-        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
-            new com.createstats.network.ProductionDetectorSourceModePacket(this.detector.getBlockPos(), mode));
+    private record WatchLine(String markKey, ItemStack icon, String name, String count, long low, long high, String unit,
+                             double frac, double lowFrac, double highFrac, String state, int stateInk, int pip,
+                             int barInk) {
     }
 
-    private void sendDieselStructureMode(boolean multi) {
-        this.detector.setDieselMultiStructureMode(multi);
-        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
-            new com.createstats.network.ProductionDetectorDieselModePacket(this.detector.getBlockPos(), multi));
+    private record WatchFields(WatchLine line, EditBox low, EditBox high) {
     }
 
-    private void renderSourceModeHighlight(GuiGraphics g) {
-        final int btnY = this.panelTop + 50;
-        final boolean direct = this.detector.getSourceMode() == ProductionDetectorBE.SourceMode.DIRECT;
-        // Highlight the active button with a thin accent bar above it.
-        if (direct) {
-            g.fill(this.panelLeft + 10, btnY - 2, this.panelLeft + 74, btnY - 1, this.accent);
-        } else {
-            g.fill(this.panelLeft + 78, btnY - 2, this.panelLeft + 142, btnY - 1, this.accent);
-        }
-        if (!this.shouldShowDieselStructureButtons()) {
-            return;
-        }
-        final int dieselX = this.panelLeft + this.panelWidth - 146;
-        if (this.detector.isDieselMultiStructureMode()) {
-            g.fill(dieselX + 72, btnY - 2, dieselX + 140, btnY - 1, 0xFFE6A342);
-        } else {
-            g.fill(dieselX, btnY - 2, dieselX + 68, btnY - 1, 0xFFE6A342);
-        }
+    private final ProductionDetectorBE be;
+    private final BlockPos pos;
+    private Tab tab = Tab.CONTENTS;
+    private int left;
+    private int top;
+    private int ticks;
+    private boolean viewing;
+    private int scroll;
+    private boolean draggingScroller;
+    private int hold = -1;
+    private int closedFlash;
+    private int localDays;
+    private int localDaysUntil;
+    private int localLowMode = -1;
+    private int localHighMode = -1;
+    private int localStall = -1;
+    private int localModesUntil;
+    private final Map<String, long[]> pendingMarks = new HashMap<>();
+    private final List<WatchFields> fields = new ArrayList<>();
+    private String layoutSignature = "";
+    private Button relayLow;
+    private Button relayHigh;
+    private Button stallButton;
+    private Button dayButton;
+    private Button threeDaysButton;
+    private Button closeBooks;
+    private Button preferButton;
+    private Button dieselButton;
+
+    private List<Component> tip;
+    private int tipX;
+    private int tipY;
+
+    public ProductionDetectorScreen(ProductionDetectorBE be) {
+        super(Component.translatable("create_stats.inventory_display.gui.title"));
+        this.be = be;
+        this.pos = be.getBlockPos();
     }
 
-    private void renderBridgeStatus(GuiGraphics g, int x, int y) {
-        final ProductionDetectorBE.SourceMode src = this.detector.getSourceMode();
-        if (src == ProductionDetectorBE.SourceMode.DIRECT) {
-            g.fill(x, y, x + 8, y + 8, 0xFF6E6457);
-            g.drawString(this.font, "Direct mode", x + 14, y, this.dim);
-            return;
-        }
-        final ProductionDetectorBE.BridgeStatus bs = this.detector.getBridgeStatus();
-        int color;
-        String label;
-        switch (bs) {
-            case OK -> { color = 0xFF55C273; label = "Bridged"; }
-            case OUT_OF_RANGE -> { color = 0xFFE0A23A; label = "Out of range"; }
-            case UNLOADED -> { color = 0xFFE0A23A; label = "Source unloaded"; }
-            case NO_BRIDGE_FOUND -> { color = 0xFFD05050; label = "No DL/Observer pointing here"; }
-            case NO_CAPABILITY -> { color = 0xFFD05050; label = "Source has no readable data"; }
-            case CYCLE -> { color = 0xFFD05050; label = "Display Link cycle"; }
-            case INVALID_LINK -> { color = 0xFFD05050; label = "Invalid link"; }
-            default -> { color = 0xFF6E6457; label = "Searching for bridge..."; }
-        }
-        g.fill(x, y, x + 8, y + 8, color);
-        String txt = label;
-        if (bs == ProductionDetectorBE.BridgeStatus.OK) {
-            final String name = this.detector.getBridgeResolvedName();
-            if (name != null && !name.isEmpty()) txt = label + " → " + name;
-        }
-        final int reserveRight = this.shouldShowDieselStructureButtons() ? 150 : 0;
-        final int maxW = this.panelLeft + this.panelWidth - 10 - reserveRight - (x + 14);
-        g.drawString(this.font, this.truncate(txt, maxW), x + 14, y, this.text);
-    }
-
-    private boolean shouldShowDieselStructureButtons() {
-        final ProductionDetectorBE.DieselSnapshot snapshot = this.detector.getDieselSnapshot();
-        return snapshot != null && snapshot.sourceType().contains("Engine");
-    }
-
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        this.renderTransparentBackground(g);
-        // FE Dependent Mode panel in the free screen corner (self-gating).
-        com.createstats.power.client.FeStatusWidget.draw(g, this.font, this.width - 130, 8, 120, this.detector.feConsumer());
-        g.fill(this.panelLeft, this.panelTop, this.panelLeft + this.panelWidth, this.panelTop + this.panelHeight, this.bg);
-        this.border(g, this.panelLeft, this.panelTop, this.panelWidth, this.panelHeight, this.border);
-        this.renderPanelPattern(g, this.panelLeft + 6, this.panelTop + 6, this.panelWidth - 12, this.panelHeight - 12);
-        g.fill(this.panelLeft + 4, this.panelTop + 4, this.panelLeft + this.panelWidth - 4, this.panelTop + 6, 0xFF6D5122);
-        g.drawString(this.font, "Inventory Display", this.panelLeft + 10, this.panelTop + 8, this.border);
-
-        final String targetName = this.detector.getMonitoredTargetName();
-        final String status = this.detector.getTargetStatusSummary();
-        final Direction facing = (Direction)this.detector.getBlockState().getValue(com.createstats.block.ProductionDetectorBlock.FACING);
-        final String facingName = facing.getName().substring(0, 1).toUpperCase() + facing.getName().substring(1);
-        final String coordStr = String.format("(%d, %d, %d)", this.detector.getBlockPos().getX(), this.detector.getBlockPos().getY(), this.detector.getBlockPos().getZ());
-        final int coordW = this.font.width(coordStr);
-        g.drawString(this.font, coordStr, this.panelLeft + this.panelWidth - coordW - 10, this.panelTop + 8, this.dim);
-
-        g.fill(this.panelLeft + 6, this.panelTop + 26, this.panelLeft + this.panelWidth - 6, this.panelTop + 27, this.border);
-        this.renderStatusPill(g, this.panelLeft + 10, this.panelTop + 32);
-        g.drawString(this.font, this.truncate(status, this.panelWidth - 140), this.panelLeft + 92, this.panelTop + 35, this.dim);
-
-        final int summaryY = this.panelTop + 76;
-        final int gap = 6;
-        final int cardW = (this.panelWidth - 20 - gap * 2) / 3;
-        final ProductionDetectorBE.EnergySnapshot energySnapshot = this.detector.getEnergySnapshot();
-        final ProductionDetectorBE.DieselSnapshot dieselSnapshot = this.detector.getDieselSnapshot();
-        if (this.detector.getDisplayMode() == ProductionDetectorBE.DisplayMode.DIESEL && dieselSnapshot != null) {
-            this.renderSummaryCard(g, this.panelLeft + 10, summaryY, cardW, "Fuel", String.format("%.0f%%", dieselSnapshot.fillPercent()));
-            this.renderSummaryCard(g, this.panelLeft + 10 + cardW + gap, summaryY, cardW, "Output", this.formatDieselOutput(dieselSnapshot));
-            this.renderSummaryCard(g, this.panelLeft + 10 + (cardW + gap) * 2, summaryY, cardW, "Plant", this.truncate(dieselSnapshot.sourceType(), cardW - 8));
-        } else if (this.detector.getDisplayMode() == ProductionDetectorBE.DisplayMode.ENERGY && energySnapshot != null) {
-            this.renderSummaryCard(g, this.panelLeft + 10, summaryY, cardW, "Charge", String.format("%.0f%%", energySnapshot.fillPercent()));
-            this.renderSummaryCard(g, this.panelLeft + 10 + cardW + gap, summaryY, cardW, "Stored", this.formatEnergy(energySnapshot.stored()));
-            this.renderSummaryCard(g, this.panelLeft + 10 + (cardW + gap) * 2, summaryY, cardW, "Net", this.formatEnergyRate(energySnapshot.netRate()));
-        } else {
-            this.renderSummaryCard(g, this.panelLeft + 10, summaryY, cardW, "Total", String.format("%,d", this.detector.getTotalItemsSeen()));
-            this.renderSummaryCard(g, this.panelLeft + 10 + cardW + gap, summaryY, cardW, "Types", String.valueOf(this.detector.getTrackedItemTypeCount()));
-            this.renderSummaryCard(g, this.panelLeft + 10 + (cardW + gap) * 2, summaryY, cardW, "Target", this.truncate(targetName, cardW - 8));
-        }
-
-        // Round 3: source mode highlight + bridge status pill
-        this.renderSourceModeHighlight(g);
-        this.renderBridgeStatus(g, this.panelLeft + 150, this.panelTop + 52);
-
-        final int bodyY = this.panelTop + 120;
-        final int bodyH = this.panelHeight - 130;
-        switch (this.detector.getDisplayMode()) {
-            case FLUID -> this.renderFluidMode(g, this.panelLeft + 10, bodyY, this.panelWidth - 20, bodyH);
-            case ENERGY -> this.renderEnergyMode(g, this.panelLeft + 10, bodyY, this.panelWidth - 20, bodyH);
-            case DIESEL -> this.renderDieselMode(g, this.panelLeft + 10, bodyY, this.panelWidth - 20, bodyH);
-            case DISPLAY_LINK_FEED -> this.renderDisplayLinkMode(g, this.panelLeft + 10, bodyY, this.panelWidth - 20, bodyH);
-            default -> {
-                final int listW = (int)((this.panelWidth - 26) * 0.64f);
-                this.renderTopItems(g, this.panelLeft + 10, bodyY, listW, bodyH);
-                this.renderDetails(g, this.panelLeft + 16 + listW, bodyY, this.panelWidth - listW - 26, bodyH, targetName, facingName);
-            }
-        }
-        super.render(g, mouseX, mouseY, partialTick);
-    }
-
-    private void renderFluidMode(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, 0xCC062022);
-        this.border(g, x, y, w, h, this.grid);
-        g.drawString(this.font, "Fluid Contents", x + 6, y + 6, this.accent);
-        final List<ProductionDetectorBE.FluidEntry> fluids = this.detector.getFluidEntriesSnapshot();
-        final List<ProductionDetectorBE.SyntheticContentEntry> synthetic = this.detector.getSyntheticContentSnapshot();
-        ProductionDetectorBE.BoilerSnapshot bs = this.detector.getBoilerSnapshot();
-        boolean hasFluid = !fluids.isEmpty();
-        boolean hasSynthetic = !synthetic.isEmpty();
-        boolean hasBoiler = bs != null && bs.active();
-        if (!hasFluid && !hasSynthetic && !hasBoiler) {
-            g.drawCenteredString(this.font, "No fluid detected", x + w / 2, y + h / 2 - 4, 0xFFD6A84F);
-            return;
-        }
-        String name; long amount; long capacity; String fluidId;
-        if (hasFluid) {
-            ProductionDetectorBE.FluidEntry primary = fluids.get(0);
-            name = primary.displayName(); amount = primary.amount(); capacity = primary.capacity();
-            fluidId = primary.fluidId();
-        } else if (hasSynthetic) {
-            ProductionDetectorBE.SyntheticContentEntry s0 = synthetic.get(0);
-            name = s0.label(); amount = s0.amount(); capacity = s0.capacity();
-            fluidId = "synthetic:" + s0.id();
-        } else {
-            name = "Boiler"; amount = 0; capacity = 0; fluidId = "minecraft:water";
-        }
-        int capX = x + w / 4;
-        int capW = w / 2;
-        int capY = y + 28;
-        int capH = h - 90;
-        g.fill(capX, capY, capX + capW, capY + capH, 0xFF050B0E);
-        this.border(g, capX, capY, capW, capH, this.border);
-        if (capacity > 0) {
-            float ratio = Math.min(1f, amount / (float) capacity);
-            long ms = net.minecraft.Util.getMillis();
-            int fillTop = capY + capH - (int)(capH * ratio);
-            // Round 3: per-fluid color from FluidPalette (alpha forced to 0xCC for translucent fill)
-            int argb = com.createstats.renderer.FluidPalette.colorForFluidId(fluidId);
-            int fillColor = 0xCC000000 | (argb & 0x00FFFFFF);
-            for (int col = 0; col < capW - 4; col++) {
-                float wave = (float) Math.sin((ms / 80.0) + col * 0.18) * 1.6f;
-                int top = (int)(fillTop + wave);
-                g.fill(capX + 2 + col, top, capX + 3 + col, capY + capH - 2, fillColor);
-            }
-            int pct = Math.round(100f * amount / capacity);
-            g.drawCenteredString(this.font, String.format("%,d / %,d mB", amount, capacity), x + w / 2, capY + capH + 6, this.accent);
-            g.drawCenteredString(this.font, pct + "%", x + w / 2, capY + capH + 18, 0xFF58D575);
-        }
-        g.drawCenteredString(this.font, name, x + w / 2, capY - 14, this.text);
-        if (hasBoiler) {
-            int by = y + h - 30;
-            g.fill(x + 6, by, x + w - 6, by + 24, 0xCC1A2628);
-            this.border(g, x + 6, by, w - 12, 24, this.grid);
-            g.drawString(this.font, "Heat " + bs.activeHeat() + "  Engines " + bs.engines() + "  Whistles " + bs.whistles(), x + 12, by + 4, 0xFFD6A84F);
-            g.drawString(this.font, "Water " + String.format("%,d mB/t", bs.waterSupply()), x + 12, by + 14, this.accent);
-        }
-    }
-
-    private void renderDisplayLinkMode(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, 0xCC062022);
-        this.border(g, x, y, w, h, this.grid);
-        g.drawString(this.font, "Display Link Feed", x + 6, y + 6, this.accent);
-        final List<ProductionDetectorBE.DisplayLinkLine> lines = this.detector.getDisplayLinkLinesSnapshot();
-        if (lines.isEmpty()) {
-            g.drawCenteredString(this.font, "Waiting for data...", x + w / 2, y + h / 2 - 4, 0xFFD6A84F);
-            return;
-        }
-        int rowY = y + 24;
-        for (ProductionDetectorBE.DisplayLinkLine line : lines) {
-            g.drawString(this.font, this.truncate(line.plainText(), w - 12), x + 6, rowY, this.text);
-            rowY += 12;
-            if (rowY > y + h - 6) break;
-        }
-    }
-
-    private void renderEnergyMode(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, 0xCC062022);
-        this.border(g, x, y, w, h, this.grid);
-        g.drawString(this.font, "Energy Circuit", x + 6, y + 6, 0xFFE6A342);
-        final ProductionDetectorBE.EnergySnapshot snapshot = this.detector.getEnergySnapshot();
-        if (snapshot == null) {
-            g.drawCenteredString(this.font, "No energy detected", x + w / 2, y + h / 2 - 4, 0xFFD6A84F);
-            return;
-        }
-
-        g.drawString(this.font, this.truncate(snapshot.sourceType(), w - 120), x + 6, y + 19, this.dim);
-        g.drawString(this.font, String.format("%.1f%%", snapshot.fillPercent()), x + w - this.font.width(String.format("%.1f%%", snapshot.fillPercent())) - 8, y + 19, this.energyColor(snapshot));
-
-        final int batteryX = x + 18;
-        final int batteryY = y + 38;
-        final int batteryW = w - 36;
-        final int batteryH = Math.max(34, Math.min(48, h / 3));
-        this.drawEnergyBatteryGui(g, batteryX, batteryY, batteryW, batteryH, snapshot);
-        g.drawCenteredString(this.font, this.formatEnergy(snapshot.stored()) + " / " + this.formatEnergy(snapshot.capacity()), x + w / 2, batteryY + batteryH + 6, this.accent);
-
-        final int railY = batteryY + batteryH + 34;
-        final int nodeW = Math.max(58, w / 5);
-        final int nodeH = 36;
-        final int coreW = Math.max(70, w / 4);
-        final int leftNodeX = x + 10;
-        final int coreX = x + w / 2 - coreW / 2;
-        final int rightNodeX = x + w - nodeW - 10;
-        this.drawEnergyNodeGui(g, leftNodeX, railY - nodeH / 2, nodeW, nodeH, "IN", this.formatEnergyRate(snapshot.inputRate()), 0xFF58D575);
-        this.drawEnergyNodeGui(g, coreX, railY - nodeH / 2 - 4, coreW, nodeH + 8, "NET", this.formatEnergyRate(snapshot.netRate()), this.energyColor(snapshot));
-        this.drawEnergyNodeGui(g, rightNodeX, railY - nodeH / 2, nodeW, nodeH, "OUT", this.formatEnergyRate(snapshot.outputRate()), 0xFFD6A84F);
-        this.drawEnergyFlowGui(g, leftNodeX + nodeW, coreX, railY, true, this.hasInputFlow(snapshot), 0xFF58D575);
-        this.drawEnergyFlowGui(g, coreX + coreW, rightNodeX, railY, true, this.hasOutputFlow(snapshot), 0xFFD6A84F);
-
-        final int stripY = y + h - 28;
-        this.drawEnergyConnectorStripGui(g, x + 10, stripY, w - 20, 20, snapshot);
-    }
-
-    private void renderDieselMode(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, 0xCC062022);
-        this.border(g, x, y, w, h, this.grid);
-        g.drawString(this.font, "Diesel Plant", x + 6, y + 6, 0xFFE6A342);
-        final ProductionDetectorBE.DieselSnapshot snapshot = this.detector.getDieselSnapshot();
-        if (snapshot == null) {
-            g.drawCenteredString(this.font, "No diesel plant detected", x + w / 2, y + h / 2 - 4, 0xFFD6A84F);
-            return;
-        }
-
-        final int stateColor = this.dieselColor(snapshot);
-        g.drawString(this.font, this.truncate(snapshot.sourceType(), w - 130), x + 6, y + 19, this.dim);
-        final String state = this.dieselStateLabel(snapshot);
-        g.drawString(this.font, state, x + w - this.font.width(state) - 8, y + 19, stateColor);
-
-        if ("Diesel Distillation Tower".equals(snapshot.sourceType())) {
-            this.renderDistillationTowerMode(g, x, y, w, h, snapshot, state, stateColor);
-            return;
-        }
-        if ("Oil Pumpjack".equals(snapshot.sourceType())) {
-            this.renderPumpjackMode(g, x, y, w, h, snapshot, state, stateColor);
-            return;
-        }
-        if (snapshot.sourceType().contains("Engine")) {
-            this.renderDieselEngineMode(g, x, y, w, h, snapshot, state, stateColor);
-            return;
-        }
-
-        final int gaugeX = x + 18;
-        final int gaugeY = y + 38;
-        final int gaugeW = w - 36;
-        final int gaugeH = Math.max(30, Math.min(44, h / 3));
-        this.drawDieselFuelGaugeGui(g, gaugeX, gaugeY, gaugeW, gaugeH, snapshot);
-        g.drawCenteredString(this.font, this.formatFluidAmount(snapshot.fluidAmount()) + " / " + this.formatFluidAmount(snapshot.fluidCapacity()), x + w / 2, gaugeY + gaugeH + 6, this.accent);
-
-        final int railY = gaugeY + gaugeH + 34;
-        final int nodeW = Math.max(58, w / 5);
-        final int nodeH = 36;
-        final int coreW = Math.max(78, w / 4);
-        final int leftNodeX = x + 10;
-        final int coreX = x + w / 2 - coreW / 2;
-        final int rightNodeX = x + w - nodeW - 10;
-        this.drawDieselNodeGui(g, leftNodeX, railY - nodeH / 2, nodeW, nodeH, this.dieselInputLabel(snapshot), this.dieselInputValue(snapshot), this.dieselFillColor(snapshot));
-        this.drawDieselNodeGui(g, coreX, railY - nodeH / 2 - 4, coreW, nodeH + 8, this.dieselCoreLabel(snapshot), state, stateColor);
-        this.drawDieselNodeGui(g, rightNodeX, railY - nodeH / 2, nodeW, nodeH, this.dieselOutputLabel(snapshot), this.dieselOutputValue(snapshot), this.accent);
-        this.drawEnergyFlowGui(g, leftNodeX + nodeW, coreX, railY, true, snapshot.fillPercent() > 0.0f || snapshot.oilRemaining() > 0.0f, this.dieselFillColor(snapshot));
-        this.drawEnergyFlowGui(g, coreX + coreW, rightNodeX, railY, true, snapshot.hasActivity(), this.accent);
-
-        final int stripY = y + h - 28;
-        g.fill(x + 10, stripY, x + w - 10, stripY + 20, 0xCC081A1D);
-        this.border(g, x + 10, stripY, w - 20, 20, this.grid);
-        g.drawString(this.font, "Stress " + this.formatCompact(snapshot.generatedStress()) + " SU", x + 16, stripY + 6, snapshot.generatedStress() > 0.0f ? 0xFF58D575 : this.dim);
-        final String right = snapshot.sourceType().contains("Group")
-            ? "OK " + Math.round(snapshot.okEngines()) + "  Stall " + Math.round(snapshot.stallingEngines()) + "  Off " + Math.round(snapshot.offEngines())
-            : "Heat " + this.formatCompact(snapshot.heatLevel()) + "  Blocks " + Math.round(snapshot.engineCount());
-        g.drawString(this.font, right, x + w - this.font.width(right) - 16, stripY + 6, this.dim);
-    }
-
-    private void renderDistillationTowerMode(GuiGraphics g, int x, int y, int w, int h, ProductionDetectorBE.DieselSnapshot snapshot, String state, int stateColor) {
-        final int top = y + 36;
-        final int bottom = y + h - 31;
-        final int columnW = Math.max(54, w / 6);
-        final int columnX = x + w / 2 - columnW / 2;
-        final int columnY = top + 4;
-        final int columnH = Math.max(76, bottom - columnY);
-
-        g.fill(columnX, columnY, columnX + columnW, columnY + columnH, 0xFF071B1D);
-        this.border(g, columnX, columnY, columnW, columnH, this.border);
-        final int fillH = Math.round((columnH - 8) * Math.max(0.0f, Math.min(1.0f, snapshot.fillPercent() / 100.0f)));
-        if (fillH > 0) {
-            g.fill(columnX + 4, columnY + columnH - 4 - fillH, columnX + columnW - 4, columnY + columnH - 4, 0xCC9D6525);
-            g.fill(columnX + 4, columnY + columnH - 4 - fillH, columnX + columnW - 4, columnY + columnH - 2 - fillH, 0xFFFFD27A);
-        }
-        for (int tray = 1; tray < 6; tray++) {
-            final int trayY = columnY + tray * columnH / 6;
-            g.fill(columnX + 7, trayY, columnX + columnW - 7, trayY + 2, tray % 2 == 0 ? 0xFF6D5122 : 0xFF42E3D4);
-        }
-        if (snapshot.processing()) {
-            final long tick = net.minecraft.Util.getMillis() / 50L;
-            final int span = Math.max(12, columnH - 18);
-            for (int bubble = 0; bubble < 6; bubble++) {
-                final int bubbleY = columnY + columnH - 12 - Math.floorMod((int)(tick * 2L + bubble * 9), span);
-                final int bubbleX = columnX + 12 + (bubble % 3) * Math.max(8, (columnW - 24) / 3);
-                g.fill(bubbleX, bubbleY, bubbleX + 4, bubbleY + 4, stateColor);
-            }
-        }
-
-        final int nodeW = Math.max(70, w / 5);
-        final int feedX = x + 14;
-        final int crudeY = columnY + 18;
-        final int heatY = columnY + columnH - 40;
-        this.drawDieselNodeGui(g, feedX, crudeY, nodeW, 34, "CRUDE FEED", String.format("%.0f%% full", snapshot.fillPercent()), this.dieselFillColor(snapshot));
-        this.drawDieselNodeGui(g, feedX, heatY, nodeW, 34, "BOILER HEAT", this.formatCompact(snapshot.heatLevel()), snapshot.heatLevel() > 0.0f ? 0xFFD6A84F : this.dim);
-        this.drawDieselPipeGui(g, feedX + nodeW, columnX, crudeY + 17, snapshot.fillPercent() > 0.0f, this.dieselFillColor(snapshot), true);
-        this.drawDieselPipeGui(g, feedX + nodeW, columnX, heatY + 17, snapshot.heatLevel() > 0.0f, 0xFFD6A84F, true);
-
-        final int outX = x + w - nodeW - 14;
-        final String[] outputs = {"GASOLINE", "DIESEL"};
-        for (int idx = 0; idx < outputs.length; idx++) {
-            final int outY = columnY + 22 + idx * Math.max(42, (columnH - 42) / 2);
-            this.drawDieselPipeGui(g, columnX + columnW, outX, outY + 15, snapshot.processing(), this.accent, true);
-            this.drawDieselNodeGui(g, outX, outY, nodeW, 30, outputs[idx], snapshot.processing() ? "FLOW" : "HOLD", snapshot.processing() ? this.accent : this.dim);
-        }
-
-        final int statusY = y + h - 28;
-        g.fill(x + 10, statusY, x + w - 10, statusY + 20, 0xCC081A1D);
-        this.border(g, x + 10, statusY, w - 20, 20, this.grid);
-        g.drawString(this.font, "Fill " + String.format("%.0f%%", snapshot.fillPercent()) + "  Process " + String.format("%.0f%%", snapshot.processPercent()), x + 16, statusY + 6, stateColor);
-        final String right = "Heat " + this.formatCompact(snapshot.heatLevel()) + "  Tanks " + Math.round(snapshot.engineCount());
-        g.drawString(this.font, right, x + w - this.font.width(right) - 16, statusY + 6, this.dim);
-    }
-
-    private void renderPumpjackMode(GuiGraphics g, int x, int y, int w, int h, ProductionDetectorBE.DieselSnapshot snapshot, String state, int stateColor) {
-        final int top = y + 36;
-        final int groundY = y + h - 58;
-        g.fill(x + 10, groundY, x + w - 10, groundY + 4, 0xFF6D5122);
-        g.fill(x + 10, groundY + 4, x + w - 10, groundY + 34, 0xFF1A1410);
-        for (int soil = x + 18; soil < x + w - 18; soil += 16) {
-            g.fill(soil, groundY + 12, soil + 8, groundY + 14, 0xFF3D2A1B);
-        }
-
-        final int pivotX = x + w / 2;
-        final int pivotY = top + 54;
-        g.fill(pivotX - 4, pivotY, pivotX + 4, groundY, 0xFF6D5122);
-        g.fill(pivotX - 24, pivotY + 10, pivotX + 24, pivotY + 16, this.border);
-        final int bob = snapshot.processing() ? Math.floorMod((int)(net.minecraft.Util.getMillis() / 50L), 28) - 14 : 0;
-        this.drawSlopedBeam(g, pivotX - 88, pivotY + bob / 3, pivotX + 78, pivotY - bob / 4, this.border);
-        g.fill(pivotX + 66, pivotY - 4 - bob / 4, pivotX + 82, pivotY + 21 - bob / 4, 0xFFD6A84F);
-        g.fill(pivotX - 96, pivotY + bob / 3 + 8, pivotX - 80, pivotY + bob / 3 + 32, this.accent);
-        g.fill(pivotX - 90, pivotY + bob / 3 + 32, pivotX - 85, groundY + 8, this.accent);
-        g.fill(pivotX - 96, groundY + 4, pivotX - 79, groundY + 13, this.accent);
-
-        final int depositW = Math.max(100, w / 3);
-        final int depositX = x + w / 2 - depositW / 2;
-        final int depositY = groundY + 17;
-        g.fill(depositX, depositY, depositX + depositW, depositY + 14, 0xFF090D0F);
-        final int depositFill = Math.round((depositW - 8) * Math.max(0.05f, Math.min(1.0f, snapshot.oilRemaining() / Math.max(1.0f, snapshot.oilRemaining() + 20000.0f))));
-        g.fill(depositX + 4, depositY + 3, depositX + 4 + depositFill, depositY + 11, 0xCC9D6525);
-        this.border(g, depositX, depositY, depositW, 14, 0xFF6D5122);
-
-        final int nodeW = Math.max(78, w / 5);
-        this.drawDieselNodeGui(g, x + 14, top + 8, nodeW, 36, "OIL FIELD", this.formatFluidAmount(snapshot.oilRemaining()), snapshot.oilRemaining() > 0.0f ? 0xFFD6A84F : this.dim);
-        this.drawDieselNodeGui(g, x + w / 2 - nodeW / 2, top + 8, nodeW, 36, "PUMP", state, stateColor);
-        this.drawDieselNodeGui(g, x + w - nodeW - 14, top + 8, nodeW, 36, "PIPE", this.formatCompact(snapshot.pipeLength()) + " blocks", snapshot.validFuel() ? 0xFF58D575 : 0xFFD6A84F);
-        this.drawDieselPipeGui(g, x + 14 + nodeW, x + w / 2 - nodeW / 2, top + 26, snapshot.oilRemaining() > 0.0f, 0xFFD6A84F, true);
-        this.drawDieselPipeGui(g, x + w / 2 + nodeW / 2, x + w - nodeW - 14, top + 26, snapshot.processing(), this.accent, true);
-
-        final int statusY = y + h - 28;
-        g.fill(x + 10, statusY, x + w - 10, statusY + 20, 0xCC081A1D);
-        this.border(g, x + 10, statusY, w - 20, 20, this.grid);
-        g.drawString(this.font, "Deposit " + this.formatFluidAmount(snapshot.oilRemaining()), x + 16, statusY + 6, snapshot.oilRemaining() > 0.0f ? 0xFFD6A84F : this.dim);
-        final String right = (snapshot.validFuel() ? "Pipe valid" : "Pipe invalid") + "  Length " + this.formatCompact(snapshot.pipeLength());
-        g.drawString(this.font, right, x + w - this.font.width(right) - 16, statusY + 6, snapshot.validFuel() ? 0xFF58D575 : 0xFFD6A84F);
-    }
-
-    private void renderDieselEngineMode(GuiGraphics g, int x, int y, int w, int h, ProductionDetectorBE.DieselSnapshot snapshot, String state, int stateColor) {
-        final int top = y + 36;
-        final int statusH = 32;
-        final int bottom = y + h - statusH - 9;
-        final int tankX = x + 14;
-        final int tankY = top + 8;
-        final int tankW = Math.max(54, w / 7);
-        final int tankH = Math.max(64, bottom - tankY - 8);
-        g.fill(tankX, tankY, tankX + tankW, tankY + tankH, 0xFF050B0E);
-        this.border(g, tankX, tankY, tankW, tankH, this.border);
-        final int tankFill = Math.round((tankH - 10) * Math.max(0.0f, Math.min(1.0f, snapshot.fillPercent() / 100.0f)));
-        if (tankFill > 0) {
-            g.fill(tankX + 5, tankY + tankH - 5 - tankFill, tankX + tankW - 5, tankY + tankH - 5, 0xCC9D6525);
-            g.fill(tankX + 5, tankY + tankH - 5 - tankFill, tankX + tankW - 5, tankY + tankH - 3 - tankFill, 0xFFFFD27A);
-        }
-        g.drawCenteredString(this.font, "FUEL", tankX + tankW / 2, tankY + 7, this.dim);
-        g.drawCenteredString(this.font, String.format("%.0f%%", snapshot.fillPercent()), tankX + tankW / 2, tankY + tankH - 15, this.dieselFillColor(snapshot));
-
-        final int engineX = tankX + tankW + 28;
-        final int statsW = Math.max(94, w / 4);
-        final int engineW = Math.max(112, x + w - engineX - statsW - 28);
-        final int engineY = top + 18;
-        final int engineH = Math.max(64, bottom - engineY - 8);
-        g.fill(engineX, engineY, engineX + engineW, engineY + engineH, 0xDD081A1D);
-        this.border(g, engineX, engineY, engineW, engineH, stateColor);
-        g.drawCenteredString(this.font, snapshot.sourceType().contains("Group") ? "ENGINE GROUP" : "DIESEL ENGINE", engineX + engineW / 2, engineY + 7, this.dim);
-
-        final double time = net.minecraft.Util.getMillis() / 180.0;
-        final int cylinderCount = Math.max(2, Math.min(6, Math.round(snapshot.engineCount())));
-        final int bayW = Math.max(10, (engineW - 24) / cylinderCount);
-        final int crankY = engineY + engineH - 24;
-        g.fill(engineX + 10, crankY - 2, engineX + engineW - 10, crankY + 2, stateColor);
-        for (int cyl = 0; cyl < cylinderCount; cyl++) {
-            final int cx = engineX + 12 + cyl * bayW + bayW / 2;
-            final int pistonTravel = Math.max(8, engineH / 4);
-            final int pistonTop = engineY + 29 + (snapshot.running() ? (int)Math.round((Math.sin(time + cyl * 1.15) + 1.0) * pistonTravel * 0.5) : pistonTravel / 2);
-            g.fill(cx - 7, engineY + 23, cx + 8, crankY - 5, 0xFF102D30);
-            this.border(g, cx - 7, engineY + 23, 15, crankY - engineY - 28, this.grid);
-            g.fill(cx - 5, pistonTop, cx + 6, pistonTop + 8, snapshot.running() ? 0xFFE6A342 : this.dim);
-            this.drawSlopedBeam(g, cx, pistonTop + 8, cx + (cyl % 2 == 0 ? 8 : -8), crankY, 0xFFB8A37F);
-            final int sparkColor = snapshot.running() && Math.sin(time + cyl * 1.15) > 0.55 ? 0xFFFFD27A : 0xFF274548;
-            g.fill(cx - 2, engineY + 17, cx + 3, engineY + 21, sparkColor);
-        }
-        final int flywheelX = engineX + engineW - 18;
-        final int flywheelY = crankY;
-        for (int spoke = 0; spoke < 6; spoke++) {
-            final double angle = time * (snapshot.running() ? 0.9 : 0.08) + spoke * Math.PI / 3.0;
-            final int sx = flywheelX + (int)Math.round(Math.cos(angle) * 14.0);
-            final int sy = flywheelY + (int)Math.round(Math.sin(angle) * 14.0);
-            this.drawSlopedBeam(g, flywheelX, flywheelY, sx, sy, stateColor);
-        }
-        g.fill(flywheelX - 3, flywheelY - 3, flywheelX + 4, flywheelY + 4, stateColor);
-
-        this.drawDieselPipeGui(g, tankX + tankW, engineX, tankY + tankH / 2, snapshot.fillPercent() > 0.0f, this.dieselFillColor(snapshot), true);
-        final int statsX = x + w - statsW - 14;
-        this.drawDieselPipeGui(g, engineX + engineW, statsX, crankY, snapshot.running(), this.accent, true);
-        final int cardH = 24;
-        this.drawDieselNodeGui(g, statsX, top + 6, statsW, cardH, "RPM", String.format("%.0f", snapshot.generatedSpeed()), this.accent);
-        this.drawDieselNodeGui(g, statsX, top + 34, statsW, cardH, "PRODUCED", this.formatCompact(snapshot.generatedStress()) + " SU", snapshot.generatedStress() > 0.0f ? 0xFF58D575 : this.dim);
-        this.drawDieselNodeGui(g, statsX, top + 62, statsW, cardH, "LOAD", this.formatCompact(snapshot.networkStress()) + " SU", snapshot.networkStress() > 0.0f ? 0xFFD6A84F : this.dim);
-        final String groupLine = snapshot.sourceType().contains("Group")
-            ? "OK " + Math.round(snapshot.okEngines()) + "  ST " + Math.round(snapshot.stallingEngines()) + "  OFF " + Math.round(snapshot.offEngines())
-            : "ENGINES " + Math.round(snapshot.engineCount());
-
-        final int statusY = y + h - statusH - 4;
-        g.fill(x + 10, statusY, x + w - 10, statusY + statusH, 0xCC081A1D);
-        this.border(g, x + 10, statusY, w - 20, statusH, this.grid);
-        final String mode = snapshot.sourceType().contains("Group") || snapshot.engineCount() > 1.0f ? "Multi" : "Single";
-        g.drawString(this.font, this.truncate(mode + " engine feed  " + groupLine, w - 32), x + 16, statusY + 5, stateColor);
-        final String right = "Produced " + this.formatCompact(snapshot.generatedStress()) + " SU  Load " + this.formatCompact(snapshot.networkStress()) + " SU";
-        g.drawString(this.font, this.truncate(right, w - 32), x + 16, statusY + 18, this.dim);
-    }
-
-    private void drawDieselPipeGui(GuiGraphics g, int startX, int endX, int y, boolean active, int color, boolean toRight) {
-        final int left = Math.min(startX, endX);
-        final int right = Math.max(startX, endX);
-        final int width = Math.max(1, right - left);
-        g.fill(left, y - 1, right, y + 1, active ? 0xFF6D5122 : 0x66425355);
-        if (!active) return;
-        final int span = Math.max(8, width - 2);
-        final long tick = net.minecraft.Util.getMillis() / 50L;
-        final int phase = Math.floorMod((int)(tick * 4L), span);
-        final int pulseX = toRight ? left + 1 + phase : right - 2 - phase;
-        g.fill(pulseX - 2, y - 3, pulseX + 3, y + 4, color);
-    }
-
-    private void drawSlopedBeam(GuiGraphics g, int x1, int y1, int x2, int y2, int color) {
-        final int steps = Math.max(1, Math.abs(x2 - x1));
-        for (int step = 0; step <= steps; step++) {
-            final float ratio = step / (float)steps;
-            final int px = Math.round(x1 + (x2 - x1) * ratio);
-            final int py = Math.round(y1 + (y2 - y1) * ratio);
-            g.fill(px, py, px + 3, py + 3, color);
-        }
-    }
-
-    private void drawDieselFuelGaugeGui(GuiGraphics g, int x, int y, int w, int h, ProductionDetectorBE.DieselSnapshot snapshot) {
-        g.fill(x, y, x + w, y + h, 0xFF050B0E);
-        this.border(g, x, y, w, h, this.border);
-        final int innerX = x + 5;
-        final int innerY = y + 5;
-        final int innerW = Math.max(1, w - 10);
-        final int innerH = Math.max(1, h - 10);
-        final int fillW = Math.round(innerW * Math.max(0.0f, Math.min(1.0f, snapshot.fillPercent() / 100.0f)));
-        if (fillW > 0) {
-            g.fill(innerX, innerY, innerX + fillW, innerY + innerH, 0xCCB47A2B);
-            g.fill(innerX, innerY, innerX + fillW, innerY + 2, 0xFFFFD27A);
-        }
-        final int progressW = Math.round(innerW * Math.max(0.0f, Math.min(1.0f, snapshot.processPercent() / 100.0f)));
-        if (progressW > 0) {
-            g.fill(innerX, innerY + innerH - 3, innerX + progressW, innerY + innerH, 0xFF58D575);
-        }
-        if (snapshot.hasActivity()) {
-            final int span = Math.max(6, innerW - 4);
-            final long tick = net.minecraft.Util.getMillis() / 50L;
-            for (int pulse = 0; pulse < 4; pulse++) {
-                final int phase = Math.floorMod((int)(tick * 3L + pulse * span / 4), span);
-                final int pulseX = innerX + 2 + phase;
-                g.fill(pulseX - 2, y + h / 2 - 2, pulseX + 3, y + h / 2 + 3, this.dieselColor(snapshot));
-            }
-        }
-        g.drawCenteredString(this.font, String.format("%.1f%%", snapshot.fillPercent()), x + w / 2, y + h / 2 - this.font.lineHeight / 2, this.text);
-    }
-
-    private void drawDieselNodeGui(GuiGraphics g, int x, int y, int w, int h, String label, String value, int color) {
-        g.fill(x, y, x + w, y + h, 0xDD0B2E30);
-        this.border(g, x, y, w, h, color);
-        g.drawCenteredString(this.font, label, x + w / 2, y + 5, this.dim);
-        g.drawCenteredString(this.font, this.truncate(value, w - 8), x + w / 2, y + Math.max(14, h - 12), color);
-    }
-
-    private void drawEnergyBatteryGui(GuiGraphics g, int x, int y, int w, int h, ProductionDetectorBE.EnergySnapshot snapshot) {
-        g.fill(x, y, x + w, y + h, 0xFF050B0E);
-        this.border(g, x, y, w, h, this.border);
-        final int terminalW = Math.max(5, w / 36);
-        g.fill(x + w, y + h / 3, x + w + terminalW, y + h / 3 + Math.max(8, h / 3), this.border);
-        final int innerX = x + 5;
-        final int innerY = y + 5;
-        final int innerW = Math.max(1, w - 10);
-        final int innerH = Math.max(1, h - 10);
-        final int fillW = Math.round(innerW * Math.max(0.0f, Math.min(1.0f, snapshot.fillPercent() / 100.0f)));
-        if (fillW > 0) {
-            g.fill(innerX, innerY, innerX + fillW, innerY + innerH, 0xCC3FA86D);
-            g.fill(innerX, innerY, innerX + fillW, innerY + 2, 0xFFEAFBD6);
-        }
-        for (int segment = 1; segment < 5; segment++) {
-            final int segmentX = innerX + segment * innerW / 5;
-            g.fill(segmentX, innerY, segmentX + 1, innerY + innerH, 0xFF6D5122);
-        }
-        if (this.hasEnergyFlow(snapshot)) {
-            final int span = Math.max(6, innerW - 4);
-            final long tick = net.minecraft.Util.getMillis() / 50L;
-            for (int pulse = 0; pulse < 4; pulse++) {
-                final int phase = Math.floorMod((int)(tick * 3L + pulse * span / 4), span);
-                final int pulseX = this.isDischarging(snapshot) ? innerX + innerW - 3 - phase : innerX + 2 + phase;
-                g.fill(pulseX - 2, y + h / 2 - 2, pulseX + 3, y + h / 2 + 3, this.energyColor(snapshot));
-            }
-        }
-    }
-
-    private void drawEnergyNodeGui(GuiGraphics g, int x, int y, int w, int h, String label, String value, int color) {
-        g.fill(x, y, x + w, y + h, 0xDD0B2E30);
-        this.border(g, x, y, w, h, color);
-        g.drawCenteredString(this.font, label, x + w / 2, y + 5, this.dim);
-        g.drawCenteredString(this.font, this.truncate(value, w - 8), x + w / 2, y + h - 14, color);
-    }
-
-    private void drawEnergyFlowGui(GuiGraphics g, int startX, int endX, int y, boolean toRight, boolean active, int color) {
-        final int left = Math.min(startX, endX);
-        final int right = Math.max(startX, endX);
-        final int width = Math.max(1, right - left);
-        g.fill(left, y - 1, right, y + 1, active ? 0xFF6D5122 : 0x66425355);
-        if (!active) return;
-        final int span = Math.max(8, width - 2);
-        final long tick = net.minecraft.Util.getMillis() / 50L;
-        for (int pulse = 0; pulse < 4; pulse++) {
-            final int phase = Math.floorMod((int)(tick * 4L + pulse * span / 4), span);
-            final int pulseX = toRight ? left + 1 + phase : right - 2 - phase;
-            g.fill(pulseX - 2, y - 3, pulseX + 3, y + 4, color);
-        }
-    }
-
-    private void drawEnergyConnectorStripGui(GuiGraphics g, int x, int y, int w, int h, ProductionDetectorBE.EnergySnapshot snapshot) {
-        g.fill(x, y, x + w, y + h, 0xCC081A1D);
-        this.border(g, x, y, w, h, this.grid);
-        g.drawString(this.font, "Connectors " + Math.round(snapshot.connectors()), x + 6, y + 6, snapshot.connectors() > 0.5f ? 0xFF58D575 : this.dim);
-        final String blocks = "Blocks " + Math.round(snapshot.blocks());
-        g.drawString(this.font, blocks, x + w - this.font.width(blocks) - 6, y + 6, this.dim);
-        final int startX = x + w / 2 - 34;
-        final int activeNodes = Math.max(0, Math.min(8, Math.round(snapshot.connectors())));
-        for (int node = 0; node < 8; node++) {
-            final int color = node < activeNodes ? 0xFF66A8FF : 0xFF243336;
-            g.fill(startX + node * 9, y + h - 6, startX + node * 9 + 5, y + h - 3, color);
-        }
-    }
-
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-    }
-
+    @Override
     public boolean isPauseScreen() {
         return false;
     }
 
     @Override
+    protected void init() {
+        this.left = (this.width - PW) / 2;
+        this.top = Math.max(30, (this.height - PH) / 2 + 14);
+        this.fields.clear();
+        this.relayLow = null;
+        this.relayHigh = null;
+        this.stallButton = null;
+        this.dayButton = null;
+        this.threeDaysButton = null;
+        this.closeBooks = null;
+        this.preferButton = null;
+        this.dieselButton = null;
+        final InventoryFace f = this.be.clientFace();
+        this.layoutSignature = signature(f);
+        if (notice(f) == null) {
+            switch (this.tab) {
+                case CONTENTS -> initContents(f);
+                case WATCH -> initWatch(f);
+                case BOOKS -> initBooks();
+            }
+        }
+        if (!this.viewing) {
+            this.viewing = true;
+            send(InventoryDisplaySettingsPacket.of(this.pos, InventoryDisplaySettingsPacket.OP_VIEW));
+        }
+    }
+
+    private String signature(InventoryFace f) {
+        final StringBuilder b = new StringBuilder();
+        b.append(this.tab).append('|').append(notice(f) == null);
+        if (f != null) {
+            b.append('|').append(f.page).append('|').append(f.bothSources).append('|').append(f.quantityKey);
+            for (InventoryFace.WatchRow r : f.rows) {
+                b.append('|').append(r.markKey());
+            }
+        }
+        return b.toString();
+    }
+
+    private void initContents(InventoryFace f) {
+        if (f == null) {
+            return;
+        }
+        int x = 8;
+        final int y = PH - 8 - 16;
+        if (f.bothSources) {
+            final Component label = f.source == InventoryFace.SOURCE_LINK
+                    ? Component.translatable("create_stats.inventory_display.gui.prefer_behind")
+                    : Component.translatable("create_stats.inventory_display.gui.prefer_link");
+            this.preferButton = addRenderableWidget(Button.builder(label, b -> send(InventoryDisplaySettingsPacket.of(
+                    this.pos, InventoryDisplaySettingsPacket.OP_PREFER_BEHIND, f.source == InventoryFace.SOURCE_LINK ? 1 : 0)))
+                    .bounds(X(x), Y(y), 154, 16).build());
+            x += 158;
+        }
+        if (f.page == InventoryFace.Page.DIESEL) {
+            final Component label = f.dieselMulti
+                    ? Component.translatable("create_stats.inventory_display.gui.diesel.multi")
+                    : Component.translatable("create_stats.inventory_display.gui.diesel.single");
+            this.dieselButton = addRenderableWidget(Button.builder(label, b -> send(InventoryDisplaySettingsPacket.of(
+                    this.pos, InventoryDisplaySettingsPacket.OP_DIESEL, f.dieselMulti ? 0 : 1)))
+                    .bounds(X(x), Y(y), 154, 16).build());
+        }
+    }
+
+    private boolean contentsHasButtonRow(InventoryFace f) {
+        return f != null && (f.bothSources || f.page == InventoryFace.Page.DIESEL);
+    }
+
+    private void initWatch(InventoryFace f) {
+        int y = GRID_Y + (emptyCup(f) ? 34 : 0);
+        for (WatchLine line : watchLines(f)) {
+            final EditBox low = field(150, y + 10, line.low());
+            final EditBox high = field(202, y + 10, line.high());
+            this.fields.add(new WatchFields(line, low, high));
+            y += 34;
+        }
+        this.relayLow = addRenderableWidget(Button.builder(Component.empty(), b -> cycleRelay(false))
+                .bounds(X(8), Y(161), 154, 20).build());
+        this.relayHigh = addRenderableWidget(Button.builder(Component.empty(), b -> cycleRelay(true))
+                .bounds(X(166), Y(161), 154, 20).build());
+        this.stallButton = addRenderableWidget(Button.builder(Component.empty(), b -> cycleStall())
+                .bounds(X(196), Y(186), 124, 16).build());
+        refreshLabels(f);
+    }
+
+    private EditBox field(int x, int y, long value) {
+        final EditBox box = new EditBox(this.font, X(x), Y(y), 44, 14, Component.empty());
+        box.setMaxLength(9);
+        box.setFilter(s -> s.chars().allMatch(Character::isDigit));
+        box.setValue(Long.toString(value));
+        return addRenderableWidget(box);
+    }
+
+    private void initBooks() {
+        this.dayButton = addRenderableWidget(Button.builder(Component.translatable("create_stats.inventory_display.gui.day"),
+                b -> setDays(1)).bounds(X(8), Y(138), 36, 16).build());
+        this.threeDaysButton = addRenderableWidget(Button.builder(
+                Component.translatable("create_stats.inventory_display.gui.three_days"), b -> setDays(3))
+                .bounds(X(46), Y(138), 44, 16).build());
+        this.closeBooks = addRenderableWidget(new HoldButton(X(232), Y(186), 88, 20));
+        refreshLabels(this.be.clientFace());
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.ticks++;
+        if (this.be.isRemoved()) {
+            onClose();
+            return;
+        }
+        if (this.ticks % HEARTBEAT_TICKS == 0) {
+            send(InventoryDisplaySettingsPacket.of(this.pos, InventoryDisplaySettingsPacket.OP_VIEW));
+        }
+        final InventoryFace f = this.be.clientFace();
+
+        for (WatchFields wf : this.fields) {
+            if (!wf.low().isFocused() && !wf.high().isFocused()) {
+                commit(wf);
+            }
+        }
+        final boolean typing = this.fields.stream().anyMatch(w -> w.low().isFocused() || w.high().isFocused());
+        if (!typing && !signature(f).equals(this.layoutSignature)) {
+            rebuildWidgets();
+            return;
+        }
+        for (WatchFields wf : this.fields) {
+            final WatchLine now = lineFor(f, wf.line().markKey());
+            if (now != null) {
+                if (!wf.low().isFocused()) {
+                    sync(wf.low(), now.low());
+                }
+                if (!wf.high().isFocused()) {
+                    sync(wf.high(), now.high());
+                }
+            }
+        }
+        refreshLabels(f);
+        if (this.hold >= 0) {
+            final long window = Minecraft.getInstance().getWindow().getWindow();
+            final boolean down = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+            if (!down || this.closeBooks == null || !this.closeBooks.isHovered()) {
+                this.hold = -1;
+            } else if (++this.hold >= HOLD_TICKS) {
+                this.hold = -1;
+                this.closedFlash = 16;
+                if (connected(DetectorResetPacket.TYPE)) {
+                    PacketDistributor.sendToServer(new DetectorResetPacket(this.pos));
+                }
+            }
+        }
+        if (this.closedFlash > 0) {
+            this.closedFlash--;
+        }
+    }
+
+    private void sync(EditBox box, long value) {
+        final String s = Long.toString(value);
+        if (!box.getValue().equals(s)) {
+            box.setValue(s);
+        }
+    }
+
+    @Override
+    public void removed() {
+        for (WatchFields wf : this.fields) {
+            commit(wf);
+        }
+        if (this.viewing) {
+            this.viewing = false;
+            send(InventoryDisplaySettingsPacket.of(this.pos, InventoryDisplaySettingsPacket.OP_UNVIEW));
+        }
+        super.removed();
+    }
+
+    private static boolean connected(CustomPacketPayload.Type<?> type) {
+        final ClientPacketListener c = Minecraft.getInstance().getConnection();
+        return c != null && c.hasChannel(type);
+    }
+
+    private static void send(InventoryDisplaySettingsPacket packet) {
+        if (connected(InventoryDisplaySettingsPacket.TYPE)) {
+            PacketDistributor.sendToServer(packet);
+        }
+    }
+
+    private void commit(WatchFields wf) {
+        final WatchLine now = lineFor(this.be.clientFace(), wf.line().markKey());
+        final WatchLine base = now != null ? now : wf.line();
+        final long low = parse(wf.low().getValue(), base.low());
+        final long high = parse(wf.high().getValue(), base.high());
+        if (low == base.low() && high == base.high()) {
+            return;
+        }
+        this.pendingMarks.put(wf.line().markKey(), new long[]{low, high, this.ticks + PENDING_TICKS});
+        send(InventoryDisplaySettingsPacket.marks(this.pos, wf.line().markKey(), low, high));
+    }
+
+    private static long parse(String s, long fallback) {
+        if (s == null || s.isEmpty()) {
+            return fallback;
+        }
+        try {
+            return Math.max(0L, Long.parseLong(s));
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    private void cycleRelay(boolean high) {
+        final InventoryFace f = this.be.clientFace();
+        if (f == null) {
+            return;
+        }
+        final SetPointRelay.Mode mode = SetPointRelay.Mode.byOrdinal(high ? highMode(f) : lowMode(f)).next();
+        if (high) {
+            this.localHighMode = mode.ordinal();
+        } else {
+            this.localLowMode = mode.ordinal();
+        }
+        this.localModesUntil = this.ticks + PENDING_TICKS;
+        send(new InventoryDisplaySettingsPacket(this.pos, InventoryDisplaySettingsPacket.OP_RELAY, "", high ? 1 : 0,
+                mode.ordinal()));
+        refreshLabels(f);
+    }
+
+    private void cycleStall() {
+        final InventoryFace f = this.be.clientFace();
+        if (f == null) {
+            return;
+        }
+        final int next = Math.floorMod(stallIndex(f) + 1, 4);
+        this.localStall = next;
+        this.localModesUntil = this.ticks + PENDING_TICKS;
+        send(InventoryDisplaySettingsPacket.of(this.pos, InventoryDisplaySettingsPacket.OP_STALL, next));
+        refreshLabels(f);
+    }
+
+    private void setDays(int days) {
+        this.localDays = days;
+        this.localDaysUntil = this.ticks + PENDING_TICKS;
+        send(InventoryDisplaySettingsPacket.of(this.pos, InventoryDisplaySettingsPacket.OP_CHART_DAYS, days));
+        refreshLabels(this.be.clientFace());
+    }
+
+    private int lowMode(InventoryFace f) {
+        return this.localLowMode >= 0 && this.ticks < this.localModesUntil ? this.localLowMode : f.lowMode;
+    }
+
+    private int highMode(InventoryFace f) {
+        return this.localHighMode >= 0 && this.ticks < this.localModesUntil ? this.localHighMode : f.highMode;
+    }
+
+    private int stallIndex(InventoryFace f) {
+        return this.localStall >= 0 && this.ticks < this.localModesUntil ? this.localStall : f.stallIndex;
+    }
+
+    private int days(InventoryFace f) {
+        if (this.localDays != 0 && this.ticks < this.localDaysUntil) {
+            return this.localDays;
+        }
+        return f != null && f.chartDays == 1 ? 1 : 3;
+    }
+
+    private void refreshLabels(InventoryFace f) {
+        if (f == null) {
+            return;
+        }
+        if (this.relayLow != null) {
+            this.relayLow.setMessage(switch (SetPointRelay.Mode.byOrdinal(lowMode(f))) {
+                case PULSE -> Component.translatable("create_stats.inventory_display.gui.relay.left_pulse");
+                case OFF -> Component.translatable("create_stats.inventory_display.gui.relay.left_off");
+                default -> Component.translatable("create_stats.inventory_display.gui.relay.left_steady");
+            });
+        }
+        if (this.relayHigh != null) {
+            this.relayHigh.setMessage(switch (SetPointRelay.Mode.byOrdinal(highMode(f))) {
+                case PULSE -> Component.translatable("create_stats.inventory_display.gui.relay.right_pulse");
+                case OFF -> Component.translatable("create_stats.inventory_display.gui.relay.right_off");
+                default -> Component.translatable("create_stats.inventory_display.gui.relay.right_steady");
+            });
+        }
+        if (this.stallButton != null) {
+            final Component when = switch (stallIndex(f)) {
+                case 0 -> Component.translatable("create_stats.inventory_display.gui.stall.30s");
+                case 2 -> Component.translatable("create_stats.inventory_display.gui.stall.5m");
+                case 3 -> Component.translatable("create_stats.inventory_display.gui.stall.hour");
+                default -> Component.translatable("create_stats.inventory_display.gui.stall.1m");
+            };
+            this.stallButton.setMessage(Component.translatable("create_stats.inventory_display.gui.stall_after", when));
+        }
+        if (this.dayButton != null) {
+            this.dayButton.active = days(f) != 1;
+            this.threeDaysButton.active = days(f) != 3;
+        }
+        if (this.closeBooks != null) {
+            this.closeBooks.setMessage(this.hold >= 0
+                    ? Component.translatable("create_stats.inventory_display.gui.close_books.hold")
+                    : Component.translatable("create_stats.inventory_display.gui.close_books"));
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mx, double my, int button) {
+        for (int i = 0; i < 3; i++) {
+            final int x = X(i * TAB_STEP);
+            final int y = Y(-28);
+            if (mx >= x && mx < x + 26 && my >= y && my < y + 28) {
+                final Tab next = Tab.values()[i];
+                if (next != this.tab) {
+                    for (WatchFields wf : this.fields) {
+                        commit(wf);
+                    }
+                    this.tab = next;
+                    this.scroll = 0;
+                    rebuildWidgets();
+                }
+                return true;
+            }
+        }
+        if (this.tab == Tab.CONTENTS && button == 0) {
+            final int[] track = scrollTrack(this.be.clientFace());
+            if (track != null && inside(mx, my, PW - 20, track[0], 12, track[1])) {
+                this.draggingScroller = true;
+                scrollTo(my, track);
+                return true;
+            }
+        }
+        return super.mouseClicked(mx, my, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (this.draggingScroller) {
+            final int[] track = scrollTrack(this.be.clientFace());
+            if (track != null) {
+                scrollTo(my, track);
+            }
+            return true;
+        }
+        return super.mouseDragged(mx, my, button, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        this.draggingScroller = false;
+        this.hold = -1;
+        return super.mouseReleased(mx, my, button);
+    }
+
+    @Override
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
-        if (this.detector.getDisplayMode() != ProductionDetectorBE.DisplayMode.FLUID
-            && this.detector.getDisplayMode() != ProductionDetectorBE.DisplayMode.ENERGY
-                && this.detector.getDisplayMode() != ProductionDetectorBE.DisplayMode.DIESEL
-                && this.detector.getDisplayMode() != ProductionDetectorBE.DisplayMode.DISPLAY_LINK_FEED
-                && this.isMouseOverItemList(mx, my)) {
-            final int maxScroll = Math.max(0, this.detector.getTopItemEntries(Integer.MAX_VALUE).size() - GUI_VISIBLE_ITEM_ROWS);
-            if (maxScroll > 0 && scrollY != 0.0) {
-                this.itemScrollOffset -= (int) Math.signum(scrollY);
-                if (this.itemScrollOffset < 0) this.itemScrollOffset = 0;
-                if (this.itemScrollOffset > maxScroll) this.itemScrollOffset = maxScroll;
+        if (this.tab == Tab.CONTENTS && scrollY != 0.0) {
+            final int[] track = scrollTrack(this.be.clientFace());
+            if (track != null) {
+                this.scroll = Mth.clamp(this.scroll + (scrollY > 0 ? -1 : 1), 0, track[2]);
                 return true;
             }
         }
         return super.mouseScrolled(mx, my, scrollX, scrollY);
     }
 
-    private void border(GuiGraphics g, int x, int y, int w, int h, int color) {
-        g.fill(x, y, x + w, y + 1, color);
-        g.fill(x, y + h - 1, x + w, y + h, color);
-        g.fill(x, y, x + 1, y + h, color);
-        g.fill(x + w - 1, y, x + w, y + h, color);
+    private void scrollTo(double my, int[] track) {
+        final double t = (my - Y(track[0]) - 8.0) / Math.max(1.0, track[1] - 17.0);
+        this.scroll = Mth.clamp((int) Math.round(Mth.clamp(t, 0.0, 1.0) * track[2]), 0, track[2]);
     }
 
-    private void renderPanelPattern(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, 0xAA062022);
-        for (int px = x + 12; px < x + w - 8; px += 18) {
-            g.fill(px, y + 4, px + 1, y + h - 4, 0x33234A4C);
+    @Override
+    public boolean keyPressed(int key, int scan, int modifiers) {
+        for (WatchFields wf : this.fields) {
+            if (wf.low().isFocused() || wf.high().isFocused()) {
+                if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER || key == GLFW.GLFW_KEY_TAB) {
+                    commit(wf);
+                    setFocused(null);
+                    wf.low().setFocused(false);
+                    wf.high().setFocused(false);
+                    return true;
+                }
+                if (key == GLFW.GLFW_KEY_ESCAPE) {
+                    final WatchLine now = lineFor(this.be.clientFace(), wf.line().markKey());
+                    final WatchLine base = now != null ? now : wf.line();
+                    sync(wf.low(), base.low());
+                    sync(wf.high(), base.high());
+                    setFocused(null);
+                    wf.low().setFocused(false);
+                    wf.high().setFocused(false);
+                    return true;
+                }
+            }
         }
-        for (int py = y + 10; py < y + h - 8; py += 18) {
-            g.fill(x + 4, py, x + w - 4, py + 1, 0x33234A4C);
+        return super.keyPressed(key, scan, modifiers);
+    }
+
+    // hold for a second. the keyboard can't, a held key isn't a hand on a ledger
+    private final class HoldButton extends Button {
+        HoldButton(int x, int y, int w, int h) {
+            super(x, y, w, h, Component.translatable("create_stats.inventory_display.gui.close_books"), b -> {
+            }, DEFAULT_NARRATION);
+        }
+
+        @Override
+        public void onClick(double mouseX, double mouseY) {
+            ProductionDetectorScreen.this.hold = 0;
+        }
+
+        @Override
+        public void onRelease(double mouseX, double mouseY) {
+            ProductionDetectorScreen.this.hold = -1;
+        }
+
+        @Override
+        public void onPress() {
         }
     }
 
-    private void renderTopItems(GuiGraphics g, int listX, int startY, int listW, int listH) {
-        final List<ProductionDetectorBE.ItemCountEntry> entries = this.detector.getTopItemEntries(Integer.MAX_VALUE);
-        g.fill(listX, startY, listX + listW, startY + listH, 0xCC062022);
-        this.border(g, listX, startY, listW, listH, this.grid);
-        g.drawString(this.font, "Stored items", listX, startY - 14, this.border);
-        g.drawString(this.font, "Count", listX + listW - this.font.width("Count"), startY - 14, this.accent);
-        if (entries.isEmpty()) {
-            final String empty = this.detector.getTargetState() == ProductionDetectorBE.TargetState.NO_TARGET ? "No target in range" : "No items in target";
-            g.drawCenteredString(this.font, empty, listX + listW / 2, startY + listH / 2 - 4, 0xFFD6A84F);
+    @Override
+    public void renderBackground(GuiGraphics g, int mx, int my, float partialTick) {
+        renderTransparentBackground(g);
+        this.tip = null;
+        final InventoryFace f = this.be.clientFace();
+        tabs(g, false, mx, my);
+        HomeKit.frame(g, this.left, this.top, PW, PH);
+        tabs(g, true, mx, my);
+        header(g, f, mx, my);
+        final List<Line> notice = notice(f);
+        if (notice != null) {
+            blankPage(g, notice);
             return;
         }
-        final int maxScroll = Math.max(0, entries.size() - GUI_VISIBLE_ITEM_ROWS);
-        if (this.itemScrollOffset > maxScroll) this.itemScrollOffset = maxScroll;
-        final int topCount = Math.max(1, entries.get(0).count());
-        final int visibleRows = Math.min(GUI_VISIBLE_ITEM_ROWS, entries.size());
-        final int rowH = Math.max(14, Math.min(20, (listH - 12) / GUI_VISIBLE_ITEM_ROWS));
-        final int rowInnerH = Math.max(12, rowH - 3);
-        for (int i = 0; i < visibleRows; ++i) {
-            final int entryIndex = i + this.itemScrollOffset;
-            final ProductionDetectorBE.ItemCountEntry entry = entries.get(entryIndex);
-            final boolean topEntry = entryIndex == 0;
-            final int rowY = startY + 6 + i * rowH;
-            final int rowColor = topEntry ? 0x663E331D : ((i % 2 == 0) ? 0x66153335 : 0x44112628);
-            g.fill(listX + 6, rowY, listX + listW - 6, rowY + rowInnerH, rowColor);
-            this.border(g, listX + 6, rowY, listW - 12, rowInnerH, topEntry ? this.border : this.grid);
-            final int barW = Math.max(2, (int)((listW - 4) * (entry.count() / (float)topCount)));
-            g.fill(listX + 8, rowY + rowInnerH - 3, listX + listW - 8, rowY + rowInnerH - 2, 0x66234A4C);
-            g.fill(listX + 8, rowY + rowInnerH - 3, listX + 8 + Math.min(barW, listW - 16), rowY + rowInnerH - 1, topEntry ? 0xFF58D575 : this.accent);
-            g.drawString(this.font, (entryIndex + 1) + ".", listX + 11, rowY + 4, this.dim);
-            g.drawString(this.font, this.truncate(entry.displayName(), listW - 104), listX + 32, rowY + 4, this.text);
-            final String count = String.format("%,d", entry.count());
-            g.drawString(this.font, count, listX + listW - this.font.width(count) - 12, rowY + 4, topEntry ? this.accent : this.border);
+        switch (this.tab) {
+            case CONTENTS -> contents(g, f, mx, my);
+            case WATCH -> watch(g, f, mx, my);
+            case BOOKS -> books(g, f, mx, my);
         }
     }
 
-    private boolean isMouseOverItemList(double mx, double my) {
-        final int bodyY = this.panelTop + 120;
-        final int bodyH = this.panelHeight - 130;
-        final int listW = (int)((this.panelWidth - 26) * 0.64f);
-        final int listX = this.panelLeft + 10;
-        return mx >= listX && mx <= listX + listW && my >= bodyY && my <= bodyY + bodyH;
+    @Override
+    public void render(GuiGraphics g, int mx, int my, float partialTick) {
+        super.render(g, mx, my, partialTick);
+        if (this.hold >= 0 && this.closeBooks != null) {
+            fill(g, 234, 202, 234 + Math.round(84.0f * Math.min(this.hold + partialTick, HOLD_TICKS) / HOLD_TICKS), 204,
+                    BAR_GREEN);
+        }
+        if (this.tip != null && !this.tip.isEmpty()) {
+            g.renderComponentTooltip(this.font, this.tip, this.tipX, this.tipY);
+        }
     }
 
-    private void renderSummaryCard(GuiGraphics g, int x, int y, int w, String label, String value) {
-        g.fill(x, y, x + w, y + 32, 0xCC062022);
-        this.border(g, x, y, w, 32, this.grid);
-        g.drawString(this.font, label, x + 5, y + 5, this.dim);
-        g.drawString(this.font, this.truncate(value, w - 10), x + 5, y + 18, this.text);
+    private void tooltip(List<Component> lines, int x, int y) {
+        this.tip = lines;
+        this.tipX = x;
+        this.tipY = y;
     }
 
-    private void renderStatusPill(GuiGraphics g, int x, int y) {
-        final String label = switch (this.detector.getTargetState()) {
-            case MONITORING -> "Monitoring";
-            case IDLE -> "Empty";
-            case BLOCKED -> "Blocked";
-            case NO_TARGET -> "No Target";
+    private void tabs(GuiGraphics g, boolean selectedPass, int mx, int my) {
+        final ItemStack[] icons = {new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.IRON_INGOT), new ItemStack(Items.BOOK)};
+        for (int i = 0; i < 3; i++) {
+            final boolean selected = Tab.values()[i] == this.tab;
+            if (selected != selectedPass) {
+                continue;
+            }
+            final int x = X(i * TAB_STEP);
+            final int y = Y(-28);
+            g.blitSprite(ResourceLocation.withDefaultNamespace("container/creative_inventory/tab_top_"
+                    + (selected ? "selected_" : "unselected_") + (i + 1)), x, y, 26, 32);
+            g.renderItem(icons[i], x + 5, y + 9);
+            if (!selected && mx >= x && mx < x + 26 && my >= y && my < y + 28) {
+                tooltip(List.of(tabName(i)), mx, my);
+            }
+        }
+    }
+
+    private static Component tabName(int i) {
+        return switch (i) {
+            case 1 -> Component.translatable("create_stats.inventory_display.gui.tab.watch");
+            case 2 -> Component.translatable("create_stats.inventory_display.gui.tab.books");
+            default -> Component.translatable("create_stats.inventory_display.gui.tab.contents");
         };
-        final int color = switch (this.detector.getTargetState()) {
-            case MONITORING -> this.accent;
-            case IDLE -> this.dim;
-            case BLOCKED -> 0xFFD05858;
-            case NO_TARGET -> this.grid;
+    }
+
+    private void header(GuiGraphics g, InventoryFace f, int mx, int my) {
+        text(g, this.title.getString(), 8, 6, INK);
+        annunciator(g, f, PW - 8 - 4 * LAMP_STEP + 2, 3);
+        HomeKit.well(g, X(7), Y(17), 18, 18);
+        if (f != null && !f.sourceIcon.isEmpty()) {
+            g.renderItem(f.sourceIcon, X(8), Y(18));
+        }
+        final int powerLeft = power(g, mx, my);
+        final int max = Math.max(40, powerLeft - 36);
+        if (f == null) {
+            return;
+        }
+        final String name = sourceName(f);
+        final String shownName = HomeKit.trim(this.font, name, max);
+        text(g, shownName, 30, 19, INK);
+        final Line how = how(f);
+        final String shownHow = HomeKit.trim(this.font, how.text(), max);
+        text(g, shownHow, 30, 28, how.ink());
+        if ((!shownName.equals(name) || !shownHow.equals(how.text())) && inside(mx, my, 30, 18, max, 18)) {
+            tooltip(List.of(Component.literal(name), Component.literal(how.text()).withColor(TIP_GREY)), mx, my);
+        }
+    }
+
+    private String sourceName(InventoryFace f) {
+        String name = f.title.getString();
+        if (f.sizeA > 0 && f.sizeC > 0) {
+            name = Component.translatable("create_stats.inventory_display.gui.source.sized", name, f.sizeA, f.sizeB,
+                    f.sizeC).getString();
+        }
+        if (f.source == InventoryFace.SOURCE_LINK) {
+            name = Component.translatable("create_stats.inventory_display.gui.source.by_link", name).getString();
+        }
+        return name;
+    }
+
+    private Line how(InventoryFace f) {
+        if (f.source != InventoryFace.SOURCE_LINK) {
+            return new Line(Component.translatable("create_stats.inventory_display.gui.read_behind").getString(), INK);
+        }
+        if (f.page == InventoryFace.Page.OUT_OF_REACH) {
+            if (f.otherDimension || f.linkDistance < 0) {
+                return new Line(Component.translatable("create_stats.inventory_display.gui.read_link_other").getString(), RED);
+            }
+            return new Line(Component.translatable("create_stats.inventory_display.gui.read_link_far",
+                    FaceFormat.grouped(f.linkDistance)).getString(), RED);
+        }
+        final String distance = FaceFormat.grouped(Math.max(0, f.linkDistance));
+        if (f.antennaTier > 0) {
+            return new Line(Component.translatable("create_stats.inventory_display.gui.read_link_antenna", distance,
+                    antennaName(f.antennaTier), FaceFormat.grouped(f.linkReach)).getString(), INK);
+        }
+        return new Line(Component.translatable("create_stats.inventory_display.gui.read_link", distance).getString(), INK);
+    }
+
+    private static String antennaName(int tier) {
+        return switch (tier) {
+            case 1 -> Component.translatable("create_stats.inventory_display.gui.antenna.small").getString();
+            case 2 -> Component.translatable("create_stats.inventory_display.gui.antenna.advanced").getString();
+            default -> Component.translatable("create_stats.inventory_display.gui.antenna.trt").getString();
         };
-        final int w = this.font.width(label) + 12;
-        g.fill(x, y, x + w, y + 15, 0x66101010);
-        this.border(g, x, y, w, 15, color);
-        g.drawString(this.font, label, x + 6, y + 4, color);
     }
 
-    private void renderDetails(GuiGraphics g, int x, int y, int w, int h, String targetName, String facingName) {
-        g.fill(x, y, x + w, y + h, 0xCC062022);
-        this.border(g, x, y, w, h, this.grid);
-        g.drawString(this.font, "Details", x + 6, y + 6, this.accent);
-        int lineY = y + 24;
-        lineY = this.detailLine(g, x, lineY, w, "Target", targetName);
-        lineY = this.detailLine(g, x, lineY, w, "Facing", facingName);
-        lineY = this.detailLine(g, x, lineY, w, "Range", this.detector.getDetectionRange() + " block" + (this.detector.getDetectionRange() == 1 ? "" : "s"));
-        this.detailLine(g, x, lineY, w, "State", this.detector.getTargetState().name().toLowerCase());
-    }
-
-    private int detailLine(GuiGraphics g, int x, int y, int w, String label, String value) {
-        g.drawString(this.font, label, x + 6, y, this.dim);
-        g.drawString(this.font, this.truncate(value, w - 12), x + 6, y + 10, this.text);
-        return y + 26;
-    }
-
-    private int energyColor(ProductionDetectorBE.EnergySnapshot snapshot) {
-        if (this.isDischarging(snapshot)) return 0xFFD6A84F;
-        if (this.isCharging(snapshot)) return 0xFF58D575;
-        if (this.hasEnergyFlow(snapshot)) return 0xFF66A8FF;
-        if (snapshot.fillPercent() <= 10.0f) return 0xFFD05858;
-        return 0xFFE6A342;
-    }
-
-    private int dieselColor(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (snapshot.redstoneDisabled() || !snapshot.validFuel()) return 0xFFD05858;
-        if (snapshot.hasActivity()) return 0xFF58D575;
-        if (snapshot.fillPercent() > 0.0f || snapshot.oilRemaining() > 0.0f) return 0xFFE6A342;
-        return this.dim;
-    }
-
-    private int dieselFillColor(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (snapshot.fillPercent() <= 0.0f && snapshot.oilRemaining() <= 0.0f) return this.dim;
-        if (snapshot.fillPercent() > 0.0f && snapshot.fillPercent() < 20.0f) return 0xFFD6A84F;
-        return 0xFFB47A2B;
-    }
-
-    private String dieselStateLabel(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (snapshot.sourceType().contains("Group")) {
-            if (snapshot.offEngines() >= snapshot.engineCount()) return "OFF";
-            if (snapshot.stallingEngines() > 0.0f) return "STALLING";
-            if (snapshot.okEngines() > 0.0f) return "OK";
+    private int power(GuiGraphics g, int mx, int my) {
+        final FeConsumer fe = this.be.feConsumer();
+        final boolean paid = fe.requiresPower();
+        final boolean lockedOff = fe.lock() == FeLock.FORCE_OFF;
+        final boolean dead = paid && !fe.isPowered();
+        final boolean shed = paid && fe.isLoadShed() && !lockedOff;
+        final int y = 24;
+        int leftEdge;
+        if (!paid || lockedOff || (dead && !shed)) {
+            final String word = !paid ? Component.translatable("create_stats.inventory_display.gui.power_unlimited").getString()
+                    : lockedOff ? Component.translatable("create_stats.inventory_display.gui.power_off").getString()
+                    : Component.translatable("create_stats.inventory_display.gui.power_none",
+                    FaceFormat.grouped(fe.getEnergyStored())).getString();
+            leftEdge = PW - 8 - this.font.width(word);
+            text(g, word, leftEdge, y, dead && !lockedOff && paid ? RED : INK);
+        } else {
+            final float pct = Mth.clamp(fe.fillPct() / 100.0f, 0.0f, 1.0f);
+            final String figure = Math.round(pct * 100.0f) + "%";
+            textRight(g, figure, PW - 8, y, INK);
+            bar(g, PW - 96, y, 60, 7, pct, shed || fe.isBrownout() ? BAR_AMBER : BAR_GREEN, null);
+            final String label = shed ? Component.translatable("create_stats.inventory_display.gui.power_shed").getString()
+                    : Component.translatable("create_stats.inventory_display.gui.power").getString();
+            leftEdge = PW - 100 - this.font.width(label);
+            text(g, label, leftEdge, y, shed ? AMBER : INK);
         }
-        if (snapshot.redstoneDisabled()) return "STOPPED";
-        if (!snapshot.validFuel()) return "NO FUEL";
-        if (snapshot.running()) return "RUNNING";
-        if (snapshot.processing()) return "PROCESS";
-        if (snapshot.heatLevel() > 0.0f) return "HEAT";
-        return "IDLE";
-    }
-
-    private String dieselInputLabel(ProductionDetectorBE.DieselSnapshot snapshot) {
-        return "Oil Pumpjack".equals(snapshot.sourceType()) ? "DEPOSIT" : "FUEL";
-    }
-
-    private String dieselInputValue(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (snapshot.oilRemaining() > 0.0f) return this.formatFluidAmount(snapshot.oilRemaining());
-        return String.format("%.0f%%", snapshot.fillPercent());
-    }
-
-    private String dieselCoreLabel(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (snapshot.sourceType().contains("Engine")) return "ENGINE";
-        if ("Diesel Distillation Tower".equals(snapshot.sourceType())) return "TOWER";
-        if ("Diesel Burner".equals(snapshot.sourceType())) return "BURNER";
-        if ("Oil Barrel".equals(snapshot.sourceType())) return "BARREL";
-        return "PUMP";
-    }
-
-    private String dieselOutputLabel(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (snapshot.sourceType().contains("Engine")) return "SHAFT";
-        if ("Diesel Burner".equals(snapshot.sourceType())) return "HEAT";
-        return "OUTPUT";
-    }
-
-    private String dieselOutputValue(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (snapshot.sourceType().contains("Engine")) return this.formatDieselOutput(snapshot);
-        if ("Diesel Burner".equals(snapshot.sourceType())) return this.formatCompact(snapshot.heatLevel());
-        return snapshot.processing() ? "FLOW" : "HOLD";
-    }
-
-    private String formatDieselOutput(ProductionDetectorBE.DieselSnapshot snapshot) {
-        if (Math.abs(snapshot.generatedSpeed()) > 0.01f) return String.format("%.0f RPM", snapshot.generatedSpeed());
-        if (snapshot.heatLevel() > 0.0f) return "Heat " + this.formatCompact(snapshot.heatLevel());
-        if (snapshot.oilRemaining() > 0.0f) return this.formatFluidAmount(snapshot.oilRemaining());
-        return snapshot.hasActivity() ? "Active" : "Idle";
-    }
-
-    private boolean hasInputFlow(ProductionDetectorBE.EnergySnapshot snapshot) {
-        return snapshot.inputRate() > ENERGY_FLOW_EPSILON || snapshot.netRate() > ENERGY_FLOW_EPSILON;
-    }
-
-    private boolean hasOutputFlow(ProductionDetectorBE.EnergySnapshot snapshot) {
-        return snapshot.outputRate() > ENERGY_FLOW_EPSILON || snapshot.netRate() < -ENERGY_FLOW_EPSILON;
-    }
-
-    private boolean hasEnergyFlow(ProductionDetectorBE.EnergySnapshot snapshot) {
-        return this.hasInputFlow(snapshot) || this.hasOutputFlow(snapshot);
-    }
-
-    private boolean isCharging(ProductionDetectorBE.EnergySnapshot snapshot) {
-        return this.hasInputFlow(snapshot) && (!this.hasOutputFlow(snapshot) || snapshot.inputRate() > snapshot.outputRate() + ENERGY_FLOW_EPSILON || snapshot.netRate() > ENERGY_FLOW_EPSILON);
-    }
-
-    private boolean isDischarging(ProductionDetectorBE.EnergySnapshot snapshot) {
-        return this.hasOutputFlow(snapshot) && (!this.hasInputFlow(snapshot) || snapshot.outputRate() > snapshot.inputRate() + ENERGY_FLOW_EPSILON || snapshot.netRate() < -ENERGY_FLOW_EPSILON);
-    }
-
-    private String formatEnergy(float value) {
-        final float abs = Math.abs(value);
-        if (abs >= 1_000_000.0f) return String.format("%.1fM FE", value / 1_000_000.0f);
-        if (abs >= 10_000.0f) return String.format("%.1fk FE", value / 1_000.0f);
-        return String.format("%.0f FE", value);
-    }
-
-    private String formatEnergyRate(float value) {
-        final String sign = value > 0.01f ? "+" : "";
-        final float abs = Math.abs(value);
-        if (abs >= 1_000_000.0f) return sign + String.format("%.1fM FE/t", value / 1_000_000.0f);
-        if (abs >= 10_000.0f) return sign + String.format("%.1fk FE/t", value / 1_000.0f);
-        return sign + String.format("%.0f FE/t", value);
-    }
-
-    private String formatFluidAmount(float value) {
-        return this.formatCompact(value) + " mB";
-    }
-
-    private String formatCompact(float value) {
-        final float abs = Math.abs(value);
-        if (abs >= 1_000_000.0f) return String.format("%.1fM", value / 1_000_000.0f);
-        if (abs >= 10_000.0f) return String.format("%.1fk", value / 1_000.0f);
-        return String.format("%.0f", value);
-    }
-
-    private String truncate(String value, int maxWidth) {
-        if (this.font.width(value) <= maxWidth) {
-            return value;
+        if (inside(mx, my, leftEdge, y - 2, PW - 8 - leftEdge, 11)) {
+            final List<Component> lines = new ArrayList<>();
+            lines.add(Component.translatable("create_stats.inventory_display.gui.power"));
+            if (paid) {
+                lines.add(Component.translatable("create_stats.inventory_display.gui.power.tip.stored",
+                        FaceFormat.grouped(fe.getEnergyStored()), FaceFormat.grouped(fe.getMaxEnergyStored())).withColor(TIP_GREY));
+                lines.add(Component.translatable("create_stats.inventory_display.gui.power.tip.draw",
+                        FaceFormat.grouped(fe.settings().idleDrain()), FaceFormat.grouped(fe.settings().activeDrain()))
+                        .withColor(TIP_GREY));
+            } else {
+                lines.add(Component.translatable("create_stats.inventory_display.gui.power_unlimited").withColor(TIP_GREY));
+            }
+            tooltip(lines, mx, my);
         }
-        while (value.length() > 3 && this.font.width(value + "..") > maxWidth) {
-            value = value.substring(0, value.length() - 1);
+        return leftEdge;
+    }
+
+    private void annunciator(GuiGraphics g, InventoryFace f, int x, int y) {
+        final FeConsumer fe = this.be.feConsumer();
+        final boolean dead = fe.requiresPower() && !fe.isPowered();
+        final boolean flashOn = (this.ticks / 5) % 2 == 0;
+        final boolean lampTest = f != null && Minecraft.getInstance().level != null
+                && f.lampTestUntil > Minecraft.getInstance().level.getGameTime();
+        for (int i = 0; i < 4; i++) {
+            final int bit = 1 << i;
+            final boolean lit;
+            if (dead) {
+                lit = false;
+            } else if (lampTest || bit == InventoryFace.LAMP_POWER) {
+                lit = true;
+            } else {
+                lit = f != null && f.lit(bit) && (!f.flashing(bit) || flashOn);
+            }
+            final int col = LampPainter.FILMS[i];
+            final int wx = x + i * LAMP_STEP;
+            fill(g, wx - 1, y - 1, wx + LAMP_W + 1, y + LAMP_H + 1, 0xFF1A1A1A);
+            final int film = lit ? col : lerp(col, 0xFF000000, 0.80);
+            fill(g, wx, y, wx + LAMP_W, y + LAMP_H, film);
+            fill(g, wx, y, wx + LAMP_W, y + 1, lerp(film, 0xFFFFFFFF, lit ? 0.25 : 0.10));
+            final int ink = lit ? lerp(col, 0xFF000000, 0.80) : lerp(lerp(col, 0xFFFFFFFF, 0.35), 0xFF000000, 0.22);
+            final String word = lampWord(i);
+            g.drawString(this.font, word, X(wx) + (LAMP_W - this.font.width(word)) / 2 + 1, Y(y + 2), ink, false);
         }
-        return value + "..";
+    }
+
+    private static String lampWord(int i) {
+        return switch (i) {
+            case 0 -> Component.translatable("create_stats.inventory_display.lamp.low").getString();
+            case 1 -> Component.translatable("create_stats.inventory_display.lamp.full").getString();
+            case 2 -> Component.translatable("create_stats.inventory_display.lamp.stall").getString();
+            default -> Component.translatable("create_stats.inventory_display.lamp.power").getString();
+        };
+    }
+
+    private List<Line> notice(InventoryFace f) {
+        final FeConsumer fe = this.be.feConsumer();
+        if (fe.requiresPower() && !fe.isPowered()) {
+            return List.of(
+                    new Line(Component.translatable("create_stats.inventory_display.gui.no_power.1").getString(), WHITE),
+                    new Line(Component.translatable("create_stats.inventory_display.gui.no_power.2").getString(), LIST_SUB),
+                    new Line(Component.translatable("create_stats.inventory_display.gui.no_power.3").getString(), LIST_SUB),
+                    new Line(Component.translatable("create_stats.inventory_display.gui.no_power.4").getString(), LIST_SUB),
+                    new Line(Component.translatable("create_stats.inventory_display.gui.no_power.5").getString(), WHITE));
+        }
+        if (f == null || f.page == InventoryFace.Page.BLANK) {
+            return List.of();
+        }
+        return switch (f.page) {
+            case NOTHING -> List.of(
+                    new Line(Component.translatable("create_stats.inventory_display.gui.nothing.1").getString(), WHITE),
+                    new Line(Component.translatable("create_stats.inventory_display.gui.nothing.2").getString(), LIST_SUB),
+                    new Line(Component.translatable("create_stats.inventory_display.gui.nothing.3").getString(), LIST_SUB));
+            case CANT_READ -> List.of(
+                    new Line(Component.translatable("create_stats.inventory_display.gui.cant_read.1",
+                            f.title.getString()).getString(), LIST_PROBLEM),
+                    new Line(Component.translatable("create_stats.inventory_display.gui.cant_read.2").getString(), LIST_SUB));
+            case NOT_LOADED -> {
+                final List<Line> lines = new ArrayList<>();
+                lines.add(new Line(Component.translatable("create_stats.inventory_display.gui.not_loaded.1").getString(), WHITE));
+                lines.add(new Line(Component.translatable("create_stats.inventory_display.gui.not_loaded.2").getString(),
+                        LIST_SUB));
+                if (f.lastReadSeconds >= 0) {
+                    lines.add(new Line(Component.translatable("create_stats.inventory_display.gui.not_loaded.3",
+                            clock(f.lastReadSeconds)).getString(), LIST_SUB));
+                }
+                yield lines;
+            }
+            case OUT_OF_REACH -> reachLines(f);
+            default -> null;
+        };
+    }
+
+    private List<Line> reachLines(InventoryFace f) {
+        final List<Line> lines = new ArrayList<>();
+        final int base = Math.max(1, f.baseReach);
+        if (!f.otherDimension && f.linkDistance >= 0) {
+            lines.add(new Line(Component.translatable("create_stats.inventory_display.gui.reach.1",
+                    FaceFormat.grouped(f.linkDistance)).getString(), LIST_PROBLEM));
+            lines.add(new Line(Component.translatable("create_stats.inventory_display.gui.reach.2",
+                    FaceFormat.grouped(base)).getString(), LIST_SUB));
+        }
+        lines.add(new Line(Component.translatable("create_stats.inventory_display.gui.reach.3").getString(), LIST_SUB));
+        if (!f.otherDimension) {
+            lines.add(new Line("  " + Component.translatable("create_stats.inventory_display.gui.reach.small",
+                    FaceFormat.grouped(base * 4L)).getString(), WHITE));
+            lines.add(new Line("  " + Component.translatable("create_stats.inventory_display.gui.reach.advanced",
+                    FaceFormat.grouped(base * 12L)).getString(), WHITE));
+        }
+        lines.add(new Line("  " + Component.translatable("create_stats.inventory_display.gui.reach.trt",
+                FaceFormat.grouped(base * 32L)).getString(), WHITE));
+        return lines;
+    }
+
+    private void blankPage(GuiGraphics g, List<Line> lines) {
+        for (int i = 0; i < 27; i++) {
+            HomeKit.slot(g, X(8 + (i % 9) * 18), Y(GRID_Y + (i / 9) * 18));
+        }
+        listWell(g, 8, 104, PW - 16, PH - 112);
+        int y = 112;
+        for (Line line : lines) {
+            text(g, line.text(), 16, y, line.ink(), true);
+            y += 11;
+        }
+    }
+
+    private boolean itemPage(InventoryFace f) {
+        return f.page == InventoryFace.Page.CONTAINER || f.page == InventoryFace.Page.VAULT
+                || f.page == InventoryFace.Page.WATCH_ONE || f.page == InventoryFace.Page.WATCH_MANY;
+    }
+
+    private boolean tilePage(InventoryFace f) {
+        return f.page == InventoryFace.Page.VAULT || f.totalSlots > 54 || (f.slots.isEmpty() && !f.tiles.isEmpty());
+    }
+
+    private void contents(GuiGraphics g, InventoryFace f, int mx, int my) {
+        if (f.page == InventoryFace.Page.LINK_TEXT) {
+            listWell(g, 8, GRID_Y, PW - 16, PH - GRID_Y - 8);
+            int y = GRID_Y + 8;
+            for (String line : f.lines) {
+                text(g, line, 16, y, WHITE, true);
+                y += 11;
+            }
+            return;
+        }
+        final InventoryBooks books = this.be.clientBooks();
+        int gridBottom;
+        String hoverKey = null;
+        List<Component> docked = null;
+        if (itemPage(f) && !tilePage(f)) {
+            final int n = Math.min(54, f.slots.size());
+            int hoverIdx = -1;
+            for (int i = 0; i < n; i++) {
+                if (!f.slots.get(i).isEmpty() && inside(mx, my, 8 + (i % 9) * 18, GRID_Y + (i / 9) * 18, 18, 18)) {
+                    hoverIdx = i;
+                }
+            }
+            final ItemStack hovered = hoverIdx >= 0 ? f.slots.get(hoverIdx) : ItemStack.EMPTY;
+            for (int i = 0; i < n; i++) {
+                final int x = 8 + (i % 9) * 18;
+                final int y = GRID_Y + (i / 9) * 18;
+                HomeKit.slot(g, X(x), Y(y));
+                final ItemStack s = f.slots.get(i);
+                if (s.isEmpty()) {
+                    continue;
+                }
+                g.renderItem(s, X(x + 1), Y(y + 1));
+                g.renderItemDecorations(this.font, s, X(x + 1), Y(y + 1));
+                if (!hovered.isEmpty() && ItemStack.isSameItemSameComponents(s, hovered)) {
+                    final int a = i == hoverIdx ? 0x80FFFFFF : 0x38FFFFFF;
+                    g.fillGradient(RenderType.guiOverlay(), X(x + 1), Y(y + 1), X(x + 17), Y(y + 17), a, a, 0);
+                }
+            }
+            gridBottom = GRID_Y + Math.max(1, (n + 8) / 9) * 18;
+            if (!hovered.isEmpty()) {
+                final InventoryBooks.Row row = rowFor(books, hovered);
+                hoverKey = row != null ? row.key() : null;
+                int stacks = 0;
+                long here = 0L;
+                for (ItemStack s : f.slots) {
+                    if (ItemStack.isSameItemSameComponents(s, hovered)) {
+                        stacks++;
+                        here += s.getCount();
+                    }
+                }
+                docked = itemTip(hovered, row != null ? row.here() : here, stacks, row);
+            }
+        } else if (itemPage(f)) {
+            final boolean more = f.totalTypes > 12;
+            final int shown = Math.min(f.tiles.size(), more ? 11 : 12);
+            for (int i = 0; i < shown; i++) {
+                final int x = 8 + (i % 4) * 40;
+                final int y = GRID_Y + (i / 4) * 18;
+                final InventoryFace.Tile t = f.tiles.get(i);
+                HomeKit.slot(g, X(x), Y(y));
+                g.renderItem(t.icon(), X(x + 1), Y(y + 1));
+                text(g, FaceFormat.stockCount(t.count()), x + 20, y + 5, INK);
+                if (inside(mx, my, x, y, 38, 18)) {
+                    final InventoryBooks.Row row = rowFor(books, t.icon());
+                    hoverKey = row != null ? row.key() : null;
+                    tooltip(itemTip(t.icon(), t.count(), (int) Math.max(1L, (t.count() + 63L) / 64L), row), mx, my);
+                }
+            }
+            if (more) {
+                final int x = 8 + 3 * 40;
+                final int y = GRID_Y + 2 * 18;
+                HomeKit.well(g, X(x), Y(y), 38, 18);
+                final String s = "+" + (f.totalTypes - shown);
+                g.drawString(this.font, s, X(x + 19) - this.font.width(s) / 2, Y(y + 5), WHITE, true);
+            }
+            gridBottom = GRID_Y + 3 * 18;
+        } else {
+            gridBottom = gauge(g, f);
+        }
+        if (docked == null) {
+            summary(g, f);
+        }
+        table(g, f, books, gridBottom + 6, hoverKey, mx, my);
+        if (docked != null) {
+            tooltip(docked, X(SUMMARY_X + 4) - 12, Y(46) + 12);
+        }
+    }
+
+    private int gauge(GuiGraphics g, InventoryFace f) {
+        HomeKit.slot(g, X(8), Y(GRID_Y));
+        ItemStack icon = f.sourceIcon;
+        if ((f.page == InventoryFace.Page.TANK || f.page == InventoryFace.Page.DIESEL) && !f.fluid.isEmpty()) {
+            final ItemStack bucket = new ItemStack(f.fluid.getFluid().getBucket());
+            if (!bucket.isEmpty()) {
+                icon = bucket;
+            }
+        }
+        if (!icon.isEmpty()) {
+            g.renderItem(icon, X(9), Y(GRID_Y + 1));
+        }
+        String big;
+        String small;
+        double frac = f.fill;
+        switch (f.page) {
+            case ENERGY -> {
+                big = f.energyStored ? FaceFormat.fe(f.energy) : feRate(f.energyIn);
+                small = f.energyStored ? Component.translatable("create_stats.inventory_display.gui.of",
+                        FaceFormat.fe(f.energyCapacity)).getString() : "";
+
+                frac = f.energyStored ? f.fill : -1.0;
+            }
+            case BELT -> {
+                big = Component.translatable("create_stats.inventory_display.gui.on_belt", f.itemsOnBelt).getString();
+                small = "";
+                frac = -1.0;
+            }
+            default -> {
+                big = FaceFormat.buckets(f.fluidAmount) + " B";
+                small = Component.translatable("create_stats.inventory_display.gui.of",
+                        FaceFormat.buckets(f.fluidCapacity) + " B").getString();
+            }
+        }
+        g.drawString(this.font, Component.literal(big).withStyle(ChatFormatting.BOLD), X(30), Y(GRID_Y + 1), INK, false);
+        text(g, small, 30, GRID_Y + 11, INK);
+        if (frac >= 0.0) {
+            bar(g, 8, GRID_Y + 24, 162, 9, frac, BAR_GREEN, null);
+        }
+        return GRID_Y + 36;
+    }
+
+    private String feRate(long perTick) {
+        return Component.translatable("create_stats.inventory_display.gui.fe_rate", FaceFormat.grouped(perTick)).getString();
+    }
+
+    // hierarchy by weight, not grey
+    private void summary(GuiGraphics g, InventoryFace f) {
+        final int x0 = SUMMARY_X;
+        if (f.page == InventoryFace.Page.BELT) {
+            if (f.stalledSeconds >= 0) {
+                bold(g, Component.translatable("create_stats.inventory_display.gui.stalled").getString(), x0, 43, RED);
+                text(g, Component.translatable("create_stats.inventory_display.gui.stalled_since",
+                        clock(f.stalledSeconds)).getString(), x0, 53, INK);
+            } else if (f.gatherSeconds >= 0) {
+                gathering(g, f, x0, 43);
+            } else {
+                bold(g, Component.translatable("create_stats.inventory_display.gui.passing").getString(), x0, 43, INK);
+                text(g, rate(f.passPerMinute), x0, 53, GREEN);
+            }
+            return;
+        }
+        final boolean fluid = f.page == InventoryFace.Page.TANK || f.page == InventoryFace.Page.DIESEL;
+        final boolean energy = f.page == InventoryFace.Page.ENERGY;
+
+        final boolean holds = !energy || f.energyStored;
+        if (holds) {
+            text(g, Component.translatable("create_stats.inventory_display.gui.fill").getString(), x0, 43, INK);
+            bar(g, x0 + 24, 42, 90, 9, f.fill, BAR_GREEN, null);
+            textRight(g, FaceFormat.percent(f.fill), PW - 8, 43, INK);
+        }
+        if (f.gatherSeconds >= 0 && holds) {
+            gathering(g, f, x0, 58);
+            return;
+        }
+        final int y = holds ? 57 : 43;
+        text(g, Component.translatable("create_stats.inventory_display.gui.in").getString(), x0, y, INK);
+        text(g, energy ? feRate(f.energyIn) : fluid ? bucketRate(f.inPerMinute) : rate(f.inPerMinute), x0 + 24, y, GREEN);
+        text(g, Component.translatable("create_stats.inventory_display.gui.out").getString(), x0, y + 11, INK);
+        text(g, energy ? feRate(f.energyOut) : fluid ? bucketRate(f.outPerMinute) : rate(f.outPerMinute), x0 + 24, y + 11,
+                AMBER);
+        if (!holds || (energy && f.energyClock == EnergyReadout.Clock.NONE.ordinal())) {
+            return;
+        }
+        if (f.clock == FlowClock.Kind.STEADY || f.clock == FlowClock.Kind.NONE) {
+            bold(g, Component.translatable("create_stats.inventory_display.gui.steady").getString(), x0, 81, INK);
+            text(g, Component.translatable("create_stats.inventory_display.gui.nothing_moving").getString(), x0, 91, INK);
+        } else {
+            bold(g, clockLine(f.clock, f.clockSeconds), x0, 81, INK);
+
+            text(g, Component.translatable(energy && f.energyClock == EnergyReadout.Clock.QUOTED.ordinal()
+                    ? "create_stats.inventory_display.gui.as_forecast"
+                    : "create_stats.inventory_display.gui.at_this_rate").getString(), x0, 91, INK);
+        }
+    }
+
+    private void gathering(GuiGraphics g, InventoryFace f, int x0, int y) {
+        bold(g, Component.translatable("create_stats.inventory_display.gui.gathering").getString(), x0, y, INK);
+        text(g, Component.translatable("create_stats.inventory_display.gui.rates_in", clock(f.gatherSeconds)).getString(),
+                x0, y + 11, INK);
+    }
+
+    private void table(GuiGraphics g, InventoryFace f, InventoryBooks books, int ty, String hoverKey, int mx, int my) {
+        final int th = PH - ty - 8 - (contentsHasButtonRow(f) ? 20 : 0);
+        if (th < 32) {
+            return;
+        }
+        listWell(g, 8, ty, PW - 30, th);
+        text(g, Component.translatable("create_stats.inventory_display.gui.col.item").getString(), 30, ty + 3, WHITE, true);
+        textRight(g, Component.translatable("create_stats.inventory_display.gui.col.here").getString(), 196, ty + 3, WHITE, true);
+        textRight(g, Component.translatable("create_stats.inventory_display.gui.col.in").getString(), 238, ty + 3, WHITE, true);
+        textRight(g, Component.translatable("create_stats.inventory_display.gui.col.out").getString(), 272, ty + 3, WHITE, true);
+        textRight(g, Component.translatable("create_stats.inventory_display.gui.col.net").getString(), PW - 26, ty + 3, WHITE,
+                true);
+        fill(g, 10, ty + 12, PW - 24, ty + 13, LIST_RULE);
+        final List<InventoryBooks.Row> rows = books != null ? books.rows : List.of();
+        final int visible = Math.max(0, (th - 14) / ROW_H);
+        final int maxScroll = Math.max(0, rows.size() - visible);
+        this.scroll = Mth.clamp(this.scroll, 0, maxScroll);
+        for (int n = 0; n < visible && this.scroll + n < rows.size(); n++) {
+            final InventoryBooks.Row r = rows.get(this.scroll + n);
+            final int yy = ty + 14 + n * ROW_H;
+            final boolean rowHot = inside(mx, my, 9, yy - 1, PW - 32, ROW_H);
+            if (rowHot || r.key().equals(hoverKey)) {
+                fill(g, 9, yy - 1, PW - 23, yy + ROW_H - 1, 0x30FFFFFF);
+            }
+            if (!r.icon().isEmpty()) {
+                g.renderItem(r.icon(), X(10), Y(yy));
+            }
+            final String name = rowName(r, f);
+            final String shown = HomeKit.trim(this.font, name, 112);
+            text(g, shown, 30, yy + 4, WHITE, true);
+            textRight(g, amount(r.key(), r.here(), f), 196, yy + 4, WHITE, true);
+            final long in = Math.round(r.inPerMinute());
+            final long out = Math.round(r.outPerMinute());
+            final long net = in - out;
+            textRight(g, in != 0 ? flow(r.key(), in, f) : "-", 238, yy + 4, in != 0 ? LIST_RISE : LIST_DIM, true);
+            textRight(g, out != 0 ? flow(r.key(), out, f) : "-", 272, yy + 4, out != 0 ? LIST_FALL : LIST_DIM, true);
+            textRight(g, net > 0 ? "+" + flow(r.key(), net, f) : net < 0 ? "-" + flow(r.key(), -net, f) : "0", PW - 26, yy + 4,
+                    net > 0 ? LIST_RISE : net < 0 ? LIST_FALL : LIST_DIM, true);
+            if (rowHot && !shown.equals(name)) {
+                tooltip(List.of(Component.literal(name)), mx, my);
+            }
+        }
+        HomeKit.well(g, X(PW - 20), Y(ty), 12, th);
+        final int sy = ty + 1 + (maxScroll == 0 ? 0 : Math.round((th - 2 - 15) * (this.scroll / (float) maxScroll)));
+        g.blitSprite(maxScroll > 0 ? SCROLLER : SCROLLER_OFF, X(PW - 20), Y(sy), 12, 15);
+    }
+
+    private int[] scrollTrack(InventoryFace f) {
+        if (f == null || notice(f) != null || f.page == InventoryFace.Page.LINK_TEXT) {
+            return null;
+        }
+        final int gridBottom;
+        if (itemPage(f) && !tilePage(f)) {
+            gridBottom = GRID_Y + Math.max(1, (Math.min(54, f.slots.size()) + 8) / 9) * 18;
+        } else if (itemPage(f)) {
+            gridBottom = GRID_Y + 3 * 18;
+        } else {
+            gridBottom = GRID_Y + 36;
+        }
+        final int ty = gridBottom + 6;
+        final int th = PH - ty - 8 - (contentsHasButtonRow(f) ? 20 : 0);
+        if (th < 32) {
+            return null;
+        }
+        final InventoryBooks books = this.be.clientBooks();
+        final int rows = books != null ? books.rows.size() : 0;
+        return new int[]{ty, th, Math.max(0, rows - Math.max(0, (th - 14) / ROW_H))};
+    }
+
+    private String rowName(InventoryBooks.Row r, InventoryFace f) {
+        if (!r.icon().isEmpty()) {
+            return r.icon().getHoverName().getString();
+        }
+        if (("fluid".equals(r.key()) || "fuel".equals(r.key())) && !f.fluid.isEmpty()) {
+            return f.fluid.getHoverName().getString();
+        }
+        return f.title.getString();
+    }
+
+    private String amount(String key, long value, InventoryFace f) {
+        if ("fluid".equals(key) || "fuel".equals(key)) {
+            return FaceFormat.buckets(value) + " B";
+        }
+        if ("fe".equals(key)) {
+            return FaceFormat.fe(value);
+        }
+        return FaceFormat.grouped(value);
+    }
+
+    private String flow(String key, long perMinute, InventoryFace f) {
+        if ("fluid".equals(key) || "fuel".equals(key)) {
+            return FaceFormat.buckets(perMinute);
+        }
+        if ("fe".equals(key)) {
+            return FaceFormat.compact(perMinute);
+        }
+        return FaceFormat.grouped(perMinute);
+    }
+
+    private static InventoryBooks.Row rowFor(InventoryBooks books, ItemStack stack) {
+        if (books == null || stack.isEmpty()) {
+            return null;
+        }
+        for (InventoryBooks.Row r : books.rows) {
+            if (!r.icon().isEmpty() && ItemStack.isSameItemSameComponents(r.icon(), stack)) {
+                return r;
+            }
+        }
+        return null;
+    }
+
+    private List<Component> itemTip(ItemStack stack, long here, int stacks, InventoryBooks.Row row) {
+        final List<Component> lines = new ArrayList<>();
+        lines.add(stack.getHoverName());
+        lines.add((stacks == 1
+                ? Component.translatable("create_stats.inventory_display.gui.tip.here_one", FaceFormat.grouped(here))
+                : Component.translatable("create_stats.inventory_display.gui.tip.here", FaceFormat.grouped(here),
+                Integer.toString(stacks))).withColor(TIP_GREY));
+        final long in = row != null ? Math.round(row.inPerMinute()) : 0L;
+        final long out = row != null ? Math.round(row.outPerMinute()) : 0L;
+        lines.add(Component.translatable("create_stats.inventory_display.gui.tip.flow", FaceFormat.grouped(in),
+                FaceFormat.grouped(out)).withColor(TIP_GREY));
+        final long net = in - out;
+        if (net > 0) {
+            lines.add(Component.translatable("create_stats.inventory_display.gui.tip.rising", FaceFormat.grouped(net))
+                    .withColor(TIP_RISE));
+        } else if (net < 0) {
+            lines.add(Component.translatable("create_stats.inventory_display.gui.tip.falling", "-" + FaceFormat.grouped(-net))
+                    .withColor(TIP_FALL));
+        } else {
+            lines.add(Component.translatable("create_stats.inventory_display.gui.tip.still").withColor(TIP_GREY));
+        }
+        return lines;
+    }
+
+    private boolean emptyCup(InventoryFace f) {
+        return f != null && f.rows.isEmpty() && (f.page == InventoryFace.Page.CONTAINER || f.page == InventoryFace.Page.VAULT);
+    }
+
+    private List<WatchLine> watchLines(InventoryFace f) {
+        final List<WatchLine> out = new ArrayList<>();
+        if (f == null) {
+            return out;
+        }
+        for (InventoryFace.WatchRow r : f.rows) {
+            final long[] p = pending(r.markKey());
+            final long low = p != null ? p[0] : r.low();
+            final long high = p != null ? p[1] : r.high();
+            final double top = Math.max(Math.max(high * 1.25, r.count() * 1.05), 1.0);
+            final boolean below = r.count() <= low;
+            final boolean above = r.count() >= high;
+            final String state = below ? Component.translatable("create_stats.inventory_display.gui.below_low").getString()
+                    : above ? Component.translatable("create_stats.inventory_display.gui.above_high").getString()
+                    : f.gatherSeconds >= 0 ? plain(Component.translatable("create_stats.inventory_display.gui.gathering").getString())
+                    : clockState(r.clock(), r.clockSeconds());
+            out.add(new WatchLine(r.markKey(), r.icon(), r.name().getString(), FaceFormat.grouped(r.count()), low, high,
+                    unit(MarkLadder.ITEMS), r.count() / top, low / top, high / top, state, below || above ? AMBER : GREEN,
+                    below ? 0xFFFFB040 : above ? 0xFFE6ECF2 : PIP_OK, below || above ? BAR_AMBER : BAR_GREEN));
+        }
+        if (out.isEmpty() && !f.quantityKey.isEmpty()) {
+            final MarkLadder unit = MarkLadder.values()[Math.max(0, Math.min(MarkLadder.values().length - 1, f.markUnit))];
+            final long[] p = pending(f.quantityKey);
+            final long low = p != null ? p[0] : f.quantityLow;
+            final long high = p != null ? p[1] : f.quantityHigh;
+            final double value = f.quantityValue;
+            final boolean percent = unit == MarkLadder.PERCENT || unit == MarkLadder.ENERGY_PERCENT;
+            final double top = percent ? 100.0 : Math.max(Math.max(high * 1.25, value * 1.05), 1.0);
+            final boolean below = value <= low;
+            final boolean above = value >= high;
+            final String count = percent ? Math.round(value) + unit(unit) : FaceFormat.rateFigure(value) + " " + unit(unit);
+            final String name = emptyCup(f) ? Component.translatable("create_stats.inventory_display.gui.whole_container").getString()
+                    : f.title.getString();
+
+            final boolean noClock = f.page == InventoryFace.Page.ENERGY && f.energyClock == EnergyReadout.Clock.NONE.ordinal();
+            final String state = below ? Component.translatable("create_stats.inventory_display.gui.below_low").getString()
+                    : above ? Component.translatable("create_stats.inventory_display.gui.above_high").getString()
+                    : noClock ? ""
+                    : f.gatherSeconds >= 0 ? plain(Component.translatable("create_stats.inventory_display.gui.gathering").getString())
+                    : clockState(f.clock, f.clockSeconds);
+            out.add(new WatchLine(f.quantityKey, ItemStack.EMPTY, name, count, low, high, unit(unit), value / top, low / top,
+                    high / top, state, below || above ? AMBER : GREEN, below ? 0xFFFFB040 : above ? 0xFFE6ECF2 : PIP_OK,
+                    below || above ? BAR_AMBER : BAR_GREEN));
+        }
+        return out;
+    }
+
+    private WatchLine lineFor(InventoryFace f, String key) {
+        for (WatchLine l : watchLines(f)) {
+            if (l.markKey().equals(key)) {
+                return l;
+            }
+        }
+        return null;
+    }
+
+    private long[] pending(String key) {
+        final long[] p = this.pendingMarks.get(key);
+        if (p == null) {
+            return null;
+        }
+        if (this.ticks > p[2]) {
+            this.pendingMarks.remove(key);
+            return null;
+        }
+        return p;
+    }
+
+    private static String unit(MarkLadder unit) {
+        return switch (unit) {
+            case ITEMS -> Component.translatable("create_stats.inventory_display.value.items").getString();
+            case PER_MINUTE -> Component.translatable("create_stats.inventory_display.value.per_min").getString();
+            default -> Component.translatable("create_stats.inventory_display.value.percent").getString();
+        };
+    }
+
+    private static String plain(String s) {
+        return s.endsWith(":") ? s.substring(0, s.length() - 1) : s;
+    }
+
+    private String clockState(FlowClock.Kind kind, double seconds) {
+        if (kind == FlowClock.Kind.STEADY || kind == FlowClock.Kind.NONE) {
+            return plain(Component.translatable("create_stats.inventory_display.gui.steady").getString());
+        }
+        return clockLine(kind, seconds);
+    }
+
+    private void watch(GuiGraphics g, InventoryFace f, int mx, int my) {
+        int y = GRID_Y;
+        if (emptyCup(f)) {
+            listWell(g, 8, y, PW - 16, 30);
+            text(g, Component.translatable("create_stats.inventory_display.gui.empty_cup.1").getString(), 14, y + 5, WHITE, true);
+            text(g, Component.translatable("create_stats.inventory_display.gui.empty_cup.2").getString(), 14, y + 16, LIST_SUB,
+                    true);
+            y += 34;
+        }
+        for (WatchFields wf : this.fields) {
+            final WatchLine now = lineFor(f, wf.line().markKey());
+            final WatchLine l = now != null ? now : wf.line();
+            HomeKit.slot(g, X(8), Y(y));
+            if (!l.icon().isEmpty()) {
+                g.renderItem(l.icon(), X(9), Y(y + 1));
+            }
+            text(g, HomeKit.trim(this.font, l.name(), 116), 30, y + 1, INK);
+            bold(g, l.count(), 30, y + 11, INK);
+            text(g, Component.translatable("create_stats.inventory_display.gui.low").getString(), 150, y + 1, INK);
+            text(g, Component.translatable("create_stats.inventory_display.gui.high").getString(), 202, y + 1, INK);
+            text(g, l.unit(), 250, y + 14, INK);
+            pip(g, PW - 14, y + 2, l.pip());
+            textRight(g, HomeKit.trim(this.font, l.state(), 74), PW - 22, y + 1, l.stateInk());
+            bar(g, 30, y + 27, PW - 38, 4, l.frac(), l.barInk(), new double[]{l.lowFrac(), l.highFrac()});
+            y += 34;
+        }
+        text(g, Component.translatable("create_stats.inventory_display.gui.redstone").getString(), 8, 150, INK);
+        final int cy = 188;
+        text(g, Component.translatable("create_stats.inventory_display.gui.comparator").getString(), 8, cy + 2, INK);
+        final int comparator = f != null ? f.comparator : 0;
+        for (int i = 0; i < 15; i++) {
+            fill(g, 68 + i * 7, cy + 1, 73 + i * 7, cy + 9, 0xFF3B2410);
+            fill(g, 69 + i * 7, cy + 2, 72 + i * 7, cy + 8, i < comparator ? 0xFFF2C04E : 0xFF6A4220);
+        }
+        text(g, Integer.toString(comparator), 68 + 15 * 7 + 3, cy + 2, INK);
+        if (inside(mx, my, 68, cy, 15 * 7, 10)) {
+            final List<Component> lines = new ArrayList<>();
+            lines.add(Component.translatable("create_stats.inventory_display.gui.comparator").append(" " + comparator));
+            for (FormattedText part : this.font.getSplitter().splitLines(
+                    Component.translatable("create_stats.inventory_display.gui.comparator.tip"), 180,
+                    net.minecraft.network.chat.Style.EMPTY)) {
+                lines.add(Component.literal(part.getString()).withColor(TIP_GREY));
+            }
+            tooltip(lines, mx, my);
+        }
+    }
+
+    private void books(GuiGraphics g, InventoryFace f, int mx, int my) {
+        final int cx = 8;
+        final int cy = GRID_Y;
+        final int cw = PW - 16;
+        final int ch = 92;
+        HomeKit.well(g, X(cx), Y(cy), cw, ch);
+        final ChartHistory chart = this.be.clientChart();
+        final int days = days(f);
+        final int scale = f != null ? f.chartScale : 1;
+        final ResourceLocation paper = ProductionDetectorTextureManager.screenPaper(chart, cw - 2, ch - 2, days, scale,
+                f != null ? f.chartLow : Float.NaN, f != null ? f.chartHigh : Float.NaN);
+        g.blit(paper, X(cx + 1), Y(cy + 1), 0, 0, cw - 2, ch - 2, cw - 2, ch - 2);
+        if (inside(mx, my, cx + 1, cy + 1, cw - 2, ch - 2) && chart.size() > 0) {
+            final int col = mx - X(cx + 1);
+            final ChartPaperLayout layout = ChartPaperLayout.of(chart, cw - 2, days);
+            if (col >= 0 && col < layout.columns().size()) {
+                final ChartPaperLayout.Column c = layout.columns().get(col);
+                if (c.sample() >= 0) {
+                    fill(g, col + cx + 1, cy + 1, col + cx + 2, cy + ch - 1, 0x80FFFFFF);
+                    tooltip(chartReading(chart.reading(c.sample()), f), mx, my);
+                }
+            }
+        }
+        final Component pen = f != null && !f.penName.getString().isEmpty()
+                ? Component.translatable("create_stats.inventory_display.gui.pen", f.penName.getString())
+                : Component.translatable("create_stats.inventory_display.gui.pen_container");
+        text(g, HomeKit.trim(this.font, pen.getString(), PW - 104), 96, 142, INK);
+        binCard(g, f);
+    }
+
+    private List<Component> chartReading(ChartHistory.Reading r, InventoryFace f) {
+        final List<Component> lines = new ArrayList<>();
+        lines.add(Component.translatable("create_stats.inventory_display.gui.chart.tip.when", Integer.toString(r.day()),
+                String.format(java.util.Locale.ROOT, "%02d:%02d", r.hour(), r.minute())));
+        if (r.clockJumped()) {
+            lines.add(Component.translatable("create_stats.inventory_display.gui.chart.tip.skip").withColor(TIP_GREY));
+        }
+        if (r.gap()) {
+            lines.add(Component.translatable("create_stats.inventory_display.gui.chart.tip.gap").withColor(TIP_GREY));
+            return lines;
+        }
+        final String name = f != null && !f.penName.getString().isEmpty() ? f.penName.getString()
+                : Component.translatable("create_stats.inventory_display.gui.whole_container").getString();
+        lines.add(Component.translatable("create_stats.inventory_display.gui.chart.tip.value", name,
+                FaceFormat.grouped(r.value())).withColor(TIP_GREY));
+        if (r.hasNet()) {
+            if (r.netPerMinute() > 0) {
+                lines.add(Component.translatable("create_stats.inventory_display.gui.tip.rising",
+                        FaceFormat.grouped(r.netPerMinute())).withColor(TIP_RISE));
+            } else if (r.netPerMinute() < 0) {
+                lines.add(Component.translatable("create_stats.inventory_display.gui.tip.falling",
+                        "-" + FaceFormat.grouped(-r.netPerMinute())).withColor(TIP_FALL));
+            } else {
+                lines.add(Component.translatable("create_stats.inventory_display.gui.tip.still").withColor(TIP_GREY));
+            }
+        }
+        return lines;
+    }
+
+    private void binCard(GuiGraphics g, InventoryFace f) {
+        final int bx = 8;
+        final int by = 158;
+        final int bw = 218;
+        final int bh = 50;
+        fill(g, bx, by, bx + bw, by + bh, 0xFFF3EFE2);
+        fill(g, bx, by, bx + bw, by + 1, 0xFFD9D2BC);
+        fill(g, bx, by + bh - 1, bx + bw, by + bh, 0xFFB8B09A);
+        fill(g, bx + bw - 1, by, bx + bw, by + bh, 0xFFB8B09A);
+        for (int ry = by + 21; ry < by + bh - 1; ry += 10) {
+            fill(g, bx + 2, ry, bx + bw - 2, ry + 1, 0xFFB9CBE6);
+        }
+        fill(g, bx + 2, by + 11, bx + bw - 2, by + 12, 0xFFD2524A);
+        text(g, Component.translatable("create_stats.inventory_display.gui.card.day").getString(), bx + 4, by + 2, CARD_HEAD);
+        textRight(g, Component.translatable("create_stats.inventory_display.gui.card.received").getString(), bx + 112, by + 2,
+                CARD_HEAD);
+        textRight(g, Component.translatable("create_stats.inventory_display.gui.card.issued").getString(), bx + 160, by + 2,
+                CARD_HEAD);
+        textRight(g, Component.translatable("create_stats.inventory_display.gui.card.balance").getString(), bx + 214, by + 2,
+                CARD_HEAD);
+        final InventoryBooks books = this.be.clientBooks();
+        ItemStack penIcon = ItemStack.EMPTY;
+        BinCardLedger.Row card = null;
+        String key = "";
+        if (books != null) {
+            card = books.total;
+            if (f != null && !f.rows.isEmpty()) {
+                final InventoryBooks.Row row = books.row(f.rows.get(0).markKey());
+                if (row != null) {
+                    card = row.card();
+                    key = row.key();
+                }
+                penIcon = f.rows.get(0).icon();
+            }
+        }
+        if (books != null && card != null) {
+            final boolean fluid = f != null && (f.page == InventoryFace.Page.TANK || f.page == InventoryFace.Page.DIESEL);
+            final String unitKey = !key.isEmpty() ? key : fluid ? "fluid" : f != null && f.page == InventoryFace.Page.ENERGY ? "fe" : "";
+            final String[][] rows = {
+                    {Component.translatable("create_stats.inventory_display.gui.card.today", Integer.toString(books.today)).getString(),
+                            amount(unitKey, card.todayIn(), f), amount(unitKey, card.todayOut(), f), amount(unitKey, card.balance(), f)},
+                    {Component.translatable("create_stats.inventory_display.gui.card.yesterday", Integer.toString(books.today - 1))
+                            .getString(), card.hasYesterday() ? amount(unitKey, card.yesterdayIn(), f) : "-",
+                            card.hasYesterday() ? amount(unitKey, card.yesterdayOut(), f) : "-",
+                            card.hasYesterday() ? amount(unitKey, card.yesterdayClose(), f) : "-"},
+                    {Component.translatable("create_stats.inventory_display.gui.card.since", Integer.toString(books.openedDay))
+                            .getString(), amount(unitKey, card.received(), f), amount(unitKey, card.issued(), f),
+                            amount(unitKey, card.balance(), f)}};
+            final int flash = this.closedFlash > 0 && (this.closedFlash / 2) % 2 == 0 ? GREEN : CARD_INK;
+            for (int i = 0; i < 3; i++) {
+                final int yy = by + 13 + i * 10;
+                text(g, rows[i][0], bx + 4, yy, CARD_INK);
+                textRight(g, rows[i][1], bx + 112, yy, i == 2 ? flash : CARD_INK);
+                textRight(g, rows[i][2], bx + 160, yy, i == 2 ? flash : CARD_INK);
+                textRight(g, rows[i][3], bx + 214, yy, CARD_INK);
+            }
+        }
+        HomeKit.slot(g, X(232), Y(158));
+        if (!penIcon.isEmpty()) {
+            g.renderItem(penIcon, X(233), Y(159));
+        }
+        text(g, Component.translatable("create_stats.inventory_display.gui.opened").getString(), 254, 159, INK);
+        if (books != null) {
+            text(g, Component.translatable("create_stats.inventory_display.gui.opened_day",
+                    Integer.toString(books.openedDay)).getString(), 254, 168, INK);
+        }
+        if (this.closeBooks != null && this.closeBooks.isHovered() && this.hold < 0) {
+            final List<Component> lines = new ArrayList<>();
+            lines.add(Component.translatable("create_stats.inventory_display.gui.close_books"));
+            for (FormattedText part : this.font.getSplitter().splitLines(
+                    Component.translatable("create_stats.inventory_display.gui.close_books.tip"), 200,
+                    net.minecraft.network.chat.Style.EMPTY)) {
+                lines.add(Component.literal(part.getString()).withColor(TIP_GREY));
+            }
+            tooltip(lines, this.closeBooks.getX() + 4, this.closeBooks.getY() + 4);
+        }
+    }
+
+    private static String clock(double seconds) {
+        return FaceFormat.clock(seconds,
+                Component.translatable("create_stats.inventory_display.gui.clock.hm").getString(),
+                Component.translatable("create_stats.inventory_display.gui.clock.days").getString());
+    }
+
+    private static String rate(double perMinute) {
+        return Component.translatable("create_stats.inventory_display.gui.rate", FaceFormat.rateFigure(perMinute)).getString();
+    }
+
+    private static String bucketRate(double millibucketsPerMinute) {
+        return Component.translatable("create_stats.inventory_display.gui.rate",
+                FaceFormat.buckets(Math.round(millibucketsPerMinute)) + " B").getString();
+    }
+
+    private static String clockLine(FlowClock.Kind kind, double seconds) {
+        final String c = clock(seconds);
+        return switch (kind) {
+            case FULL -> Component.translatable("create_stats.inventory_display.gui.full_in", c).getString();
+            case EMPTY -> Component.translatable("create_stats.inventory_display.gui.empty_in", c).getString();
+            case LOW -> Component.translatable("create_stats.inventory_display.gui.low_in", c).getString();
+            case HIGH -> Component.translatable("create_stats.inventory_display.gui.high_in", c).getString();
+            case RUNTIME -> Component.translatable("create_stats.inventory_display.gui.runtime", c).getString();
+            default -> plain(Component.translatable("create_stats.inventory_display.gui.steady").getString());
+        };
+    }
+
+    private int X(int x) {
+        return this.left + x;
+    }
+
+    private int Y(int y) {
+        return this.top + y;
+    }
+
+    private boolean inside(double mx, double my, int x, int y, int w, int h) {
+        return mx >= X(x) && mx < X(x + w) && my >= Y(y) && my < Y(y + h);
+    }
+
+    private void fill(GuiGraphics g, int x0, int y0, int x1, int y1, int c) {
+        g.fill(X(x0), Y(y0), X(x1), Y(y1), c);
+    }
+
+    private void text(GuiGraphics g, String s, int x, int y, int c) {
+        g.drawString(this.font, s, X(x), Y(y), c, false);
+    }
+
+    private void text(GuiGraphics g, String s, int x, int y, int c, boolean shadow) {
+        g.drawString(this.font, s, X(x), Y(y), c, shadow);
+    }
+
+    private void bold(GuiGraphics g, String s, int x, int y, int c) {
+        g.drawString(this.font, Component.literal(s).withStyle(ChatFormatting.BOLD), X(x), Y(y), c, false);
+    }
+
+    private void textRight(GuiGraphics g, String s, int rx, int y, int c) {
+        g.drawString(this.font, s, X(rx) - this.font.width(s), Y(y), c, false);
+    }
+
+    private void textRight(GuiGraphics g, String s, int rx, int y, int c, boolean shadow) {
+        g.drawString(this.font, s, X(rx) - this.font.width(s), Y(y), c, shadow);
+    }
+
+    private void listWell(GuiGraphics g, int x, int y, int w, int h) {
+        HomeKit.well(g, X(x), Y(y), w, h);
+        g.fill(X(x + 1), Y(y + 1), X(x + w - 1), Y(y + h - 1), LIST_BG);
+    }
+
+    private void bar(GuiGraphics g, int x, int y, int w, int h, double frac, int colour, double[] marks) {
+        HomeKit.well(g, X(x), Y(y), w, h);
+        final int fw = (int) Math.round((w - 2) * Math.max(0.0, Math.min(1.0, frac)));
+        if (fw > 0) {
+            fill(g, x + 1, y + 1, x + 1 + fw, y + h - 1, colour);
+            fill(g, x + 1, y + 1, x + 1 + fw, y + 2, lerp(colour, 0xFFFFFFFF, 0.35));
+        }
+        if (marks != null) {
+            for (double m : marks) {
+                final int mx = x + 1 + (int) Math.round((w - 2) * Math.max(0.0, Math.min(1.0, m)));
+                fill(g, mx, y - 2, mx + 1, y + h + 2, AMBER);
+            }
+        }
+    }
+
+    private void pip(GuiGraphics g, int x, int y, int colour) {
+        fill(g, x + 1, y, x + 4, y + 5, colour);
+        fill(g, x, y + 1, x + 5, y + 4, colour);
+        fill(g, x + 1, y + 1, x + 2, y + 2, lerp(colour, 0xFFFFFFFF, 0.6));
+        fill(g, x + 1, y + 4, x + 4, y + 5, lerp(colour, 0xFF000000, 0.35));
+    }
+
+    private static int lerp(int a, int b, double t) {
+        final int ar = (a >> 16) & 255;
+        final int ag = (a >> 8) & 255;
+        final int ab = a & 255;
+        final int r = (int) Math.round(ar + (((b >> 16) & 255) - ar) * t);
+        final int gg = (int) Math.round(ag + (((b >> 8) & 255) - ag) * t);
+        final int bb = (int) Math.round(ab + ((b & 255) - ab) * t);
+        return 0xFF000000 | (r << 16) | (gg << 8) | bb;
     }
 }

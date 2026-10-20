@@ -11,7 +11,30 @@ import com.createstats.renderer.HologramDisplayMode;
 
 public class HologramSettings
 {
+    public enum Alignment
+    {
+        FIXED("Fixed"),
+        BILLBOARD("Face me"),
+        SPIN("Spin");
+
+        private final String displayName;
+
+        Alignment(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return this.displayName;
+        }
+
+        public Alignment next() {
+            final Alignment[] values = values();
+            return values[(this.ordinal() + 1) % values.length];
+        }
+    }
+
     private HologramDisplayMode displayMode;
+    private Alignment alignment;
     private DisplayTheme displayTheme;
     private StatsDisplaySettings.TimeRange timeRange;
     private int customAccentColor;
@@ -24,9 +47,10 @@ public class HologramSettings
     private int hologramWidth;
     private int hologramHeight;
     private boolean sizeUnlocked;
-    
+
     public HologramSettings() {
         this.displayMode = HologramDisplayMode.LINE_3D;
+        this.alignment = Alignment.FIXED;
         this.displayTheme = DisplayTheme.DARK;
         this.timeRange = StatsDisplaySettings.TimeRange.FIVE_MIN;
         this.customAccentColor = 0;
@@ -40,118 +64,130 @@ public class HologramSettings
         this.hologramHeight = 3;
         this.sizeUnlocked = false;
     }
-    
+
     public void cycleDisplayMode() {
         this.displayMode = this.displayMode.next();
     }
-    
+
     public void cycleDisplayTheme() {
         this.displayTheme = this.displayTheme.next();
     }
-    
+
     public void cycleTimeRange() {
         final StatsDisplaySettings.TimeRange[] values = StatsDisplaySettings.TimeRange.values();
         this.timeRange = values[(this.timeRange.ordinal() + 1) % values.length];
     }
-    
+
+    public void cycleAlignment() {
+        this.alignment = this.alignment.next();
+    }
+
+    public Alignment getAlignment() {
+        return this.alignment;
+    }
+
+    public void setAlignment(Alignment alignment) {
+        this.alignment = (alignment == null) ? Alignment.FIXED : alignment;
+    }
+
     public HologramDisplayMode getDisplayMode() {
         return this.displayMode;
     }
-    
+
     public void setDisplayMode(HologramDisplayMode mode) {
         this.displayMode = mode;
     }
-    
+
     public DisplayTheme getDisplayTheme() {
         return this.displayTheme;
     }
-    
+
     public void setDisplayTheme(DisplayTheme theme) {
         this.displayTheme = theme;
     }
-    
+
     public StatsDisplaySettings.TimeRange getTimeRange() {
         return this.timeRange;
     }
-    
+
     public void setTimeRange(StatsDisplaySettings.TimeRange range) {
         this.timeRange = range;
     }
-    
+
     public int getCustomAccentColor() {
         return this.customAccentColor;
     }
-    
+
     public void setCustomAccentColor(int color) {
         this.customAccentColor = color;
     }
-    
+
     public float getRotationSpeed() {
         return this.rotationSpeed;
     }
-    
+
     public void setRotationSpeed(float speed) {
         this.rotationSpeed = speed;
     }
-    
+
     public float getGlowIntensity() {
         return this.glowIntensity;
     }
-    
+
     public void setGlowIntensity(float intensity) {
         this.glowIntensity = intensity;
     }
-    
+
     public boolean isShowLabels() {
         return this.showLabels;
     }
-    
+
     public void setShowLabels(boolean show) {
         this.showLabels = show;
     }
-    
+
     public boolean isShowGrid() {
         return this.showGrid;
     }
-    
+
     public void setShowGrid(boolean show) {
         this.showGrid = show;
     }
-    
+
     public Set<String> getHiddenChannelIds() {
         return this.hiddenChannelIds;
     }
-    
+
     public int getCycleInterval() {
         return this.cycleInterval;
     }
-    
+
     public void setCycleInterval(int interval) {
         this.cycleInterval = interval;
     }
-    
+
     public int getHologramWidth() {
         return this.hologramWidth;
     }
-    
+
     public void setHologramWidth(int w) {
         final int max = this.sizeUnlocked ? 32 : 16;
         this.hologramWidth = Math.max(1, Math.min(max, w));
     }
-    
+
     public int getHologramHeight() {
         return this.hologramHeight;
     }
-    
+
     public void setHologramHeight(int h) {
         final int max = this.sizeUnlocked ? 32 : 16;
         this.hologramHeight = Math.max(1, Math.min(max, h));
     }
-    
+
     public boolean isSizeUnlocked() {
         return this.sizeUnlocked;
     }
-    
+
     public void setSizeUnlocked(boolean unlocked) {
         if (!(this.sizeUnlocked = unlocked)) {
             if (this.hologramWidth > 16) {
@@ -162,14 +198,15 @@ public class HologramSettings
             }
         }
     }
-    
+
     public int getEffectiveAccentColor() {
         return (this.customAccentColor != 0) ? this.customAccentColor : this.displayTheme.accent;
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         tag.putString("DisplayMode", this.displayMode.name());
+        tag.putString("Alignment", this.alignment.name());
         tag.putString("DisplayTheme", this.displayTheme.name());
         tag.putString("TimeRange", this.timeRange.name());
         tag.putInt("AccentColor", this.customAccentColor);
@@ -190,7 +227,7 @@ public class HologramSettings
         }
         return tag;
     }
-    
+
     public static HologramSettings load(CompoundTag tag) {
         final HologramSettings s = new HologramSettings();
         try {
@@ -199,7 +236,8 @@ public class HologramSettings
             }
         }
         catch (IllegalArgumentException ex) {}
-        // [1]
+        // NETWORK has no renderer, migrate to LINE_3D on load
+
         if (s.displayMode == HologramDisplayMode.NETWORK) {
             s.displayMode = HologramDisplayMode.LINE_3D;
         }
@@ -220,6 +258,16 @@ public class HologramSettings
         }
         if (tag.contains("RotationSpeed")) {
             s.rotationSpeed = tag.getFloat("RotationSpeed");
+        }
+
+        if (tag.contains("Alignment")) {
+            try {
+                s.alignment = Alignment.valueOf(tag.getString("Alignment"));
+            }
+            catch (IllegalArgumentException ex4) {}
+        }
+        else {
+            s.alignment = (s.rotationSpeed > 0.0f) ? Alignment.SPIN : Alignment.BILLBOARD;
         }
         if (tag.contains("GlowIntensity")) {
             s.glowIntensity = tag.getFloat("GlowIntensity");

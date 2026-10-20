@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:transport/mk4",
+  "display": {
+    "icon": {
+      "id": "create_stats:vehicle_light_amber"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.hazard_lights.title",
+      "fallback": "Hazards On"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.hazard_lights.description",
+      "fallback": "Place an amber vehicle light. Hazards on, double parked: just two minutes, bro."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "amber": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:vehicle_light_amber"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "amber"
+    ]
+  ]
+}

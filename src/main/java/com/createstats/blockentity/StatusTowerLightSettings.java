@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class StatusTowerLightSettings {
-
     private static final float MIN_THRESHOLD = 0.0f;
     private static final float MAX_THRESHOLD = 1_000_000.0f;
 
@@ -15,6 +14,9 @@ public class StatusTowerLightSettings {
     private float warningThreshold;
     private float criticalThreshold;
     private boolean binaryInvert;
+    private Lens lens;
+    private AlertStyle alertStyle;
+    private Sounder sounder;
 
     public StatusTowerLightSettings() {
         this.sourceMode = SourceMode.LOCAL;
@@ -24,6 +26,33 @@ public class StatusTowerLightSettings {
         this.warningThreshold = 75.0f;
         this.criticalThreshold = 90.0f;
         this.binaryInvert = false;
+        this.lens = Lens.AUTO;
+        this.alertStyle = AlertStyle.CLASSIC;
+        this.sounder = Sounder.OFF;
+    }
+
+    public Lens getLens() {
+        return this.lens;
+    }
+
+    public void setLens(Lens lens) {
+        this.lens = lens;
+    }
+
+    public AlertStyle getAlertStyle() {
+        return this.alertStyle;
+    }
+
+    public void setAlertStyle(AlertStyle alertStyle) {
+        this.alertStyle = alertStyle;
+    }
+
+    public Sounder getSounder() {
+        return this.sounder;
+    }
+
+    public void setSounder(Sounder sounder) {
+        this.sounder = sounder;
     }
 
     public SourceMode getSourceMode() {
@@ -135,6 +164,27 @@ public class StatusTowerLightSettings {
         this.binaryInvert = binaryInvert;
     }
 
+    public StatusTowerLightBE.SignalState thresholdSeverity(float value) {
+        if (this.thresholdDirection == ThresholdDirection.HIGHER_IS_WORSE) {
+            if (value >= this.criticalThreshold) {
+                return StatusTowerLightBE.SignalState.CRITICAL;
+            }
+            return value >= this.warningThreshold
+                    ? StatusTowerLightBE.SignalState.WARNING : StatusTowerLightBE.SignalState.NORMAL;
+        }
+        if (value <= this.criticalThreshold) {
+            return StatusTowerLightBE.SignalState.CRITICAL;
+        }
+        return value <= this.warningThreshold
+                ? StatusTowerLightBE.SignalState.WARNING : StatusTowerLightBE.SignalState.NORMAL;
+    }
+
+    public void setThresholds(float warning, float critical) {
+        this.warningThreshold = clampThreshold(warning);
+        this.criticalThreshold = clampThreshold(critical);
+        this.normalizeThresholdOrder();
+    }
+
     private static float clampThreshold(float value) {
         return Math.max(MIN_THRESHOLD, Math.min(MAX_THRESHOLD, value));
     }
@@ -168,6 +218,9 @@ public class StatusTowerLightSettings {
         tag.putFloat("WarningThreshold", this.warningThreshold);
         tag.putFloat("CriticalThreshold", this.criticalThreshold);
         tag.putBoolean("BinaryInvert", this.binaryInvert);
+        tag.putString("Lens", this.lens.name());
+        tag.putString("AlertStyle", this.alertStyle.name());
+        tag.putString("Sounder", this.sounder.name());
         return tag;
     }
 
@@ -197,6 +250,18 @@ public class StatusTowerLightSettings {
         }
         if (tag.contains("BinaryInvert")) {
             settings.binaryInvert = tag.getBoolean("BinaryInvert");
+        }
+        try {
+            settings.lens = Lens.valueOf(tag.getString("Lens"));
+        } catch (Exception ignored) {
+        }
+        try {
+            settings.alertStyle = AlertStyle.valueOf(tag.getString("AlertStyle"));
+        } catch (Exception ignored) {
+        }
+        try {
+            settings.sounder = Sounder.valueOf(tag.getString("Sounder"));
+        } catch (Exception ignored) {
         }
         settings.normalizeLogicMode();
         settings.normalizeThresholdOrder();
@@ -326,6 +391,124 @@ public class StatusTowerLightSettings {
             case SIGNAL -> new Metric[] { Metric.AUTO, Metric.BOOLEAN };
             case NO_SOURCE, AMBIGUOUS, UNKNOWN -> new Metric[] { Metric.AUTO };
         };
+    }
+
+    public enum Lens {
+        AUTO("Auto (traffic)", 0),
+        RED("Red", 0xF2402C),
+        AMBER("Amber", 0xFFA61E),
+        GREEN("Green", 0x4ADE5A),
+        BLUE("Blue", 0x4A8CF0),
+        WHITE("White", 0xF2F4F8),
+        CYAN("Cyan", 0x3FD8D0);
+
+        public static final int AUTO_NORMAL = 0x4ADE5A;
+        public static final int AUTO_WARNING = 0xFFA61E;
+        public static final int AUTO_CRITICAL = 0xF2402C;
+
+        private final String displayName;
+        private final int rgb;
+
+        Lens(String displayName, int rgb) {
+            this.displayName = displayName;
+            this.rgb = rgb;
+        }
+
+        public String getDisplayName() {
+            return this.displayName;
+        }
+
+        public int rgb() {
+            return this.rgb;
+        }
+
+        public boolean isAuto() {
+            return this == AUTO;
+        }
+
+        public Lens next() {
+            final Lens[] values = values();
+            return values[(this.ordinal() + 1) % values.length];
+        }
+    }
+
+    public enum AlertStyle {
+        CLASSIC("Classic"),
+
+        CALM("Calm"),
+
+        URGENT("Urgent"),
+
+        BEACON("Beacon"),
+
+        SOLID("Solid");
+
+        private final String displayName;
+
+        AlertStyle(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return this.displayName;
+        }
+
+        public SignalPattern patternFor(StatusTowerLightBE.SignalState state) {
+            if (this == SOLID) {
+                return state == StatusTowerLightBE.SignalState.OFF
+                        ? SignalPattern.OFF : SignalPattern.STEADY;
+            }
+            return switch (state) {
+                case OFF -> SignalPattern.OFF;
+                case NORMAL -> SignalPattern.STEADY;
+                // no data always stutters. must not look like good news
+
+                case NO_DATA -> SignalPattern.FAULT;
+                case WARNING -> switch (this) {
+                    case CLASSIC -> SignalPattern.BLINK;
+                    case CALM, BEACON -> SignalPattern.PULSE;
+                    case URGENT -> SignalPattern.FLASH;
+                    case SOLID -> SignalPattern.STEADY;
+                };
+                case CRITICAL -> switch (this) {
+                    case CLASSIC -> SignalPattern.FLASH;
+                    case CALM -> SignalPattern.BLINK;
+                    case URGENT -> SignalPattern.STROBE;
+                    case BEACON -> SignalPattern.ROTATE;
+                    case SOLID -> SignalPattern.STEADY;
+                };
+            };
+        }
+    }
+
+    public enum Sounder {
+        OFF("Off"),
+        CRITICAL("On critical"),
+        WARNING("On warning");
+
+        private final String displayName;
+
+        Sounder(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return this.displayName;
+        }
+
+        public boolean soundsFor(StatusTowerLightBE.SignalState state) {
+            return switch (this) {
+                case OFF -> false;
+                case CRITICAL -> state == StatusTowerLightBE.SignalState.CRITICAL;
+                case WARNING -> state == StatusTowerLightBE.SignalState.CRITICAL
+                        || state == StatusTowerLightBE.SignalState.WARNING;
+            };
+        }
+
+        public Sounder next() {
+            final Sounder[] values = values();
+            return values[(this.ordinal() + 1) % values.length];
+        }
     }
 
     public enum SourceKind {

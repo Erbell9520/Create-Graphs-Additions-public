@@ -16,7 +16,6 @@ public record FccDevice(
         int colorArgb,
         CompoundTag config
 ) {
-
     public FccDevice {
         if (id == null) throw new IllegalArgumentException("id");
         if (label == null || label.isEmpty()) throw new IllegalArgumentException("label");

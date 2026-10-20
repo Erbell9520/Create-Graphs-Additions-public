@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB",
+    "GLG",
+    " N "
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:black_terracotta"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "L": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "N": {
+      "item": "create:brass_ingot"
+    }
+  },
+  "result": {
+    "id": "create_stats:bankers_lamp",
+    "count": 1
+  },
+  "show_notification": true
+}

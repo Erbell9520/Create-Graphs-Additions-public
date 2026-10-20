@@ -1,0 +1,13 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "item": "create_stats:refined_copper"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_stats:refined_copper_sheet"
+    }
+  ]
+}

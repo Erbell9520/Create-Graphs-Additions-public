@@ -1,0 +1,161 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "shell": "create_stats:block/vcc_mk4_aerial_shell",
+    "deck": "create_stats:block/vcc_mk4_aerial_deck",
+    "glass": "create_stats:block/vcc_mk4_aerial_glass",
+    "bezel": "create_stats:block/vcc_mk4_aerial_bezel",
+    "wheel": "create_stats:block/vcc_mk4_aerial_wheel",
+    "particle": "create_stats:block/vcc_mk4_aerial_shell"
+  },
+  "elements": [
+    {
+      "name": "pedestal",
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        7,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "down": {
+          "texture": "#shell",
+          "cullface": "down"
+        },
+        "up": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#deck"
+        }
+      }
+    },
+    {
+      "name": "display_hood_toward_the_nose",
+      "from": [
+        2,
+        7,
+        2
+      ],
+      "to": [
+        14,
+        13,
+        7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "south": {
+          "uv": [
+            2,
+            3,
+            14,
+            9
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            7
+          ],
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "name": "visor",
+      "from": [
+        2,
+        13,
+        2
+      ],
+      "to": [
+        14,
+        14,
+        8
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        },
+        "down": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "hand_wheel",
+      "from": [
+        9.25,
+        7.25,
+        9.75
+      ],
+      "to": [
+        14.75,
+        7.75,
+        15.25
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            5.5
+          ],
+          "texture": "#wheel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            5.5
+          ],
+          "texture": "#wheel"
+        }
+      }
+    }
+  ]
+}

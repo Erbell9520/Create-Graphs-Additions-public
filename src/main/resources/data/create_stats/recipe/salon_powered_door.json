@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "create_stats:iron_powered_door"
+    },
+    {
+      "item": "minecraft:tinted_glass"
+    },
+    {
+      "item": "minecraft:glass"
+    },
+    {
+      "item": "create:brass_sheet"
+    }
+  ],
+  "result": {
+    "id": "create_stats:salon_powered_door",
+    "count": 1
+  },
+  "show_notification": true
+}

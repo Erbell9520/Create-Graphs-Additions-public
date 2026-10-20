@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:stats/display",
+  "display": {
+    "icon": {
+      "id": "create_stats:weather_panel"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.weather.title",
+      "fallback": "The Forecast Was Wrong Again"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.weather.description",
+      "fallback": "Mount a Weather Panel. It says sunny. Take the umbrella anyway."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "weather": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:weather_panel"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "weather"
+    ]
+  ]
+}

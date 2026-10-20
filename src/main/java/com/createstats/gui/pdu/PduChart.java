@@ -6,16 +6,13 @@ import net.minecraft.util.Mth;
 
 import java.util.Locale;
 
-/** [1] */
 public final class PduChart {
-
     private PduChart() {
     }
 
     public static final int RAIL_H = 6;
     private static final int LABEL_H = 10;
 
-    /** The plot rectangle above the rail, so the screen maps the mouse to a sample against the same area. */
     public static PduRect plotBounds(PduRect bounds) {
         return new PduRect(bounds.x(), bounds.y(), bounds.w(), Math.max(1, bounds.h() - RAIL_H - LABEL_H));
     }
@@ -34,21 +31,20 @@ public final class PduChart {
             return;
         }
 
-        // The vertical scale is supplied by the caller so it can be eased across syncs; a fresh peak
-        // grows the axis smoothly instead of snapping.
+        // caller eases the scale, fresh peaks grow instead of snapping
+
         final int max = Math.max(1, yMax);
         for (int q = 1; q <= 2; q++) {
             final int gy = plot.y() + plot.h() * q / 3;
             g.fill(plot.x() + 1, gy, plot.right() - 1, gy + 1, PduTheme.withAlpha(PduTheme.STROKE, 0x80));
         }
 
-        // Supply as a filled area.
         for (int i = 0; i < n; i++) {
             final int x = sampleX(plot, i, n);
             final int sy = valueY(plot, h.supplyAt(i), max);
             g.fill(x, sy, x + 1, plot.bottom() - 1, PduTheme.withAlpha(PduTheme.OK, 0x4D));
         }
-        // Demand as a line.
+
         int px = -1;
         int py = -1;
         for (int i = 0; i < n; i++) {
@@ -86,7 +82,6 @@ public final class PduChart {
         }
     }
 
-    /** Maps a mouse position to a sample index while it is over the plot, else {@code -1}. */
     public static int sampleAt(PduRect bounds, PduHistory h, double mouseX, double mouseY) {
         final PduRect plot = plotBounds(bounds);
         if (h.count() == 0 || mouseX < plot.x() || mouseX >= plot.right()
@@ -102,7 +97,7 @@ public final class PduChart {
         return plot.x() + (n <= 1 ? 0 : Math.round((plot.w() - 1) * (i / (float) (n - 1))));
     }
 
-    private static int valueY(PduRect plot, int v, int max) {
+    public static int valueY(PduRect plot, int v, int max) {
         return plot.bottom() - 1 - Math.round((plot.h() - 2) * Mth.clamp(v / (float) max, 0.0f, 1.0f));
     }
 

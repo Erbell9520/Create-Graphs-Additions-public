@@ -6,6 +6,7 @@ import com.createstats.antenna.AntennaRange;
 import com.createstats.antenna.AntennaTier;
 import com.createstats.display.CrossDimDisplayLinkContext;
 import com.createstats.display.DisplayLinkDimensionExtension;
+import com.createstats.display.InventoryFeeders;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.simibubi.create.api.behaviour.display.DisplayTarget;
 import com.simibubi.create.api.registry.CreateBuiltInRegistries;
@@ -62,6 +63,33 @@ public abstract class DisplayLinkBlockEntityMixin implements DisplayLinkDimensio
 
     @Unique
     private long createStats$lastDebugTick;
+
+    @Unique
+    private boolean createStats$feederAnnounced;
+
+    @Unique
+    private long createStats$feederRetryAt;
+
+    // plain chests register no source so the link announces itself. one boolean a tick after that
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void createStats$announceToInventoryDisplay(CallbackInfo ci) {
+        if (this.createStats$feederAnnounced) {
+            return;
+        }
+        DisplayLinkBlockEntity self = (DisplayLinkBlockEntity) (Object) this;
+        if (!(self.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        long now = level.getGameTime();
+        if (now < this.createStats$feederRetryAt) {
+            return;
+        }
+        if (InventoryFeeders.announce(self)) {
+            this.createStats$feederAnnounced = true;
+        } else {
+            this.createStats$feederRetryAt = now + 100L;
+        }
+    }
 
     @Inject(method = "writeGatheredData", at = @At("TAIL"))
     private void createStats$writeTargetDimension(CompoundTag tag, CallbackInfo ci) {
@@ -134,6 +162,9 @@ public abstract class DisplayLinkBlockEntityMixin implements DisplayLinkDimensio
         if (!targetPosition.equals(BlockPos.ZERO) || this.createStats$storedTargetPos == null) {
             this.createStats$storedTargetPos = targetPosition;
         }
+
+        this.createStats$feederAnnounced = false;
+        this.createStats$feederRetryAt = 0L;
         if (self.getLevel() != null) {
             this.createStats$targetDimension = self.getLevel().dimension().location();
             this.createStats$targetAntennaTier = null;
@@ -191,8 +222,8 @@ public abstract class DisplayLinkBlockEntityMixin implements DisplayLinkDimensio
                     + " target=" + targetPosition);
             return;
         }
-        BlockEntity targetBE = sourceLevel.getBlockEntity(targetPosition);
-        AntennaTier tier = AntennaLinkHelper.getAttachedTier(targetBE);
+
+        AntennaTier tier = AntennaLinkHelper.getAttachedTier(sourceLevel, targetPosition);
         this.createStats$targetAntennaTier = tier;
         if (!AntennaRange.canReach(sourceLevel, self.getBlockPos(), sourceLevel, targetPosition, tier, baseRange)) {
             createStats$debug(sourceLevel, "same-dim long link blocked tier=" + tier.getSerializedName()
@@ -244,7 +275,7 @@ public abstract class DisplayLinkBlockEntityMixin implements DisplayLinkDimensio
             return;
         }
         BlockEntity targetBE = targetLevel.getBlockEntity(targetPosition);
-        AntennaTier tier = AntennaLinkHelper.getAttachedTier(targetBE);
+        AntennaTier tier = AntennaLinkHelper.getAttachedTier(targetLevel, targetPosition);
         this.createStats$targetAntennaTier = tier;
         if (!AntennaRange.canReach(sourceLevel, self.getBlockPos(), targetLevel, targetPosition, tier)) {
             createStats$debug(sourceLevel, "cross-dim blocked tier=" + tier.getSerializedName()

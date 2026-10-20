@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light MK II glowing LENS only, split out so the BER can tint it and render it full-bright. Sits on the raised MK II bezel; the beam apex constant MK2_LENS_Y in StageLightRenderer matches the top face (y=13.5).",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

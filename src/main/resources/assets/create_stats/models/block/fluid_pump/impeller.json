@@ -1,5 +1,4 @@
 {
-  "__comment": "The pump's top cooling fan: four blades on a hub in the X-Z plane on the motor crown (y~14.9-15.5), each on its own Y-layer, spun about Y by FluidPumpRenderer.",
   "parent": "block/block",
   "textures": {
     "rim": "create:block/brass_block",

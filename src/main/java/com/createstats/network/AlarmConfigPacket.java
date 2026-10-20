@@ -12,36 +12,35 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class AlarmConfigPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<AlarmConfigPacket> TYPE = 
+    public static final CustomPacketPayload.Type<AlarmConfigPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "alarm_config"));
-    
-    public static final StreamCodec<FriendlyByteBuf, AlarmConfigPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, AlarmConfigPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), AlarmConfigPacket::new);
 
     private final BlockPos pos;
     private final AlarmSettings settings;
-    
+
     public AlarmConfigPacket(BlockPos pos, AlarmSettings settings) {
         this.pos = pos;
         this.settings = settings;
     }
-    
+
     public AlarmConfigPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.settings = AlarmSettings.decode(buf);
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         this.settings.encode(buf);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(AlarmConfigPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();

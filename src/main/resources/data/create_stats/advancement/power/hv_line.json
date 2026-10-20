@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:power/porcelain",
+  "display": {
+    "icon": {
+      "id": "create_stats:hv_line"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.hv_line.title",
+      "fallback": "Don't Touch, It Kills"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.hv_line.description",
+      "fallback": "Make HV Line. High voltage: dangerous and deadly. The sign means it."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "hv": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:hv_line"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "hv"
+    ]
+  ]
+}

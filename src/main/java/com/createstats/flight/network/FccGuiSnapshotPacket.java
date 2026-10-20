@@ -12,7 +12,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.lang.reflect.Method;
 
 public record FccGuiSnapshotPacket(int containerId, FccGuiSnapshot snapshot) implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<FccGuiSnapshotPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "fcc_gui_snapshot"));
 
@@ -49,4 +48,3 @@ public record FccGuiSnapshotPacket(int containerId, FccGuiSnapshot snapshot) imp
         }
     }
 }
-

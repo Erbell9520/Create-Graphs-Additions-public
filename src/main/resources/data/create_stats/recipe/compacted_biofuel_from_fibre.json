@@ -1,0 +1,38 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    },
+    {
+      "tag": "create_stats:biofuel/fibre"
+    }
+  ],
+  "results": [
+    {
+      "count": 2,
+      "id": "create_stats:compacted_biofuel"
+    }
+  ]
+}

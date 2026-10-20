@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    "GRG",
+    "PPP"
+  ],
+  "key": {
+    "G": { "item": "minecraft:gold_ingot" },
+    "R": { "item": "create_stats:topology_scanner_probe" },
+    "P": { "item": "create:precision_mechanism" }
+  },
+  "result": {
+    "id": "create_stats:advanced_topology_scanner_probe",
+    "count": 1
+  },
+  "show_notification": true
+}

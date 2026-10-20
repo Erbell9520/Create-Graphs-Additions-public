@@ -18,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(targets = "com.simibubi.create.content.contraptions.actors.psi.PortableFluidInterfaceBlockEntity",
        remap = false)
 public abstract class PortableFluidInterfaceMixin {
-
     @Shadow
     protected IFluidHandler capability;
 

@@ -39,7 +39,7 @@ public class TrainNetworkScanner
 {
     private static final Logger LOG;
     private static int lastStationDiagnosticHash;
-    
+
     public static TrainMapData scan(Level level) {
         final TrainMapData data = new TrainMapData();
         data.setServerTick(level.getGameTime());
@@ -178,7 +178,7 @@ public class TrainNetworkScanner
         }
         return data;
     }
-    
+
     private static String resolveOwnerName(Level level, UUID ownerUUID) {
         if (ownerUUID == null) {
             return "Unknown";
@@ -373,7 +373,7 @@ public class TrainNetworkScanner
             CreateStats.LOGGER.info("[TrainMapDebug] Station scan: {}", summary);
         }
     }
-    
+
     static {
         LOG = LoggerFactory.getLogger((Class)TrainNetworkScanner.class);
         lastStationDiagnosticHash = 0;

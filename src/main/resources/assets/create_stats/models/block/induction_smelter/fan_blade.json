@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "fan": "create_stats:block/smelter_fan",
+    "particle": "create_stats:block/smelter_body"
+  },
+  "elements": [
+    {
+      "from": [
+        0.55,
+        0.0,
+        -0.5
+      ],
+      "to": [
+        2.6,
+        0.32,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            6,
+            16,
+            10
+          ],
+          "texture": "#fan"
+        },
+        "south": {
+          "uv": [
+            0,
+            6,
+            16,
+            10
+          ],
+          "texture": "#fan"
+        },
+        "east": {
+          "uv": [
+            0,
+            6,
+            16,
+            10
+          ],
+          "texture": "#fan"
+        },
+        "west": {
+          "uv": [
+            0,
+            6,
+            16,
+            10
+          ],
+          "texture": "#fan"
+        },
+        "up": {
+          "uv": [
+            0,
+            6,
+            16,
+            10
+          ],
+          "texture": "#fan"
+        },
+        "down": {
+          "uv": [
+            0,
+            6,
+            16,
+            10
+          ],
+          "texture": "#fan"
+        }
+      },
+      "__comment": "vent fan blade"
+    }
+  ]
+}

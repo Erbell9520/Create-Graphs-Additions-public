@@ -10,7 +10,6 @@ import net.minecraft.util.Mth;
 
 import java.util.function.Supplier;
 
-/** [1] */
 public class HudStudioEntryButton extends AbstractButton {
     private static final Component TOOLTIP = Component.literal("Open HUD Studio, design your in-game overlay");
 
@@ -61,7 +60,6 @@ public class HudStudioEntryButton extends AbstractButton {
         this.hoverProgress = approach(this.hoverProgress, hovered ? 1f : 0f, dt * 6f);
         this.pressProgress = approach(this.pressProgress, pressed ? 1f : 0f, dt * 12f);
         if (hovered && !this.wasHovered) {
-            // entering hover - tiny pop already handled by hoverProgress easing
         }
         this.wasHovered = hovered;
 
@@ -99,37 +97,31 @@ public class HudStudioEntryButton extends AbstractButton {
     }
 
     private static void renderTab(GuiGraphics g, DisplayTheme theme, int x, int y, int w, int h, float hover, float press) {
-        // Outer chrome frame (drafting tab silhouette - left side notched).
         final int border = withAlpha(theme.border, 235);
         final int bgTop = withAlpha(theme.tabBg, 245);
         final int bgBot = withAlpha(theme.bg, 245);
         final int notchW = 3;
 
-        // Body fill (excluding notch column on the left).
         g.fillGradient(x + notchW, y + 1, x + w - 1, y + h - 1, bgTop, bgBot);
-        // Notch wedge approximated with two thin steps for a fold-out look.
+
         g.fill(x + 1, y + 2, x + 1 + notchW, y + h - 2, bgBot);
         g.fill(x, y + 4, x + 1, y + h - 4, bgBot);
 
-        // Outline.
-        // top
         g.fill(x + notchW, y, x + w, y + 1, border);
-        // bottom
+
         g.fill(x + notchW, y + h - 1, x + w, y + h, border);
-        // right
+
         g.fill(x + w - 1, y + 1, x + w, y + h - 1, border);
-        // left fold edge (stepped)
+
         g.fill(x + notchW, y + 1, x + notchW + 1, y + 2, border);
         g.fill(x + 1, y + 2, x + 2, y + 4, border);
         g.fill(x, y + 4, x + 1, y + h - 4, border);
         g.fill(x + 1, y + h - 4, x + 2, y + h - 2, border);
         g.fill(x + notchW, y + h - 2, x + notchW + 1, y + h - 1, border);
 
-        // Top inner highlight.
         final int highlight = withAlpha(blend(theme.text, theme.tabSel, 0.35f), Math.round(70 + 90 * hover));
         g.fill(x + notchW + 1, y + 1, x + w - 1, y + 2, highlight);
 
-        // Hover accent inner outline.
         if (hover > 0.01f) {
             final int glow = withAlpha(theme.accent, Math.round(140 * hover * (1f - press * 0.4f)));
             g.fill(x + notchW + 1, y + 2, x + w - 2, y + 3, glow);
@@ -137,7 +129,6 @@ public class HudStudioEntryButton extends AbstractButton {
             g.fill(x + w - 2, y + 2, x + w - 1, y + h - 2, glow);
         }
 
-        // Press shadow.
         if (press > 0.01f) {
             final int shade = withAlpha(0xFF000000, Math.round(60 * press));
             g.fill(x + notchW, y + 1, x + w - 1, y + 2, shade);
@@ -145,13 +136,11 @@ public class HudStudioEntryButton extends AbstractButton {
     }
 
     private static void renderGlyph(GuiGraphics g, DisplayTheme theme, int x, int y, int w, int h, boolean hovered, long now) {
-        // Center glyph: a simplified drafting compass (V-shape) with a tiny crosshair frame on the right.
         final int cx = x + w / 2;
         final int cy = y + h / 2;
         final int accent = hovered ? brighten(theme.accent, 35) : theme.accent;
         final int dim = withAlpha(theme.text, hovered ? 230 : 190);
 
-        // Compass legs (V).
         g.fill(cx - 4, cy - 3, cx - 3, cy - 2, dim);
         g.fill(cx - 3, cy - 2, cx - 2, cy - 1, dim);
         g.fill(cx - 2, cy - 1, cx - 1, cy, dim);
@@ -162,14 +151,11 @@ public class HudStudioEntryButton extends AbstractButton {
         g.fill(cx + 1, cy - 1, cx + 2, cy, dim);
         g.fill(cx, cy, cx + 1, cy + 2, dim);
 
-        // Hinge dot at top of V.
         g.fill(cx - 1, cy - 4, cx + 1, cy - 3, accent);
 
-        // Pencil tip dot at bottom.
         g.fill(cx - 1, cy + 2, cx, cy + 3, accent);
         g.fill(cx, cy + 2, cx + 1, cy + 3, accent);
 
-        // Tiny crosshair frame (HUD reticle) on the right side.
         final int rx = x + w - 5;
         final int ry = cy - 2;
         g.fill(rx, ry, rx + 4, ry + 1, dim);
@@ -180,7 +166,6 @@ public class HudStudioEntryButton extends AbstractButton {
     }
 
     private void renderIdleGlint(GuiGraphics g, int x, int y, int w, int h, long now) {
-        // Subtle moving highlight along the top edge every ~3s.
         final long elapsed = now - this.firstRenderMs;
         final float phase = (elapsed % 3000L) / 3000f;
         if (phase > 0.6f) return;
@@ -192,7 +177,6 @@ public class HudStudioEntryButton extends AbstractButton {
     }
 
     private static void renderUnsavedRivet(GuiGraphics g, DisplayTheme theme, int x, int y, long now) {
-        // Small amber rivet with a faint pulse.
         final int amber = 0xFFFFB347;
         final int pulse = (int) ((Math.sin(now / 350.0) + 1.0) * 60.0);
         g.fill(x - 1, y, x + 2, y + 1, amber);

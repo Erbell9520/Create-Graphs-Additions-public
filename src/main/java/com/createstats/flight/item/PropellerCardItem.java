@@ -19,13 +19,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Locale;
 
-/** [1] */
 public class PropellerCardItem extends Item {
-
-    /** Stable tag key in {@code DataComponents.CUSTOM_DATA}. */
     public static final String TAG_KEY = "FccPropellerCard";
 
     public PropellerCardItem(Properties properties) {
@@ -41,8 +40,11 @@ public class PropellerCardItem extends Item {
         if (targetPos == null) {
             Player player = context.getPlayer();
             if (!level.isClientSide() && player != null) {
+                boolean blade = classifyTarget(level, pos) == TargetKind.PROPELLER_BLOCK;
                 player.displayClientMessage(
-                    Component.translatable("message.create_stats.propeller_card.incompatible")
+                    Component.translatable(blade
+                            ? "message.create_stats.propeller_card.blade_no_bearing"
+                            : "message.create_stats.propeller_card.incompatible")
                         .withStyle(ChatFormatting.RED),
                     true);
             }
@@ -135,23 +137,62 @@ public class PropellerCardItem extends Item {
             return clickedPos.immutable();
         }
         if (direct == TargetKind.PROPELLER_BLOCK) {
-            BlockPos nearbyBearing = findAdjacentBearingOrWheelMount(level, clickedPos);
-            return nearbyBearing != null ? nearbyBearing : clickedPos.immutable();
+            if (SableBridge.matchesAnyPropeller(blockEntityAt(level, clickedPos))) {
+                return clickedPos.immutable();
+            }
+            BlockPos bearing = findAdjacentBearingOrWheelMount(level, clickedPos);
+            return bearing != null ? bearing : clickedPos.immutable();
         }
         return findAdjacentBearingOrWheelMount(level, clickedPos);
     }
 
+    // walk out from the blade to the bearing. right clicking a blade linked the blade itself before
     private static BlockPos findAdjacentBearingOrWheelMount(Level level, BlockPos clickedPos) {
         for (Direction direction : Direction.values()) {
             BlockPos neighbor = clickedPos.relative(direction);
-            TargetKind kind = classifyTarget(level, neighbor);
-            if (kind == TargetKind.AERONAUTICS_PROPELLER_BEARING
-                    || kind == TargetKind.CREATE_BEARING
-                    || kind == TargetKind.WHEEL_MOUNT) {
-                return neighbor.immutable();
+            if (isDriveTarget(classifyTarget(level, neighbor))) return neighbor.immutable();
+        }
+        return walkAssemblyForBearing(level, clickedPos);
+    }
+
+    private static boolean isDriveTarget(TargetKind kind) {
+        return kind == TargetKind.AERONAUTICS_PROPELLER_BEARING
+                || kind == TargetKind.CREATE_BEARING
+                || kind == TargetKind.WHEEL_MOUNT;
+    }
+
+    private static final int ASSEMBLY_WALK_LIMIT = 256;
+    private static final int ASSEMBLY_WALK_RADIUS = 10;
+
+    @Nullable
+    private static BlockPos walkAssemblyForBearing(Level level, BlockPos start) {
+        java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+        java.util.Set<BlockPos> seen = new java.util.HashSet<>();
+        queue.add(start.immutable());
+        seen.add(start.immutable());
+
+        while (!queue.isEmpty() && seen.size() < ASSEMBLY_WALK_LIMIT) {
+            BlockPos at = queue.poll();
+            for (Direction direction : Direction.values()) {
+                BlockPos next = at.relative(direction).immutable();
+                if (!seen.add(next)) continue;
+                TargetKind kind = classifyTarget(level, next);
+                if (isDriveTarget(kind)) return next;
+
+                if (kind == TargetKind.PROPELLER_BLOCK || isAssemblyLink(level, next)) {
+                    if (next.distManhattan(start) <= ASSEMBLY_WALK_RADIUS) queue.add(next);
+                }
             }
         }
         return null;
+    }
+
+    private static boolean isAssemblyLink(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        if (id == null) return false;
+        String path = id.getPath().toLowerCase(Locale.ROOT);
+        return path.contains("shaft") || path.contains("gearbox") || path.contains("cogwheel");
     }
 
     private static TargetKind classifyTarget(Level level, BlockPos pos) {
@@ -211,12 +252,10 @@ public class PropellerCardItem extends Item {
         String blockClass = state.getBlock().getClass().getName().toLowerCase(Locale.ROOT);
         String beClass = be != null ? be.getClass().getName().toLowerCase(Locale.ROOT) : "";
 
-        // Offroad wheel mounts are bundled with Aeronautics and exposed under offroad:* IDs.
         if ("offroad".equals(namespace) && ("wheel_mount".equals(path) || path.endsWith("/wheel_mount"))) {
             return true;
         }
 
-        // Class-name fallback keeps support for contraption lookups where registry IDs may be indirect.
         boolean offroadClass = blockClass.contains("dev.ryanhcode.offroad") || beClass.contains("dev.ryanhcode.offroad");
         boolean wheelMountClass = blockClass.contains("wheel_mount") || beClass.contains("wheel_mount")
             || blockClass.contains("wheelmount") || beClass.contains("wheelmount");

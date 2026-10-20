@@ -24,14 +24,14 @@ public final class TrainMapPanelRenderer
     private static final Map<BlockPos, CachedTrainLayout> layoutCache = new HashMap<BlockPos, CachedTrainLayout>();
     private static final int[] ROUTE_COLORS = { -12276993, -12255352, -21948, -47958, -7811841, -5570748, -30652, -12255284 };
     private static final int ACTIVE_ROUTE = -39356;
-    
+
     private TrainMapPanelRenderer() {
     }
-    
+
     public static void disposeAll() {
         TrainMapPanelRenderer.layoutCache.clear();
     }
-    
+
     public static void renderTrainMap(NativeImage image, StatsDisplayPanelBE be, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final TrainMapData data = be.getTrainMapData();
         if (data == null || data.getStations().isEmpty()) {
@@ -90,7 +90,7 @@ public final class TrainMapPanelRenderer
         renderTrainIconsHighQuality(image, visibleData, cached, theme, be);
         renderHighQualityHeader(image, x, y, w, theme, activeDimension, visibleData.getStations().size(), visibleData.getTrains().size(), cached.groupCount);
     }
-    
+
     private static void renderNoTrainData(NativeImage image, int x, int y, int w, int h, DisplayTheme theme, String dimension) {
         final int scale = (w >= 256) ? 2 : 1;
         final String title = dimension.isEmpty() ? "No Train Data" : ("No " + shortDimensionName(dimension) + " Data");
@@ -98,7 +98,7 @@ public final class TrainMapPanelRenderer
         BitmapFont.drawCentered(image, "Connect Display Link", x, y + h / 2 + 2, w, theme.text, scale);
         BitmapFont.drawCentered(image, "to a Train Station", x, y + h / 2 + 2 + BitmapFont.textHeight(scale) + 2, w, theme.text, scale);
     }
-    
+
     private static void renderHeader(NativeImage image, int x, int y, int w, DisplayTheme theme, String dimension, int stationCount, int nodeCount, int trainCount, int groupCount) {
         final int scale = (w >= 256) ? 2 : 1;
         final String header = dimension.isEmpty() ? "Train Map" : ("Train Map - " + shortDimensionName(dimension));
@@ -106,7 +106,7 @@ public final class TrainMapPanelRenderer
         BitmapFont.drawString(image, header, x + 2, y + 2, theme.border, scale);
         BitmapFont.drawRight(image, info, x + w - 2, y + 2, theme.dim, scale);
     }
-    
+
     private static String selectPanelDimension(StatsDisplayPanelBE be, TrainMapData data) {
         if (be.getLevel() != null) {
             final String panelDimension = be.getLevel().dimension().location().toString();
@@ -119,7 +119,7 @@ public final class TrainMapPanelRenderer
         }
         return "";
     }
-    
+
     private static String shortDimensionName(String dimension) {
         if (dimension == null || dimension.isEmpty()) {
             return "Trains";
@@ -151,7 +151,7 @@ public final class TrainMapPanelRenderer
         }
         return sb.isEmpty() ? dimension : sb.toString();
     }
-    
+
     private static void renderGrid(NativeImage image, int x, int y, int w, int h, DisplayTheme theme) {
         final int gridRgb = theme.grid & 0xFFFFFF;
         final float opacity = 0.09f;
@@ -209,7 +209,7 @@ public final class TrainMapPanelRenderer
         BitmapFont.drawString(image, header, x + 6, y + 7, mixColors(theme.text, theme.accent, 0.32f), scale);
         BitmapFont.drawRight(image, info, x + w - 6, y + 7, theme.dim, scale);
     }
-    
+
     private static int blendPixel(int existingAbgr, int overlayArgbRgb, float opacity) {
         final int eR = existingAbgr & 0xFF;
         final int eG = (existingAbgr >> 8) & 0xFF;
@@ -223,7 +223,7 @@ public final class TrainMapPanelRenderer
         final int b = (int)(eB + (oB - eB) * opacity);
         return eA << 24 | b << 16 | g << 8 | r;
     }
-    
+
     private static void renderRouteEdges(NativeImage image, TrainMapData data, CachedTrainLayout layout, DisplayTheme theme) {
         if (layout.edges.isEmpty()) {
             return;
@@ -277,7 +277,7 @@ public final class TrainMapPanelRenderer
             }
         }
     }
-    
+
     private static void renderNodeMarkers(NativeImage image, TrainMapData data, CachedTrainLayout layout, DisplayTheme theme) {
         final Map<UUID, Integer> dockedCounts = computeDockedCounts(data, layout);
         final List<LabelCandidate> labels = new ArrayList<LabelCandidate>();
@@ -396,7 +396,7 @@ public final class TrainMapPanelRenderer
             ++drawn;
         }
     }
-    
+
     private static void renderTrainIcons(NativeImage image, TrainMapData data, CachedTrainLayout layout, DisplayTheme theme, StatsDisplayPanelBE be) {
         if (data.getTrains().isEmpty()) {
             return;
@@ -641,7 +641,7 @@ public final class TrainMapPanelRenderer
             }
         }
     }
-    
+
     private static CachedTrainLayout computeLayout(TrainMapData data, List<String> groupPatterns, int x, int y, int w, int h) {
         final GroupResolution groups = resolveGroups(data.getStations(), groupPatterns);
         final Map<String, TrainMapData.StationEntry> byName = indexStationsByName(data.getStations());
@@ -677,7 +677,7 @@ public final class TrainMapPanelRenderer
         }
         return layout;
     }
-    
+
     private static int computeLayoutHash(TrainMapData data, List<String> groupPatterns) {
         int hash = data.getStations().size();
         for (TrainMapData.StationEntry station : data.getStations()) {
@@ -704,7 +704,7 @@ public final class TrainMapPanelRenderer
         }
         return hash;
     }
-    
+
     private static GroupResolution resolveGroups(List<TrainMapData.StationEntry> stations, List<String> groupPatterns) {
         final LinkedHashMap<String, List<UUID>> groupMembers = new LinkedHashMap<String, List<UUID>>();
         final HashMap<UUID, String> stationToGroup = new HashMap<UUID, String>();
@@ -729,7 +729,7 @@ public final class TrainMapPanelRenderer
         }
         return new GroupResolution(effectiveMap, groupMembers, stationToGroup);
     }
-    
+
     private static boolean matchesGroupPattern(String pattern, String name) {
         if (pattern == null || name == null) {
             return false;
@@ -745,7 +745,7 @@ public final class TrainMapPanelRenderer
         }
         return name.equals(pattern);
     }
-    
+
     private static Map<String, TrainMapData.StationEntry> indexStationsByName(List<TrainMapData.StationEntry> stations) {
         final LinkedHashMap<String, TrainMapData.StationEntry> byName = new LinkedHashMap<String, TrainMapData.StationEntry>();
         final ArrayList<TrainMapData.StationEntry> ordered = new ArrayList<TrainMapData.StationEntry>(stations);
@@ -766,7 +766,7 @@ public final class TrainMapPanelRenderer
         }
         return byId;
     }
-    
+
     private static LinkedHashMap<UUID, NodeInfo> buildNodes(List<TrainMapData.StationEntry> stations, GroupResolution groups) {
         final LinkedHashMap<UUID, NodeInfo> nodes = new LinkedHashMap<UUID, NodeInfo>();
         for (TrainMapData.StationEntry station : stations) {
@@ -781,7 +781,7 @@ public final class TrainMapPanelRenderer
         }
         return nodes;
     }
-    
+
     private static List<EdgeInfo> buildEdges(TrainMapData data, Map<String, TrainMapData.StationEntry> byName, Map<UUID, TrainMapData.StationEntry> byId, Map<UUID, UUID> effectiveMap) {
         final LinkedHashMap<String, EdgeInfo> edges = new LinkedHashMap<String, EdgeInfo>();
         final HashMap<String, Integer> routeByKey = new HashMap<String, Integer>();
@@ -823,7 +823,7 @@ public final class TrainMapPanelRenderer
         }
         return String.join("|", ids);
     }
-    
+
     private static void addEdge(Map<String, EdgeInfo> edges, UUID a, UUID b, int routeIndex) {
         final String key = edgeKey(a, b);
         EdgeInfo edge = edges.get(key);
@@ -835,7 +835,7 @@ public final class TrainMapPanelRenderer
         }
         edge.routeCount += 1;
     }
-    
+
     private static void applyDegrees(Map<UUID, NodeInfo> nodes, List<EdgeInfo> edges) {
         for (EdgeInfo edge : edges) {
             final NodeInfo a = nodes.get(edge.a);
@@ -848,7 +848,7 @@ public final class TrainMapPanelRenderer
             }
         }
     }
-    
+
     private static Map<UUID, float[]> computeGraphLayout(Map<UUID, NodeInfo> nodes, List<EdgeInfo> edges) {
         final LinkedHashMap<UUID, float[]> result = new LinkedHashMap<UUID, float[]>();
         if (nodes.isEmpty()) {
@@ -896,11 +896,11 @@ public final class TrainMapPanelRenderer
         }
         return result;
     }
-    
+
     private static long pairKey(int a, int b, int n) {
         return (long)Math.min(a, b) * (long)n + Math.max(a, b);
     }
-    
+
     private static List<TrainMapData.StationEntry> resolveRoute(TrainMapData.TrainEntry train, Map<String, TrainMapData.StationEntry> byName, Map<UUID, TrainMapData.StationEntry> byId) {
         final ArrayList<TrainMapData.StationEntry> result = new ArrayList<TrainMapData.StationEntry>();
         if (train.routeKey != null && !train.routeKey.isEmpty()) {
@@ -959,7 +959,7 @@ public final class TrainMapPanelRenderer
         }
         route.add(station);
     }
-    
+
     private static TrainMapData.StationEntry findStation(Map<String, TrainMapData.StationEntry> byName, String filter) {
         if (filter == null || filter.isEmpty()) {
             return null;
@@ -975,11 +975,11 @@ public final class TrainMapPanelRenderer
         }
         return null;
     }
-    
+
     private static boolean matchesFilter(String filter, String name) {
         return TrainMapData.matchesStationFilter(filter, name);
     }
-    
+
     private static Map<UUID, Integer> computeDockedCounts(TrainMapData data, CachedTrainLayout layout) {
         final HashMap<UUID, Integer> docked = new HashMap<UUID, Integer>();
         final Map<String, TrainMapData.StationEntry> byName = indexStationsByName(data.getStations());
@@ -997,7 +997,7 @@ public final class TrainMapPanelRenderer
         }
         return docked;
     }
-    
+
     private static Map<String, Integer> computeActiveEdgeCounts(TrainMapData data, CachedTrainLayout layout) {
         final HashMap<String, Integer> counts = new HashMap<String, Integer>();
         final Map<String, TrainMapData.StationEntry> byName = indexStationsByName(data.getStations());
@@ -1029,7 +1029,7 @@ public final class TrainMapPanelRenderer
         }
         return counts;
     }
-    
+
     private static int[] resolveTrainPosition(TrainMapData.TrainEntry train, Map<String, TrainMapData.StationEntry> byName, Map<UUID, TrainMapData.StationEntry> byId, CachedTrainLayout layout) {
         TrainMapData.StationEntry station = byId.get(train.currentStationId);
         if (station == null && !train.currentStationName.isEmpty()) {
@@ -1149,7 +1149,7 @@ public final class TrainMapPanelRenderer
         final float len = (float)Math.sqrt(dx * dx + dy * dy);
         return len < 0.001f ? new float[] { 0.0f, 1.0f } : new float[] { dx / len, dy / len };
     }
-    
+
     private static TrainMapData.StationEntry findPreviousStop(TrainMapData.TrainEntry train, Map<String, TrainMapData.StationEntry> byName, Map<UUID, TrainMapData.StationEntry> byId) {
         TrainMapData.StationEntry station = byId.get(train.previousStationId);
         if (station != null) {
@@ -1170,7 +1170,7 @@ public final class TrainMapPanelRenderer
         }
         return null;
     }
-    
+
     private static void drawWeightedLine(NativeImage image, int x0, int y0, int x1, int y1, int color, int weight) {
         TextureGraphRenderer.drawLine(image, x0, y0, x1, y1, color);
         if (weight > 1) {
@@ -1182,7 +1182,7 @@ public final class TrainMapPanelRenderer
             }
         }
     }
-    
+
     private static String formatNodeLabel(NodeInfo node, boolean dense) {
         String label = node.group ? cleanGroupLabel(node.groupPattern) + " x" + node.memberCount : node.primaryLabel;
         final int maxLen = node.group ? (dense ? 12 : 16) : (dense ? 10 : 14);
@@ -1191,7 +1191,7 @@ public final class TrainMapPanelRenderer
         }
         return label;
     }
-    
+
     private static String cleanGroupLabel(String pattern) {
         if (pattern == null || pattern.isEmpty()) {
             return "Group";
@@ -1199,7 +1199,7 @@ public final class TrainMapPanelRenderer
         final String cleaned = pattern.replace("*", "").trim();
         return cleaned.isEmpty() ? "Group" : cleaned;
     }
-    
+
     private static boolean intersectsAny(int[] rect, List<int[]> occupied) {
         for (int[] other : occupied) {
             if (rect[0] < other[2] && rect[2] > other[0] && rect[1] < other[3] && rect[3] > other[1]) {
@@ -1208,15 +1208,15 @@ public final class TrainMapPanelRenderer
         }
         return false;
     }
-    
+
     private static int edgeKeyCompare(UUID a, UUID b) {
         return a.compareTo(b);
     }
-    
+
     private static String edgeKey(UUID a, UUID b) {
         return (edgeKeyCompare(a, b) <= 0) ? (a.toString() + ":" + b.toString()) : (b.toString() + ":" + a.toString());
     }
-    
+
     private static int darkenColor(int color, float factor) {
         final int a = color >> 24 & 0xFF;
         final int r = color >> 16 & 0xFF;
@@ -1224,7 +1224,7 @@ public final class TrainMapPanelRenderer
         final int b = color & 0xFF;
         return a << 24 | (int)(r * factor) << 16 | (int)(g * factor) << 8 | (int)(b * factor);
     }
-    
+
     private static int mixColors(int a, int b, float t) {
         final int aa = a >> 24 & 0xFF;
         final int ar = a >> 16 & 0xFF;
@@ -1240,15 +1240,15 @@ public final class TrainMapPanelRenderer
         final int outB = (int)(ab + (bb - ab) * t);
         return outA << 24 | outR << 16 | outG << 8 | outB;
     }
-    
+
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }
-    
+
     private static float clampFloat(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
     }
-    
+
     private static void fillCircle(NativeImage image, int cx, int cy, int r, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -1265,13 +1265,13 @@ public final class TrainMapPanelRenderer
             }
         }
     }
-    
+
     private static void setPixelSafe(NativeImage image, int x, int y, int argbColor) {
         if (x >= 0 && x < image.getWidth() && y >= 0 && y < image.getHeight()) {
             image.setPixelRGBA(x, y, BitmapFont.argbToAbgr(argbColor));
         }
     }
-    
+
     private static final class CachedTrainLayout
     {
         int hash;
@@ -1291,7 +1291,7 @@ public final class TrainMapPanelRenderer
         Map<UUID, UUID> effectiveMap;
         List<EdgeInfo> edges;
     }
-    
+
     private static final class NodeInfo
     {
         final UUID id;
@@ -1304,14 +1304,14 @@ public final class TrainMapPanelRenderer
         double worldX;
         double worldZ;
         boolean assembling;
-        
+
         NodeInfo(UUID id, String primaryLabel, boolean group, String groupPattern) {
             this.id = id;
             this.primaryLabel = primaryLabel;
             this.group = group;
             this.groupPattern = groupPattern;
         }
-        
+
         void addStation(TrainMapData.StationEntry station) {
             this.worldX += station.x;
             this.worldZ += station.z;
@@ -1320,7 +1320,7 @@ public final class TrainMapPanelRenderer
             ++this.samples;
         }
     }
-    
+
     private static final class EdgeInfo
     {
         final UUID a;
@@ -1328,7 +1328,7 @@ public final class TrainMapPanelRenderer
         final String key;
         final int routeIndex;
         int routeCount;
-        
+
         EdgeInfo(UUID a, UUID b, String key, int routeIndex) {
             this.a = a;
             this.b = b;
@@ -1337,20 +1337,20 @@ public final class TrainMapPanelRenderer
             this.routeCount = 0;
         }
     }
-    
+
     private static final class GroupResolution
     {
         final Map<UUID, UUID> effectiveMap;
         final Map<String, List<UUID>> groupMembers;
         final Map<UUID, String> stationToGroup;
-        
+
         GroupResolution(Map<UUID, UUID> effectiveMap, Map<String, List<UUID>> groupMembers, Map<UUID, String> stationToGroup) {
             this.effectiveMap = effectiveMap;
             this.groupMembers = groupMembers;
             this.stationToGroup = stationToGroup;
         }
     }
-    
+
     private static final class LabelCandidate
     {
         final String text;
@@ -1359,7 +1359,7 @@ public final class TrainMapPanelRenderer
         final int color;
         final int priority;
         final boolean emphasized;
-        
+
         LabelCandidate(String text, int centerX, int baseY, int color, int priority, boolean emphasized) {
             this.text = text;
             this.centerX = centerX;

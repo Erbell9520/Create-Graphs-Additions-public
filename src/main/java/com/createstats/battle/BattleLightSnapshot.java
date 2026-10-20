@@ -7,9 +7,7 @@ import net.minecraft.nbt.Tag;
 import java.util.ArrayList;
 import java.util.List;
 
-/** [1] */
 public record BattleLightSnapshot(List<Entry> lights) {
-
     private static final BattleLightSnapshot EMPTY = new BattleLightSnapshot(List.of());
 
     public static BattleLightSnapshot empty() {
@@ -49,12 +47,10 @@ public record BattleLightSnapshot(List<Entry> lights) {
         return new BattleLightSnapshot(List.copyOf(entries));
     }
 
-    /** One Stage Light's display + control state. {@code pos} is the block's packed position (world or sub-level). */
     public record Entry(long pos, boolean lit, int pan, int tilt, int range, int brightness,
                         int focus, int tint, boolean beamVisible, boolean volumetric, int trackingRange,
                         int beamWidth, int lightSpread, boolean tracking, int maxRange, int peakRange,
                         String trackingName, int effect, int effectSpeed) {
-
         public CompoundTag save() {
             CompoundTag t = new CompoundTag();
             t.putLong("P", this.pos);

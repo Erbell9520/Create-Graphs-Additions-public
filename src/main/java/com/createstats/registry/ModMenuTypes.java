@@ -1,7 +1,6 @@
 package com.createstats.registry;
 
 import com.createstats.CreateStats;
-import com.createstats.menu.BattleScreenLinkedControllerMenu;
 import com.createstats.flight.menu.FlightControlComputerMenu;
 import com.createstats.menu.FactoryLogicControllerMenu;
 import com.createstats.pathfinder.menu.PathfinderComputerMenu;
@@ -15,18 +14,23 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.core.registries.Registries;
 
 public class ModMenuTypes {
-
     private static final DeferredRegister<MenuType<?>> MENUS =
             DeferredRegister.create(Registries.MENU, CreateStats.MOD_ID);
+
+    public static final DeferredHolder<MenuType<?>, MenuType<com.createstats.menu.ArcFurnaceMenu>> ARC_FURNACE =
+            MENUS.register("arc_furnace", () -> IMenuTypeExtension.create(com.createstats.menu.ArcFurnaceMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<com.createstats.menu.InductionSmelterMenu>> INDUCTION_SMELTER =
+            MENUS.register("induction_smelter", () -> IMenuTypeExtension.create(com.createstats.menu.InductionSmelterMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<FactoryLogicControllerMenu>> FACTORY_LOGIC_CONTROLLER =
             MENUS.register("factory_logic_controller", () -> IMenuTypeExtension.create(FactoryLogicControllerMenu::new));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<BattleScreenLinkedControllerMenu>> BATTLE_SCREEN_LINKED_CONTROLLER =
-            MENUS.register("battle_screen_linked_controller", () -> IMenuTypeExtension.create(BattleScreenLinkedControllerMenu::new));
-
     public static final DeferredHolder<MenuType<?>, MenuType<FlightControlComputerMenu>> FLIGHT_CONTROL_COMPUTER =
             MENUS.register("flight_control_computer", () -> IMenuTypeExtension.create(FlightControlComputerMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<com.createstats.vccmk3.VccMk3Menu>> VCC_MK3 =
+            MENUS.register("vcc_mk3", () -> IMenuTypeExtension.create(com.createstats.vccmk3.VccMk3Menu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<com.createstats.vccmk2.VccMk2Menu>> VCC_MK_II =
             MENUS.register("vcc_mk2", () -> IMenuTypeExtension.create(com.createstats.vccmk2.VccMk2Menu::new));
@@ -36,6 +40,9 @@ public class ModMenuTypes {
 
     public static final DeferredHolder<MenuType<?>, MenuType<PathfinderComputerMenu>> PATHFINDER_COMPUTER =
             MENUS.register("pathfinder_computer", () -> IMenuTypeExtension.create(PathfinderComputerMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<com.createstats.menu.SecurityLockerMenu>> SECURITY_LOCKER =
+            MENUS.register("security_locker", () -> IMenuTypeExtension.create(com.createstats.menu.SecurityLockerMenu::new));
 
     public static void register(IEventBus modEventBus) {
         MENUS.register(modEventBus);

@@ -1,0 +1,77 @@
+{
+  "__generator": "gen_powered_door.py",
+  "textures": {
+    "glass": "create_stats:block/powered_door/brass_glass",
+    "particle": "create_stats:block/powered_door/brass_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        19,
+        1
+      ],
+      "to": [
+        7,
+        28,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            4,
+            13,
+            13
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            3,
+            4,
+            7,
+            13
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            1,
+            4,
+            3,
+            13
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            1,
+            4,
+            3,
+            13
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            3,
+            1,
+            7,
+            3
+          ],
+          "texture": "#glass"
+        },
+        "down": {
+          "uv": [
+            3,
+            1,
+            7,
+            3
+          ],
+          "texture": "#glass"
+        }
+      }
+    }
+  ]
+}

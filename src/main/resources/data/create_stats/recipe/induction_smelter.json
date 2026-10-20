@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BEB",
+    "CFC",
+    "III"
+  ],
+  "key": {
+    "B": { "item": "create:brass_sheet" },
+    "E": { "item": "create_stats:induction_coil" },
+    "C": { "item": "minecraft:copper_block" },
+    "F": { "item": "minecraft:furnace" },
+    "I": { "item": "create:iron_sheet" }
+  },
+  "result": {
+    "id": "create_stats:induction_smelter",
+    "count": 1
+  },
+  "show_notification": true
+}

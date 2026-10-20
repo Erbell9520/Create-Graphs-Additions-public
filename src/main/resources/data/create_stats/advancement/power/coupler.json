@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:power/meter",
+  "display": {
+    "icon": {
+      "id": "create_stats:universal_power_coupler"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.coupler.title",
+      "fallback": "Bootleg Electricity"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.coupler.description",
+      "fallback": "Place a Universal Power Coupler and borrow another mod's power. The meter reader will never know."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "coupler": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:universal_power_coupler"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "coupler"
+    ]
+  ]
+}

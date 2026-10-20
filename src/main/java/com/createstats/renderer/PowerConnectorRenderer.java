@@ -12,20 +12,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
-/** [1] */
 public class PowerConnectorRenderer implements BlockEntityRenderer<PowerConnectorBE> {
-
-    /**
-     * Height of the copper terminal's centre above the mounting face, in block units.
-     * Matches {@code TERMINAL_CENTRE_H} in {@code gen_power_connector.py}.
-     */
     private static final double TERMINAL_CENTRE = 11.0 / 16.0;
-    /** Slack as a fraction of the straight-line distance: ~2% longer, so the hang is taut, not droopy. */
-    private static final double SLACK = 1.02;
-    /** Copper cable sprite (greyscale twist, tinted per grade), bound directly rather than atlased. */
+
+    private static final int SIDES = 8;
+
+    private static final double LAY_PERIOD = 0.55;
+
     private static final net.minecraft.resources.ResourceLocation WIRE_TEXTURE =
             net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("create_stats", "textures/block/wire.png");
-
 
     public PowerConnectorRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -41,18 +36,12 @@ public class PowerConnectorRenderer implements BlockEntityRenderer<PowerConnecto
         final Matrix4f matrix = poseStack.last().pose();
         final net.minecraft.world.phys.Vec3 from = attachPoint(be.getBlockState());
         for (BlockPos link : be.links()) {
-            if (be.getLevel() != null && be.getLevel().getBlockState(link).getBlock()
-                    instanceof com.createstats.block.PowerDistributionUnitBlock) {
-                continue; // a wire to an output stud: the panel draws that one, from the stud's centre
+            if (!drawsSpan(be.getLevel(), origin, link)) {
+                continue;
             }
-            if (link.asLong() <= origin.asLong()) {
-                continue; // the other end draws this wire
-            }
-            // [2]
-            final net.minecraft.world.phys.Vec3 to = be.getLevel() == null
-                    ? attachPoint(null)
-                    : attachPoint(be.getLevel().getBlockState(link));
-            drawCable(consumer, matrix,
+
+            final net.minecraft.world.phys.Vec3 to = attachPoint(be.getLevel(), link, origin);
+            drawCable(consumer, matrix, be.getLevel(), origin, link,
                     (float) from.x, (float) from.y, (float) from.z,
                     (float) (link.getX() - origin.getX() + to.x),
                     (float) (link.getY() - origin.getY() + to.y),
@@ -61,87 +50,286 @@ public class PowerConnectorRenderer implements BlockEntityRenderer<PowerConnecto
         }
     }
 
-    /** [3] */
+    // a stud panel at the far end always draws, it knows which stud
+    public static boolean drawsSpan(@org.jetbrains.annotations.Nullable net.minecraft.world.level.BlockGetter level,
+                                    BlockPos origin, BlockPos link) {
+        if (isStudPanel(level, link)) {
+            return false;
+        }
+        if (link.asLong() > origin.asLong()) {
+            return true;
+        }
+        if (com.createstats.power.ForeignTerminalNode.isBridgeTarget(level, link)) {
+            return true;
+        }
+
+        if (level == null || !(level.getBlockState(origin).getBlock()
+                instanceof com.createstats.block.UniversalPowerCouplerBlock)) {
+            return false;
+        }
+
+        final net.minecraft.world.level.block.entity.BlockEntity far = level.getBlockEntity(link);
+        return !(far instanceof com.createstats.power.FeWireTerminal)
+                && !(far instanceof com.createstats.power.FeStudPanel);
+    }
+
+    public static boolean isStudPanel(
+            @org.jetbrains.annotations.Nullable net.minecraft.world.level.BlockGetter level, BlockPos pos) {
+        if (level == null) {
+            return false;
+        }
+        final net.minecraft.world.level.block.Block block = level.getBlockState(pos).getBlock();
+        return block instanceof com.createstats.block.PowerDistributionUnitBlock
+                || block instanceof com.createstats.block.DiagnosticJunctionBlock
+                || block instanceof com.createstats.block.BatteryControllerBlock
+
+                || block instanceof com.createstats.block.MainBreakerBlock
+
+                || block instanceof com.createstats.block.ContactorBlock
+
+                || block instanceof com.createstats.block.SparkCrownBlock
+
+                || block instanceof com.createstats.block.StormCoilBlock;
+    }
+
+    public static net.minecraft.world.phys.Vec3 attachPoint(
+            @org.jetbrains.annotations.Nullable net.minecraft.world.level.BlockGetter level, BlockPos pos) {
+        if (level == null) {
+            return attachPoint((net.minecraft.world.level.block.state.BlockState) null);
+        }
+        if (com.createstats.power.ForeignTerminalNode.isBridgeTarget(level, pos)) {
+            return com.createstats.power.ForeignTerminalNode.anchorOf(level, pos);
+        }
+        return attachPoint(level.getBlockState(pos));
+    }
+
+    public static net.minecraft.world.phys.Vec3 attachPoint(
+            @org.jetbrains.annotations.Nullable net.minecraft.world.level.BlockGetter level,
+            BlockPos pos, BlockPos from) {
+        if (level != null
+                && level.getBlockState(pos).getBlock()
+                        instanceof com.createstats.block.UniversalPowerCouplerBlock) {
+            return com.createstats.power.CouplerSockets.anchor(level.getBlockState(pos),
+                    com.createstats.power.CouplerSockets.endToward(level.getBlockState(pos), pos, from));
+        }
+        return attachPoint(level, pos);
+    }
+
     public static net.minecraft.world.phys.Vec3 attachPoint(
             @org.jetbrains.annotations.Nullable net.minecraft.world.level.block.state.BlockState state) {
         if (state != null && state.getBlock() instanceof com.createstats.block.FeMotorBlock) {
             return FeMotorRenderer.studAttachPoint(state);
         }
+        if (state != null && state.getBlock() instanceof com.createstats.block.CoffeeMachineBlock) {
+            return CoffeeMachineRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.WaterCoolerBlock) {
+            return WaterCoolerRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.AirFryerBlock) {
+            return AirFryerRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.BulkWasherBlock) {
+            return BulkWasherRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.OvenBlock) {
+            return OvenRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.ToasterBlock) {
+            return ToasterRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.BreadSlicerBlock) {
+            return BreadSlicerRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.SecuritySensorBlock) {
+            return SecuritySensorRenderer.terminalAttachPoint(state);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.SparkCrownBlock) {
+            final double[] p = com.createstats.chunkloader.core.CrownStuds.bayCentre(
+                    com.createstats.chunkloader.core.CrownStuds.turnsFor(
+                            state.getValue(com.createstats.block.SparkCrownBlock.FACING).getName()));
+            return new net.minecraft.world.phys.Vec3(p[0], p[1], p[2]);
+        }
+        if (state != null && state.getBlock() instanceof com.createstats.block.UniversalPowerCouplerBlock) {
+            return com.createstats.power.CouplerSockets.anchor(
+                    state, com.createstats.power.CouplerSockets.End.FOREIGN);
+        }
         if (state == null || !(state.getBlock() instanceof com.createstats.block.PowerConnectorBlock)) {
             return new net.minecraft.world.phys.Vec3(0.5, 0.5, 0.5);
         }
-        final net.minecraft.core.Direction facing = state.getValue(com.createstats.block.PowerConnectorBlock.FACING);
+        return connectorTerminal(state.getValue(com.createstats.block.PowerConnectorBlock.FACING),
+                state.getValue(com.createstats.block.PowerConnectorBlock.ANCHOR));
+    }
+
+    public static net.minecraft.world.phys.Vec3 connectorTerminal(net.minecraft.core.Direction facing,
+                                                                  com.createstats.block.ConnectorAnchor placed) {
         final com.createstats.block.ConnectorAnchor anchor = com.createstats.block.ConnectorAnchor.inPlaneOf(
-                facing, state.getValue(com.createstats.block.PowerConnectorBlock.ANCHOR));
-        // Start at the centre of the mounting face, step out to the terminal, then apply the anchor.
+                facing, placed);
+
         double x = 0.5 + facing.getStepX() * (TERMINAL_CENTRE - 0.5) + anchor.offset(net.minecraft.core.Direction.Axis.X);
         double y = 0.5 + facing.getStepY() * (TERMINAL_CENTRE - 0.5) + anchor.offset(net.minecraft.core.Direction.Axis.Y);
         double z = 0.5 + facing.getStepZ() * (TERMINAL_CENTRE - 0.5) + anchor.offset(net.minecraft.core.Direction.Axis.Z);
         return new net.minecraft.world.phys.Vec3(x, y, z);
     }
 
-    /** [4] */
     public static VertexConsumer wireBuffer(MultiBufferSource buffers) {
-        return buffers.getBuffer(RenderType.entityCutoutNoCull(WIRE_TEXTURE));
+        return Buffers.live(buffers, RenderType.entityCutoutNoCull(WIRE_TEXTURE));
     }
 
-    /** [5] */
     public static void drawCable(VertexConsumer vc, Matrix4f mat,
                                  float x0, float y0, float z0, float x1, float y1, float z1,
                                  int light, com.createstats.power.WireTier tier) {
+        drawCable(vc, mat, x0, y0, z0, x1, y1, z1, light, tier,
+                com.createstats.power.WireTension.STANDARD.slack());
+    }
+
+    public static void drawCable(VertexConsumer vc, Matrix4f mat,
+                                 @org.jetbrains.annotations.Nullable net.minecraft.world.level.BlockGetter level,
+                                 BlockPos origin, BlockPos link,
+                                 float x0, float y0, float z0, float x1, float y1, float z1,
+                                 int light, com.createstats.power.WireTier tier) {
+        drawCable(vc, mat, x0, y0, z0, x1, y1, z1,
+                com.createstats.client.wire.WireTensionView.light(origin, link, light), tier,
+                com.createstats.client.wire.WireTensionView.slack(level, origin, link));
+    }
+
+    public static void drawCable(VertexConsumer vc, Matrix4f mat,
+                                 float x0, float y0, float z0, float x1, float y1, float z1,
+                                 int light, com.createstats.power.WireTier tier, double slack) {
         final double dist = Math.sqrt((double) (x1 - x0) * (x1 - x0)
                 + (double) (y1 - y0) * (y1 - y0) + (double) (z1 - z0) * (z1 - z0));
         if (dist < 1.0e-4) {
             return;
         }
-        final int segs = Math.max(8, Math.min(64, (int) Math.round(dist / 0.4)));
-        final double[][] p = catenary(x0, y0, z0, x1, y1, z1, segs);
-        final float r = tier.halfThickness();
-        final int[] col = tier.strandA();
+        final int segs = Mth.clamp((int) Math.round(dist / 0.5), 6, 48);
+
+        drawTube(vc, mat, catenary(x0, y0, z0, x1, y1, z1, segs, slack), light,
+                tier.halfThickness() * 1.15, tier.strandA());
+    }
+
+    public static void drawTube(VertexConsumer vc, Matrix4f mat, double[][] p, int light,
+                                double radius, int[] col) {
+        final int segs = p.length - 1;
+        if (segs < 1) {
+            return;
+        }
+        final double r = radius;
+
+        final double[] start = tangent(p, 0, segs);
+        double[] right = perpendicular(start);
+        double[] up = cross(right, start);
+
+        final double[] dirA = new double[SIDES * 3];
+        final double[] dirB = new double[SIDES * 3];
+        final double[] ringA = new double[SIDES * 3];
+        final double[] ringB = new double[SIDES * 3];
+        ring(p[0], right, up, r, dirA, ringA);
+        double arc = 0.0;
+
         for (int i = 0; i < segs; i++) {
             final double[] a = p[i];
             final double[] b = p[i + 1];
-            final double ddx = b[0] - a[0], ddy = b[1] - a[1], ddz = b[2] - a[2];
-            final double horiz = Math.sqrt(ddx * ddx + ddz * ddz);
-            // Horizontal normal across the run, then a vertical normal completing the frame.
-            double hnx, hny, hnz;
-            if (horiz < 1.0e-5) {
-                hnx = 1.0;
-                hny = 0.0;
-                hnz = 0.0;
-            } else {
-                hnx = -ddz / horiz;
-                hny = 0.0;
-                hnz = ddx / horiz;
+            final double step = Math.sqrt((b[0] - a[0]) * (b[0] - a[0])
+                    + (b[1] - a[1]) * (b[1] - a[1]) + (b[2] - a[2]) * (b[2] - a[2]));
+
+            final double[] next = tangent(p, i + 1, segs);
+            right = transport(right, next);
+            up = cross(right, next);
+            ring(b, right, up, r, dirB, ringB);
+
+            final float v0 = (float) (arc / LAY_PERIOD);
+            final float v1 = (float) ((arc + step) / LAY_PERIOD);
+            for (int k = 0; k < SIDES; k++) {
+                final int k0 = k * 3;
+                final int k1 = ((k + 1) % SIDES) * 3;
+                final float u0 = (float) k / SIDES;
+                final float u1 = (float) (k + 1) / SIDES;
+
+                final double nx = dirA[k0] + dirA[k1] + dirB[k0] + dirB[k1];
+                final double ny = dirA[k0 + 1] + dirA[k1 + 1] + dirB[k0 + 1] + dirB[k1 + 1];
+                final double nz = dirA[k0 + 2] + dirA[k1 + 2] + dirB[k0 + 2] + dirB[k1 + 2];
+                final double nl = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                final float fnx = nl < 1.0e-9 ? 0.0f : (float) (nx / nl);
+                final float fny = nl < 1.0e-9 ? 1.0f : (float) (ny / nl);
+                final float fnz = nl < 1.0e-9 ? 0.0f : (float) (nz / nl);
+                put(vc, mat, ringA, k0, u0, v0, col, light, fnx, fny, fnz);
+                put(vc, mat, ringA, k1, u1, v0, col, light, fnx, fny, fnz);
+                put(vc, mat, ringB, k1, u1, v1, col, light, fnx, fny, fnz);
+                put(vc, mat, ringB, k0, u0, v1, col, light, fnx, fny, fnz);
             }
-            double vnx = (-ddy) * hnz - (-ddz) * hny;
-            double vny = (-ddz) * hnx - (-ddx) * hnz;
-            double vnz = (-ddx) * hny - (-ddy) * hnx;
-            final double vl = Math.sqrt(vnx * vnx + vny * vny + vnz * vnz);
-            if (vl > 1.0e-6) {
-                vnx /= vl;
-                vny /= vl;
-                vnz /= vl;
-            }
-            // The flat ribbon (offset by the horizontal normal), lit by the vertical normal; and the
-            // upright ribbon (offset by the vertical normal), lit by the horizontal normal.
-            emitBidiQuad(vc, mat, a, b, hnx * r, hny * r, hnz * r, vnx, vny, vnz, col, light);
-            emitBidiQuad(vc, mat, a, b, vnx * r, vny * r, vnz * r, hnx, hny, hnz, col, light);
+            System.arraycopy(ringB, 0, ringA, 0, ringA.length);
+            System.arraycopy(dirB, 0, dirA, 0, dirA.length);
+            arc += step;
         }
     }
 
-    /** A small-slack catenary sampled into {@code segs} points, ported from the Immersive Engineering
-     *  wire maths: taut like real strung cable rather than the deep parabola we had. */
+    private static double[] tangent(double[][] p, int i, int segs) {
+        final int lo = Math.max(0, i - 1);
+        final int hi = Math.min(segs, i + 1);
+        final double[] a = p[lo];
+        final double[] b = p[hi];
+        return normalize(b[0] - a[0], b[1] - a[1], b[2] - a[2], 0.0, 1.0, 0.0);
+    }
+
+    private static double[] perpendicular(double[] t) {
+        final double[] seed = Math.abs(t[1]) > 0.9 ? new double[] {1.0, 0.0, 0.0} : new double[] {0.0, 1.0, 0.0};
+        final double[] out = cross(seed, t);
+        return normalize(out[0], out[1], out[2], 1.0, 0.0, 0.0);
+    }
+
+    private static double[] transport(double[] right, double[] tangent) {
+        final double d = right[0] * tangent[0] + right[1] * tangent[1] + right[2] * tangent[2];
+        final double x = right[0] - tangent[0] * d;
+        final double y = right[1] - tangent[1] * d;
+        final double z = right[2] - tangent[2] * d;
+
+        if (x * x + y * y + z * z < 1.0e-12) {
+            return perpendicular(tangent);
+        }
+        return normalize(x, y, z, 1.0, 0.0, 0.0);
+    }
+
+    private static void ring(double[] centre, double[] right, double[] up, double r,
+                             double[] dirOut, double[] posOut) {
+        for (int k = 0; k < SIDES; k++) {
+            final double angle = 2.0 * Math.PI * k / SIDES;
+            final double c = Math.cos(angle);
+            final double s = Math.sin(angle);
+            final int o = k * 3;
+            dirOut[o] = right[0] * c + up[0] * s;
+            dirOut[o + 1] = right[1] * c + up[1] * s;
+            dirOut[o + 2] = right[2] * c + up[2] * s;
+            posOut[o] = centre[0] + dirOut[o] * r;
+            posOut[o + 1] = centre[1] + dirOut[o + 1] * r;
+            posOut[o + 2] = centre[2] + dirOut[o + 2] * r;
+        }
+    }
+
+    private static double[] cross(double[] a, double[] b) {
+        return new double[] {
+                a[1] * b[2] - a[2] * b[1],
+                a[2] * b[0] - a[0] * b[2],
+                a[0] * b[1] - a[1] * b[0]};
+    }
+
+    private static double[] normalize(double x, double y, double z, double fx, double fy, double fz) {
+        final double l = Math.sqrt(x * x + y * y + z * z);
+        if (l < 1.0e-9) {
+            return new double[] {fx, fy, fz};
+        }
+        return new double[] {x / l, y / l, z / l};
+    }
+
     private static double[][] catenary(double x0, double y0, double z0,
-                                       double x1, double y1, double z1, int segs) {
+                                       double x1, double y1, double z1, int segs, double slack) {
         final double dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
         final double horLength = Math.sqrt(dx * dx + dz * dz);
         final double[][] out = new double[segs + 1][];
         final double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        final double wireLength = dist * SLACK;
+        final double wireLength = dist * slack;
         final double goal = horLength < 1.0e-4 ? 0.0
                 : Math.sqrt(Math.max(1.0e-9, wireLength * wireLength - dy * dy)) / horLength;
-        if (horLength < 1.0e-4 || goal <= 1.0) {                    // vertical or already taut: straight
+        if (horLength < 1.0e-4 || goal <= 1.0) {
             for (int i = 0; i <= segs; i++) {
                 final double t = (double) i / segs;
                 out[i] = new double[] {x0 + dx * t, y0 + dy * t, z0 + dz * t};
@@ -174,23 +362,10 @@ public class PowerConnectorRenderer implements BlockEntityRenderer<PowerConnecto
         return out;
     }
 
-    /** One segment ribbon, emitted front and back so the cable is lit and visible from either side. */
-    private static void emitBidiQuad(VertexConsumer vc, Matrix4f mat, double[] a, double[] b,
-                                     double rx, double ry, double rz,
-                                     double nx, double ny, double nz, int[] col, int light) {
-        final float ax0 = (float) (a[0] + rx), ay0 = (float) (a[1] + ry), az0 = (float) (a[2] + rz);
-        final float ax1 = (float) (a[0] - rx), ay1 = (float) (a[1] - ry), az1 = (float) (a[2] - rz);
-        final float bx0 = (float) (b[0] + rx), by0 = (float) (b[1] + ry), bz0 = (float) (b[2] + rz);
-        final float bx1 = (float) (b[0] - rx), by1 = (float) (b[1] - ry), bz1 = (float) (b[2] - rz);
-        final float fnx = (float) nx, fny = (float) ny, fnz = (float) nz;
-        put(vc, mat, ax0, ay0, az0, 0.0f, 0.0f, col, light, fnx, fny, fnz);
-        put(vc, mat, bx0, by0, bz0, 1.0f, 0.0f, col, light, fnx, fny, fnz);
-        put(vc, mat, bx1, by1, bz1, 1.0f, 1.0f, col, light, fnx, fny, fnz);
-        put(vc, mat, ax1, ay1, az1, 0.0f, 1.0f, col, light, fnx, fny, fnz);
-        put(vc, mat, ax1, ay1, az1, 0.0f, 1.0f, col, light, -fnx, -fny, -fnz);
-        put(vc, mat, bx1, by1, bz1, 1.0f, 1.0f, col, light, -fnx, -fny, -fnz);
-        put(vc, mat, bx0, by0, bz0, 1.0f, 0.0f, col, light, -fnx, -fny, -fnz);
-        put(vc, mat, ax0, ay0, az0, 0.0f, 0.0f, col, light, -fnx, -fny, -fnz);
+    private static void put(VertexConsumer vc, Matrix4f mat, double[] ring, int offset,
+                            float u, float v, int[] col, int light, float nx, float ny, float nz) {
+        put(vc, mat, (float) ring[offset], (float) ring[offset + 1], (float) ring[offset + 2],
+                u, v, col, light, nx, ny, nz);
     }
 
     private static void put(VertexConsumer vc, Matrix4f mat, float x, float y, float z,
@@ -203,13 +378,89 @@ public class PowerConnectorRenderer implements BlockEntityRenderer<PowerConnecto
                 .setNormal(nx, ny, nz);
     }
 
+    public static void drawCap(VertexConsumer vc, Matrix4f mat, double[] centre, double[] outward,
+                               double radius, int[] col, int light) {
+        final double[] right = perpendicular(outward);
+        final double[] up = cross(right, outward);
+        final double[] dir = new double[SIDES * 3];
+        final double[] pos = new double[SIDES * 3];
+        ring(centre, right, up, radius, dir, pos);
+        final float nx = (float) outward[0];
+        final float ny = (float) outward[1];
+        final float nz = (float) outward[2];
+        final float cx = (float) centre[0];
+        final float cy = (float) centre[1];
+        final float cz = (float) centre[2];
+        for (int k = 0; k < SIDES; k++) {
+            final int k0 = k * 3;
+            final int k1 = ((k + 1) % SIDES) * 3;
+            final float u0 = (float) k / SIDES;
+            final float u1 = (float) (k + 1) / SIDES;
+
+            put(vc, mat, cx, cy, cz, 0.5f, 0.5f, col, light, nx, ny, nz);
+            put(vc, mat, (float) pos[k0], (float) pos[k0 + 1], (float) pos[k0 + 2], u0, 1.0f, col, light, nx, ny, nz);
+            put(vc, mat, (float) pos[k1], (float) pos[k1 + 1], (float) pos[k1 + 2], u1, 1.0f, col, light, nx, ny, nz);
+            put(vc, mat, cx, cy, cz, 0.5f, 0.5f, col, light, nx, ny, nz);
+        }
+    }
+
+    public static final class WireBounds {
+        private static final double SAG_PER_BLOCK = com.createstats.power.WireTension.loosest().sagPerBlock();
+
+        private double minX;
+        private double minY;
+        private double minZ;
+        private double maxX;
+        private double maxY;
+        private double maxZ;
+        private double span;
+
+        public WireBounds(BlockPos origin) {
+            minX = origin.getX();
+            minY = origin.getY();
+            minZ = origin.getZ();
+            maxX = origin.getX() + 1.0;
+            maxY = origin.getY() + 1.0;
+            maxZ = origin.getZ() + 1.0;
+        }
+
+        public void include(BlockPos end) {
+            minX = Math.min(minX, end.getX());
+            minY = Math.min(minY, end.getY());
+            minZ = Math.min(minZ, end.getZ());
+            maxX = Math.max(maxX, end.getX() + 1.0);
+            maxY = Math.max(maxY, end.getY() + 1.0);
+            maxZ = Math.max(maxZ, end.getZ() + 1.0);
+            span = Math.max(span, Math.max(maxX - minX, maxZ - minZ));
+        }
+
+        public net.minecraft.world.phys.AABB build() {
+            return new net.minecraft.world.phys.AABB(minX, minY, minZ, maxX, maxY, maxZ)
+                    .expandTowards(0.0, -(span * SAG_PER_BLOCK + 0.5), 0.0);
+        }
+    }
+
+    public static net.minecraft.world.phys.AABB wireBounds(BlockPos origin, Iterable<BlockPos> ends) {
+        final WireBounds bounds = new WireBounds(origin);
+        for (BlockPos end : ends) {
+            bounds.include(end);
+        }
+        return bounds.build();
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen(PowerConnectorBE be) {
+        return true;
+    }
+
     @Override
     public int getViewDistance() {
-        return 96;
+        return com.createstats.ModConfiguration.cappedViewDistance(
+                64 + PowerConnectorBE.wireRange());
     }
 
     @Override
     public net.minecraft.world.phys.AABB getRenderBoundingBox(PowerConnectorBE be) {
-        return new net.minecraft.world.phys.AABB(be.getBlockPos()).inflate(PowerConnectorBE.wireRange() + 1);
+        return wireBounds(be.getBlockPos(), be.links());
     }
 }

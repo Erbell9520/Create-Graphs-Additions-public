@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "P",
+    "B"
+  ],
+  "key": {
+    "P": { "item": "create_stats:stats_display_mk3" },
+    "B": { "item": "create:brass_casing" }
+  },
+  "result": { "id": "create_stats:stats_display_mk3_console", "count": 1 }
+}

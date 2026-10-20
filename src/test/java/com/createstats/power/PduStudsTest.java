@@ -7,9 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduStudsTest {
-
     private static final Direction[] FACINGS =
             {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
@@ -86,7 +84,6 @@ class PduStudsTest {
     @Test
     @DisplayName("aiming off the bus bar picks nothing rather than the nearest stud anyway")
     void missesAreMisses() {
-        // The very corner of the block, which is bus bar edge and console shoulder, not a terminal.
         assertEquals(-1, PduStuds.pick(Direction.NORTH, 0.02, 0.02));
         assertEquals(-1, PduStuds.pick(Direction.NORTH, 0.98, 0.98));
     }

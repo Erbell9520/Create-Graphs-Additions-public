@@ -47,7 +47,7 @@ public final class SpecializedPanelRenderer
     private static final int COMPACT_HORIZON_LABEL_PAD = 4;
     private static boolean pinnedHudStyleActive = false;
     private static float pinnedHudStyleOpacity = 1.0f;
-    
+
     private SpecializedPanelRenderer() {
     }
 
@@ -74,7 +74,7 @@ public final class SpecializedPanelRenderer
         final int scaledAlpha = Math.max(8, Math.round(baseAlpha * pinnedHudStyleOpacity));
         return (scaledAlpha << 24) | (color & 0x00FFFFFF);
     }
-     
+
     public static boolean renderSpecializedPanel(NativeImage image, StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels, String preferredSourceId, long renderTick) {
         final LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>> bySource = groupBySource(channels);
         final SourceSelection source = be.getSettings().isAerolineDirectorEnabled()
@@ -186,7 +186,7 @@ public final class SpecializedPanelRenderer
             default -> false;
         };
     }
-    
+
     public static boolean renderSpecializedPanelGUI(GuiGraphics g, Font font, int x, int y, int w, int h, StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels, String preferredSourceId, long renderTick) {
         return renderSpecializedPanelGUI(g, font, x, y, w, h, be, channels, preferredSourceId, renderTick, be.getSettings().isAeroFlightDeckEnabled());
     }
@@ -346,7 +346,8 @@ public final class SpecializedPanelRenderer
             }
             case "battle.bridge": {
                 final StatsDisplayPanelBE.BattleScreenLink battleLink = findBattleScreenLink(be, source);
-                // [1]
+                // 2D fallback at big gui sizes, the baked tactical shears
+
                 final boolean force2DConsole =
                         com.createstats.client.battle.BattleTacticalV2Viewport3D.isForce2D(be.getBlockPos());
                 if (battleLink != null && battleLink.getBattleViewMode() == 1 && !force2DConsole) {
@@ -2149,7 +2150,6 @@ public final class SpecializedPanelRenderer
         g.drawCenteredString(font, truncateGui(font, readout.footerText, w - 8), x + w / 2, y + h - font.lineHeight - 2, theme.dim);
     }
 
-    
     private static void renderStressometerTexture(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, long tick) {
         final StatsDisplayPanelBE.DataChannel stressPctCh = findMetric(source, "stress_pct", "Stress %");
         final StatsDisplayPanelBE.DataChannel stressSuCh = findMetric(source, "stress_su", "Current Stress (SU)");
@@ -2199,7 +2199,7 @@ public final class SpecializedPanelRenderer
             TextureGraphRenderer.drawBorder(image, 1, 1, w - 2, h - 2, 2, theme.warn);
         }
     }
-    
+
     private static void renderStockpileTexture(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, long tick) {
         final StockpileReadout readout = resolveStockpileReadout(source);
         if (readout == null) {
@@ -2268,7 +2268,7 @@ public final class SpecializedPanelRenderer
         final int diagramH = Math.max(42, h - diagramY - pad);
         drawAccumulatorFlowDiagramTexture(image, pad, diagramY, w - pad * 2, diagramH, readout, theme, tick);
     }
-    
+
     private static void renderStressometerGui(GuiGraphics g, Font font, int x, int y, int w, int h, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, long tick) {
         final StatsDisplayPanelBE.DataChannel stressPctCh = findMetric(source, "stress_pct", "Stress %");
         final StatsDisplayPanelBE.DataChannel stressSuCh = findMetric(source, "stress_su", "Current Stress (SU)");
@@ -2312,7 +2312,7 @@ public final class SpecializedPanelRenderer
             borderGui(g, x + 1, y + 1, w - 2, h - 2, theme.warn);
         }
     }
-    
+
     private static void renderStockpileGui(GuiGraphics g, Font font, int x, int y, int w, int h, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, long tick) {
         final StockpileReadout readout = resolveStockpileReadout(source);
         if (readout == null) {
@@ -2372,15 +2372,8 @@ public final class SpecializedPanelRenderer
         drawAccumulatorFlowDiagramGui(g, font, x + pad, diagramY, w - pad * 2, diagramH, readout, theme, tick);
     }
 
-    // ===== Capacitor Bank specialized renderer =====
-
-    /**
-     * Everything the Capacitor Bank page draws, resolved once so the texture and GUI variants can
-     * never disagree about what they are showing.
-     */
     private record CapacitorBankReadout(float stored, float capacity, float fillPct, int rate,
                                         int blocks, int layers, int enduranceTicks) {
-
         boolean charging() {
             return rate > 0;
         }
@@ -2412,7 +2405,6 @@ public final class SpecializedPanelRenderer
             return theme.accent;
         }
 
-        /** Charge colour ramp, matching the block's own face and the FE HUD language. */
         int chargeColor() {
             if (fillPct < 20.0f) {
                 return 0xFFFF4A4A;
@@ -2454,30 +2446,25 @@ public final class SpecializedPanelRenderer
         BitmapFont.drawString(image, truncate(source.label, Math.max(12, (w - pad * 2) / 6)), pad, subY, theme.dim, 1);
         drawBadgeTexture(image, w - pad - 96, subY - 2, 96, 12, r.stateLabel(), r.stateColor(theme));
 
-        // cell stack diagram down the left: one segment per block layer, filling bottom up,
-        // which is exactly how the real structure charges.
         final int bodyY = subY + 20;
         final int bodyH = Math.max(40, h - bodyY - pad - 46);
         final int stackW = Math.max(28, Math.min(64, w / 7));
         drawCellStackTexture(image, pad, bodyY, stackW, bodyH, r, theme, tick);
 
-        // flow rail. Capped rather than a fraction of the body: on a large multiblock panel a
-        // proportional rail became a huge empty band with two words floating in it.
         final int railX = pad + stackW + 10;
         final int railW = w - railX - pad;
         final int railH = Mth.clamp(bodyH / 6, 16, 34);
         drawEnergyRailTexture(image, railX, bodyY, railW, railH, r, theme, tick);
 
-        // headline figures under the rail.
         final int figY = bodyY + railH + 8;
         BitmapFont.drawString(image, String.format("%.1f%%", r.fillPct()), railX, figY, r.chargeColor(), 2);
         BitmapFont.drawString(image, formatEnergy(r.stored()) + "  /  " + formatEnergy(r.capacity()),
                 railX, figY + BitmapFont.textHeight(2) + 2, theme.text, 1);
 
-        // metric cards along the bottom.
         final int cardsY = Math.max(figY + BitmapFont.textHeight(2) + 16, bodyY + bodyH - 30);
 
-        // [2]
+        // fill the middle with the distribution graph, big panels were a black void
+
         final int graphY = figY + BitmapFont.textHeight(2) + 18;
         final int graphH = cardsY - graphY - 8;
         if (graphH > 18) {
@@ -2527,8 +2514,6 @@ public final class SpecializedPanelRenderer
         g.drawString(font, formatEnergy(r.stored()) + "  /  " + formatEnergy(r.capacity()),
                 railX, figY + 22, theme.text);
 
-        // Rolling throughput sparkline: the page's live element, so a bank under load reads as
-        // moving hardware rather than a static number.
         final int sparkY = figY + 36;
         final int sparkH = Math.max(22, bodyY + bodyH - sparkY - 4);
         if (sparkH > 16) {
@@ -2549,10 +2534,6 @@ public final class SpecializedPanelRenderer
                 r.blocks() + " / " + r.layers() + "L", theme, theme.accent);
     }
 
-    /**
-     * The cell stack: a scale drawing of the actual structure, one segment per block layer, filling
-     * from the bottom. The segment holding the charge front glows, so the diagram breathes.
-     */
     private static void drawCellStackTexture(NativeImage image, int x, int y, int w, int h,
                                              CapacitorBankReadout r, DisplayTheme theme, long tick) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, theme.graphBg);
@@ -2561,7 +2542,8 @@ public final class SpecializedPanelRenderer
         final float filled = r.fillPct() / 100.0f * layers;
         final int inset = 3;
         final int cellH = Math.max(3, (h - inset * 2) / layers);
-        // [3]
+        // still unless in trouble, motion means abnormal (ISA-101)
+
         final float pulse = r.fillPct() < 20.0f ? 0.7f + 0.3f * (float) Math.sin(tick * 0.05) : 1.0f;
         for (int i = 0; i < layers; i++) {
             final int cy = y + h - inset - (i + 1) * cellH;
@@ -2599,7 +2581,6 @@ public final class SpecializedPanelRenderer
         }
     }
 
-    /** [4] */
     private static void drawEnergyRailTexture(NativeImage image, int x, int y, int w, int h,
                                               CapacitorBankReadout r, DisplayTheme theme, long tick) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, theme.graphBg);
@@ -2645,7 +2626,6 @@ public final class SpecializedPanelRenderer
         }
     }
 
-    /** [5] */
     private static void drawThroughputSparkGui(GuiGraphics g, int x, int y, int w, int h,
                                                CapacitorBankReadout r, DisplayTheme theme, long tick) {
         g.fill(x, y, x + w, y + h, theme.graphBg);
@@ -2655,7 +2635,7 @@ public final class SpecializedPanelRenderer
             g.fill(x + 1, gy, x + w - 1, gy + 1, theme.grid);
         }
         final float now = Mth.clamp(r.fillPct() / 100.0f, 0.0f, 1.0f);
-        // Projection horizon: the endurance if we have one, else a flat line.
+
         final int horizon = r.enduranceTicks() > 0 ? r.enduranceTicks() : 0;
         final int colour = r.chargeColor();
         int previousY = -1;
@@ -2678,11 +2658,8 @@ public final class SpecializedPanelRenderer
             }
             previousY = py;
         }
-        // No sweeping marker. It moved constantly, said nothing, and drew the eye away from the
-        // one thing on this panel that does change on its own: the charge level.
     }
 
-    /** Four fills rather than a filled rect with a hole, so nothing overlaps. */
     private static void outlineGui(GuiGraphics g, int x, int y, int w, int h, int colour) {
         g.fill(x, y, x + w, y + 1, colour);
         g.fill(x, y + h - 1, x + w, y + h, colour);
@@ -2690,7 +2667,6 @@ public final class SpecializedPanelRenderer
         g.fill(x + w - 1, y + 1, x + w, y + h - 1, colour);
     }
 
-    /** [6] */
     private static void drawBankDistributionTexture(NativeImage image, int x, int y, int w, int h,
                                                     CapacitorBankReadout r, DisplayTheme theme, long tick) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, theme.graphBg);
@@ -2733,8 +2709,6 @@ public final class SpecializedPanelRenderer
         final int bb = Math.round((argb & 0xFF) * factor);
         return (a << 24) | (Math.min(255, rr) << 16) | (Math.min(255, gg) << 8) | Math.min(255, bb);
     }
-
-    // ===== Flow Meter (Living Fluid Conduit) specialized renderer =====
 
     private static void renderFlowMeterTexture(NativeImage image, SourceSelection source, DisplayTheme theme, long tick) {
         final int w = image.getWidth();
@@ -2931,7 +2905,7 @@ public final class SpecializedPanelRenderer
         return Long.toString(v);
     }
 
-    /** [7] */
+    // keep in sync with the switches below or bound sources without pages kick the panel back to graphs
     private static final java.util.Set<String> SPECIALIZED_FAMILIES = java.util.Set.of(
             "kinetics.stressometer", "factory.stockpile_switch", "energy.accumulator",
             "energy.capacitor_bank", "fluid.flow_meter", "heat.induction_heater",
@@ -2942,7 +2916,6 @@ public final class SpecializedPanelRenderer
             "flight.air_support", "flight.contraption_info", "battle.bridge", "flight.aero_deck",
             "flight.aeroline_director");
 
-    /** True when this source's family has a specialized page to show. */
     public static boolean hasSpecializedPage(String sourceType) {
         return SPECIALIZED_FAMILIES.contains(familyId(sourceType));
     }
@@ -2962,7 +2935,7 @@ public final class SpecializedPanelRenderer
                 supported.add(selection);
             }
         }
-        // [8]
+
         if (supported.size() > 1) {
             final ArrayList<SourceSelection> drawable = new ArrayList<SourceSelection>();
             for (SourceSelection selection : supported) {
@@ -2970,7 +2943,7 @@ public final class SpecializedPanelRenderer
                     drawable.add(selection);
                 }
             }
-            // If nothing has a page, leave the list alone so behaviour is unchanged.
+
             if (!drawable.isEmpty()) {
                 supported.clear();
                 supported.addAll(drawable);
@@ -3092,7 +3065,7 @@ public final class SpecializedPanelRenderer
         director.label = "Aeroline Director";
         return director;
     }
-    
+
     private static SourceSelection buildSelection(StatsDisplayPanelBE be, String sourceId, List<StatsDisplayPanelBE.DataChannel> channels, int cycleIndex, int cycleCount) {
         final SourceConfig config = be.getSourceRegistry().get(sourceId);
         final String sourceType = (config != null) ? config.getSourceType() : be.getSourceType();
@@ -3157,7 +3130,7 @@ public final class SpecializedPanelRenderer
                 && config.getSourcePos() != null
                 && findBattleScreenLink(be, config.getSourcePos()) != null;
     }
-    
+
     private static SourceSelection buildLegacySelection(StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels) {
         if (channels == null || channels.isEmpty() || !isSupported(be.getSourceType())) {
             return null;
@@ -3174,8 +3147,7 @@ public final class SpecializedPanelRenderer
         selection.cycleCount = 1;
         return selection;
     }
-    
-    /** [9] */
+
     private static boolean isSupported(String sourceType) {
         return SPECIALIZED_FAMILIES.contains(familyId(sourceType));
     }
@@ -3210,7 +3182,7 @@ public final class SpecializedPanelRenderer
     private static String familyId(String sourceType) {
         return CustomScreenSourceFamilyCatalog.familyForSourceType(sourceType).getFamilyId();
     }
-    
+
     private static LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>> groupBySource(List<StatsDisplayPanelBE.DataChannel> channels) {
         final LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>> bySource = new LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>>();
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
@@ -3219,7 +3191,7 @@ public final class SpecializedPanelRenderer
         }
         return bySource;
     }
-    
+
     private static String extractSourceId(String channelId) {
         if (!channelId.startsWith("src_")) {
             return "legacy";
@@ -3235,8 +3207,6 @@ public final class SpecializedPanelRenderer
         }
         return rest;
     }
-    
-    // ===== Induction Heater (kinetic forge) specialized renderer =====
 
     private record InductionHeaterReadout(int tier, String tierLabel, int tierColor, float chargePct,
                                           float drawSu, float rpm, boolean hasCoil, float coilHealthPct,
@@ -3245,10 +3215,10 @@ public final class SpecializedPanelRenderer
 
     private static int heaterTierColor(int tier) {
         return switch (tier) {
-            case 3 -> 0xFF33D6FF; // superheated - aqua
-            case 2 -> 0xFFFFB020; // kindled - gold
-            case 1 -> 0xFFE0552F; // warm - ember red
-            default -> 0xFF6A7078; // idle - slate
+            case 3 -> 0xFF33D6FF;
+            case 2 -> 0xFFFFB020;
+            case 1 -> 0xFFE0552F;
+            default -> 0xFF6A7078;
         };
     }
 
@@ -3298,8 +3268,6 @@ public final class SpecializedPanelRenderer
     private static int heaterHealthColor(float pct) {
         return pct > 50.0f ? 0xFF62D962 : pct > 20.0f ? 0xFFFFB020 : 0xFFE04030;
     }
-
-    // in-world texture variant
 
     private static void renderInductionHeaterTexture(NativeImage image, SourceSelection source, DisplayTheme theme, long tick) {
         final InductionHeaterReadout r = resolveInductionHeaterReadout(source);
@@ -3439,8 +3407,6 @@ public final class SpecializedPanelRenderer
             TextureGraphRenderer.setPixelBlended(image, px, py, color);
         }
     }
-
-    // config-GUI variant (full dashboard)
 
     private static void renderInductionHeaterGui(GuiGraphics g, Font font, int x, int y, int w, int h, SourceSelection source, DisplayTheme theme, long tick) {
         final InductionHeaterReadout r = resolveInductionHeaterReadout(source);
@@ -3688,7 +3654,7 @@ public final class SpecializedPanelRenderer
         }
         return 0;
     }
-    
+
     private static void drawTextureChrome(NativeImage image, DisplayTheme theme) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -3700,7 +3666,6 @@ public final class SpecializedPanelRenderer
         }
     }
 
-    // phase 5: Battle Tactical V2 smoothing & visual stability
     private static final class BattleTacticalV2SmoothingState {
         final Map<String, Float> observerHp = new HashMap<String, Float>();
         float globalHp = -1f;
@@ -3714,7 +3679,6 @@ public final class SpecializedPanelRenderer
     private static final float BATTLE_TACTICAL_V2_LERP = 0.45f;
     private static final long BATTLE_TACTICAL_V2_SMOOTHING_TTL_TICKS = 600L;
 
-    /** [10] */
     private static final Map<BlockPos, BattleTacticalV2GuiCache> BATTLE_TACTICAL_V2_GUI_CACHE = new HashMap<>();
 
     private static final class BattleTacticalV2GuiCache {
@@ -3747,7 +3711,6 @@ public final class SpecializedPanelRenderer
         return oldVal + (target - oldVal) * BATTLE_TACTICAL_V2_LERP;
     }
 
-    /** Pulse alpha for CRITICAL elements; renderTick-driven so it animates over panel rebuild cadence. */
     private static int battleTacticalV2PulseAlpha(BattleTacticalV2State state, long renderTick) {
         if (state != BattleTacticalV2State.CRITICAL) return 255;
         final double phase = ((renderTick % 40L) / 40.0) * Math.PI * 2.0;
@@ -3755,7 +3718,6 @@ public final class SpecializedPanelRenderer
         return (int) (170 + s * 85);
     }
 
-    /** [11] */
     public static void renderBattleTacticalV2Texture(NativeImage image,
                                                      StatsDisplayPanelBE be,
                                                      String sourceId,
@@ -3785,7 +3747,6 @@ public final class SpecializedPanelRenderer
             renderBattleTacticalV2Scene(image, w, h, readout, theme, renderTick);
         }
 
-        // [12]
         if (readout.cards != null && !readout.cards.isEmpty()) {
             for (BattleTacticalV2Card card : readout.cards) {
                 if (card.observerPos == null) continue;
@@ -3794,7 +3755,6 @@ public final class SpecializedPanelRenderer
         }
     }
 
-    /** [13] */
     private static void renderBattleTacticalV2Gui(GuiGraphics g, int x, int y, int w, int h,
                                                   StatsDisplayPanelBE be, String sourceId,
                                                   DisplayTheme theme, long renderTick) {
@@ -3812,9 +3772,9 @@ public final class SpecializedPanelRenderer
         if (cache == null) {
             cache = new BattleTacticalV2GuiCache();
             try {
-                cache.image = new NativeImage(w, h, true); // calloc, zero-initialised so unwritten/translucent regions don't reveal garbage memory
+                cache.image = new NativeImage(w, h, true);
                 cache.texture = new DynamicTexture(cache.image);
-                cache.texture.setFilter(false, false); // NEAREST, avoid sampling bleed across the whole screen
+                cache.texture.setFilter(false, false);
                 cache.textureId = ResourceLocation.fromNamespaceAndPath(
                         "create_stats",
                         "battle_tactical_v2_gui/" + Math.abs(panelKey.asLong()));
@@ -3835,7 +3795,6 @@ public final class SpecializedPanelRenderer
                 cache.texture.upload();
                 cache.lastBakedTick = renderTick;
             } catch (Throwable ignored) {
-                // keep previous bake on failure
             }
         }
         if (cache.textureId != null) {
@@ -3851,7 +3810,6 @@ public final class SpecializedPanelRenderer
                                                     long renderTick) {
         final int pad = Math.max(2, w / 48);
 
-        // Header band
         final int headerH = 10;
         TextureGraphRenderer.fillRect(image, pad, pad, w - pad * 2, headerH,
                 TextureGraphRenderer.withAlpha(theme.bg, 200));
@@ -3865,7 +3823,6 @@ public final class SpecializedPanelRenderer
         TextureGraphRenderer.fillRect(image, pipX, pad + 3, 3, 3, pipColor);
         BitmapFont.drawRight(image, countText, pipX - 2, pad + 2, theme.dim, 1);
 
-        // Card rows
         final int rowsTop = pad + headerH + 2;
         final int footerReserve = (readout.cards.size() > 3) ? 9 : 0;
         final int available = Math.max(0, h - rowsTop - pad - footerReserve);
@@ -3877,12 +3834,11 @@ public final class SpecializedPanelRenderer
         for (int i = 0; i < maxRows; i++) {
             final BattleTacticalV2Card card = readout.cards.get(i);
             final int ry = rowsTop + i * (rowH + rowGap);
-            // Row background
+
             TextureGraphRenderer.fillRect(image, pad, ry, w - pad * 2, rowH,
                     TextureGraphRenderer.withAlpha(theme.bg, 160));
             TextureGraphRenderer.drawBorder(image, pad, ry, w - pad * 2, rowH, 1, theme.border);
 
-            // Category chip
             final int chipX = pad + 2;
             final int chipY = ry + 2;
             final int chipW = 12;
@@ -3892,7 +3848,6 @@ public final class SpecializedPanelRenderer
             BitmapFont.drawCentered(image, battleTacticalV2CategoryChip(card.category),
                     chipX, chipY + (chipH - 5) / 2, chipW, card.state.color, 1);
 
-            // Name
             final int nameX = chipX + chipW + 3;
             final int pctText = (int) Math.round(card.healthPercent);
             final String pctStr = pctText + "%";
@@ -3902,7 +3857,6 @@ public final class SpecializedPanelRenderer
             final String name = truncate(card.name, Math.max(3, nameMaxW / 4));
             BitmapFont.drawString(image, name, nameX, ry + 2, theme.text, 1);
 
-            // Integrity bar
             final int barH = Math.max(3, rowH / 3);
             final int barY = ry + rowH - barH - 2;
             final int barX = nameX;
@@ -3919,7 +3873,6 @@ public final class SpecializedPanelRenderer
                 }
             }
 
-            // Percent (right-aligned)
             BitmapFont.drawRight(image, pctStr, w - pad - 2, ry + (rowH - 5) / 2, card.state.color, 1);
         }
 
@@ -3938,7 +3891,6 @@ public final class SpecializedPanelRenderer
                                                     long renderTick) {
         final BattleTacticalV2Card hero = readout.cards.get(0);
 
-        // Hero name + integrity %
         final int pad = Math.max(2, w / 32);
         final int nameY = Math.max(2, h / 16);
         final String name = truncate(hero.name, Math.max(4, (w - pad * 2 - 18) / 4));
@@ -3946,7 +3898,6 @@ public final class SpecializedPanelRenderer
         final String pctText = Math.round(hero.healthPercent) + "%";
         BitmapFont.drawRight(image, pctText, w - pad, nameY, hero.state.color, 1);
 
-        // Hero integrity bar (full width minus padding)
         final int barH = Math.max(4, h / 9);
         final int barY = nameY + 10;
         final int barX = pad;
@@ -3960,7 +3911,6 @@ public final class SpecializedPanelRenderer
                     TextureGraphRenderer.withAlpha(hero.state.color, battleTacticalV2PulseAlpha(hero.state, renderTick)));
         }
 
-        // OTHERS label + state dots row
         final int othersY = barY + barH + 4;
         if (othersY + 10 <= h - 2) {
             final int otherCount = readout.cards.size() - 1;
@@ -3984,7 +3934,6 @@ public final class SpecializedPanelRenderer
             }
         }
 
-        // Freshness indicator (bottom-right corner pip)
         final int pipX = w - 4;
         final int pipY = h - 4;
         final int pipColor;
@@ -3998,7 +3947,6 @@ public final class SpecializedPanelRenderer
         TextureGraphRenderer.fillRect(image, pipX - 2, pipY - 2, 2, 2, pipColor);
     }
 
-    /** [14] */
     private static void renderBattleTacticalV2Scene(NativeImage image,
                                                     int w,
                                                     int h,
@@ -4015,20 +3963,18 @@ public final class SpecializedPanelRenderer
             if (c.weaponDetected) anyWeapon = true;
         }
 
-        // Animated console backdrop: faint grid + drifting scanlines.
         battleConsoleBackdrop(image, pad, pad, w - pad * 2, h - pad * 2, theme, renderTick);
 
-        // header strip
         final int headerH = 14;
         final int hx = pad, hy = pad, hw = w - pad * 2;
         TextureGraphRenderer.fillRect(image, hx, hy, hw, headerH, TextureGraphRenderer.withAlpha(theme.bg, 215));
         TextureGraphRenderer.drawBorder(image, hx, hy, hw, headerH, 1, theme.border);
-        // Travelling accent tick across the header for a "live" feel.
+
         final int travel = (int) ((renderTick * 2L) % Math.max(1, hw - 2));
         TextureGraphRenderer.fillRect(image, hx + 1 + travel, hy + 1, 2, headerH - 2,
                 TextureGraphRenderer.withAlpha(theme.accent, 55));
         BitmapFont.drawString(image, "BATTLE TACTICAL", hx + 4, hy + 4, theme.text, 1);
-        // Freshness pip + sensor count on the right.
+
         final int pipColor;
         if (readout.freshnessTicks <= 40L) pipColor = SAFE_GREEN;
         else if (readout.freshnessTicks <= 200L) pipColor = ALERT_AMBER;
@@ -4037,7 +3983,6 @@ public final class SpecializedPanelRenderer
         TextureGraphRenderer.fillRect(image, pipX, hy + 5, 4, 4, pipColor);
         BitmapFont.drawRight(image, readout.cards.size() + " SNS", pipX - 4, hy + 4, theme.dim, 1);
 
-        // body regions
         final int bodyTop = pad + headerH + 3;
         final int bodyBottom = h - pad;
         final int bodyH = bodyBottom - bodyTop;
@@ -4053,7 +3998,6 @@ public final class SpecializedPanelRenderer
         final int upperH = upperBottom - bodyTop;
         if (upperH < 20) return;
 
-        // [15]
         final boolean portrait = w < (int) (upperH * 1.25);
         if (portrait) {
             final int gaugePanelH = Math.min(upperH / 2, w - pad * 2);
@@ -4079,17 +4023,14 @@ public final class SpecializedPanelRenderer
                     upperH, readout, theme, renderTick);
         }
 
-        // structural composition bar
         if (compH > 0) {
             renderBattleCompositionStrip(image, pad, compY, w - pad * 2, compH, readout, theme, renderTick);
         }
 
-        // weapon dock
         if (weaponDockH > 0) {
             renderBattleTacticalV2WeaponDock(image, pad, weaponDockY, w - pad * 2, weaponDockH, readout, theme, renderTick);
         }
 
-        // hud chrome
         battleConsoleCornerBrackets(image, pad, bodyTop - 1, w - pad * 2, bodyBottom - (bodyTop - 1),
                 TextureGraphRenderer.withAlpha(theme.accent, 150));
         if (anyCritical || globalSt == BattleTacticalV2State.CRITICAL) {
@@ -4105,18 +4046,16 @@ public final class SpecializedPanelRenderer
         return BattleTacticalV2State.NOMINAL;
     }
 
-    /** Solid dim console fill with a single subtle drifting scanline, no busy grid. */
     private static void battleConsoleBackdrop(NativeImage image, int x, int y, int w, int h,
                                               DisplayTheme theme, long renderTick) {
         if (w <= 2 || h <= 2) return;
         TextureGraphRenderer.fillRect(image, x, y, w, h, TextureGraphRenderer.withAlpha(theme.bg, 150));
-        // One faint drifting scanline for a hint of motion; deliberately NOT a full grid.
+
         final int scan = TextureGraphRenderer.withAlpha(theme.accent, 18);
         final int s1 = y + (int) ((renderTick) % Math.max(1, h));
         TextureGraphRenderer.drawHLine(image, x, s1, w, scan);
     }
 
-    /** Filled, bordered compartment with an optional title. Returns the inner content top Y. */
     private static int battlePanel(NativeImage image, int x, int y, int w, int h,
                                    String title, DisplayTheme theme) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, TextureGraphRenderer.withAlpha(theme.bg, 185));
@@ -4128,28 +4067,23 @@ public final class SpecializedPanelRenderer
         return y + 2;
     }
 
-    /** Small L-shaped brackets at the four corners of a region for a HUD look. */
     private static void battleConsoleCornerBrackets(NativeImage image, int x, int y, int w, int h, int color) {
         if (w < 12 || h < 12) return;
         final int len = Math.min(8, Math.min(w, h) / 4);
-        // top-left
+
         TextureGraphRenderer.drawHLine(image, x, y, len, color);
         TextureGraphRenderer.drawVLine(image, x, y, len, color);
-        // top-right
+
         TextureGraphRenderer.drawHLine(image, x + w - len, y, len, color);
         TextureGraphRenderer.drawVLine(image, x + w - 1, y, len, color);
-        // bottom-left
+
         TextureGraphRenderer.drawHLine(image, x, y + h - 1, len, color);
         TextureGraphRenderer.drawVLine(image, x, y + h - len, len, color);
-        // bottom-right
+
         TextureGraphRenderer.drawHLine(image, x + w - len, y + h - 1, len, color);
         TextureGraphRenderer.drawVLine(image, x + w - 1, y + h - len, len, color);
     }
 
-    /**
-     * Blended ring/arc helper with a predictable convention: angles are measured in
-     * degrees clockwise from the top (12 o'clock). {@code sweepDeg} extends clockwise.
-     */
     private static void battleArc(NativeImage image, int cx, int cy, int rInner, int rOuter,
                                   double startDeg, double sweepDeg, int argb) {
         if (rOuter <= 0 || sweepDeg <= 0.0) return;
@@ -4173,7 +4107,6 @@ public final class SpecializedPanelRenderer
         }
     }
 
-    /** Circular integrity gauge with value arc, radial ticks and an animated radar sweep. */
     private static void renderBattleIntegrityGauge(NativeImage image, int cx, int cy, int r,
                                                    BattleTacticalV2Readout readout,
                                                    BattleTacticalV2State globalSt,
@@ -4183,23 +4116,20 @@ public final class SpecializedPanelRenderer
         final int ringOuter = r;
         final int ringInner = Math.max(3, r - Math.max(3, r / 5));
 
-        // Dim full background ring.
         battleArc(image, cx, cy, ringInner, ringOuter, 0.0, 360.0, TextureGraphRenderer.withAlpha(theme.border, 110));
-        // Faint glow band just outside the ring (stronger when critical).
+
         final int glowA = globalSt == BattleTacticalV2State.CRITICAL
                 ? battleTacticalV2PulseAlpha(globalSt, renderTick) / 4 : 30;
         battleArc(image, cx, cy, ringOuter, ringOuter + 2, 0.0, 360.0, TextureGraphRenderer.withAlpha(color, glowA));
 
-        // Value arc (clockwise from top).
         final double sweep = 360.0 * (integrity / 100.0);
         battleArc(image, cx, cy, ringInner, ringOuter, 0.0, sweep, TextureGraphRenderer.withAlpha(color, 235));
-        // Bright leading cap.
+
         if (sweep > 2.0) {
             battleArc(image, cx, cy, ringInner, ringOuter, Math.max(0.0, sweep - 6.0), 6.0,
                     TextureGraphRenderer.withAlpha(brighten(color, 1.4f), 255));
         }
 
-        // Radial tick marks every 30 degrees.
         final int tickColor = TextureGraphRenderer.withAlpha(theme.dim, 150);
         for (int k = 0; k < 12; k++) {
             final double a = Math.toRadians(k * 30.0);
@@ -4211,7 +4141,6 @@ public final class SpecializedPanelRenderer
             TextureGraphRenderer.drawLine(image, x0, y0, x1, y1, tickColor);
         }
 
-        // Animated radar sweep line inside the ring.
         final double sweepDeg = (renderTick * 5L) % 360L;
         final double sweepRad = Math.toRadians(sweepDeg);
         final int sx = cx + (int) Math.round(Math.sin(sweepRad) * (ringInner - 1));
@@ -4221,7 +4150,6 @@ public final class SpecializedPanelRenderer
         TextureGraphRenderer.drawLineAA(image, cx, cy, sx, sy, TextureGraphRenderer.withAlpha(theme.accent, 200));
         TextureGraphRenderer.fillCircle(image, cx, cy, Math.max(1, r / 12), TextureGraphRenderer.withAlpha(theme.accent, 220));
 
-        // Center readout.
         final String pct = (int) Math.round(integrity) + "%";
         final int valScale = (ringInner >= 18 && BitmapFont.measureString(pct, 2) <= ringInner * 2 - 4) ? 2 : 1;
         final int valH = BitmapFont.textHeight(valScale);
@@ -4232,7 +4160,6 @@ public final class SpecializedPanelRenderer
                 TextureGraphRenderer.withAlpha(color, labelA), 1);
     }
 
-    /** [16] */
     private static void renderBattleCompositionStrip(NativeImage image, int x, int y, int w, int h,
                                                      BattleTacticalV2Readout readout,
                                                      DisplayTheme theme, long renderTick) {
@@ -4276,12 +4203,10 @@ public final class SpecializedPanelRenderer
         if (wLost > 0) { TextureGraphRenderer.fillRect(image, segX, barY, wLost, barH, DANGER_RED); segX += wLost; }
         if (wAdded > 0) { TextureGraphRenderer.fillRect(image, segX, barY, wAdded, barH, theme.accent); }
 
-        // Travelling shimmer highlight across the bar.
         final int shimX = barX + (int) ((renderTick * 3L) % Math.max(1, barW));
         TextureGraphRenderer.fillRect(image, shimX, barY, 1, barH, TextureGraphRenderer.withAlpha(0xFFFFFFFF, 70));
         TextureGraphRenderer.drawBorder(image, barX, barY, barW, barH, 1, theme.border);
 
-        // Compact legend on the right of the title row.
         final String legend = intact + "/" + missing + "/" + added;
         BitmapFont.drawRight(image, legend, x + w - 4, y + 2, theme.dim, 1);
     }
@@ -4309,7 +4234,6 @@ public final class SpecializedPanelRenderer
                     TextureGraphRenderer.withAlpha(theme.bg, 180));
             TextureGraphRenderer.drawBorder(image, x + 2, ry, w - 4, rowH, 1, theme.border);
 
-            // Category chip
             final int chipX = x + 4;
             final int chipY = ry + 2;
             final int chipW = 12;
@@ -4319,7 +4243,6 @@ public final class SpecializedPanelRenderer
             BitmapFont.drawCentered(image, battleTacticalV2CategoryChip(card.category),
                     chipX, chipY + (chipH - 5) / 2, chipW, card.state.color, 1);
 
-            // Name (top line)
             final int nameX = chipX + chipW + 3;
             final String pctStr = (int) Math.round(card.healthPercent) + "%";
             final int pctW = BitmapFont.measureString(pctStr, 1);
@@ -4327,7 +4250,6 @@ public final class SpecializedPanelRenderer
             BitmapFont.drawString(image, truncate(card.name, nameMaxChars), nameX, ry + 2, theme.text, 1);
             BitmapFont.drawRight(image, pctStr, x + w - 5, ry + 2, card.state.color, 1);
 
-            // Integrity bar (bottom line)
             final int barH = 3;
             final int barY = ry + rowH - barH - 2;
             final int barX = nameX;
@@ -4365,7 +4287,6 @@ public final class SpecializedPanelRenderer
         final int mapH = h - 13;
         if (mapW < 16 || mapH < 16) return;
 
-        // Collect XZ bounds across observers (and bridge, if available)
         int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
         int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
         boolean hasAny = false;
@@ -4389,7 +4310,6 @@ public final class SpecializedPanelRenderer
             return;
         }
 
-        // Square aspect, pad bounds so the longer axis dominates
         int rangeX = Math.max(1, maxX - minX);
         int rangeZ = Math.max(1, maxZ - minZ);
         final int range = Math.max(rangeX, rangeZ) + 8;
@@ -4398,7 +4318,6 @@ public final class SpecializedPanelRenderer
         final int boundMinX = cx - range / 2;
         final int boundMinZ = cz - range / 2;
 
-        // Draw bridge as outlined diamond
         if (readout.bridgePos != null) {
             final int bx = mapX + ((readout.bridgePos.getX() - boundMinX) * mapW) / range;
             final int bz = mapY + ((readout.bridgePos.getZ() - boundMinZ) * mapH) / range;
@@ -4407,27 +4326,24 @@ public final class SpecializedPanelRenderer
             TextureGraphRenderer.fillRect(image, bx, bz, 1, 1, theme.text);
         }
 
-        // Draw observer squares
         for (BattleTacticalV2Card c : readout.cards) {
             if (c.anchor == null) continue;
             final int ox = mapX + ((c.anchor.getX() - boundMinX) * mapW) / range;
             final int oz = mapY + ((c.anchor.getZ() - boundMinZ) * mapH) / range;
             final int size = Math.max(2, Math.min(6, c.diameter / 2));
             final int half = size / 2;
-            // Outer (state color)
+
             TextureGraphRenderer.fillRect(image, ox - half, oz - half, size, size,
                     TextureGraphRenderer.withAlpha(c.state.color, battleTacticalV2PulseAlpha(c.state, renderTick)));
             TextureGraphRenderer.drawBorder(image, ox - half, oz - half, size, size, 1, c.state.color);
         }
     }
 
-    /** [17] */
     private static boolean renderBattleTacticalV2VoxelSilhouette(NativeImage image,
                                                                   int x, int y, int w, int h,
                                                                   BattleTacticalV2Readout readout,
                                                                   DisplayTheme theme,
                                                                   long renderTick) {
-        // Collect voxel maps for every linked observer with a fresh cache entry.
         java.util.List<com.createstats.battle.DamageObserverVoxelMap> maps = new java.util.ArrayList<>();
         for (BattleTacticalV2Card c : readout.cards) {
             if (c == null || c.observerPos == null) continue;
@@ -4437,7 +4353,6 @@ public final class SpecializedPanelRenderer
         }
         if (maps.isEmpty()) return false;
 
-        // Frame + label.
         TextureGraphRenderer.fillRect(image, x, y, w, h, TextureGraphRenderer.withAlpha(theme.bg, 160));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, theme.border);
         BitmapFont.drawString(image, "STRUCTURE", x + 3, y + 2, theme.dim, 1);
@@ -4446,9 +4361,8 @@ public final class SpecializedPanelRenderer
         final int mapY = y + 11;
         final int mapW = w - 4;
         final int mapH = h - 13;
-        if (mapW < 24 || mapH < 24) return true; // rendered the frame even if too small for voxels
+        if (mapW < 24 || mapH < 24) return true;
 
-        // Merged bounding box & centroid.
         double minX = Double.POSITIVE_INFINITY, minY = Double.POSITIVE_INFINITY, minZ = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY, maxZ = Double.NEGATIVE_INFINITY;
         for (com.createstats.battle.DamageObserverVoxelMap m : maps) {
@@ -4465,24 +4379,21 @@ public final class SpecializedPanelRenderer
         final double cz = (minZ + maxZ) * 0.5;
         final double extent = Math.max(1.0, Math.max(maxX - minX, Math.max(maxY - minY, maxZ - minZ)));
 
-        // Iso projection params. Yaw advances ~0.5 deg per tick (rolls back into view).
         final double yawDeg = ((renderTick * 0.5) % 360.0);
         final double yaw = Math.toRadians(yawDeg);
         final double pitch = Math.toRadians(28.0);
         final double cosY = Math.cos(yaw), sinY = Math.sin(yaw);
         final double cosP = Math.cos(pitch), sinP = Math.sin(pitch);
 
-        // Fit scale: leave a 6px margin inside the area.
         final double targetPx = Math.min(mapW, mapH) - 6;
         final double pxPerVoxel = Math.max(1.0, targetPx / (extent * 1.35));
         final int dotSize = Math.max(1, (int) Math.round(pxPerVoxel * 0.95));
         final int centerSx = mapX + mapW / 2;
         final int centerSy = mapY + mapH / 2;
 
-        // Stream all voxels into a flat array sorted by depth, painter's algorithm.
         int total = 0;
         for (com.createstats.battle.DamageObserverVoxelMap m : maps) total += m.dx * m.dy * m.dz;
-        // For very large structures, downscale capacity (we'll skip air voxels naturally).
+
         final int cap = Math.min(total, 200_000);
         final float[] sxArr = new float[cap];
         final float[] syArr = new float[cap];
@@ -4490,7 +4401,6 @@ public final class SpecializedPanelRenderer
         final int[] colorArr = new int[cap];
         int n = 0;
 
-        // Theme-based default colors.
         final int colMissing = TextureGraphRenderer.withAlpha(DANGER_RED, 230);
         final int colNew = TextureGraphRenderer.withAlpha(0xFF60a8ff, 230);
         final int colPresent = TextureGraphRenderer.withAlpha(theme.text, 230);
@@ -4512,15 +4422,14 @@ public final class SpecializedPanelRenderer
                         if (paletteIdx == 0) color = colMissing;
                         else color = baseline ? colPresent : colNew;
 
-                        // Centered world-coord relative to centroid.
                         final double vx = (mnX + lx) - cx;
                         final double vy = (mnY + ly) - cy;
                         final double vz = (mnZ + lz) - cz;
-                        // Rotate around Y, then iso pitch.
+
                         final double rxw = vx * cosY - vz * sinY;
                         final double rzw = vx * sinY + vz * cosY;
                         final double rxs = rxw;
-                        final double rys = -vy * cosP - rzw * sinP;   // up on screen = -screen_y
+                        final double rys = -vy * cosP - rzw * sinP;
                         final double depth = rzw * cosP - vy * sinP;
                         sxArr[n] = (float) (centerSx + rxs * pxPerVoxel);
                         syArr[n] = (float) (centerSy + rys * pxPerVoxel);
@@ -4532,17 +4441,15 @@ public final class SpecializedPanelRenderer
             }
         }
 
-        // Indirect sort by depth ascending (back to front).
         final Integer[] idx = new Integer[n];
         for (int i = 0; i < n; i++) idx[i] = i;
         java.util.Arrays.sort(idx, (a, b) -> Float.compare(depthArr[a], depthArr[b]));
 
-        // Paint.
         for (int k = 0; k < n; k++) {
             final int i = idx[k];
             final int px = Math.round(sxArr[i]);
             final int py = Math.round(syArr[i]);
-            // Clip to map area.
+
             int rx = px - dotSize / 2;
             int ry = py - dotSize / 2;
             int rw = dotSize;
@@ -4556,7 +4463,6 @@ public final class SpecializedPanelRenderer
             }
         }
 
-        // Small legend in the bottom-right corner.
         final int legX = mapX + mapW - 30;
         final int legY = mapY + mapH - 10;
         TextureGraphRenderer.fillRect(image, legX, legY, 3, 3, colMissing);
@@ -4564,7 +4470,6 @@ public final class SpecializedPanelRenderer
         TextureGraphRenderer.fillRect(image, legX + 14, legY, 3, 3, colNew);
         BitmapFont.drawString(image, "N", legX + 19, legY - 2, theme.dim, 1);
 
-        // Rotation indicator -- tiny arc in top-right corner.
         final String yawTxt = (int) yawDeg + "°";
         BitmapFont.drawRight(image, yawTxt, mapX + mapW - 2, mapY + 1, theme.dim, 1);
         return true;
@@ -4638,7 +4543,6 @@ public final class SpecializedPanelRenderer
         }
         final List<BattleObserverSnapshot> observers = targetLink.getObservers();
 
-        // Acquire / create smoothing state for this panel.
         final BlockPos panelPos = be.getBlockPos();
         BattleTacticalV2SmoothingState smoothing = BATTLE_TACTICAL_V2_SMOOTHING.get(panelPos);
         if (smoothing == null) {
@@ -4661,7 +4565,7 @@ public final class SpecializedPanelRenderer
                 cards.add(buildBattleTacticalV2Card(obs, smoothedHp));
             }
         }
-        // Stable hero: small bias for previously-promoted hero to avoid jittery swaps on close scores.
+
         if (smoothing.lastHeroKey != null && !smoothing.lastHeroKey.isEmpty()) {
             for (int i = 0; i < cards.size(); i++) {
                 final BattleTacticalV2Card c = cards.get(i);
@@ -4673,7 +4577,7 @@ public final class SpecializedPanelRenderer
                 }
             }
         }
-        // Sort worst-first: descending severity score, ties by ascending integrity.
+
         cards.sort((a, b) -> {
             final int byScore = Integer.compare(b.severityScore, a.severityScore);
             if (byScore != 0) {
@@ -4693,7 +4597,6 @@ public final class SpecializedPanelRenderer
         final double smoothedGlobal = battleTacticalV2Smooth(smoothing.globalHp, rawGlobal);
         smoothing.globalHp = (float) smoothedGlobal;
 
-        // Periodic sweep of stale smoothing entries (every ~200 ticks).
         if (renderTick - battleTacticalV2LastSweep > 200L) {
             battleTacticalV2LastSweep = renderTick;
             BATTLE_TACTICAL_V2_SMOOTHING.entrySet().removeIf(e ->
@@ -4783,7 +4686,7 @@ public final class SpecializedPanelRenderer
         final boolean weaponDetected;
         final boolean weaponReady;
         final boolean weaponDestroyed;
-        final BlockPos observerPos; // server position of the Damage Observer BE (== snapshot.sourcePos()); used for voxel-map requests.
+        final BlockPos observerPos;
         BattleTacticalV2Card(String name, double healthPercent, BattleTacticalV2State state, int severityScore,
                              DamageObserverSettings.ObserverCategory category, BlockPos anchor, int diameter,
                              boolean weaponDetected, boolean weaponReady, boolean weaponDestroyed,
@@ -4826,7 +4729,7 @@ public final class SpecializedPanelRenderer
         g.fill(x, y, x + w, y + h, applyPinnedHudOpacity(darken(theme.graphBg, 0.94f)));
         borderGui(g, x, y, w, h, darken(theme.border, 0.96f));
     }
-    
+
     private static void drawMetricCardTexture(NativeImage image, int x, int y, int w, int h, String label, String value, DisplayTheme theme, int accentColor) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(theme.graphBg, 0.92f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, theme.border);
@@ -4834,7 +4737,7 @@ public final class SpecializedPanelRenderer
         final int scale = (w >= 86) ? 2 : 1;
         BitmapFont.drawCentered(image, truncate(value, Math.max(5, w / (6 * scale))), x, y + h / 2 - BitmapFont.textHeight(scale) / 2 + 3, w, accentColor, scale);
     }
-    
+
     private static void drawMetricCardGui(GuiGraphics g, Font font, int x, int y, int w, int h, String label, String value, DisplayTheme theme, int accentColor) {
         g.fill(x, y, x + w, y + h, darken(theme.graphBg, 0.92f));
         borderGui(g, x, y, w, h, theme.border);
@@ -5137,13 +5040,13 @@ public final class SpecializedPanelRenderer
             g.fill(startX + port * gap, y + Math.max(2, h / 2 - 1), startX + port * gap + 4, y + Math.max(6, h / 2 + 3), color);
         }
     }
-    
+
     private static void drawBadgeTexture(NativeImage image, int x, int y, int w, int h, String text, int color) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(color, 0.65f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, color);
         BitmapFont.drawCentered(image, truncate(text, Math.max(4, w / 6)), x, y + 2, w, -1, 1);
     }
-    
+
     private static void drawBadgeGui(GuiGraphics g, Font font, int x, int y, int w, int h, String text, int color) {
         g.fill(x, y, x + w, y + h, applyPinnedHudOpacity(darken(color, 0.65f)));
         borderGui(g, x, y, w, h, color);
@@ -5191,7 +5094,7 @@ public final class SpecializedPanelRenderer
         final int valueY = Math.max(y + 11, y + (h - scaledHeight) / 2 + 3);
         drawScaledCenteredStringGui(g, font, scaledValue, x + w / 2, valueY, valueScale, accentColor);
     }
-    
+
     private static void drawSparklineTexture(NativeImage image, int x, int y, int w, int h, TimeSeriesStore store, DisplayTheme theme, int lineColor, String label) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(theme.graphBg, 0.88f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, theme.border);
@@ -5202,7 +5105,7 @@ public final class SpecializedPanelRenderer
         final int chartH = Math.max(6, h - 15);
         drawSparklineTextureOnly(image, chartX, chartY, chartW, chartH, store, lineColor, theme.grid);
     }
-    
+
     private static void drawSparklineGui(GuiGraphics g, int x, int y, int w, int h, TimeSeriesStore store, Font font, DisplayTheme theme, int lineColor, String label) {
         g.fill(x, y, x + w, y + h, darken(theme.graphBg, 0.88f));
         borderGui(g, x, y, w, h, theme.border);
@@ -5213,7 +5116,7 @@ public final class SpecializedPanelRenderer
         final int chartH = Math.max(8, h - 18);
         drawSparklineGuiOnly(g, chartX, chartY, chartW, chartH, store, lineColor, theme.grid);
     }
-    
+
     private static void drawSparklineTextureOnly(NativeImage image, int x, int y, int w, int h, TimeSeriesStore store, int lineColor, int gridColor) {
         final float[] data = store.getDataForTimeScale(Math.max(30, Math.min(300, w / 2)));
         if (data.length < 2) {
@@ -5244,7 +5147,7 @@ public final class SpecializedPanelRenderer
         }
         TextureGraphRenderer.fillCircle(image, prevX, prevY, 2, lineColor);
     }
-    
+
     private static void drawSparklineGuiOnly(GuiGraphics g, int x, int y, int w, int h, TimeSeriesStore store, int lineColor, int gridColor) {
         final float[] data = store.getDataForTimeScale(Math.max(30, Math.min(300, w / 2)));
         if (data.length < 2) {
@@ -5348,10 +5251,15 @@ public final class SpecializedPanelRenderer
         for (int i = 0; i < dims.length; ++i) {
             final EfficiencyDimension dim = dims[i];
             final float pct = score.getDimensionPercent(dim);
+            final boolean known = score.isKnown(dim);
             final int barY = barsTop + i * rowH;
             final int fillColor = dimensionScoreColor(dim, pct);
-            BitmapFont.drawString(image, truncate(dim.getDisplayName(), Math.max(4, (labelW - 6) / 6)), x + 4, barY + 1, theme.text, 1);
+            BitmapFont.drawString(image, truncate(dim.getDisplayName(), Math.max(4, (labelW - 6) / 6)), x + 4, barY + 1, known ? theme.text : theme.dim, 1);
             TextureGraphRenderer.fillRect(image, barX, barY + 2, barW, barH, theme.grid);
+            if (!known) {
+                BitmapFont.drawRight(image, "--", x + w - 4, barY + 1, theme.dim, 1);
+                continue;
+            }
             final int fillW = Math.max(0, Math.round(barW * pct / 100.0f));
             if (fillW > 0) {
                 TextureGraphRenderer.fillRect(image, barX, barY + 2, fillW, barH, fillColor);
@@ -5393,15 +5301,20 @@ public final class SpecializedPanelRenderer
         for (int i = 0; i < dims.length; ++i) {
             final EfficiencyDimension dim = dims[i];
             final float pct = score.getDimensionPercent(dim);
+            final boolean known = score.isKnown(dim);
             final int barY = barsTop + i * rowH;
             final int fillColor = dimensionScoreColor(dim, pct);
-            g.drawString(font, truncateGui(font, dim.getDisplayName(), labelW - 6), x + 4, barY + 1, theme.text);
+            g.drawString(font, truncateGui(font, dim.getDisplayName(), labelW - 6), x + 4, barY + 1, known ? theme.text : theme.dim);
             g.fill(barX, barY + 2, barX + barW, barY + 2 + barH, theme.grid);
+            borderGui(g, barX, barY + 2, barW, barH, theme.border);
+            if (!known) {
+                g.drawString(font, "no data", barX + 3, barY + 1, theme.dim);
+                continue;
+            }
             final int fillW = Math.max(0, Math.round(barW * pct / 100.0f));
             if (fillW > 0) {
                 g.fill(barX, barY + 2, barX + fillW, barY + 2 + barH, fillColor);
             }
-            borderGui(g, barX, barY + 2, barW, barH, theme.border);
             g.drawString(font, String.format("%.0f%%", pct), x + w - 4 - font.width(String.format("%.0f%%", pct)), barY + 1, fillColor);
         }
     }
@@ -5585,22 +5498,7 @@ public final class SpecializedPanelRenderer
     }
 
     private static String describeGrade(String grade) {
-        return switch (grade) {
-            case "A+" -> "Factory singing";
-            case "A" -> "Very healthy";
-            case "A-" -> "Running strong";
-            case "B+" -> "Good load";
-            case "B" -> "Steady";
-            case "B-" -> "Usable";
-            case "C+" -> "Working hard";
-            case "C" -> "Tight margin";
-            case "C-" -> "Shaky";
-            case "D+" -> "Strained";
-            case "D" -> "Near failure";
-            case "D-" -> "Barely holding";
-            case "F" -> "Overstressed";
-            default -> "";
-        };
+        return com.createstats.efficiency.GradeScale.phraseFor(grade);
     }
 
     private static String formatSignedCompact(float value) {
@@ -8059,13 +7957,13 @@ public final class SpecializedPanelRenderer
         BitmapFont.drawCentered(image, "SPECIALIZED MODE", 0, image.getHeight() / 2 - BitmapFont.textHeight(scale) - 3, image.getWidth(), theme.text, scale);
         BitmapFont.drawCentered(image, message, 0, image.getHeight() / 2 + 4, image.getWidth(), theme.dim, 1);
     }
-    
+
     private static void drawUnsupportedGui(GuiGraphics g, Font font, int x, int y, int w, int h, DisplayTheme theme, String message) {
         drawGuiChrome(g, x, y, w, h, theme);
         g.drawCenteredString(font, "SPECIALIZED MODE", x + w / 2, y + h / 2 - font.lineHeight - 2, theme.text);
         g.drawCenteredString(font, message, x + w / 2, y + h / 2 + 4, theme.dim);
     }
-    
+
     private static StateInfo describeStressState(float pct, boolean overstressed) {
         if (overstressed || pct >= 100.0f) {
             return new StateInfo("OVERSTRESSED", "CRITICAL", DANGER_RED);
@@ -8078,7 +7976,7 @@ public final class SpecializedPanelRenderer
         }
         return new StateInfo("HEALTHY", "STABLE", SAFE_GREEN);
     }
-    
+
     private static StateInfo describePortableEngineState(float currentBurn, boolean infiniteFuel, boolean superheated, float generatedSpeed) {
         if (superheated) {
             return new StateInfo("SUPERHEATED", "SUPER", DANGER_RED);
@@ -9415,19 +9313,19 @@ public final class SpecializedPanelRenderer
         }
         return new StateInfo("BUFFER ZONE", "BUFFER", SAFE_GREEN);
     }
-    
+
     private static String cycleText(SourceSelection selection) {
         if (selection.cycleCount > 1) {
             return selection.cycleIndex + "/" + selection.cycleCount;
         }
         return selection.sourceType;
     }
-    
+
     private static int trackerSlot(SourceSelection selection, int offset) {
         final int hash = Math.abs(selection.sourceId.hashCode() % 700);
         return 900 + hash + offset;
     }
-    
+
     private static float valueOr(StatsDisplayPanelBE.DataChannel channel, float fallback) {
         if (channel == null || channel.getStore().getSampleCount() == 0) {
             return fallback;
@@ -9448,7 +9346,7 @@ public final class SpecializedPanelRenderer
         }
         return value.startsWith(prefix) ? value.substring(prefix.length()) : value;
     }
-    
+
     private static PortableEngineReadout resolvePortableEngineReadout(SourceSelection source) {
         final StatsDisplayPanelBE.DataChannel currentBurnCh = findMetric(source, "burn_time", "Current Burn");
         final StatsDisplayPanelBE.DataChannel totalBurnCh = findMetric(source, "burn_total", "Total Burn");
@@ -10259,7 +10157,7 @@ public final class SpecializedPanelRenderer
         }
         return new StateInfo("HOLDING", "HOLD", themeNeutral());
     }
-    
+
     private static float percentOfRange(float value, float min, float max) {
         final float range = max - min;
         if (range <= 0.001f) {
@@ -10267,7 +10165,7 @@ public final class SpecializedPanelRenderer
         }
         return Math.max(0.0f, Math.min(100.0f, (value - min) * 100.0f / range));
     }
-    
+
     private static String formatMetricValue(MetricType type, float value) {
         return ((type != null) ? type : MetricType.GENERIC).formatValue(value);
     }
@@ -10292,12 +10190,12 @@ public final class SpecializedPanelRenderer
         }
         return Math.max(0.0f, totalChannel.getStore().getRateOfChange() / 20.0f);
     }
-    
+
     private static int mapToY(float value, float min, float max, int y, int h) {
         final float norm = (value - min) / Math.max(0.001f, max - min);
         return y + h - 1 - Math.round(Math.max(0.0f, Math.min(1.0f, norm)) * Math.max(1, h - 2));
     }
-    
+
     private static String formatCompact(float value) {
         final float abs = Math.abs(value);
         if (abs >= 1000000.0f) {
@@ -10314,7 +10212,7 @@ public final class SpecializedPanelRenderer
         }
         return String.format("%.2f", value);
     }
-    
+
     private static String truncate(String value, int maxChars) {
         if (value == null) {
             return "";
@@ -10361,7 +10259,7 @@ public final class SpecializedPanelRenderer
         }
         return lines.toArray(String[]::new);
     }
-    
+
     private static String truncateGui(Font font, String value, int maxPixels) {
         if (value == null) {
             return "";
@@ -10374,7 +10272,7 @@ public final class SpecializedPanelRenderer
         }
         return value + "..";
     }
-    
+
     private static void drawLineGui(GuiGraphics g, int x1, int y1, int x2, int y2, int color) {
         final int drawColor = applyPinnedHudOpacity(color);
         final int dx = Math.abs(x2 - x1);
@@ -10407,7 +10305,7 @@ public final class SpecializedPanelRenderer
             g.fill(cx - dx, cy + dy, cx + dx + 1, cy + dy + 1, drawColor);
         }
     }
-    
+
     private static void borderGui(GuiGraphics g, int x, int y, int w, int h, int color) {
         final int drawColor = applyPinnedHudOpacity(color);
         g.fill(x, y, x + w, y + 1, drawColor);
@@ -10415,15 +10313,15 @@ public final class SpecializedPanelRenderer
         g.fill(x, y, x + 1, y + h, drawColor);
         g.fill(x + w - 1, y, x + w, y + h, drawColor);
     }
-    
+
     private static int brighten(int color, float factor) {
         return scaleRgb(color, factor);
     }
-    
+
     private static int darken(int color, float factor) {
         return scaleRgb(color, factor);
     }
-    
+
     private static int scaleRgb(int color, float factor) {
         final int a = color >>> 24;
         final int alpha = (a == 0) ? 255 : a;
@@ -10432,20 +10330,20 @@ public final class SpecializedPanelRenderer
         final int b = Math.max(0, Math.min(255, Math.round((color & 0xFF) * factor)));
         return alpha << 24 | r << 16 | g << 8 | b;
     }
-    
+
     private static final class StateInfo
     {
         final String label;
         final String shortLabel;
         final int color;
-        
+
         StateInfo(String label, String shortLabel, int color) {
             this.label = label;
             this.shortLabel = shortLabel;
             this.color = color;
         }
     }
-    
+
     private static record StockpileReadout(StatsDisplayPanelBE.DataChannel trendChannel, float fillPercent, float currentAmount, float capacityAmount, float lowerAmount, float upperAmount, float lowerPercent, float upperPercent, boolean powered, MetricType amountType, StateInfo state) {}
 
     private static record AccumulatorReadout(StatsDisplayPanelBE.DataChannel trendChannel, float fillPercent, float stored, float capacity, float netRate, float inputRate, float outputRate, float totalIn, float totalOut, float connectors, float blocks, StateInfo state) {
@@ -10482,7 +10380,7 @@ public final class SpecializedPanelRenderer
             return this.state.color;
         }
     }
-    
+
     private static final class SourceSelection
     {
         String sourceId;

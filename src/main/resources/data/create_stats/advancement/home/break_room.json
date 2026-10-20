@@ -1,0 +1,102 @@
+{
+  "parent": "create_stats:home/cake",
+  "display": {
+    "icon": {
+      "id": "create_stats:toaster"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.break_room.title",
+      "fallback": "The Tea Station"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.break_room.description",
+      "fallback": "Own the whole break room: coffee machine, water cooler, toaster, bread slicer and air fryer."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "coffee_machine": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:coffee_machine"
+            ]
+          }
+        ]
+      }
+    },
+    "water_cooler": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:water_cooler"
+            ]
+          }
+        ]
+      }
+    },
+    "toaster": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:toaster"
+            ]
+          }
+        ]
+      }
+    },
+    "bread_slicer": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:bread_slicer"
+            ]
+          }
+        ]
+      }
+    },
+    "air_fryer": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:air_fryer"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "coffee_machine"
+    ],
+    [
+      "water_cooler"
+    ],
+    [
+      "toaster"
+    ],
+    [
+      "bread_slicer"
+    ],
+    [
+      "air_fryer"
+    ]
+  ],
+  "rewards": {
+    "experience": 100
+  }
+}

@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class ControlClutchVisual extends KineticBlockEntityVisual<ControlClutchBE> implements SimpleDynamicVisual {
-
     private static final float GAUGE_SCALE = 0.75f;
     private static final float NEEDLE_PIVOT_X = 8.0f / 16.0f;
     private static final float NEEDLE_PIVOT_Z = 8.0f / 16.0f;

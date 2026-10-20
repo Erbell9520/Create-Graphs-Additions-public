@@ -5,22 +5,12 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.Locale;
 
-/** [1] */
 public final class PduCard {
-
     private PduCard() {
     }
 
-    /** Height a heading claims at the top of a card: the text plus a little air under it. */
     public static final int HEADING_H = 11;
 
-    /**
-     * Draws the card and returns the rectangle its content may use, already inset by the padding and,
-     * if a heading was given, dropped below it. Callers lay out against the returned rect and never
-     * have to know the padding themselves.
-     *
-     * @param heading uppercase label drawn dim at the top left, or {@code null} for a bare surface
-     */
     public static PduRect draw(GuiGraphics g, Font font, PduRect bounds, String heading) {
         PduTheme.panel(g, bounds.x(), bounds.y(), bounds.w(), bounds.h());
         PduRect content = bounds.inset(PduTheme.PAD);
@@ -32,7 +22,7 @@ public final class PduCard {
         return content;
     }
 
-    /** [2] */
+    // letterspaced by hand, vanilla font has none
     public static void drawHeading(GuiGraphics g, Font font, String text, int x, int y) {
         final String up = text.toUpperCase(Locale.ROOT);
         int cx = x;

@@ -8,7 +8,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.AABB;
 
 public class MachineSelectionCardData {
-
     public static final int MAX_AREA_BLOCKS = 4096;
     public static final int DEFAULT_IDLE_TIMEOUT_SECONDS = 10;
     private static final int MIN_IDLE_TIMEOUT_SECONDS = 3;

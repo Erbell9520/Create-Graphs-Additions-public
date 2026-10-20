@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "drink": "create_stats:block/water_cooler_drink_chilled",
+    "particle": "create_stats:block/water_cooler_drink_chilled"
+  },
+  "elements": [
+    {
+      "__comment": "fill",
+      "from": [
+        -1.14,
+        0.42,
+        -1.14
+      ],
+      "to": [
+        1.14,
+        2.85,
+        1.14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#drink"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#drink"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#drink"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#drink"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#drink"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#drink"
+        }
+      }
+    }
+  ]
+}

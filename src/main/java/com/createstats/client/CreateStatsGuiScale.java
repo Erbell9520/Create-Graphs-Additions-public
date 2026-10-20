@@ -28,7 +28,11 @@ public final class CreateStatsGuiScale {
             return 1.0D;
         }
         final double guiScale = window.getGuiScale();
-        return guiScale > MAX_LOCAL_GUI_SCALE ? guiScale / MAX_LOCAL_GUI_SCALE : 1.0D;
+
+        final int cap = screen instanceof LocalGuiDensity density
+                ? Math.max(1, density.maxEffectiveGuiScale())
+                : MAX_LOCAL_GUI_SCALE;
+        return guiScale > cap ? guiScale / cap : 1.0D;
     }
 
     public static int virtualSize(Screen screen, int value) {

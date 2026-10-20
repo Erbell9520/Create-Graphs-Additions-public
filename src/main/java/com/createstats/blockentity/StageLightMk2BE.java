@@ -6,9 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** [1] */
 public class StageLightMk2BE extends StageLightBE {
-
     public static final int MK2_PEAK_RANGE = 64;
     public static final int MK2_MAX_RANGE = 128;
     public static final int MK2_TRACKING_RANGE = 160;
@@ -42,13 +40,12 @@ public class StageLightMk2BE extends StageLightBE {
         return this.beaconUpgrade;
     }
 
-    /** Install or remove the Beacon upgrade; re-clamps the current range into the new ceiling. Persists/syncs. */
     public void setBeaconUpgrade(boolean upgraded) {
         if (this.beaconUpgrade == upgraded) {
             return;
         }
         this.beaconUpgrade = upgraded;
-        // Re-apply the current configuration so range is re-clamped to the new maximum and synced.
+
         this.applyConfig(this.getPan(), this.getTilt(), this.getRange(), this.getBrightness(),
                 this.getFocus(), this.getTint(), this.isBeamVisible(), this.isVolumetric(),
                 this.getBeamWidth(), this.getLightSpread(), this.getEffect(), this.getEffectSpeed());
@@ -62,7 +59,6 @@ public class StageLightMk2BE extends StageLightBE {
 
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        // Read the upgrade flag BEFORE super so the range clamp in the base read uses the correct ceiling.
         this.beaconUpgrade = tag.getBoolean("BeaconUpgrade");
         super.read(tag, registries, clientPacket);
     }

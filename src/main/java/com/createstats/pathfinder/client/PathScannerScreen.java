@@ -103,7 +103,7 @@ public class PathScannerScreen extends AbstractContainerScreen<PathScannerMenu> 
         this.renderTransparentBackground(graphics);
         this.renderConsole(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
-        // FE Dependent Mode side panel (self-gating: draws nothing while the mode is off).
+
         com.createstats.power.client.FeStatusWidget.draw(graphics, font, leftPos + imageWidth + 6, topPos + 6, 110,
                 this.menu.getScanner() == null ? null : this.menu.getScanner().feConsumer());
         this.renderTooltip(graphics, mouseX, mouseY);
@@ -179,8 +179,6 @@ public class PathScannerScreen extends AbstractContainerScreen<PathScannerMenu> 
         int rightX = -forwardZ;
         int rightZ = forwardX;
 
-        // Row 0 is the farthest-forward chunk (top); the vehicle sits at forward=0 (highlighted); the
-        // rows below it are the fixed rearward margin.
         for (int row = 0; row < rows; row++) {
             int forward = (forwardChunks - 1) - row;
             for (int col = 0; col < cols; col++) {
@@ -199,8 +197,6 @@ public class PathScannerScreen extends AbstractContainerScreen<PathScannerMenu> 
             }
         }
 
-        // Separate the forward window from the rearward margin, and mark the vehicle's own cell so
-        // the top-down orientation reads at a glance.
         int vehicleRowY = gridY + (forwardChunks - 1) * (cell + gap);
         if (backChunks > 0) {
             int divY = vehicleRowY + cell + (gap + 1) / 2;

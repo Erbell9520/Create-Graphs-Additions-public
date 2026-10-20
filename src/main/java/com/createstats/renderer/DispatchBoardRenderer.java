@@ -20,10 +20,8 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
-/** [1] */
 @OnlyIn(Dist.CLIENT)
 public class DispatchBoardRenderer implements BlockEntityRenderer<DispatchBoardBE> {
-
     private static final int FULL_BRIGHT = 0x00F000F0;
 
     public DispatchBoardRenderer(BlockEntityRendererProvider.Context context) {
@@ -53,12 +51,10 @@ public class DispatchBoardRenderer implements BlockEntityRenderer<DispatchBoardB
 
         ps.pushPose();
 
-        // [2]
         ps.translate(0.5, 0.5, 0.5);
         ps.mulPose(Axis.YP.rotationDegrees(yRot(facing)));
         ps.translate(-0.5, -0.5, -0.5);
 
-        // [3]
         ps.translate(0.0, 0.0, 5.0 / 16.0 + 0.03125);
 
         renderTexturedQuad(ps, buf, texture, mbW, mbH, packedOverlay);
@@ -78,7 +74,6 @@ public class DispatchBoardRenderer implements BlockEntityRenderer<DispatchBoardB
         float y0 = inset;
         float y1 = (float) height - inset;
 
-        // Quad vertices: top-left → bottom-left → bottom-right → top-right
         vertex(vc, pose, normal, x0, y1, 0.0f, 0.0f, 0.0f, packedOverlay);
         vertex(vc, pose, normal, x0, y0, 0.0f, 0.0f, 1.0f, packedOverlay);
         vertex(vc, pose, normal, x1, y0, 0.0f, 1.0f, 1.0f, packedOverlay);
@@ -125,8 +120,6 @@ public class DispatchBoardRenderer implements BlockEntityRenderer<DispatchBoardB
         return com.createstats.ModConfiguration.cappedViewDistance(96);
     }
 
-    // DispatchBoard FACING points toward the viewer (opposite of StatsDisplayPanel),
-    // so every case is offset 180° from the StatsDisplayPanel convention.
     private static float yRot(Direction facing) {
         return switch (facing) {
             case SOUTH -> 0.0f;

@@ -4,32 +4,62 @@ import com.createstats.power.PduMode;
 
 import java.util.Locale;
 
-/** [1] */
 public final class PduStatusLine {
-
     private PduStatusLine() {
     }
 
-    /** Thirty seconds. Under this much reserve left, a served grid is still called out as draining. */
     private static final int DRAINING_TICKS = 20 * 30;
 
-    /**
-     * The single status sentence.
-     *
-     * @param mode              the distribution mode
-     * @param hasBranch         whether anything is wired to the output studs
-     * @param dark              whether the branch has no power at all, buffer empty and nothing coming in
-     * @param surplus           whether there is spare supply (Active Auto only, pass false otherwise)
-     * @param throughputLimited whether the branch wiring, not generation, is the binding limit
-     * @param shedCount         how many loads are currently shed
-     * @param spareFePerTick    spare generation over demand, for the surplus sentence
-     * @param enduranceTicks    ticks of reserve left at the current drain, or {@link Integer#MAX_VALUE}
-     * @param fillFraction      buffer fill, 0 to 1
-     * @param floorPct          reserve floor percent, the line below which only Critical draws
-     */
     public static String derive(PduMode mode, boolean hasBranch, boolean dark, boolean surplus,
                                 boolean throughputLimited, int shedCount, int spareFePerTick,
                                 int enduranceTicks, float fillFraction, int floorPct) {
+        return derive(mode, hasBranch, dark, surplus, throughputLimited, shedCount, spareFePerTick,
+                enduranceTicks, fillFraction, floorPct, false);
+    }
+
+    // new age connector bolted straight on is said first, it's the cause of everything else on the line
+    public static String derive(PduMode mode, boolean hasBranch, boolean dark, boolean surplus,
+                                boolean throughputLimited, int shedCount, int spareFePerTick,
+                                int enduranceTicks, float fillFraction, int floorPct,
+                                boolean feedMisplaced) {
+        return derive(mode, hasBranch, dark, surplus, throughputLimited, shedCount, spareFePerTick,
+                enduranceTicks, fillFraction, floorPct, feedMisplaced, -1);
+    }
+
+    public static String derive(PduMode mode, boolean hasBranch, boolean dark, boolean surplus,
+                                boolean throughputLimited, int shedCount, int spareFePerTick,
+                                int enduranceTicks, float fillFraction, int floorPct,
+                                boolean feedMisplaced, int strayControllerLeg) {
+        return derive(mode, hasBranch, dark, surplus, throughputLimited, shedCount, spareFePerTick,
+                enduranceTicks, fillFraction, floorPct, feedMisplaced, strayControllerLeg, 0);
+    }
+
+    public static String derive(PduMode mode, boolean hasBranch, boolean dark, boolean surplus,
+                                boolean throughputLimited, int shedCount, int spareFePerTick,
+                                int enduranceTicks, float fillFraction, int floorPct,
+                                boolean feedMisplaced, int strayControllerLeg, int exportFePerTick) {
+        return derive(mode, hasBranch, dark, surplus, throughputLimited, shedCount, spareFePerTick,
+                enduranceTicks, fillFraction, floorPct, feedMisplaced, strayControllerLeg,
+                exportFePerTick, -1);
+    }
+
+    public static String derive(PduMode mode, boolean hasBranch, boolean dark, boolean surplus,
+                                boolean throughputLimited, int shedCount, int spareFePerTick,
+                                int enduranceTicks, float fillFraction, int floorPct,
+                                boolean feedMisplaced, int strayControllerLeg, int exportFePerTick,
+                                int strayPanelStudLeg) {
+        if (feedMisplaced) {
+            return "A New Age connector is bolted straight to this board. Fit a Universal Power Coupler between them.";
+        }
+        if (strayPanelStudLeg >= 0) {
+            return PduLegRow.name(strayPanelStudLeg) + " runs to another panel's stud, which carries "
+                    + "nothing. A stud is an output on both boards: land this leg on that panel's "
+                    + "side boss instead.";
+        }
+        if (strayControllerLeg >= 0) {
+            return PduLegRow.name(strayControllerLeg) + " runs to a Battery Controller input, which carries "
+                    + "nothing. Wire the stud to the connector that controller's input already holds.";
+        }
         if (!hasBranch) {
             return "Nothing is wired. Run Copper Wire from a stud, or cable from the back boss.";
         }
@@ -45,6 +75,11 @@ public final class PduStatusLine {
         if (shedCount > 0) {
             final boolean belowFloor = fillFraction < floorPct / 100.0f;
             final String noun = shedCount == 1 ? " load " : " loads ";
+            if (exportFePerTick > 0) {
+                return "Shedding " + shedCount + noun + "while "
+                        + String.format(Locale.ROOT, "%,d", exportFePerTick)
+                        + " FE/t leaves through the back boss.";
+            }
             return "Shedding " + shedCount + noun
                     + (belowFloor ? "to hold the reserve floor." : "to stay within supply.");
         }
@@ -57,7 +92,6 @@ public final class PduStatusLine {
         return "All loads served.";
     }
 
-    /** A tick count as a rough duration: "45s", "4m 20s", "1h 3m". */
     public static String formatDuration(int ticks) {
         final int seconds = Math.max(0, ticks) / 20;
         if (seconds >= 3600) {
@@ -69,19 +103,6 @@ public final class PduStatusLine {
         return seconds + "s";
     }
 
-    /**
-     * The Supply card's subtitle, which has to reconcile a headline of "3,843 FE/t" with an intake of
-     * zero without either of them looking like a fault.
-     *
-     * <p>Both are true at once and the reason is not guessable from the panel: a full buffer has
-     * nowhere to put incoming energy, so the PDU stops pulling and measured intake legitimately falls
-     * to nothing while the branch runs happily off the reserve. The old subtitle said "0 FE/t drawn
-     * now" under a large supply figure, which reads as broken. Naming the cause is the whole job of
-     * this string.</p>
-     *
-     * @param measuredIntake real FE per tick entering the PDU
-     * @param fillFraction   buffer fill, 0 to 1
-     */
     public static String formatSupplySubtitle(int measuredIntake, float fillFraction) {
         if (measuredIntake > 0) {
             return String.format(Locale.ROOT, "%,d", measuredIntake) + " FE/t flowing in";
@@ -92,7 +113,6 @@ public final class PduStatusLine {
         return "nothing flowing in";
     }
 
-    /** [2] */
     public static String formatEndurance(int enduranceTicks, boolean surplus, float fillFraction) {
         if (enduranceTicks != Integer.MAX_VALUE) {
             return formatDuration(enduranceTicks) + " to empty";

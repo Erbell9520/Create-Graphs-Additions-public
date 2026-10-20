@@ -12,28 +12,26 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** [1] */
 public record FePowerSyncPacket(BlockPos pos, FePowerSnapshot snapshot) implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<FePowerSyncPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "fe_power_sync"));
 
     public static final StreamCodec<FriendlyByteBuf, FePowerSyncPacket> STREAM_CODEC =
             StreamCodec.of((buf, pkt) -> pkt.encode(buf), FePowerSyncPacket::decode);
 
-    private static final int FLAG_MODE_ENABLED = 1;
+    private static final int FLAG_POWER_REQUIRED = 1;
     private static final int FLAG_POWERED = 2;
     private static final int FLAG_BURST_STARVED = 4;
     private static final int FLAG_SHED = 8;
-    /** Priority ordinal (0..4) is packed into bits 4 to 6 of the flags byte. */
+
     private static final int PRIORITY_SHIFT = 4;
     private static final int PRIORITY_MASK = 0x07;
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
         int flags = 0;
-        if (snapshot.modeEnabled()) {
-            flags |= FLAG_MODE_ENABLED;
+        if (snapshot.powerRequired()) {
+            flags |= FLAG_POWER_REQUIRED;
         }
         if (snapshot.powered()) {
             flags |= FLAG_POWERED;
@@ -55,7 +53,7 @@ public record FePowerSyncPacket(BlockPos pos, FePowerSnapshot snapshot) implemen
         buf.writeVarInt(snapshot.measuredDrain());
         buf.writeVarInt(snapshot.measuredInput());
         buf.writeFloat(snapshot.loadMultiplier());
-        // [2]
+
         buf.writeByte(snapshot.lock().ordinal());
     }
 
@@ -72,10 +70,9 @@ public record FePowerSyncPacket(BlockPos pos, FePowerSnapshot snapshot) implemen
         final int measuredInput = buf.readVarInt();
         final float multiplier = buf.readFloat();
         final int lock = buf.readByte() & 0xFF;
-        // The snapshot's compact constructor clamps everything, so a malformed payload cannot
-        // produce a negative capacity or a NaN multiplier in a GUI.
+
         return new FePowerSyncPacket(pos, new FePowerSnapshot(
-                (flags & FLAG_MODE_ENABLED) != 0,
+                (flags & FLAG_POWER_REQUIRED) != 0,
                 (flags & FLAG_POWERED) != 0,
                 (flags & FLAG_BURST_STARVED) != 0,
                 energy, capacity, idleDrain, activeDrain, burstCost, rebootThresholdPct,
@@ -93,7 +90,7 @@ public record FePowerSyncPacket(BlockPos pos, FePowerSnapshot snapshot) implemen
     public static void handle(FePowerSyncPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final Level level = ctx.player().level();
-            // [3]
+
             if (level.getBlockEntity(packet.pos()) instanceof IFeConsumer owner) {
                 owner.feConsumer().applyClientSnapshot(packet.snapshot());
             }

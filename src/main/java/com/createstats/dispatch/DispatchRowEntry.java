@@ -6,9 +6,7 @@ import com.createstats.train.manifest.ManifestOperation;
 import com.createstats.train.manifest.DeliveryOrderResetMode;
 import net.minecraft.world.item.ItemStack;
 
-/** [1] */
 public class DispatchRowEntry {
-
     private final DeliveryOrderLineView lineView;
     private final DispatchRowState state;
     private final int rowIndex;
@@ -27,12 +25,9 @@ public class DispatchRowEntry {
         return this.state;
     }
 
-    /** Zero-based index of this row in the visible page. */
     public int getRowIndex() {
         return this.rowIndex;
     }
-
-    // convenience pass-throughs
 
     public String getDisplayName() {
         return this.lineView.getDisplayName();
@@ -70,10 +65,6 @@ public class DispatchRowEntry {
         return this.lineView.getResetIntervalValue();
     }
 
-    /**
-     * Fractional progress [0.0, 1.0] for the progress bar.
-     * Returns 0 if target is zero (NEEDS_SETUP).
-     */
     public float getProgress() {
         if (this.lineView.getTargetAmount() <= 0) {
             return 0f;
@@ -81,7 +72,6 @@ public class DispatchRowEntry {
         return Math.min(1f, (float) this.lineView.getDeliveredAmount() / this.lineView.getTargetAmount());
     }
 
-    /** Short status label for compact display (e.g. "12/64 Load"). */
     public String getCompactLabel() {
         if (this.lineView.getTargetAmount() <= 0) {
             return this.lineView.getOperation().getDisplayName();
@@ -90,15 +80,10 @@ public class DispatchRowEntry {
                 + " " + this.lineView.getOperation().getDisplayName();
     }
 
-    /**
-     * Cycle/reset badge text. Returns empty string if the row is one-shot (ONCE)
-     * or if the tier doesn't show row detail.
-     */
     public String getResetBadge() {
         return this.lineView.getResetMode().getBadgeLabel(this.lineView.getResetIntervalValue());
     }
 
-    /** RGB color for this row's state indicator. */
     public int getStateColor() {
         return this.state.getColor();
     }

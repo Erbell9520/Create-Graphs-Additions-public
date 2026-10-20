@@ -13,7 +13,6 @@ import net.minecraft.world.InteractionHand;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class HandheldStatePacket implements CustomPacketPayload {
-
     public enum ConnectionState {
         LIVE,
         NO_DATA,

@@ -1,0 +1,771 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "poly": "create_stats:block/lamp_poly",
+    "cap": "create_stats:block/lamp_cap",
+    "stainless": "create_stats:block/lamp_stainless",
+    "gland": "create_stats:block/lamp_gland",
+    "particle": "create_stats:block/lamp_poly"
+  },
+  "elements": [
+    {
+      "__comment": "channel",
+      "from": [
+        1.0,
+        0,
+        4.8
+      ],
+      "to": [
+        15.0,
+        1.2,
+        11.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#poly"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#poly"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#poly"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#poly"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            14,
+            6
+          ],
+          "texture": "#poly"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            14,
+            6
+          ],
+          "texture": "#poly"
+        }
+      }
+    },
+    {
+      "__comment": "gasket",
+      "from": [
+        1.2,
+        1.2,
+        5.0
+      ],
+      "to": [
+        14.8,
+        1.6,
+        11.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#cap"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#cap"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#cap"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            14,
+            1
+          ],
+          "texture": "#cap"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            14,
+            6
+          ],
+          "texture": "#cap"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            14,
+            6
+          ],
+          "texture": "#cap"
+        }
+      }
+    },
+    {
+      "__comment": "end_a",
+      "from": [
+        13.4,
+        1.2,
+        4.6
+      ],
+      "to": [
+        15.2,
+        5.0,
+        11.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            7
+          ],
+          "texture": "#poly"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            7
+          ],
+          "texture": "#poly"
+        }
+      }
+    },
+    {
+      "__comment": "end_b",
+      "from": [
+        0.8,
+        1.2,
+        4.6
+      ],
+      "to": [
+        2.6,
+        5.0,
+        11.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ],
+          "texture": "#poly"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            7
+          ],
+          "texture": "#poly"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            7
+          ],
+          "texture": "#poly"
+        }
+      }
+    },
+    {
+      "__comment": "clip_a",
+      "from": [
+        11.8,
+        0.2,
+        4.4
+      ],
+      "to": [
+        13.0,
+        0.9,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#stainless"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#stainless"
+        }
+      }
+    },
+    {
+      "__comment": "clip_b",
+      "from": [
+        3.0,
+        0.2,
+        4.4
+      ],
+      "to": [
+        4.2,
+        0.9,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#stainless"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#stainless"
+        }
+      }
+    },
+    {
+      "__comment": "latch_aw",
+      "from": [
+        10.4,
+        1.4,
+        10.8
+      ],
+      "to": [
+        11.8,
+        3.2,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        }
+      }
+    },
+    {
+      "__comment": "latch_ae",
+      "from": [
+        10.4,
+        1.4,
+        4.4
+      ],
+      "to": [
+        11.8,
+        3.2,
+        5.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        }
+      }
+    },
+    {
+      "__comment": "latch_bw",
+      "from": [
+        4.2,
+        1.4,
+        10.8
+      ],
+      "to": [
+        5.6,
+        3.2,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        }
+      }
+    },
+    {
+      "__comment": "latch_be",
+      "from": [
+        4.2,
+        1.4,
+        4.4
+      ],
+      "to": [
+        5.6,
+        3.2,
+        5.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#stainless"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#stainless"
+        }
+      }
+    },
+    {
+      "__comment": "gland",
+      "from": [
+        6.8,
+        0.3,
+        11.2
+      ],
+      "to": [
+        9.2,
+        1.5,
+        12.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#gland"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#gland"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#gland"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#gland"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#gland"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#gland"
+        }
+      }
+    }
+  ]
+}

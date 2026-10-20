@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "GPG",
+    "BTB",
+    "IHI"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "P": {
+      "item": "create:propeller"
+    },
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    }
+  },
+  "result": {
+    "id": "create_stats:vacuum_collector",
+    "count": 1
+  },
+  "show_notification": true
+}

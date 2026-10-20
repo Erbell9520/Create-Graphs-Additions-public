@@ -39,7 +39,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class DataDialBE extends BlockEntity implements IAutoDataReceiver
+public class DataDialBE extends BlockEntity implements IAutoDataReceiver,
+        com.createstats.util.CopyableSettings
 {
     private static final float EPSILON = 0.01f;
     private static final long LINK_TIMEOUT_TICKS = 60L;
@@ -100,8 +101,6 @@ public class DataDialBE extends BlockEntity implements IAutoDataReceiver
         }
         this.prevDialState = this.dialState;
         if (this.isStale) {
-            // Stale linked data: needle slowly drifts toward zero so the player can see
-            // the reading is no longer being refreshed by a live source.
             this.dialState += (0.0f - this.dialState) * 0.02f;
         } else {
             final float target = this.hasData ? this.normalizedValue : 0.0f;
@@ -167,6 +166,41 @@ public class DataDialBE extends BlockEntity implements IAutoDataReceiver
             this.setChanged();
         }
         return Component.literal(this.settings.getSourceMode().getDisplayName());
+    }
+
+    @Override
+    public String settingsKey() {
+        return "create_stats:data_dial";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put("Settings", this.settings.save());
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @Nullable net.minecraft.world.entity.player.Player player, boolean simulate) {
+        if (!tag.contains("Settings")) {
+            return false;
+        }
+        if (simulate || this.alreadyHolds(tag, registries)) {
+            return true;
+        }
+        final DataDialSettings.SourceMode before = this.settings.getSourceMode();
+        this.settings = DataDialSettings.load(tag.getCompound("Settings"));
+        if (before != DataDialSettings.SourceMode.LINKED
+                && this.settings.getSourceMode() == DataDialSettings.SourceMode.LINKED) {
+            this.linkedMetrics.clear();
+            this.lastLinkedDataTick = Long.MIN_VALUE;
+        }
+        if (this.level != null && !this.level.isClientSide()) {
+            this.evaluateAndApply(this.level.getGameTime());
+            this.syncToClient();
+        } else {
+            this.setChanged();
+        }
+        return true;
     }
 
     private void evaluateAndApply(long gameTime) {
@@ -362,7 +396,7 @@ public class DataDialBE extends BlockEntity implements IAutoDataReceiver
 
         if (sourceBE instanceof KineticFlywheelBE flywheel) {
             final float chargePct = flywheel.getChargePercent();
-            // Map the dial's default "stress" slot to charge so the reserve reads out of the box.
+
             metrics.put("stress_pct", new MetricSample("stress_pct", "Charge %", chargePct, MetricType.FILL_LEVEL));
             metrics.put("charge_pct", new MetricSample("charge_pct", "Charge %", chargePct, MetricType.FILL_LEVEL));
             metrics.put("stored_rpm", new MetricSample("stored_rpm", "Stored RPM", flywheel.getStoredRpm(), MetricType.RPM));
@@ -437,7 +471,8 @@ public class DataDialBE extends BlockEntity implements IAutoDataReceiver
 
     @Nullable
     private IItemHandler resolveItemHandler(BlockEntity sourceBE, Direction accessFace) {
-        // [1]
+        // vault controller cap gives the whole multiblock, getInventoryOfBlock under-reports
+
         return InventoryLookupHelper.resolveItemHandler(sourceBE.getLevel(), sourceBE.getBlockPos(), sourceBE, accessFace);
     }
 
@@ -487,7 +522,9 @@ public class DataDialBE extends BlockEntity implements IAutoDataReceiver
 
     private String resolveSourceType(BlockEntity sourceBE) {
         final String mapped = StatsDisplayTarget.getStatsDisplayLinkSourceType(sourceBE);
-        if (!mapped.isEmpty()) {
+        // generic container keeps its own block name
+
+        if (!mapped.isEmpty() && !StatsDisplayTarget.isGenericContainerType(mapped)) {
             return mapped;
         }
         return sourceBE.getBlockState().getBlock().getName().getString();

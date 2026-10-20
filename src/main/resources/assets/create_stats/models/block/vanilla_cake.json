@@ -1,0 +1,43 @@
+{
+  "textures": {
+    "bottom": "create_stats:block/vanilla_cake_bottom",
+    "top": "create_stats:block/vanilla_cake_top",
+    "side": "create_stats:block/vanilla_cake_side",
+    "particle": "create_stats:block/vanilla_cake_side"
+  },
+  "elements": [
+    {
+      "from": [
+        1.0,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        8,
+        15
+      ],
+      "faces": {
+        "down": {
+          "texture": "#bottom",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        }
+      }
+    }
+  ]
+}

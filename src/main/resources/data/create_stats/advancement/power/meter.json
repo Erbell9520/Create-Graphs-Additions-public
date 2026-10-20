@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:power_meter"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.meter.title",
+      "fallback": "The Meter Is Spinning"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.meter.description",
+      "fallback": "Place a Power Meter. Dad is already standing behind you, watching it spin."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "meter": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:power_meter"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "meter"
+    ]
+  ]
+}

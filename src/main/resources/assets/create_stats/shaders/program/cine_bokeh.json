@@ -1,0 +1,36 @@
+{
+    "blend": {
+        "func": "add",
+        "srcrgb": "one",
+        "dstrgb": "zero"
+    },
+    "vertex": "create_stats:cine_quad",
+    "fragment": "create_stats:cine_bokeh",
+    "attributes": [
+        "Position"
+    ],
+    "samplers": [
+        {
+            "name": "HalfSampler"
+        }
+    ],
+    "uniforms": [
+        {
+            "name": "HalfTexel",
+            "type": "float",
+            "count": 2,
+            "values": [
+                0.002,
+                0.002
+            ]
+        },
+        {
+            "name": "MaxCoc",
+            "type": "float",
+            "count": 1,
+            "values": [
+                8.0
+            ]
+        }
+    ]
+}

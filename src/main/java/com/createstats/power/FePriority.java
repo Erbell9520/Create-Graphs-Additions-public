@@ -1,6 +1,6 @@
 package com.createstats.power;
 
-/** [1] */
+// ordinal order is serve order, don't reorder
 public enum FePriority {
     CRITICAL("Critical"),
     HIGH("High"),
@@ -8,7 +8,6 @@ public enum FePriority {
     LOW("Low"),
     OPTIONAL("Optional");
 
-    /** Tier a non-{@link FeConsumer} load (a third party machine) is treated as: neither privileged nor shed first. */
     public static final FePriority DEFAULT = NORMAL;
 
     private final String displayName;
@@ -21,13 +20,21 @@ public enum FePriority {
         return this.displayName;
     }
 
-    /** The next tier for a cycle control, wrapping {@code OPTIONAL} back to {@code CRITICAL}. */
+    public String getShortName() {
+        return switch (this) {
+            case CRITICAL -> "CRIT";
+            case HIGH -> "HIGH";
+            case NORMAL -> "NORM";
+            case LOW -> "LOW";
+            case OPTIONAL -> "OPT";
+        };
+    }
+
     public FePriority next() {
         final FePriority[] values = values();
         return values[(this.ordinal() + 1) % values.length];
     }
 
-    /** Ordinal lookup for packet and NBT decode, clamped to {@link #DEFAULT} on anything out of range. */
     public static FePriority byOrdinal(int ordinal) {
         final FePriority[] values = values();
         if (ordinal < 0 || ordinal >= values.length) {

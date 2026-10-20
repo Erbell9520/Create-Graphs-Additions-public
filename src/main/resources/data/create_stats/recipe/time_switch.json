@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "SSS",
+    "NKN",
+    "SLS"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:smooth_stone"
+    },
+    "N": {
+      "item": "minecraft:iron_nugget"
+    },
+    "K": {
+      "item": "minecraft:clock"
+    },
+    "L": {
+      "item": "minecraft:lever"
+    }
+  },
+  "result": {
+    "id": "create_stats:time_switch",
+    "count": 1
+  },
+  "show_notification": true
+}

@@ -1,0 +1,7 @@
+{
+  "type": "create_stats:arc_smelting",
+  "first": { "tag": "c:raw_materials/copper" },
+  "second": { "tag": "c:raw_materials/zinc" },
+  "result": { "id": "create:brass_ingot", "count": 3 },
+  "duration": 320
+}

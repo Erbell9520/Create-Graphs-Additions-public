@@ -1,0 +1,15 @@
+{
+  "type": "create_stats:baking",
+  "tin": {
+    "item": "create_stats:cinnamon_cake_mold"
+  },
+  "result": {
+    "id": "create_stats:cinnamon_cake",
+    "count": 1
+  },
+  "container": {
+    "id": "create_stats:cake_mold",
+    "count": 1
+  },
+  "bake_time": 300
+}

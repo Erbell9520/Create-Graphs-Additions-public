@@ -30,14 +30,14 @@ public final class PathRoutePlanner {
     private static final int MAX_ROUTE_POINTS = 160;
     private static final int MAX_TARGET_ATTEMPTS = 96;
     private static final int MAX_VERTICAL_STEP = 2;
-    // [1]
+
     private static final int MAX_EXPANDED_STATES = 30000;
-    // [2]
+
     private static final double SLOPE_STEP_BASE = 3.0;
     private static final double SLOPE_STEP_ESCALATION = 1.6;
     private static final double SLOPE_STEP_MAX = 22.0;
     private static final double DESCENT_STEP_PENALTY = 0.6;
-    // [3]
+
     private static final double OBSTACLE_BERTH_EXTRA = 1.0;
     private static final double OBSTACLE_BERTH_WEIGHT = 2.6;
     private static final int[][] NEIGHBORS = {
@@ -89,14 +89,11 @@ public final class PathRoutePlanner {
         Cell start = anchorStartCell(cells, region.origin());
 
         double hardClearance = clampDouble(hardClearanceRadius, 0.0, 2.0);
-        // Preferred clearance is at least hardClearance + 3 blocks so the path stays well clear of
-        // trees, trunks, and other same-height obstacles.  Cap at 6 to remain tractable.
+
         double preferredClearance = clampDouble(Math.max(hardClearance + 3.0, preferredClearanceRadius), 0.0, 6.0);
-        // Minimum turning radius the smoother rounds corners to. Larger vehicles (more clearance) get a
-        // wider radius. Clamped to a sane driving range.
+
         double turnRadius = clampDouble(preferredClearance + 1.5, 3.0, 8.0);
 
-        // [4]
         if (navTarget != null) {
             double hsDx = navTarget.x - (start.x() + 0.5);
             double hsDz = navTarget.z - (start.z() + 0.5);
@@ -123,7 +120,8 @@ public final class PathRoutePlanner {
                 PlannerJobStage.HOLD, 100, 0);
         }
 
-        // [5]
+        // berth per cell cached across attempts
+
         Map<Long, Double> berthCache = new HashMap<>();
 
         GridRoute bestRoute = null;
@@ -273,7 +271,7 @@ public final class PathRoutePlanner {
                                             double hardClearance, double preferredClearance,
                                             Map<Long, Double> berthCache, int budget) {
         if (budget <= 0 || start.key() == target.key()) return new GridRoute(List.of(), 0, false);
-        // Precompute the start-to-target direction for the cross-product tie-breaker
+
         long stDx = target.x() - start.x();
         long stDz = target.z() - start.z();
         Map<Long, SearchNode> nodes = new HashMap<>();
@@ -320,7 +318,7 @@ public final class PathRoutePlanner {
                 nextNode.climbRun = nextClimbRun;
                 nextNode.f = tentativeG + heuristic(next, target);
                 nextNode.parent = current;
-                // Cross-product tie-breaker: prefer nodes on the direct start-to-goal line
+
                 long nodeDx = next.x() - start.x();
                 long nodeDz = next.z() - start.z();
                 double tieBreak = Math.abs(nodeDx * stDz - nodeDz * stDx) * 1e-5;
@@ -364,19 +362,17 @@ public final class PathRoutePlanner {
 
     private static double movementCost(Cell from, Cell to, double berthPenalty) {
         double cost = from.x() != to.x() && from.z() != to.z() ? Math.sqrt(2.0) : 1.0;
-        // Slope cost (rise-dependent and climb-run-escalating) is applied by the A* loop, which holds
-        // the sustained-climb state; here we only cover the flat step and static hazards.
+
         int hazards = to.hazards();
         if ((hazards & HazardFlags.TWO_BLOCK) != 0) cost += 1.4;
-        // Water: extreme penalty so it is only ever used as an absolute last resort
+
         if ((hazards & HazardFlags.LIQUID) != 0) cost += 50.0;
         if ((hazards & HazardFlags.UNKNOWN_CHUNK) != 0) cost += 6.0;
-        // Graduated obstacle/tree/structure berth (looked up from the lazy per-cell cache).
+
         cost += berthPenalty;
         return cost;
     }
 
-    // [6]
     static double obstacleBerthPenalty(Map<Long, Cell> cells, Cell center, double preferredClearance) {
         if (preferredClearance < 1.0) return 0.0;
         double berth = preferredClearance + OBSTACLE_BERTH_EXTRA;
@@ -400,7 +396,6 @@ public final class PathRoutePlanner {
         return OBSTACLE_BERTH_WEIGHT * Math.max(0.0, berth - nearest);
     }
 
-    // [7]
     static double slopeStepPenalty(int climbRunBefore, int rise) {
         double penalty = 0.0;
         for (int k = 0; k < rise; k++) {
@@ -425,13 +420,10 @@ public final class PathRoutePlanner {
         return List.copyOf(path);
     }
 
-    // [8]
-
     private static final double LOS_SAMPLE_STEP = 0.5;
     private static final double RESAMPLE_SPACING = 1.25;
     private static final double NEAR_STRAIGHT_RAD = Math.toRadians(7.0);
 
-    // Package-private for unit testing (PathRoutePlannerSmoothingTest); otherwise treat as internal.
     static List<Vec3> smoothPath(List<Cell> path, Map<Long, Cell> cells, double clearance, double turnRadius) {
         if (path.size() < 2) return toWaypoints(path);
         List<Cell> corners = stringPull(path, cells, clearance);
@@ -450,8 +442,6 @@ public final class PathRoutePlanner {
         return new Vec3(c.x() + 0.5, c.y() + 1.0, c.z() + 0.5);
     }
 
-    // Greedy string-pull: from each anchor, jump to the farthest path node still reachable by a clear,
-    // clearance-respecting straight line. Collapses the staircase into straights plus real bends.
     static List<Cell> stringPull(List<Cell> path, Map<Long, Cell> cells, double clearance) {
         if (path.size() <= 2) return path;
         List<Cell> corners = new ArrayList<>();
@@ -475,7 +465,6 @@ public final class PathRoutePlanner {
         return lineOfSightClearToXZ(a, b.x() + 0.5, b.z() + 0.5, cells, clearance);
     }
 
-    // LOS from a start cell to an arbitrary world XZ (also used to gate the home-stretch straight shot).
     private static boolean lineOfSightClearToPoint(Cell a, Vec3 target, Map<Long, Cell> cells, double clearance) {
         return lineOfSightClearToXZ(a, target.x, target.z, cells, clearance);
     }
@@ -499,7 +488,6 @@ public final class PathRoutePlanner {
         return true;
     }
 
-    // [9]
     private static final double[] FILLET_TRY_FACTORS = { 1.0, 0.6, 0.35 };
 
     static List<Vec3> filletCorners(List<Vec3> poly, Map<Long, Cell> cells, double clearance, double turnRadius) {
@@ -517,8 +505,8 @@ public final class PathRoutePlanner {
             double dot = clampDouble(uix * uox + uiz * uoz, -1.0, 1.0);
             double turn = Math.acos(dot);
             if (turn < NEAR_STRAIGHT_RAD) { out.add(cur); continue; }
-            // Trim distance: larger = gentler curve, bounded by the turn radius and half of each edge
-            // so adjacent fillets never overlap.
+            // trim bounded by turn radius and half of each edge
+
             double maxT = Math.min(turnRadius, Math.min(inLen * 0.5, outLen * 0.5));
             List<Vec3> arc = null;
             for (double factor : FILLET_TRY_FACTORS) {
@@ -530,14 +518,13 @@ public final class PathRoutePlanner {
             if (arc != null) {
                 out.addAll(arc);
             } else {
-                out.add(cur); // no radius fits without clipping an obstacle; keep the sharp corner
+                out.add(cur);
             }
         }
         out.add(poly.get(poly.size() - 1));
         return out;
     }
 
-    // [10]
     private static List<Vec3> tryFillet(Vec3 cur, double uix, double uiz, double uox, double uoz, double t,
                                         double turn, Map<Long, Cell> cells, double clearance) {
         Vec3 p1 = new Vec3(cur.x - uix * t, cur.y, cur.z - uiz * t);
@@ -564,7 +551,6 @@ public final class PathRoutePlanner {
         return hasClearance(cells, c, clearance);
     }
 
-    // Even arc-length resample so the follower's projection and lookahead stay well conditioned.
     static List<Vec3> resample(List<Vec3> points, double spacing) {
         if (points.size() <= 2 || spacing <= 1.0e-3) return points;
         List<Vec3> out = new ArrayList<>();
@@ -609,15 +595,14 @@ public final class PathRoutePlanner {
         return List.copyOf(waypoints);
     }
 
-    // [11]
     static List<Float> vehicleSpeeds(List<Vec3> waypoints, float cappedSpeed, int hazards, double turnRadius) {
         float hazardSpeed = (hazards & (HazardFlags.TWO_BLOCK | HazardFlags.LIQUID | HazardFlags.UNKNOWN_CHUNK)) != 0
             ? Math.min(cappedSpeed, 4.0f) : cappedSpeed;
         int n = waypoints.size();
         if (n == 0) return List.of();
         float[] speeds = new float[n];
-        final double aLat = 3.2;   // comfortable lateral acceleration (blocks/s^2)
-        final double aDecel = 3.5; // comfortable braking (blocks/s^2)
+        final double aLat = 3.2;
+        final double aDecel = 3.5;
         for (int i = 0; i < n; i++) {
             float speed = hazardSpeed;
             double radius = localRadius(waypoints, i, 2.0);
@@ -638,8 +623,6 @@ public final class PathRoutePlanner {
         return List.copyOf(out);
     }
 
-    // Local turn radius at index i via the Menger curvature of three points spaced ~arcDist blocks apart
-    // (so smooth resampled curves are still detected instead of reading as near-straight).
     static double localRadius(List<Vec3> waypoints, int i, double arcDist) {
         int n = waypoints.size();
         if (i <= 0 || i >= n - 1) return Double.POSITIVE_INFINITY;

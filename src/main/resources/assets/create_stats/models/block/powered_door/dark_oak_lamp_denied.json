@@ -1,0 +1,145 @@
+{
+  "__generator": "gen_powered_door.py",
+  "textures": {
+    "lamp_denied": "create_stats:block/powered_door/dark_oak_lamp_denied",
+    "particle": "create_stats:block/powered_door/dark_oak_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        15,
+        -0.06
+      ],
+      "to": [
+        7,
+        17,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        15,
+        4
+      ],
+      "to": [
+        7,
+        17,
+        4.06
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_denied"
+        }
+      }
+    }
+  ]
+}

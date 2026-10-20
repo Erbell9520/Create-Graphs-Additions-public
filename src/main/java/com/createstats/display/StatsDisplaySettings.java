@@ -63,7 +63,7 @@ public class StatsDisplaySettings
     private TrainMapRenderQuality trainMapRenderQuality;
     private static final int[] CYCLE_SPEEDS;
     private static final String[] CYCLE_LABELS;
-    
+
     public StatsDisplaySettings() {
         this.graphType = GraphType.LINE_CHART;
         this.colorScheme = StatsColorScheme.DARK;
@@ -112,127 +112,127 @@ public class StatsDisplaySettings
         this.topologyMaxNodes = defaultTopologyMaxNodes();
         this.trainMapRenderQuality = TrainMapRenderQuality.LOW;
     }
-    
+
     public GraphType getGraphType() {
         return this.graphType;
     }
-    
+
     public void setGraphType(GraphType graphType) {
         this.graphType = ((graphType != null) ? graphType : GraphType.LINE_CHART);
     }
-    
+
     public StatsColorScheme getColorScheme() {
         return this.colorScheme;
     }
-    
+
     public void setColorScheme(StatsColorScheme colorScheme) {
         this.colorScheme = ((colorScheme != null) ? colorScheme : StatsColorScheme.DARK);
     }
-    
+
     public TimeRange getTimeRange() {
         return this.timeRange;
     }
-    
+
     public void setTimeRange(TimeRange timeRange) {
         this.timeRange = ((timeRange != null) ? timeRange : TimeRange.FIVE_MIN);
     }
-    
+
     public int getCustomAccentColor() {
         return this.customAccentColor;
     }
-    
+
     public void setCustomAccentColor(int color) {
         this.customAccentColor = color;
     }
-    
+
     public boolean showGrid() {
         return this.showGrid;
     }
-    
+
     public void setShowGrid(boolean showGrid) {
         this.showGrid = showGrid;
     }
-    
+
     public boolean showAxisLabels() {
         return this.showAxisLabels;
     }
-    
+
     public void setShowAxisLabels(boolean show) {
         this.showAxisLabels = show;
     }
-    
+
     public boolean showMinMaxAvg() {
         return this.showMinMaxAvg;
     }
-    
+
     public void setShowMinMaxAvg(boolean show) {
         this.showMinMaxAvg = show;
     }
-    
+
     public boolean showValueOverlay() {
         return this.showValueOverlay;
     }
-    
+
     public void setShowValueOverlay(boolean show) {
         this.showValueOverlay = show;
     }
-    
+
     public boolean isDoubleSided() {
         return this.doubleSided;
     }
-    
+
     public void setDoubleSided(boolean doubleSided) {
         this.doubleSided = doubleSided;
     }
-    
+
     public boolean isAutoScale() {
         return this.autoScale;
     }
-    
+
     public void setAutoScale(boolean autoScale) {
         this.autoScale = autoScale;
     }
-    
+
     public boolean isPredictionEnabled() {
         return this.predictionEnabled;
     }
-    
+
     public void setPredictionEnabled(boolean enabled) {
         this.predictionEnabled = enabled;
     }
-    
+
     public void togglePrediction() {
         this.predictionEnabled = !this.predictionEnabled;
     }
-    
+
     public float getPredictionRatio() {
         return this.predictionRatio;
     }
-    
+
     public void setPredictionRatio(float ratio) {
         this.predictionRatio = Math.max(0.1f, Math.min(2.0f, ratio));
     }
-    
+
     public DisplayTheme getDisplayTheme() {
         return this.displayTheme;
     }
-    
+
     public void setDisplayTheme(DisplayTheme theme) {
         this.displayTheme = ((theme != null) ? theme : DisplayTheme.DARK);
     }
-    
+
     public void cycleDisplayTheme() {
         this.displayTheme = this.displayTheme.next();
     }
-    
+
     public int getCycleInterval() {
         return this.cycleInterval;
     }
-    
+
     public void setCycleInterval(int ticks) {
         this.cycleInterval = ticks;
     }
-    
+
     public void cycleCycleSpeed() {
         for (int i = 0; i < StatsDisplaySettings.CYCLE_SPEEDS.length; ++i) {
             if (this.cycleInterval == StatsDisplaySettings.CYCLE_SPEEDS[i]) {
@@ -242,7 +242,7 @@ public class StatsDisplaySettings
         }
         this.cycleInterval = 60;
     }
-    
+
     public String getCycleSpeedLabel() {
         for (int i = 0; i < StatsDisplaySettings.CYCLE_SPEEDS.length; ++i) {
             if (this.cycleInterval == StatsDisplaySettings.CYCLE_SPEEDS[i]) {
@@ -251,30 +251,30 @@ public class StatsDisplaySettings
         }
         return this.cycleInterval + " ticks";
     }
-    
+
     public boolean isChannelHidden(String channelId) {
         return this.hiddenChannelIds.contains(channelId);
     }
-    
+
     public void toggleChannelVisibility(String channelId) {
         if (!this.hiddenChannelIds.remove(channelId)) {
             this.hiddenChannelIds.add(channelId);
         }
     }
-    
+
     public Set<String> getHiddenChannelIds() {
         return this.hiddenChannelIds;
     }
-    
+
     public void setHiddenChannelIds(Set<String> ids) {
         this.hiddenChannelIds.clear();
         this.hiddenChannelIds.addAll(ids);
     }
-    
+
     public DisplayMode getDisplayMode() {
         return this.displayMode;
     }
-    
+
     public void setDisplayMode(DisplayMode mode) {
         this.displayMode = ((mode != null) ? mode : DisplayMode.AUTO);
     }
@@ -449,16 +449,16 @@ public class StatsDisplaySettings
         }
         return rest;
     }
-    
+
     public void cycleDisplayMode() {
         final DisplayMode[] values = DisplayMode.values();
         this.displayMode = values[(this.displayMode.ordinal() + 1) % values.length];
     }
-    
+
     public String getDashboardMainChannelId() {
         return this.dashboardMainChannelId;
     }
-    
+
     public void setDashboardMainChannelId(String id) {
         this.dashboardMainChannelId = id;
     }
@@ -494,15 +494,15 @@ public class StatsDisplaySettings
     public void setBattleBoardPreset(BattleBoardPreset battleBoardPreset) {
         this.battleBoardPreset = ((battleBoardPreset != null) ? battleBoardPreset : BattleBoardPreset.STRATEGIC_OVERVIEW);
     }
-    
+
     public boolean isDashboardLayoutLocked() {
         return this.dashboardLayoutLocked;
     }
-    
+
     public void setDashboardLayoutLocked(boolean locked) {
         this.dashboardLayoutLocked = locked;
     }
-    
+
     public int getClockFormat() {
         return this.clockFormat;
     }
@@ -742,63 +742,63 @@ public class StatsDisplaySettings
         namedLayout.setLayoutMeta(meta);
         return namedLayout;
     }
-    
+
     public int getEffectiveLineColor() {
         return (this.customAccentColor != 0) ? this.customAccentColor : this.colorScheme.getLineColor();
     }
-    
+
     public float getAnalogGaugeMin() {
         return this.analogGaugeMin;
     }
-    
+
     public void setAnalogGaugeMin(float v) {
         this.analogGaugeMin = v;
     }
-    
+
     public float getAnalogGaugeMax() {
         return this.analogGaugeMax;
     }
-    
+
     public void setAnalogGaugeMax(float v) {
         this.analogGaugeMax = v;
     }
-    
+
     public float getAnalogZoneYellow() {
         return this.analogZoneYellow;
     }
-    
+
     public void setAnalogZoneYellow(float v) {
         this.analogZoneYellow = v;
     }
-    
+
     public float getAnalogZoneRed() {
         return this.analogZoneRed;
     }
-    
+
     public void setAnalogZoneRed(float v) {
         this.analogZoneRed = v;
     }
-    
+
     public boolean isAnalogShowZones() {
         return this.analogShowZones;
     }
-    
+
     public void setAnalogShowZones(boolean v) {
         this.analogShowZones = v;
     }
-    
+
     public boolean isAnalogShowGlass() {
         return this.analogShowGlass;
     }
-    
+
     public void setAnalogShowGlass(boolean v) {
         this.analogShowGlass = v;
     }
-    
+
     public boolean isAnalogShowRivets() {
         return this.analogShowRivets;
     }
-    
+
     public void setAnalogShowRivets(boolean v) {
         this.analogShowRivets = v;
     }
@@ -834,35 +834,35 @@ public class StatsDisplaySettings
     public void setInstrumentStyleOptions(InstrumentStyleOptions options) {
         this.instrumentStyleOptions = (options != null) ? options : new InstrumentStyleOptions();
     }
-     
+
     public boolean topologyShowLabels() {
         return this.topologyShowLabels;
     }
-    
+
     public void setTopologyShowLabels(boolean show) {
         this.topologyShowLabels = show;
     }
-    
+
     public boolean topologyAnimateEdges() {
         return this.topologyAnimateEdges;
     }
-    
+
     public void setTopologyAnimateEdges(boolean animate) {
         this.topologyAnimateEdges = animate;
     }
-    
+
     public boolean topologyColorByStress() {
         return this.topologyColorByStress;
     }
-    
+
     public void setTopologyColorByStress(boolean color) {
         this.topologyColorByStress = color;
     }
-    
+
     public int getTopologyMaxNodes() {
         return this.topologyMaxNodes;
     }
-    
+
     public void setTopologyMaxNodes(int max) {
         this.topologyMaxNodes = Math.max(10, Math.min(1000, max));
     }
@@ -894,17 +894,17 @@ public class StatsDisplaySettings
         final InstrumentEffectPreset[] values = InstrumentEffectPreset.values();
         this.instrumentEffectPreset = values[(this.instrumentEffectPreset.ordinal() + 1) % values.length];
     }
-    
+
     public void cycleGraphType() {
         final GraphType[] values = GraphType.values();
         this.graphType = values[(this.graphType.ordinal() + 1) % values.length];
     }
-    
+
     public void cycleColorScheme() {
         final StatsColorScheme[] values = StatsColorScheme.values();
         this.colorScheme = values[(this.colorScheme.ordinal() + 1) % values.length];
     }
-    
+
     public void cycleTimeRange() {
         final TimeRange[] values = TimeRange.values();
         this.timeRange = values[(this.timeRange.ordinal() + 1) % values.length];
@@ -958,7 +958,7 @@ public class StatsDisplaySettings
             this.customScreenLayoutEnabled = tag.getBoolean("CustomScreenLayoutEnabled") && this.customScreenLayout != null;
         }
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         tag.putString("GraphType", this.graphType.name());
@@ -1020,7 +1020,7 @@ public class StatsDisplaySettings
         }
         return tag;
     }
-    
+
     public static StatsDisplaySettings load(CompoundTag tag) {
         final StatsDisplaySettings settings = new StatsDisplaySettings();
         if (tag.contains("GraphType")) {
@@ -1161,7 +1161,7 @@ public class StatsDisplaySettings
         settings.loadCustomScreenState(tag);
         return settings;
     }
-    
+
     private static int defaultTopologyMaxNodes() {
         try {
             return Math.max(10, Math.min(1000, (int)ModConfiguration.COMMON.topologyMaxNodes.get()));
@@ -1179,75 +1179,75 @@ public class StatsDisplaySettings
             return fallback;
         }
     }
-    
+
     static {
         CYCLE_SPEEDS = new int[] { 0, 30, 60, 120 };
         CYCLE_LABELS = new String[] { "Off", "Fast (1.5s)", "Normal (3s)", "Slow (6s)" };
     }
-    
+
     public enum GraphType
     {
-        LINE_CHART("Line Chart"), 
-        BAR_CHART("Bar Chart"), 
-        GAUGE("Gauge"), 
-        NUMERIC("Numeric"), 
-        CAPACITY("Capacity"), 
-        PRODUCTION("Production"), 
-        ANALOG_GAUGE("Instrument Panel"), 
-        EFFICIENCY("Efficiency"), 
-        TOPOLOGY("Topology Map"), 
+        LINE_CHART("Line Chart"),
+        BAR_CHART("Bar Chart"),
+        GAUGE("Gauge"),
+        NUMERIC("Numeric"),
+        CAPACITY("Capacity"),
+        PRODUCTION("Production"),
+        ANALOG_GAUGE("Instrument Panel"),
+        EFFICIENCY("Efficiency"),
+        TOPOLOGY("Topology Map"),
         TRAIN_MAP("Train Map"),
         INVENTORY_STATUS("Inventory Status"),
         FACTORY_STATUS("Factory Status");
-        
+
         private final String displayName;
-        
+
         private GraphType(String displayName) {
             this.displayName = displayName;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }
     }
-    
+
     public enum DisplayMode
     {
-        SINGLE("Single Channel"), 
-        DASHBOARD("Dashboard"), 
-        AUTO("Auto"), 
+        SINGLE("Single Channel"),
+        DASHBOARD("Dashboard"),
+        AUTO("Auto"),
         SPECIALIZED("Specialized");
-        
+
         private final String displayName;
-        
+
         private DisplayMode(String displayName) {
             this.displayName = displayName;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }
     }
-    
+
     public enum TimeRange
     {
-        ONE_MIN("1 min", 60), 
-        FIVE_MIN("5 min", 300), 
-        TEN_MIN("10 min", 600), 
+        ONE_MIN("1 min", 60),
+        FIVE_MIN("5 min", 300),
+        TEN_MIN("10 min", 600),
         FULL("Full", Integer.MAX_VALUE);
-        
+
         private final String displayName;
         private final int seconds;
-        
+
         private TimeRange(String displayName, int seconds) {
             this.displayName = displayName;
             this.seconds = seconds;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }
-        
+
         public int getSeconds() {
             return this.seconds;
         }
@@ -1271,18 +1271,18 @@ public class StatsDisplaySettings
 
     public enum NoseSetting
     {
-        UNSET("Auto"), 
-        AHEAD("Ahead"), 
-        RIGHT("Right"), 
-        BEHIND("Behind"), 
+        UNSET("Auto"),
+        AHEAD("Ahead"),
+        RIGHT("Right"),
+        BEHIND("Behind"),
         LEFT("Left");
-        
+
         private final String displayName;
-        
+
         private NoseSetting(String displayName) {
             this.displayName = displayName;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }
@@ -1290,19 +1290,19 @@ public class StatsDisplaySettings
 
     public enum VehiclePreset
     {
-        AUTO("Auto"), 
-        PLANE("Plane"), 
-        HELICOPTER("Helicopter"), 
-        AIRSHIP("Airship"), 
-        HYBRID("Hybrid"), 
+        AUTO("Auto"),
+        PLANE("Plane"),
+        HELICOPTER("Helicopter"),
+        AIRSHIP("Airship"),
+        HYBRID("Hybrid"),
         CUSTOM("Custom");
-        
+
         private final String displayName;
-        
+
         private VehiclePreset(String displayName) {
             this.displayName = displayName;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }

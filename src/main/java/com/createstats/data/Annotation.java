@@ -14,7 +14,7 @@ public class Annotation
     private final UUID playerUUID;
     private int color;
     private AnnotationType type;
-    
+
     public Annotation(UUID id, long tickStamp, long endTickStamp, String label, UUID playerUUID, int color, AnnotationType type) {
         this.id = id;
         this.tickStamp = tickStamp;
@@ -24,51 +24,51 @@ public class Annotation
         this.color = (color | 0xFF000000);
         this.type = type;
     }
-    
+
     public UUID getId() {
         return this.id;
     }
-    
+
     public long getTickStamp() {
         return this.tickStamp;
     }
-    
+
     public long getEndTickStamp() {
         return this.endTickStamp;
     }
-    
+
     public String getLabel() {
         return this.label;
     }
-    
+
     public UUID getPlayerUUID() {
         return this.playerUUID;
     }
-    
+
     public int getColor() {
         return this.color;
     }
-    
+
     public AnnotationType getType() {
         return this.type;
     }
-    
+
     public void setLabel(String label) {
         this.label = label;
     }
-    
+
     public void setColor(int color) {
         this.color = (color | 0xFF000000);
     }
-    
+
     public void setEndTickStamp(long tick) {
         this.endTickStamp = tick;
     }
-    
+
     public void setType(AnnotationType type) {
         this.type = type;
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         final CompoundTag idTag = new CompoundTag();
@@ -86,7 +86,7 @@ public class Annotation
         tag.putString("Type", this.type.name());
         return tag;
     }
-    
+
     public static Annotation load(CompoundTag tag) {
         final CompoundTag idTag = tag.getCompound("Id");
         final UUID id = new UUID(idTag.getLong("IdMost"), idTag.getLong("IdLeast"));
@@ -105,7 +105,7 @@ public class Annotation
         }
         return new Annotation(id, tick, endTick, label, player, color, type);
     }
-    
+
     public void writeToBuf(FriendlyByteBuf buf) {
         buf.writeUUID(this.id);
         buf.writeLong(this.tickStamp);
@@ -115,7 +115,7 @@ public class Annotation
         buf.writeInt(this.color);
         buf.writeEnum((Enum)this.type);
     }
-    
+
     public static Annotation readFromBuf(FriendlyByteBuf buf) {
         final UUID id = buf.readUUID();
         final long tick = buf.readLong();
@@ -126,10 +126,10 @@ public class Annotation
         final AnnotationType type = (AnnotationType)buf.readEnum((Class)AnnotationType.class);
         return new Annotation(id, tick, endTick, label, player, color, type);
     }
-    
+
     public enum AnnotationType
     {
-        MARKER, 
+        MARKER,
         REGION;
     }
 }

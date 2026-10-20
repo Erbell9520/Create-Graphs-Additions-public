@@ -1,0 +1,34 @@
+{
+ "variants": {
+  "facing=north,half=left": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_left"
+  },
+  "facing=north,half=right": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_right"
+  },
+  "facing=east,half=left": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_left",
+   "y": 90
+  },
+  "facing=east,half=right": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_right",
+   "y": 90
+  },
+  "facing=south,half=left": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_left",
+   "y": 180
+  },
+  "facing=south,half=right": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_right",
+   "y": 180
+  },
+  "facing=west,half=left": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_left",
+   "y": 270
+  },
+  "facing=west,half=right": {
+   "model": "create_stats:block/vcc_mk4_aerial_flight_deck/body_right",
+   "y": 270
+  }
+ }
+}

@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 
 public class OverflowGateItemHandler implements IItemHandler {
-
     private final OverflowGateBE blockEntity;
 
     public OverflowGateItemHandler(OverflowGateBE be) {

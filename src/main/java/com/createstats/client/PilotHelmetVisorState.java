@@ -11,13 +11,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** [1] */
 public final class PilotHelmetVisorState {
-
     private PilotHelmetVisorState() {
     }
 
-    /** [2] */
     public static boolean effectiveDeployed(LivingEntity wearer, ItemStack stack) {
         if (wearer == null || stack == null || stack.isEmpty() || !(stack.getItem() instanceof PilotHelmetItem)) {
             return false;
@@ -29,7 +26,6 @@ public final class PilotHelmetVisorState {
         return data.isAutoIfSeated() && wearer.getVehicle() != null;
     }
 
-    /** Effective deployed state of the local player's worn helmet. */
     public static boolean isLocalVisorDeployed() {
         final Player player = Minecraft.getInstance().player;
         if (player == null) {
@@ -38,7 +34,6 @@ public final class PilotHelmetVisorState {
         return effectiveDeployed(player, player.getItemBySlot(EquipmentSlot.HEAD));
     }
 
-    /** [3] */
     public static void requestToggle() {
         final Minecraft minecraft = Minecraft.getInstance();
         final Player player = minecraft.player;
@@ -56,7 +51,6 @@ public final class PilotHelmetVisorState {
         PacketDistributor.sendToServer(ToggleVisorPacket.INSTANCE);
     }
 
-    /** No transient client state to reset; kept for symmetry with the other HUD handlers. */
     public static void clear() {
     }
 }

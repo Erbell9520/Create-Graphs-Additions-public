@@ -1,0 +1,45 @@
+{
+  "parent": "create_stats:stats/display",
+  "display": {
+    "icon": {
+      "id": "create_stats:klaxon_alarm"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.alarm.title",
+      "fallback": "Alarm Ringing, Nobody Looking"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.alarm.description",
+      "fallback": "Place a Klaxon or a Sentry Alarm. Like every car alarm on the street, nobody will check."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "alarm": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:klaxon_alarm",
+                  "create_stats:sentry_alarm"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "alarm"
+    ]
+  ]
+}

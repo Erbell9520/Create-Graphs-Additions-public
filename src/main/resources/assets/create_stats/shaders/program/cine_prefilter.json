@@ -1,0 +1,59 @@
+{
+    "blend": {
+        "func": "add",
+        "srcrgb": "one",
+        "dstrgb": "zero"
+    },
+    "vertex": "create_stats:cine_quad",
+    "fragment": "create_stats:cine_prefilter",
+    "attributes": [
+        "Position"
+    ],
+    "samplers": [
+        {
+            "name": "DiffuseSampler"
+        },
+        {
+            "name": "DepthSampler"
+        },
+        {
+            "name": "FocusSampler"
+        }
+    ],
+    "uniforms": [
+        {
+            "name": "ProjParams",
+            "type": "float",
+            "count": 2,
+            "values": [
+                -1.0001,
+                -0.1
+            ]
+        },
+        {
+            "name": "FullTexel",
+            "type": "float",
+            "count": 2,
+            "values": [
+                0.001,
+                0.001
+            ]
+        },
+        {
+            "name": "CocScale",
+            "type": "float",
+            "count": 1,
+            "values": [
+                1.0
+            ]
+        },
+        {
+            "name": "MaxCoc",
+            "type": "float",
+            "count": 1,
+            "values": [
+                8.0
+            ]
+        }
+    ]
+}

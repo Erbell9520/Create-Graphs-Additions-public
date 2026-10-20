@@ -29,21 +29,18 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/** [1] */
 @OnlyIn(Dist.CLIENT)
 public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
-
-    /** Smoothing time (seconds) for the critically-damped head easing; lower = snappier motor. */
     private static final float SMOOTH_TIME = 0.30f;
-    /** Height of the head tilt pivot (the hub axis), in block space. */
+
     private static final float HUB_Y = 10.0f / 16.0f;
-    /** Radial segments for the volumetric beam cone / splash disc. */
+
     private static final int BEAM_SEGMENTS = 18;
-    /** Beam apex height (the lens) in the head's local frame. */
+
     private static final float LENS_Y = 12.6f / 16.0f;
-    /** MK II beam apex: its bigger head raises the lens plane (matches stage_light_mk2/head_lens.json). */
+
     private static final float MK2_LENS_Y = 13.5f / 16.0f;
-    /** Degrees the pan drive cog turns per degree of head pan (Create-style geared mechanical feedback). */
+
     private static final float COG_RATIO = 3.0f;
 
     public StageLightRenderer(BlockEntityRendererProvider.Context context) {
@@ -58,8 +55,8 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         }
         final Direction facing = state.getValue(StageLightBlock.FACING);
 
-        // Ease the displayed angles toward the target with a critically-damped spring so the head
-        // accelerates and settles like a real motorised mover instead of snapping at constant speed.
+        // critically damped spring, real movers don't snap
+
         final float targetPan = be.getPan();
         final float targetTilt = be.getTilt();
         final long now = System.nanoTime();
@@ -80,11 +77,10 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         be.clientTilt = tiltState[0];
         be.clientTiltVel = tiltState[1];
 
-        // [2]
         final Vector3f beamLocal = StageLightBE.computeBeamDirection(facing, be.clientPan, be.clientTilt);
         final Vector3f aim = StageLightBE.rotateFacingToUpFrame(facing, beamLocal);
         final float elevDeg = (float) Math.toDegrees(Math.acos(Mth.clamp(aim.y, -1.0f, 1.0f)));
-        // [3]
+
         final float aziDeg = (float) Math.toDegrees(Math.atan2(aim.x, aim.z));
 
         ms.pushPose();
@@ -98,10 +94,8 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         final PartialModel headModel = mk2 ? ModPartialModels.STAGE_LIGHT_MK2_HEAD : ModPartialModels.STAGE_LIGHT_HEAD;
         final PartialModel lensModel = mk2 ? ModPartialModels.STAGE_LIGHT_MK2_HEAD_LENS : ModPartialModels.STAGE_LIGHT_HEAD_LENS;
 
-        // Static base.
         renderPart(baseModel, state, ms, buffer, light);
 
-        // [4]
         ms.pushPose();
         ms.translate(0.5, 0.0, 0.5);
         ms.mulPose(Axis.YP.rotationDegrees(be.clientPan * COG_RATIO));
@@ -109,27 +103,22 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         renderPart(mk2 ? ModPartialModels.STAGE_LIGHT_MK2_COG : ModPartialModels.STAGE_LIGHT_COG, state, ms, buffer, light);
         ms.popPose();
 
-        // Yoke pans about the vertical centre.
         ms.translate(0.5, 0.0, 0.5);
         ms.mulPose(Axis.YP.rotationDegrees(aziDeg));
         ms.translate(-0.5, 0.0, -0.5);
         renderPart(yokeModel, state, ms, buffer, light);
 
-        // Head inherits the pan, then tilts about the hub axis.
         ms.translate(0.5, HUB_Y, 0.5);
         ms.mulPose(Axis.XP.rotationDegrees(elevDeg));
         ms.translate(-0.5, -HUB_Y, -0.5);
         renderPart(headModel, state, ms, buffer, light);
 
-        // [5]
         final Level level = be.getLevel();
         final long gameTime = level != null ? level.getGameTime() : 0L;
         final float fxFactor = StageLightBE.effectBrightnessFactor(be.getEffect(), be.getEffectSpeed(), gameTime, partialTick);
         final int fxTint = StageLightBE.effectTint(be.getEffect(), be.getEffectSpeed(), be.getTint(), gameTime, partialTick);
         renderLens(lensModel, state, ms, buffer, be.isLit() && fxFactor > 0.0f ? LightTexture.FULL_BRIGHT : light, fxTint);
 
-        // Volumetric colour beam + landing splash. Vanilla/LDL block light is monochrome, so the filter
-        // COLOUR is shown by this additively-rendered geometry (visible under Sodium and Iris shaders).
         if (be.isLit() && fxFactor > 0.0f) {
             renderBeam(be, facing, ms, buffer, fxFactor, fxTint);
         }
@@ -144,7 +133,6 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
                 .renderInto(ms, buffer.getBuffer(RenderType.solid()));
     }
 
-    /** Render the lens cuboid multiplied by the filter tint (white = no filter -> bright white lens). */
     private static void renderLens(PartialModel lensModel, BlockState state, PoseStack ms, MultiBufferSource buffer, int light, int tint) {
         final int r = (tint >> 16) & 0xFF;
         final int g = (tint >> 8) & 0xFF;
@@ -155,7 +143,6 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
                 .renderInto(ms, buffer.getBuffer(RenderType.solid()));
     }
 
-    /** [6] */
     private static void renderBeam(StageLightBE be, Direction facing, PoseStack ms, MultiBufferSource buffer,
                                    float fxFactor, int fxTint) {
         if (!be.isBeamVisible()) {
@@ -175,7 +162,7 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         final Vec3 ndir = dir.normalize();
         final Vec3 start = Vec3.atCenterOf(be.getBlockPos()).add(ndir.scale(0.6));
         final int range = be.getRange();
-        // [7]
+
         final long nowNanos = System.nanoTime();
         if (nowNanos - be.clientBeamClipNanos > 120_000_000L) {
             be.clientBeamClipNanos = nowNanos;
@@ -195,7 +182,7 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         final float cg = ((fxTint >> 8) & 0xFF) / 255.0f;
         final float cb = (fxTint & 0xFF) / 255.0f;
         final float bright = Mth.clamp(be.getBrightness() / 15.0f, 0.15f, 1.0f) * fxFactor;
-        // [8]
+
         final float baseR = Math.min(1.0f + len * be.getFocus() / 26.0f,
                 (float) be.getBeamWidth());
         final float lensY = be instanceof com.createstats.blockentity.StageLightMk2BE ? MK2_LENS_Y : LENS_Y;
@@ -206,25 +193,19 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         final Matrix4f mat = ms.last().pose();
 
         if (be.isVolumetric()) {
-            // Soft diffuse beam: a few faint, wide additive cones layered for a smooth, hazy shaft with no
-            // hard edges (a softer, wider look than the crisp beam).
             coneShell(vc, mat, 0.14f, baseR * 1.08f, y0, y1, cr, cg, cb, 0.055f * bright, 0.0f);
             coneShell(vc, mat, 0.11f, baseR * 0.78f, y0, y1, cr, cg, cb, 0.055f * bright, 0.0f);
             coneShell(vc, mat, 0.07f, baseR * 0.48f, y0, y1, cr, cg, cb, 0.065f * bright, 0.0f);
         } else {
-            // Crisp beam: a faint wide halo plus a brighter narrow core, so the shaft has a bright centre and
-            // soft fading edges instead of one flat-looking cone.
             coneShell(vc, mat, 0.12f, baseR, y0, y1, cr, cg, cb, 0.09f * bright, 0.0f);
             coneShell(vc, mat, 0.06f, baseR * 0.55f, y0, y1, cr, cg, cb, 0.15f * bright, 0.0f);
         }
 
-        // Splash disc on the lit surface (only when the beam actually hits something).
         if (blocked) {
             splashDisc(vc, mat, baseR, y1, cr, cg, cb, (be.isVolumetric() ? 0.22f : 0.30f) * bright);
         }
     }
 
-    /** Emit one additive cone shell (apex ring -> base ring) with a per-end alpha fade. */
     private static void coneShell(VertexConsumer vc, Matrix4f mat, float apexR, float baseR, float y0, float y1,
                                   float r, float g, float b, float apexA, float baseA) {
         for (int i = 0; i < BEAM_SEGMENTS; i++) {
@@ -245,7 +226,6 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         }
     }
 
-    /** Emit a soft additive disc (bright centre fading to a transparent rim) at the beam's landing point. */
     private static void splashDisc(VertexConsumer vc, Matrix4f mat, float radius, float y,
                                    float r, float g, float b, float centerA) {
         for (int i = 0; i < BEAM_SEGMENTS; i++) {
@@ -267,7 +247,6 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         vc.addVertex(mat, x, y, z).setColor(r, g, b, a);
     }
 
-    /** [9] */
     private static float[] smoothDamp(float current, float target, float velocity, float smoothTime, float dt) {
         smoothTime = Math.max(0.0001f, smoothTime);
         final float omega = 2.0f / smoothTime;
@@ -280,7 +259,6 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
         return new float[]{result, newVel};
     }
 
-    /** Orient the FACING=up reference assembly so the lamp points along the mounted face normal. */
     private static void applyFacingRotation(PoseStack ms, Direction facing) {
         switch (facing) {
             case DOWN -> ms.mulPose(Axis.XP.rotationDegrees(180.0f));
@@ -295,7 +273,6 @@ public class StageLightRenderer implements BlockEntityRenderer<StageLightBE> {
 
     @Override
     public AABB getRenderBoundingBox(StageLightBE be) {
-        // The beam can reach up to its range, so inflate the box that far or it gets frustum-culled.
         return new AABB(be.getBlockPos()).inflate(Math.max(1.0, be.getRange()));
     }
 

@@ -1,0 +1,355 @@
+{
+ "credit": "gen_cine_camera.py --ship",
+ "textures": {
+  "atlas": "create_stats:block/cine_camera/head_atlas",
+  "handwheel": "create_stats:block/cine_camera/handwheel",
+  "particle": "create_stats:block/cine_camera/head_atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    1.0,
+    5.5,
+    6.5
+   ],
+   "to": [
+    1.6,
+    10.5,
+    9.5
+   ],
+   "name": "elevation handwheel",
+   "faces": {
+    "north": {
+     "uv": [
+      1.0,
+      2.5,
+      1.125,
+      3.125
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      1.25,
+      2.5,
+      1.375,
+      3.125
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      1.0,
+      0.0,
+      4.0,
+      5.0
+     ],
+     "texture": "#handwheel"
+    },
+    "west": {
+     "uv": [
+      1.0,
+      0.0,
+      4.0,
+      5.0
+     ],
+     "texture": "#handwheel"
+    },
+    "up": {
+     "uv": [
+      7.75,
+      3.25,
+      7.875,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      8.0,
+      3.25,
+      8.125,
+      3.625
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    1.0,
+    6.5,
+    5.5
+   ],
+   "to": [
+    1.6,
+    9.5,
+    6.5
+   ],
+   "name": "elevation handwheel",
+   "faces": {
+    "north": {
+     "uv": [
+      8.25,
+      3.25,
+      8.375,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      8.5,
+      3.25,
+      8.625,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      4.0,
+      1.0,
+      5.0,
+      4.0
+     ],
+     "texture": "#handwheel"
+    },
+    "west": {
+     "uv": [
+      0.0,
+      1.0,
+      1.0,
+      4.0
+     ],
+     "texture": "#handwheel"
+    },
+    "up": {
+     "uv": [
+      2.75,
+      5.375,
+      2.875,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      3.0,
+      5.375,
+      3.125,
+      5.5
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    1.0,
+    6.5,
+    9.5
+   ],
+   "to": [
+    1.6,
+    9.5,
+    10.5
+   ],
+   "name": "elevation handwheel",
+   "faces": {
+    "north": {
+     "uv": [
+      8.75,
+      3.25,
+      8.875,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      9.0,
+      3.25,
+      9.125,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      0.0,
+      1.0,
+      1.0,
+      4.0
+     ],
+     "texture": "#handwheel"
+    },
+    "west": {
+     "uv": [
+      4.0,
+      1.0,
+      5.0,
+      4.0
+     ],
+     "texture": "#handwheel"
+    },
+    "up": {
+     "uv": [
+      3.25,
+      5.375,
+      3.375,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      3.5,
+      5.375,
+      3.625,
+      5.5
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    0.8,
+    7.6,
+    7.6
+   ],
+   "to": [
+    1.0,
+    8.4,
+    8.4
+   ],
+   "name": "hub nut",
+   "faces": {
+    "north": {
+     "uv": [
+      3.75,
+      5.375,
+      3.875,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      4.0,
+      5.375,
+      4.125,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      4.25,
+      5.375,
+      4.375,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      4.5,
+      5.375,
+      4.625,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      4.75,
+      5.375,
+      4.875,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      5.0,
+      5.375,
+      5.125,
+      5.5
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    -0.2,
+    9.4,
+    7.65
+   ],
+   "to": [
+    1.0,
+    10.1,
+    8.35
+   ],
+   "name": "spinner knob",
+   "faces": {
+    "north": {
+     "uv": [
+      5.25,
+      5.375,
+      5.375,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      5.5,
+      5.375,
+      5.625,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      5.75,
+      5.375,
+      5.875,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      6.0,
+      5.375,
+      6.125,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      6.25,
+      5.375,
+      6.375,
+      5.5
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      6.5,
+      5.375,
+      6.625,
+      5.5
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

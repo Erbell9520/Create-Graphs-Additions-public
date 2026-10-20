@@ -1,0 +1,36 @@
+{
+ "textures": {
+  "atlas": "create_stats:block/vcc_mk4_aerial_cockpit/lamp_goto_engaged",
+  "particle": "create_stats:block/vcc_mk4_aerial_cockpit/body"
+ },
+ "elements": [
+  {
+   "from": [
+    9.0,
+    14.5,
+    5.25
+   ],
+   "to": [
+    10.0,
+    15.5,
+    5.35
+   ],
+   "faces": {
+    "south": {
+     "uv": [
+      1.5,
+      1.5,
+      1.5,
+      1.5
+     ],
+     "texture": "#atlas",
+     "neoforge_data": {
+      "block_light": 15,
+      "sky_light": 15
+     }
+    }
+   },
+   "name": "lens"
+  }
+ ]
+}

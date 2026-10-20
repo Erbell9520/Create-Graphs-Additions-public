@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "ZRZ",
+    "WTW",
+    "ACA"
+  ],
+  "key": {
+    "Z": {
+      "item": "create:zinc_ingot"
+    },
+    "R": {
+      "item": "minecraft:lightning_rod"
+    },
+    "W": {
+      "item": "create_stats:copper_wire"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    }
+  },
+  "result": {
+    "id": "create_stats:storm_coil",
+    "count": 1
+  },
+  "show_notification": true
+}

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create_stats:flour"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "create:wheat_flour"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "brass": "create_stats:block/security_locker_brass",
+    "particle": "create_stats:block/security_locker_case"
+  },
+  "elements": [
+    {
+      "name": "bolt",
+      "from": [
+        10.6,
+        7.25,
+        6.6
+      ],
+      "to": [
+        12.8,
+        8.75,
+        7.3999999999999995
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass",
+          "uv": [
+            10.6,
+            7.25,
+            12.8,
+            8.75
+          ]
+        },
+        "south": {
+          "texture": "#brass",
+          "uv": [
+            10.6,
+            7.25,
+            12.8,
+            8.75
+          ]
+        },
+        "east": {
+          "texture": "#brass",
+          "uv": [
+            6.6,
+            7.25,
+            7.3999999999999995,
+            8.75
+          ]
+        },
+        "west": {
+          "texture": "#brass",
+          "uv": [
+            6.6,
+            7.25,
+            7.3999999999999995,
+            8.75
+          ]
+        },
+        "up": {
+          "texture": "#brass",
+          "uv": [
+            10.6,
+            6.6,
+            12.8,
+            7.3999999999999995
+          ]
+        },
+        "down": {
+          "texture": "#brass",
+          "uv": [
+            10.6,
+            6.6,
+            12.8,
+            7.3999999999999995
+          ]
+        }
+      }
+    }
+  ]
+}

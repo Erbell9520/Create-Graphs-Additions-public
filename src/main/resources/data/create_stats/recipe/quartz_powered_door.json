@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "LGL",
+    "LGL",
+    "LEL"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:quartz_block"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:quartz_powered_door",
+    "count": 2
+  },
+  "show_notification": true
+}

@@ -9,7 +9,7 @@ public class MetricParser
     private static final Pattern PERCENT_PATTERN;
     private static final Pattern RPM_PATTERN;
     private static final Pattern SU_PATTERN;
-    
+
     public static float parse(String text) {
         if (text == null || text.isEmpty()) {
             return 0.0f;
@@ -27,7 +27,7 @@ public class MetricParser
         }
         return 0.0f;
     }
-    
+
     public static MetricType detectType(String text) {
         if (text == null || text.isEmpty()) {
             return MetricType.GENERIC;
@@ -74,17 +74,17 @@ public class MetricParser
             return MetricType.GENERIC;
         }
     }
-    
+
     public static ParseResult parseWithType(String text) {
         return new ParseResult(parse(text), detectType(text));
     }
-    
+
     static {
         NUMBER_PATTERN = Pattern.compile("([+-]?[\\d,]+\\.?\\d*)");
         PERCENT_PATTERN = Pattern.compile("([\\d.]+)\\s*%");
         RPM_PATTERN = Pattern.compile("([\\d,.]+)\\s*(?:RPM|rpm)", 2);
         SU_PATTERN = Pattern.compile("([\\d,.]+)\\s*(?:su|SU)");
     }
-    
+
     public record ParseResult(float value, MetricType type) {}
 }

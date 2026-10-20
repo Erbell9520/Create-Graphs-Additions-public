@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:power/outlet",
+  "display": {
+    "icon": {
+      "id": "create_stats:appliance_cord"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.cord.title",
+      "fallback": "Who Has the Charger?"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.cord.description",
+      "fallback": "Get an Appliance Cord. It will vanish the moment you need it."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "cord": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:appliance_cord"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "cord"
+    ]
+  ]
+}

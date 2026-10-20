@@ -1,0 +1,50 @@
+{
+  "parent": "create_stats:root",
+  "display": {
+    "icon": {
+      "id": "create_stats:stats_display_panel"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.display.title",
+      "fallback": "TÜİK Approved"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.display.description",
+      "fallback": "Put up a stats screen. Official figures. Do not ask how they were calculated."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "screen": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:stats_display_panel",
+                  "create_stats:stats_display_mk2",
+                  "create_stats:stats_display_mk3",
+                  "create_stats:stats_display_mk3_console",
+                  "create_stats:mini_display",
+                  "create_stats:data_dial",
+                  "create_stats:eink_panel"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "screen"
+    ]
+  ]
+}

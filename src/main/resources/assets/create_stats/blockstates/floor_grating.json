@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_stats:block/floor_grating"
+    },
+    "axis=z": {
+      "model": "create_stats:block/floor_grating",
+      "y": 90
+    }
+  }
+}

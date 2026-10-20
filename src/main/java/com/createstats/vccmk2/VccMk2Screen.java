@@ -23,9 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** [1] */
 public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
-
     private static final int BAR_H = 26;
     private static final int NAV_W = 152;
     private static final int PAD = 22;
@@ -86,7 +84,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
     private int mixSelRow = -1;
     private int mixPreviewAxis = -1;
 
-    // animated cockpit switch knob positions (eased toward 0/1 each frame)
     private float armAnim;
     private float modeAnim;
     private float stabAnim;
@@ -96,15 +93,12 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
     private boolean aux1On;
     private VccMk2CraftProfile auxProfile;
 
-    // interactive cockpit pilot controls (UI-only, client-side values 0..1)
     private final Map<String, Float> ctlVal = new HashMap<>();
     private final Map<String, Float> ctlAnim = new HashMap<>();
     private Ctl dragCtl;
-    /** Controls the player has touched this session. Once touched, the client owns the value and we
-     *  stop seeding it from the server, so dragging never fights the synced read-back. */
+    // once touched, the client owns the value. no drag fight with the server
     private final Set<String> ctlOwned = new HashSet<>();
 
-    // car dashboard: client-side smoothing + derived stats. Static so trip/top survive a GUI reopen.
     private static float dashSpeedMps;
     private static float dashRpm;
     private static float dashThrottle;
@@ -117,7 +111,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
     private static float dashPrevHeading;
     private static long dashLastNanos;
 
-    // AUTO station state (UI-only, client-side)
     private static final int[] AUTO_APPROACH = {100, 150, 200, 300, 500, 800};
     private static final int[] AUTO_ANNOUNCE = {50, 100, 200, 250, 500, 1000};
     private static final double[] AUTO_REVERSE = {2, 3, 4, 5, 7, 10};
@@ -132,13 +125,10 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
     private boolean autoPfOpen = true;
     private boolean autoDragCruise;
 
-    // BIND station (UI-only client state)
     private int bindTypeMenuRow = -1;
 
-    // tooltip collected during the draw pass, painted on top in render()
     private List<Component> pendingTip;
 
-    // ADVANCED station (frequency pairing + guarded payload, UI-only client state)
     private int activeFreqTarget = -1;
     private boolean bombSafety;
     private boolean bayOpen;
@@ -180,11 +170,10 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return this.height - BAR_H;
     }
 
-    // render
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
-        // FE Dependent Mode side panel (self-gating: draws nothing while the mode is off).
+
         com.createstats.power.client.FeStatusWidget.draw(g, font,
                 leftPos + imageWidth + 6, topPos + 6, 110, menu.blockEntity().feConsumer());
         if (pendingTip != null && !pendingTip.isEmpty()) {
@@ -313,7 +302,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return BAR_H + 14 + i * 44;
     }
 
-    // HANGAR
     private int[] profileCardRect(int i) {
         int sx = stageX() + PAD;
         int sy = stageY() + 56;
@@ -357,7 +345,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
                     planLine(profiles[i]), whyLine(profiles[i]));
         }
 
-        // right column
         int rx = stageX() + PAD + (int) ((stageW() - 2 * PAD) * 0.56) + 24;
         int rw = stageX() + stageW() - PAD - rx;
         int ry = stageY() + 50;
@@ -392,7 +379,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         tip(mouseX, mouseY, rx + half + 12, by, half, 26, auto ? "Auto Mode" : "Manual Mode",
                 auto ? "Autopilot is driving." : "You are flying by hand.");
 
-        // proposal at the bottom, full width
         int py = stageY() + stageH() - 86;
         if (chosen != null) {
             if (chosen != lastSeenProfile) {
@@ -446,7 +432,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         g.drawString(font, text, x + 16, y, ok ? TXT : DIM, false);
     }
 
-    // sensors (Display Link bound; shared by Hangar panel + cockpit strip)
     private static final String[] SENSOR_NAMES = {"Gimbal", "Altitude", "Velocity", "Nav Table"};
     private static final String[] SENSOR_ABBR = {"GMB", "ALT", "VEL", "NAV"};
     private static final String[] SENSOR_UNLOCKS = {
@@ -524,7 +509,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         }
     }
 
-    // BIND
     private int bindDockTop() {
         return VccMk2Menu.DOCK_TOP;
     }
@@ -608,7 +592,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
             drawBindRow(g, be, row, mouseX, mouseY, dotCol);
         }
 
-        // footer + inventory dock
         int fy = bindFooterY();
         int[] counts = inventoryCardCounts();
         g.drawString(font, counts[0] + " propeller, " + counts[1] + " governor cards in inventory",
@@ -624,7 +607,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         boolean redstone = be != null && be.isRedstoneEngine(row);
         int itemY = bindRowItemY(row);
 
-        // PART card slot (always)
         boolean partCard = be != null && !be.cards().getStackInSlot(VccMk2BlockEntity.propSlot(row)).isEmpty();
         boolean partLinked = be != null && be.linkedPos(VccMk2BlockEntity.propSlot(row), PropellerCardItem.TAG_KEY) != null;
         int[] ps = partSlotXY(row);
@@ -634,7 +616,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
                     "Drag a propeller card here. Right-click the part in-world first to link its position.");
         }
 
-        // OUTPUT: governor card (kinetic) or 2 frequency slots (redstone)
         boolean outOk;
         if (redstone) {
             outOk = be.hasEngineFreq(row);
@@ -661,7 +642,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
             }
         }
 
-        // TYPE toggle
         int[] tr = bindTypeRect(row);
         boolean th = inRect(mouseX, mouseY, tr[0], tr[1], tr[2], tr[3]);
         int tcol = redstone ? CYAN : GOLD;
@@ -673,10 +653,8 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
                 redstone ? "Redstone: transmits 0-15 on a frequency. Click for kinetic."
                         : "Kinetic: drives a governor's RPM. Click for redstone.");
 
-        // ROLE pips
         drawBindRoles(g, be, row, bindColRole(), itemY + 4);
 
-        // OK dot
         int dot = (partLinked && outOk) ? GREEN : (partLinked || outOk) ? AMBER : GREY;
         g.fill(dotCol, itemY + 4, dotCol + 8, itemY + 12, dot);
     }
@@ -767,7 +745,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return new int[]{prop, gov};
     }
 
-    // MIXER
     private int[] mixSchematicRect() {
         int x = stageX() + PAD;
         int y = stageY() + 64;
@@ -817,7 +794,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return new int[]{s[0] + 12, a[1] - 12 - 26, s[2] - 24, 26};
     }
 
-    /** Project a craft-local (right, forward, up) offset onto the current 2D view as (h, v). */
     private double[] mixProjectLocal(double right, double fwd, double y) {
         return switch (mixView) {
             case TOP -> new double[]{right, fwd};
@@ -829,7 +805,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         };
     }
 
-    /** World block offset -> (h, v) in the current view, rotated so the craft nose points "forward". */
     private double[] mixHV(VccMk2BlockEntity be, double dx, double dy, double dz) {
         Direction nose = be.noseDirection();
         double fx = nose.getStepX();
@@ -1132,7 +1107,7 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return false;
     }
 
-    /** [2] */
+    // presentation only
     private double[] mixAxisPushLocal(VccMk2BlockEntity be, int row, int axis) {
         if (be == null || !axisRowResponds(be, row, axis)) {
             return null;
@@ -1149,16 +1124,15 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         double right = dx * (-nose.getStepZ()) + dz * nose.getStepX();
         double fwd = dx * nose.getStepX() + dz * nose.getStepZ();
         return switch (axis) {
-            case 0 -> new double[]{0, 1, 0};                      // Throttle -> forward
-            case 1 -> new double[]{0, 0, 1};                      // Vertical -> up
-            case 2 -> new double[]{-fwd, right, 0};               // Yaw -> tangential about origin
-            case 3 -> new double[]{0, 0, Math.signum(fwd)};       // Pitch -> fore up / aft down
-            case 4 -> new double[]{0, 0, -Math.signum(right)};    // Roll -> left up / right down
+            case 0 -> new double[]{0, 1, 0};
+            case 1 -> new double[]{0, 0, 1};
+            case 2 -> new double[]{-fwd, right, 0};
+            case 3 -> new double[]{0, 0, Math.signum(fwd)};
+            case 4 -> new double[]{0, 0, -Math.signum(right)};
             default -> null;
         };
     }
 
-    /** Craft-local normal of the current 2D view, pointing toward the viewer (out of the screen). */
     private double[] mixViewNormalLocal() {
         return switch (mixView) {
             case TOP -> new double[]{0, 0, 1};
@@ -1216,7 +1190,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         VccMk2CockpitArt.ring(g, px, py, Math.max(2, r), (alpha << 24) | (CYAN & 0xFFFFFF), 18);
     }
 
-    /** Centroid of the engines that respond to an axis, as {avgFwd, avgRight, count, maxExtent}. */
     private double[] mixRespondCentroid(VccMk2BlockEntity be, int axis) {
         if (be == null) {
             return new double[]{0, 0, 0, 1};
@@ -1455,12 +1428,11 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return (a << 24) | (r << 16) | (gg << 8) | b;
     }
 
-    // COCKPIT
     private int controlBandH() {
         VccMk2BlockEntity be = menu.blockEntity();
         boolean ground = be != null && be.profileChosen() && be.profile().isGround();
         int base = Math.max(94, Math.min(150, (int) (stageH() * 0.32)));
-        return ground ? base + 44 : base; // ground craft add a row for the vehicle rotary selectors
+        return ground ? base + 44 : base;
     }
 
     private int[] controlBandRect() {
@@ -1514,7 +1486,7 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
             auxProfile = chosen;
         }
         aux0On = be != null && be.aux(0);
-        // aux1 lamp tracks handbrake on ground craft, otherwise the second aux toggle
+
         aux1On = ground ? (be != null && be.handbrake()) : (be != null && be.aux(1));
         armAnim += ((armed ? 1f : 0f) - armAnim) * 0.3f;
         modeAnim += ((auto ? 1f : 0f) - modeAnim) * 0.3f;
@@ -1523,7 +1495,7 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         aux1Anim += ((aux1On ? 1f : 0f) - aux1Anim) * 0.3f;
 
         double t = (System.currentTimeMillis() % 1000000L) / 1000.0;
-        // Live telemetry from the server (real values); fall back to a gentle idle wobble when disarmed.
+
         boolean live = armed && be != null;
         double pitch = live ? be.telemPitch() : Math.sin(t * 0.55) * 7 * 0.22;
         double roll = live ? be.telemRoll() : Math.sin(t * 0.42 + 1) * 11 * 0.22;
@@ -1542,7 +1514,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         g.drawString(font, sub, sx, stageY() + 26, armed ? (auto ? GREEN : CYAN) : DIM, false);
         drawCockpitSensorStrip(g, be, mouseX, mouseY);
 
-        // instrument cluster
         int[] in = cockpitInstrRect();
         g.fill(in[0], in[1], in[0] + in[2], in[1] + in[3], 0xFF0B1016);
         g.renderOutline(in[0], in[1], in[2], in[3], GOLD_DK);
@@ -1552,12 +1523,10 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
             drawAirCluster(g, in, be, chosen, armed, t, heading, pitch, roll, alt, profileSet, missGov, mouseX, mouseY);
         }
 
-        // switch panel (profile-aware)
         int[] p = cockpitPanel();
         panel(g, p[0], p[1], p[2], p[3]);
         drawSwitchPanel(g, p, chosen, be, armed, auto, assisted, canArm, mouseX, mouseY);
 
-        // pre-flight mini at panel bottom
         int ry = p[1] + p[3] - 88;
         g.fill(p[0] + 8, ry - 8, p[0] + p[2] - 8, ry - 7, GOLD_DK);
         g.drawString(font, "PRE-FLIGHT", p[0] + 10, ry, GOLD, false);
@@ -1579,7 +1548,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         drawControlConsole(g, controlBandRect(), chosen, mouseX, mouseY);
     }
 
-    // air instrument cluster (attitude + schematic + altitude + heading + axis check)
     private void drawAirCluster(GuiGraphics g, int[] in, VccMk2BlockEntity be, VccMk2CraftProfile chosen,
                                 boolean armed, double t, double heading, double pitch, double roll, double alt,
                                 boolean profileSet, int missGov, int mouseX, int mouseY) {
@@ -1627,7 +1595,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         }
     }
 
-    // car dashboard (ground profiles): a full, live driver's cluster
     private void drawCarDashboard(GuiGraphics g, int[] in, VccMk2BlockEntity be, boolean armed, double t,
                                   double speedKmh, double rpm, double heading, double pitch, double roll,
                                   int mouseX, int mouseY) {
@@ -1636,7 +1603,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         int iw = in[2];
         int ih = in[3];
 
-        // client-side smoothing + derived stats (needle sweep, trip, top speed, g-force)
         long now = System.nanoTime();
         float dt = dashLastNanos == 0L ? 1f / 60f : Math.min(0.25f, (now - dashLastNanos) / 1.0e9f);
         dashLastNanos = now;
@@ -1713,7 +1679,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
                     "Body pitch and roll on slopes.");
         }
 
-        // bottom: wheel diagram + status chips + trip + pedal bars
         int botY = iy + topH + 4;
         int botH = iy + ih - botY - 4;
         if (botH >= 44) {
@@ -1781,7 +1746,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         g.drawString(font, top, x, y + 11, GOLD, false);
     }
 
-    /** Top-down wheel layout from the bound wheel positions: drive (green) + steer (gold), live steer angle. */
     private void drawWheelDiagram(GuiGraphics g, VccMk2BlockEntity be, int x, int y, int w, int h,
                                   boolean armed, int mouseX, int mouseY) {
         g.fill(x, y, x + w, y + h, 0xFF080C11);
@@ -1851,14 +1815,14 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
             int dyw = (int) Math.round(Math.cos(ang) * 6);
             int col;
             if (drive && armed && cmd != 0) {
-                col = cmd > 0 ? GREEN : AMBER; // forward vs reverse / braking
+                col = cmd > 0 ? GREEN : AMBER;
             } else {
                 col = drive ? dim(GREEN, 0.6) : (steer ? GOLD : DIM);
             }
             VccMk2CockpitArt.lineT(g, px - dxw, py - dyw, px + dxw, py + dyw, col);
             g.fill(px - 2, py - 2, px + 3, py + 3, col);
             if (drive && armed && Math.abs(cmd) > 30 && Math.abs(act) < Math.abs(cmd) * 0.4) {
-                g.renderOutline(px - 4, py - 4, 8, 8, RED); // wheel slip / stall
+                g.renderOutline(px - 4, py - 4, 8, 8, RED);
             } else if (drive && armed && cmd != 0) {
                 g.renderOutline(px - 4, py - 4, 8, 8, dim(col, 0.6));
             }
@@ -1875,8 +1839,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return d > 180 ? d - 360 : d;
     }
 
-    // profile-aware switch panel
-    /** Switch ids per profile; ground craft get vehicle switches, air craft get flight switches. */
     private String[] switchIds(VccMk2CraftProfile p) {
         if (p != null && p.isGround()) {
             return new String[]{"arm", "handbrake", "horn", "lights"};
@@ -1891,7 +1853,7 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         for (int i = 0; i < ids.length; i++) {
             int[] s = cockpitSwitchRect(i);
             if (s[1] + s[3] > p[1] + p[3] - 92) {
-                break; // keep clear of the pre-flight strip
+                break;
             }
             boolean hover = inRect(mouseX, mouseY, s[0], s[1], s[2], s[3]);
             switch (ids[i]) {
@@ -1951,7 +1913,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         }
     }
 
-    /** Route a click on the profile's switch panel to its action. Returns true if handled. */
     private boolean handleSwitchPanelClick(double mx, double my, VccMk2CraftProfile chosen, VccMk2BlockEntity be) {
         int[] p = cockpitPanel();
         String[] ids = switchIds(chosen);
@@ -1989,7 +1950,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return false;
     }
 
-    // LIGHTS output frequency link (two slots under the LIGHTS switch)
     private int[] lightsSlotRect(int[] sw, int which) {
         int sz = 16;
         int y = sw[1] + sw[3] + 4;
@@ -2035,7 +1995,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return false;
     }
 
-    /** First non-empty player inventory slot (used to pull a frequency item for the lights link). */
     private int firstInventoryItemIndex() {
         Player pl = Minecraft.getInstance().player;
         if (pl == null) {
@@ -2049,7 +2008,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return -1;
     }
 
-    // pilot control console (UI-only, draggable)
     private static String[][] controlDefs(VccMk2CraftProfile p) {
         VccMk2CraftProfile q = p == null ? VccMk2CraftProfile.CUSTOM : p;
         return switch (q) {
@@ -2155,7 +2113,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         }
     }
 
-    // vehicle mode selectors (ground profiles): drive / mid axle / steer / diff / invert
     private int[] vehicleSelRect(int i, int[] band) {
         int n = 5;
         int gap = 6;
@@ -2280,7 +2237,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         }
     }
 
-    /** [3] */
     private void seedHeldControl(Ctl c, VccMk2BlockEntity be) {
         if (be == null || ctlOwned.contains(c.id())) {
             return;
@@ -2345,7 +2301,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         sendAxis(c);
     }
 
-    /** Push a cockpit control's value to the server as a set-and-hold axis demand. */
     private void sendAxis(Ctl c) {
         Integer axis = axisForControl(c.id());
         if (axis == null) {
@@ -2466,7 +2421,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return false;
     }
 
-    // AUTO
     private int[] autoLeftPanel() {
         int sx = stageX() + PAD;
         int y = stageY() + 74;
@@ -2706,7 +2660,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         };
     }
 
-    // ADVANCED
     private List<String[]> advChannels(VccMk2CraftProfile p) {
         boolean hovers = p == VccMk2CraftProfile.AIRSHIP || p == VccMk2CraftProfile.MULTIROTOR || p == VccMk2CraftProfile.VTOL;
         boolean surfaces = p == VccMk2CraftProfile.PLANE || p == VccMk2CraftProfile.MULTIROTOR || p == VccMk2CraftProfile.VTOL;
@@ -3025,7 +2978,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return false;
     }
 
-    // shared
     private void drawPlaceholder(GuiGraphics g) {
         int cx = stageX() + stageW() / 2;
         int cy = stageY() + stageH() / 2;
@@ -3067,7 +3019,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         return mx >= x && mx < x + w && my >= y && my < y + h;
     }
 
-    /** Queue a hover tooltip if the cursor is inside the rect; painted on top in render(). */
     private void tip(int mouseX, int mouseY, int x, int y, int w, int h, String title, String... body) {
         if (!inRect(mouseX, mouseY, x, y, w, h)) {
             return;
@@ -3080,7 +3031,6 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
         pendingTip = lines;
     }
 
-    // input
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
@@ -3222,7 +3172,7 @@ public class VccMk2Screen extends AbstractContainerScreen<VccMk2Menu> {
             click();
             return true;
         }
-        // anything else falls through to the real container slots (drag / shift-click)
+
         return false;
     }
 

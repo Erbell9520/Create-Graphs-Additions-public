@@ -1,0 +1,118 @@
+{
+  "replace": false,
+  "values": [
+    "create_stats:rpm_governor",
+    {
+      "id": "create:shaft",
+      "required": false
+    },
+    {
+      "id": "create:cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:large_cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:gearbox",
+      "required": false
+    },
+    {
+      "id": "create:vertical_gearbox",
+      "required": false
+    },
+    {
+      "id": "create:encased_chain_drive",
+      "required": false
+    },
+    {
+      "id": "create:adjustable_chain_gearshift",
+      "required": false
+    },
+    {
+      "id": "create:clutch",
+      "required": false
+    },
+    {
+      "id": "create:gearshift",
+      "required": false
+    },
+    {
+      "id": "create:sequenced_gearshift",
+      "required": false
+    },
+    {
+      "id": "create:rotation_speed_controller",
+      "required": false
+    },
+    {
+      "id": "create:belt",
+      "required": false
+    },
+    {
+      "id": "create:andesite_encased_shaft",
+      "required": false
+    },
+    {
+      "id": "create:brass_encased_shaft",
+      "required": false
+    },
+    {
+      "id": "create:andesite_encased_cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:brass_encased_cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:andesite_encased_large_cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:brass_encased_large_cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:windmill_bearing",
+      "required": false
+    },
+    {
+      "id": "create:water_wheel",
+      "required": false
+    },
+    {
+      "id": "create:large_water_wheel",
+      "required": false
+    },
+    {
+      "id": "create:steam_engine",
+      "required": false
+    },
+    {
+      "id": "create:creative_motor",
+      "required": false
+    },
+    {
+      "id": "aeronautics:andesite_propeller",
+      "required": false
+    },
+    {
+      "id": "aeronautics:wooden_propeller",
+      "required": false
+    },
+    {
+      "id": "aeronautics:smart_propeller",
+      "required": false
+    },
+    {
+      "id": "aeronautics:propeller_bearing",
+      "required": false
+    },
+    {
+      "id": "aeronautics:gyroscopic_propeller_bearing",
+      "required": false
+    }
+  ]
+}

@@ -1,35 +1,38 @@
 package com.createstats.blockentity;
 
 import com.createstats.block.LampBlock;
+import com.createstats.power.ApplianceStatus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
-/** [1] */
+// not FeConsumer, creativeEnergy would light every lamp with nothing wired. defeats the point
 public class LampBE extends BlockEntity
-        implements com.createstats.power.FeGridMember, com.createstats.power.FeManagedLoad {
-
-    /** Five seconds of running, so a momentary supply dip never shows as a flicker. */
+        implements com.createstats.power.FeGridMember, com.createstats.power.FeManagedLoad,
+        com.createstats.power.Gateable, com.createstats.power.Adjustable,
+        com.createstats.power.HomeAppliance,
+        com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation,
+        com.createstats.util.CopyableSettings {
     private static final int BUFFER = 100;
-    /** [2] */
+
     private static final int DRAIN = 1;
 
     private int energy;
-    /** Set by a wirelessly linked switch. Persisted, or a reload would silently re-light the room. */
+
     private boolean gated;
-    /** What this fitting costs to hold lit, so the Power Distribution Unit can budget for it. */
+
     private int ratedDraw;
-    /** What it actually spent last tick, so the panel reports the truth rather than the rating. */
+
     private int measuredDraw;
-    /** Tier and lock as set from the panel. See {@link com.createstats.power.FeManagedLoad}. */
+
     private final com.createstats.power.FeManagedState managed = new com.createstats.power.FeManagedState();
 
-    /** Receive only: a lamp is a load, never a source for anything else. */
     private final IEnergyStorage energyView = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
@@ -78,7 +81,7 @@ public class LampBE extends BlockEntity
         return energyView;
     }
 
-    /** Told by a linked switch that it may not light. */
+    @Override
     public void setGated(boolean gated) {
         if (this.gated == gated) {
             return;
@@ -88,16 +91,117 @@ public class LampBE extends BlockEntity
         refresh();
     }
 
+    @Override
     public boolean isGated() {
         return gated;
     }
 
-    /** What this fitting costs to run, for the Power Distribution Unit's lighting list. */
+    @Override
+    public int getMode() {
+        final BlockState state = getBlockState();
+        return state.hasProperty(LampBlock.DIM) ? state.getValue(LampBlock.DIM)
+                : LampBlock.DIM_FRACTION.length - 1;
+    }
+
+    @Override
+    public void setMode(int mode) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        final BlockState state = getBlockState();
+        if (!state.hasProperty(LampBlock.DIM)) {
+            return;
+        }
+        final int next = Math.max(0, Math.min(LampBlock.DIM_FRACTION.length - 1, mode));
+        if (next == state.getValue(LampBlock.DIM)) {
+            return;
+        }
+
+        level.setBlock(worldPosition, state.setValue(LampBlock.DIM, next), Block.UPDATE_ALL);
+    }
+
+    @Override
+    public java.util.List<net.minecraft.network.chat.Component> modeLabels() {
+        final java.util.List<net.minecraft.network.chat.Component> out =
+                new java.util.ArrayList<>(LampBlock.DIM_FRACTION.length);
+        for (float fraction : LampBlock.DIM_FRACTION) {
+            out.add(net.minecraft.network.chat.Component.literal(Math.round(fraction * 100) + "%"));
+        }
+        return out;
+    }
+
+    @Override
+    public String settingsKey() {
+        return "create_stats:lamp";
+    }
+
+    @Override
+    public boolean hasCopyableSettings() {
+        return getBlockState().hasProperty(LampBlock.DIM);
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.putInt("Dim", getMode());
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player,
+                                 boolean simulate) {
+        if (!tag.contains("Dim") || !getBlockState().hasProperty(LampBlock.DIM)) {
+            return false;
+        }
+        if (!simulate) {
+            setMode(tag.getInt("Dim"));
+        }
+        return true;
+    }
+
+    @Override
+    public void writeFreshDefaults(CompoundTag tag) {
+        tag.putInt("Tier", com.createstats.power.FePriority.DEFAULT.ordinal());
+    }
+
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        writeFreshDefaults(tag);
+    }
+
+    @Override
+    public com.createstats.power.HomeAppliance.Category applianceCategory() {
+        return com.createstats.power.HomeAppliance.Category.LIGHTING;
+    }
+
+    @Override
+    @org.jetbrains.annotations.Nullable
+    public ApplianceStatus applianceStatus() {
+        if (isLit()) {
+            final int percent = Math.round(LampBlock.dimFraction(getBlockState()) * 100.0f);
+            return ApplianceStatus.idle(percent >= 100
+                    ? Component.translatable("status.create_stats.home.lamp_lit")
+                    : Component.translatable("status.create_stats.home.lamp_dimmed", percent));
+        }
+        if (gated || isManagedShed()) {
+            return null;
+        }
+        if (managed.isSuppressed()) {
+            return ApplianceStatus.idle(Component.translatable("status.create_stats.home.held_pdu"));
+        }
+        if (level != null && level.hasNeighborSignal(worldPosition)) {
+            return ApplianceStatus.idle(Component.translatable("status.create_stats.home.held_redstone"));
+        }
+        return null;
+    }
+
     public int drawFePerTick() {
         return DRAIN;
     }
 
-    /** Zero while gated, cut by redstone or switched off from the panel: it is not load. */
+    public static int drawPerTick() {
+        return DRAIN;
+    }
+
     @Override
     public int ratedDrawFePerTick() {
         return ratedDraw;
@@ -128,7 +232,7 @@ public class LampBE extends BlockEntity
     public void setManagedLock(com.createstats.power.FeLock lock) {
         managed.setLock(lock);
         setChanged();
-        refresh();   // a force-off has to go dark now, not in five seconds when the buffer runs out
+        refresh();
     }
 
     @Override
@@ -145,14 +249,30 @@ public class LampBE extends BlockEntity
         return managed.isShed();
     }
 
-    /** Whether it is actually alight, which is what the panel reports rather than what it wants. */
     public boolean isLit() {
         return getBlockState().hasProperty(LampBlock.LIT) && getBlockState().getValue(LampBlock.LIT);
     }
 
-    // grid membership
+    @Override
+    public boolean addToGoggleTooltip(java.util.List<net.minecraft.network.chat.Component> tooltip,
+                                      boolean isPlayerSneaking) {
+        tooltip.add(com.createstats.power.FeGoggle.title("Lamp"));
+        final boolean lit = isLit();
+        if (gated) {
+            tooltip.add(com.createstats.power.FeGoggle.dim("Gated by a linked switch"));
+        } else if (lit) {
+            final int percent = Math.round(LampBlock.dimFraction(getBlockState()) * 100);
+            tooltip.add(com.createstats.power.FeGoggle.ok(
+                    percent >= 100 ? "Lit" : "Lit, dimmed to " + percent + "%"));
+        } else if (managed.isSuppressed()) {
+            tooltip.add(com.createstats.power.FeGoggle.warn("Off at the panel"));
+        } else {
+            tooltip.add(com.createstats.power.FeGoggle.bad("No power"));
+        }
+        tooltip.add(com.createstats.power.FeGoggle.draw(lit ? drawFePerTick() : 0));
+        return true;
+    }
 
-    /** [3] */
     @org.jetbrains.annotations.Nullable
     private com.createstats.power.FeWireNetwork network;
 
@@ -168,7 +288,6 @@ public class LampBE extends BlockEntity
 
     @Override
     public void setStoredEnergy(int amount) {
-        // See above: the buffer belongs to the lamp, not to its node.
     }
 
     @Override
@@ -176,7 +295,6 @@ public class LampBE extends BlockEntity
         return 0;
     }
 
-    /** Generous next to a one FE drain, so a whole row refills in a tick after a switch closes. */
     @Override
     public int transferRate() {
         return 64;
@@ -194,14 +312,18 @@ public class LampBE extends BlockEntity
 
     @Override
     public void setLastFlow(int flow) {
-        // A lamp shows its state by being lit; there is no gauge to feed.
     }
 
     public void adoptNetwork(com.createstats.power.FeWireNetwork network) {
         this.network = network;
     }
 
-    /** Forces the grid to be rediscovered, for when a lamp is added to or taken out of a row. */
+    @Override
+    @javax.annotation.Nullable
+    public com.createstats.power.FeWireNetwork network() {
+        return this.network;
+    }
+
     public void invalidateNetwork() {
         if (network != null) {
             network.markDirty();
@@ -219,15 +341,16 @@ public class LampBE extends BlockEntity
         if (network != null) {
             network.solveOnce(level);
         }
-        // [4]
+
         if (network == null || !network.isPduManaged(level.getGameTime())) {
             setManagedShed(false);
         }
-        // [5]
+
         final boolean wantsToRun = !gated && !managed.isSuppressed()
                 && !level.hasNeighborSignal(worldPosition);
-        // [6]
-        ratedDraw = wantsToRun ? DRAIN : 0;
+
+        ratedDraw = !gated && !managed.isForcedOff() && !level.hasNeighborSignal(worldPosition)
+                ? DRAIN : 0;
         if (wantsToRun && energy > 0) {
             energy = Math.max(0, energy - DRAIN);
             measuredDraw = DRAIN;
@@ -238,7 +361,6 @@ public class LampBE extends BlockEntity
         refresh();
     }
 
-    /** Brings the blockstate in line with whether the lamp is actually alight. */
     private void refresh() {
         if (level == null || level.isClientSide()) {
             return;

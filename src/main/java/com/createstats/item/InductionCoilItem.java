@@ -11,10 +11,8 @@ import net.minecraft.world.item.component.CustomData;
 
 import java.util.List;
 
-/** [1] */
+// wear in custom data not durability, durability forces stack size 1
 public class InductionCoilItem extends Item {
-
-    /** Total wear budget of one coil (mirrors the old 4800 durability). */
     public static final int MAX_WEAR = 4800;
     private static final String WEAR_KEY = "Wear";
 
@@ -22,13 +20,11 @@ public class InductionCoilItem extends Item {
         super(properties);
     }
 
-    /** Current wear: 0 = fresh, {@link #MAX_WEAR} = spent. */
     public static int getWear(ItemStack stack) {
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
         return data == null ? 0 : Mth.clamp(data.copyTag().getInt(WEAR_KEY), 0, MAX_WEAR);
     }
 
-    /** Store wear; clears the component at zero so fresh coils stay stackable. */
     public static void setWear(ItemStack stack, int wear) {
         int clamped = Mth.clamp(wear, 0, MAX_WEAR);
         if (clamped <= 0) {

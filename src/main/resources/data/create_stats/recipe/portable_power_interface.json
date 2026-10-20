@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " E ",
+    "PCP",
+    " W "
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "tag": "c:plates/copper"
+    },
+    "C": {
+      "item": "create:copper_casing"
+    },
+    "W": {
+      "item": "create_stats:power_connector"
+    }
+  },
+  "result": {
+    "id": "create_stats:portable_power_interface",
+    "count": 1
+  },
+  "show_notification": true
+}

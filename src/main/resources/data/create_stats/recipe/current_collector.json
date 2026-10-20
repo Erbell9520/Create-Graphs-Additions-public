@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PMP",
+    " L ",
+    " S "
+  ],
+  "key": {
+    "P": {
+      "item": "create_stats:porcelain_insulator"
+    },
+    "M": {
+      "tag": "c:plates/iron"
+    },
+    "L": {
+      "tag": "minecraft:logs"
+    },
+    "S": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "create_stats:current_collector",
+    "count": 1
+  },
+  "show_notification": true
+}

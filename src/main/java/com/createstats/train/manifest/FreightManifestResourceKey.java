@@ -4,7 +4,6 @@ import java.util.Objects;
 import net.minecraft.resources.ResourceLocation;
 
 public class FreightManifestResourceKey {
-
     private final ManifestCargoKind cargoKind;
     private final ResourceLocation resourceId;
 

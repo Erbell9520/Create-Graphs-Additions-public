@@ -21,7 +21,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class FreightManifestClipboardDisplaySource extends DisplaySource implements CargoLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         BlockEntity blockEntity = context.getSourceBlockEntity();

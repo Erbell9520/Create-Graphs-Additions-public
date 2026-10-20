@@ -1,0 +1,216 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "tones": "create_stats:block/main_breaker_tones",
+    "particle": "create_stats:block/main_breaker_case"
+  },
+  "elements": [
+    {
+      "name": "rod",
+      "from": [
+        0.0,
+        5.47,
+        -0.28
+      ],
+      "to": [
+        5.2,
+        6.03,
+        0.28
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            0.5,
+            7.5,
+            1.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "rod_band",
+      "from": [
+        0.55,
+        5.41,
+        -0.34
+      ],
+      "to": [
+        1.25,
+        6.09,
+        0.34
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "rod_eye",
+      "from": [
+        -0.7,
+        5.25,
+        -0.5
+      ],
+      "to": [
+        0.2,
+        6.25,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        }
+      }
+    }
+  ]
+}

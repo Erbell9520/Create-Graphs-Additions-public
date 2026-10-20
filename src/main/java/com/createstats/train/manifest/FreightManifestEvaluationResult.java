@@ -1,7 +1,6 @@
 package com.createstats.train.manifest;
 
 public class FreightManifestEvaluationResult {
-
     private final boolean complete;
     private final String statusMessage;
 

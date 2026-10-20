@@ -13,9 +13,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** [1] */
 public class StageLightScreen extends Screen {
-
     private static final int PANEL_BG = 0xF0121821;
     private static final int PANEL_DEEP = 0xFF0B141C;
     private static final int BORDER = 0xFF315064;
@@ -50,7 +48,6 @@ public class StageLightScreen extends Screen {
     private final int panelWidth = 508;
     private final int panelHeight = 430;
 
-    /** Colour-filter swatches: index 0 = None, 1..16 = the dye colours. */
     private static final int SWATCH_COUNT = 17;
     private static final int SWATCH_SIZE = 13;
     private static final int SWATCH_STEP = 14;
@@ -189,13 +186,13 @@ public class StageLightScreen extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        // Empty: avoids the vanilla blurred background on a plain Screen.
+        // empty, no blur
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(g, mouseX, mouseY, partialTick);
-        // FE Dependent Mode panel in the free screen corner (self-gating).
+
         com.createstats.power.client.FeStatusWidget.draw(g, this.font, this.width - 130, 8, 120, this.be.feConsumer());
         g.fill(this.panelLeft + 5, this.panelTop + 6, this.panelLeft + this.panelWidth + 5, this.panelTop + this.panelHeight + 6, SHADOW);
         g.fill(this.panelLeft, this.panelTop, this.panelLeft + this.panelWidth, this.panelTop + this.panelHeight, PANEL_BG);
@@ -219,14 +216,12 @@ public class StageLightScreen extends Screen {
             s.render(g, mouseX, mouseY);
         }
 
-        // Range rule hint under the Range slider.
         Slider rangeSlider = this.sliders[2];
         Component hint = this.range <= this.be.getPeakRange()
                 ? Component.translatable("gui.create_stats.stage_light.range_hint.full", this.be.getPeakRange())
                 : Component.translatable("gui.create_stats.stage_light.range_hint.beyond", this.be.getPeakRange());
         g.drawString(this.font, hint, rangeSlider.x, rangeSlider.y + 24, AMBER, false);
 
-        // Beam colour filter swatches (None + 16 dye colours).
         g.drawString(this.font, Component.translatable("gui.create_stats.stage_light.beam_filter"), this.swatchX, this.swatchY - 12, TEXT_DIM, false);
         for (int i = 0; i < SWATCH_COUNT; i++) {
             int sx = this.swatchX + i * SWATCH_STEP;
@@ -242,7 +237,6 @@ public class StageLightScreen extends Screen {
             g.renderOutline(sx, this.swatchY, SWATCH_SIZE, SWATCH_SIZE, selected ? 0xFFFFFFFF : 0xFF0A1219);
         }
 
-        // Live beam projection diagram (right column), reads the live slider values.
         this.drawBeamDiagram(g, this.panelLeft + LEFT_COL + 12, this.panelTop + 44, this.panelWidth - LEFT_COL - 24, this.panelHeight - 60);
 
         super.render(g, mouseX, mouseY, partialTick);
@@ -272,7 +266,6 @@ public class StageLightScreen extends Screen {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /** RGB a swatch represents: index 0 = no filter, else the matching dye colour. */
     private static int swatchTint(int index) {
         return index == 0 ? StageLightBE.NO_TINT : StageLightColors.rgb(DyeColor.values()[index - 1]);
     }
@@ -328,7 +321,6 @@ public class StageLightScreen extends Screen {
         g.fill(x + w - 1, y, x + w, y + h, color);
     }
 
-    /** [2] */
     private void drawBeamDiagram(GuiGraphics g, int x, int y, int w, int h) {
         float time = (System.currentTimeMillis() % 100000L) / 50.0f;
         g.fill(x, y, x + w, y + h, PANEL_DEEP);
@@ -345,7 +337,6 @@ public class StageLightScreen extends Screen {
                 : "gui.create_stats.stage_light.state.off").getString();
         g.drawString(this.font, st, x + w - 8 - this.font.width(st), y + 5, this.lit ? GREEN : 0xFF566D78, false);
 
-        // Live effect preview: the diagram strobes/pulses/hue-sweeps with the current settings.
         long previewTime = System.currentTimeMillis() / 50L;
         int rgb = StageLightBE.effectTint(this.effect, this.effectSpeed, this.tint & 0xFFFFFF, previewTime, 0.0f);
         int beamCol = rgb == 0xFFFFFF ? 0xFFE8B0 : rgb;
@@ -486,7 +477,6 @@ public class StageLightScreen extends Screen {
         }
     }
 
-    /** A simple labelled horizontal slider. */
     private final class Slider {
         private final String label;
         final int x;

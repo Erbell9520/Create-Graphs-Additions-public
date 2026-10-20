@@ -4,14 +4,8 @@ import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-/**
- * Small bag of easing/smoothing primitives shared by helmet HUD widgets.
- * <p>
- * All methods are stateless and safe to call from the client render thread.
- */
 @OnlyIn(Dist.CLIENT)
 public final class HudEasing {
-
     private HudEasing() {
     }
 
@@ -33,14 +27,6 @@ public final class HudEasing {
         return 1.0f + 0.5f * f * f * f;
     }
 
-    /**
-     * Frame-rate independent exponential smoothing toward a target value.
-     *
-     * @param current  the current smoothed value
-     * @param target   the live target value
-     * @param tauSec   smoothing time constant in seconds (smaller = snappier)
-     * @param dtSec    the wall-clock dt for this frame in seconds
-     */
     public static float expSmooth(float current, float target, float tauSec, float dtSec) {
         if (!Float.isFinite(target)) return current;
         if (!Float.isFinite(current)) return target;

@@ -1,5 +1,4 @@
 {
-  "__comment": "FACING property preserved for world-load compat. Each facing maps to one of the smart_gearshift-derived axis models (axis_x for east/west, axis_y for up/down, axis_z for north/south) plus rotation. visual_state toggles between neutral (idle) and throttle (FCC-active) variants.",
   "variants": {
     "facing=east,visual_state=idle":     { "model": "create_stats:block/rpm_governor/axis_x_neutral" },
     "facing=east,visual_state=active":   { "model": "create_stats:block/rpm_governor/axis_x_throttle" },

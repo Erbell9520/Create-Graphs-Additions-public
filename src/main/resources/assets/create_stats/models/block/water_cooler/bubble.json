@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "bubble": "create_stats:block/water_cooler_bubble",
+    "particle": "create_stats:block/water_cooler_bubble"
+  },
+  "elements": [
+    {
+      "__comment": "bubble",
+      "from": [
+        -0.45,
+        -0.45,
+        -0.45
+      ],
+      "to": [
+        0.45,
+        0.45,
+        0.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#bubble"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#bubble"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#bubble"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#bubble"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#bubble"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#bubble"
+        }
+      }
+    }
+  ]
+}

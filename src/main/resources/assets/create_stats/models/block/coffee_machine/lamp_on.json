@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "lamp_on": "create_stats:block/coffee_lamp_on",
+    "particle": "create_stats:block/coffee_lamp_on"
+  },
+  "elements": [
+    {
+      "__comment": "lamp_bead",
+      "from": [
+        3.45,
+        3.25,
+        1.92
+      ],
+      "to": [
+        4.35,
+        3.95,
+        2.32
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_on"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_on"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_on"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_on"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_on"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_on"
+        }
+      }
+    }
+  ]
+}

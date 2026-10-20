@@ -1,0 +1,64 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"textures": {
+		"copper": "create_stats:block/universal_power_coupler_copper",
+		"brass": "create_stats:block/universal_power_coupler_brass",
+		"particle": "create_stats:block/universal_power_coupler_particle"
+	},
+	"elements": [
+		{
+			"name": "shuttle_shoe",
+			"from": [6.9, 5.05, 6.5],
+			"to": [9.1, 5.55, 9.5],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#copper"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#copper"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#copper"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#copper"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#copper"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#copper"}
+			}
+		},
+		{
+			"name": "shuttle_body",
+			"from": [6.8, 5.55, 6.3],
+			"to": [9.2, 7, 9.7],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "shuttle_grip",
+			"from": [7.7, 7, 7.5],
+			"to": [8.3, 7.7, 8.5],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#brass"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "shuttle_grip",
+			"from": [7.5, 7, 7.3],
+			"to": [8.5, 7.3, 8.7],
+			"faces": {
+				"north": {"uv": [4, 15, 16, 16], "texture": "#brass"},
+				"east": {"uv": [7, 15, 16, 16], "texture": "#brass"},
+				"south": {"uv": [11, 14, 16, 16], "texture": "#brass"},
+				"west": {"uv": [12, 15, 16, 16], "texture": "#brass"},
+				"up": {"uv": [10, 14, 16, 16], "texture": "#brass"},
+				"down": {"uv": [11, 15, 16, 16], "texture": "#brass"}
+			}
+		}
+	]
+}

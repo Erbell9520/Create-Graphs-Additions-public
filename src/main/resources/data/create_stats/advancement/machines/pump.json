@@ -1,0 +1,45 @@
+{
+  "parent": "create_stats:machines/induction_range",
+  "display": {
+    "icon": {
+      "id": "create_stats:fluid_pump_mk1"
+    },
+    "title": {
+      "translate": "advancement.create_stats.machines.pump.title",
+      "fallback": "Water Cut Again"
+    },
+    "description": {
+      "translate": "advancement.create_stats.machines.pump.description",
+      "fallback": "Place a Fluid Pump. Next time the water is cut, you will not even notice."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "pump": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:fluid_pump_mk1",
+                  "create_stats:fluid_pump_mk2"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "pump"
+    ]
+  ]
+}

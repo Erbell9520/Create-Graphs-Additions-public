@@ -30,9 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** [1] */
-public class CableBlock extends Block implements EntityBlock {
-
+public class CableBlock extends Block implements EntityBlock, GirderMounting.Fixture {
     public static final BooleanProperty UP = BlockStateProperties.UP;
     public static final BooleanProperty DOWN = BlockStateProperties.DOWN;
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
@@ -52,7 +50,6 @@ public class CableBlock extends Block implements EntityBlock {
         BY_FACE.put(Direction.WEST, WEST);
     }
 
-    /** The grade of this cable: what it carries, and how thick it is drawn. */
     private final com.createstats.power.CableTier tier;
 
     private final Map<Direction, VoxelShape> faceShapes = new EnumMap<>(Direction.class);
@@ -60,43 +57,37 @@ public class CableBlock extends Block implements EntityBlock {
     public CableBlock(Properties properties, com.createstats.power.CableTier tier) {
         super(properties);
         this.tier = tier == null ? com.createstats.power.CableTier.SURFACE : tier;
-        // Copper by default, because that is what it is crafted from. White multiplied against a
-        // neutral cord texture came out a flat lavender grey that looked like a placeholder.
+
         BlockState state = defaultBlockState().setValue(COLOR, DyeColor.ORANGE);
         for (BooleanProperty p : BY_FACE.values()) {
             state = state.setValue(p, false);
         }
         registerDefaultState(state);
         for (Direction face : Direction.values()) {
-            faceShapes.put(face, slabAgainst(face, this.tier.thicknessPx()));
+            faceShapes.put(face, slabAgainst(face, this.tier.thicknessPx() + this.tier.reliefPx()));
         }
     }
 
-    /** The property recording whether this block carries cable on the given face. */
     public static BooleanProperty faceProperty(Direction face) {
         return BY_FACE.get(face);
     }
 
-    /** The grade of this cable. Everything that differs between the three comes from here. */
     public com.createstats.power.CableTier tier() {
         return tier;
     }
 
-    public int multiplier() {
+    public float multiplier() {
         return tier.multiplier();
     }
 
-    /** How far the cable stands off its mounting face, in pixels. Read by the renderer. */
     public double thicknessPx() {
         return tier.thicknessPx();
     }
 
-    /** True when this state carries cable on the given face. */
     public static boolean hasFace(BlockState state, Direction face) {
         return state.getBlock() instanceof CableBlock && state.getValue(faceProperty(face));
     }
 
-    /** True when this state carries no cable at all, so the block should be removed. */
     public static boolean isBare(BlockState state) {
         for (Direction face : Direction.values()) {
             if (hasFace(state, face)) {
@@ -106,7 +97,6 @@ public class CableBlock extends Block implements EntityBlock {
         return true;
     }
 
-    /** A thin slab hugging one face of the block, which is the cable's footprint on that face. */
     private static VoxelShape slabAgainst(Direction face, double t) {
         return switch (face) {
             case DOWN -> Block.box(0, 0, 0, 16, t, 16);
@@ -134,7 +124,6 @@ public class CableBlock extends Block implements EntityBlock {
         return shape.isEmpty() ? Shapes.empty() : shape;
     }
 
-    /** Cable is walked through, never stood on. */
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
@@ -149,8 +138,7 @@ public class CableBlock extends Block implements EntityBlock {
         if (!canAttachTo(level, pos, face)) {
             return null;
         }
-        // Placing into an existing cable adds a face rather than replacing it, which is what lets a
-        // corner end up carrying two faces at one position.
+
         final BlockState existing = level.getBlockState(pos);
         if (existing.getBlock() == this) {
             return existing.setValue(faceProperty(face), true);
@@ -158,20 +146,21 @@ public class CableBlock extends Block implements EntityBlock {
         return defaultBlockState().setValue(faceProperty(face), true);
     }
 
-    /** [2] */
     @Override
     public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
         return context.getItemInHand().getItem() == asItem()
                 && !hasFace(state, context.getClickedFace().getOpposite());
     }
 
-    /** True when the block behind this face can hold cable. */
     public static boolean canAttachTo(LevelReader level, BlockPos pos, Direction face) {
-        final BlockPos support = pos.relative(face);
-        return level.getBlockState(support).isFaceSturdy(level, support, face.getOpposite());
+        return GirderMounting.holds(level, pos.relative(face), face.getOpposite());
     }
 
-    /** [3] */
+    @Override
+    public boolean isBackedBy(BlockState state, Direction towardSupport) {
+        return hasFace(state, towardSupport);
+    }
+
     @Override
     protected BlockState updateShape(BlockState state, Direction direction, BlockState neighbour,
                                      net.minecraft.world.level.LevelAccessor level,
@@ -185,7 +174,6 @@ public class CableBlock extends Block implements EntityBlock {
         return isBare(result) ? net.minecraft.world.level.block.Blocks.AIR.defaultBlockState() : result;
     }
 
-    /** [4] */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
@@ -201,18 +189,12 @@ public class CableBlock extends Block implements EntityBlock {
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /**
-     * Floods the connected run of this same cable kind and recolours it.
-     * capped - a run can hit hundreds of blocks, don't want one dye click scanning the whole world
-     *
-     * @return how many blocks were recoloured
-     */
     private int paintRun(Level level, BlockPos origin, DyeColor colour) {
         final DyeColor was = level.getBlockState(origin).getValue(COLOR);
         if (was == colour) {
             return 0;
         }
-        // [5]
+
         final java.util.List<BlockPos> run = com.createstats.power.CableRun.collect(
                 linkViewOf(level), origin, com.createstats.power.CableRun.MAX_RUN_BLOCKS);
         int painted = 0;
@@ -232,7 +214,6 @@ public class CableBlock extends Block implements EntityBlock {
         return com.createstats.registry.ModBlockEntities.CABLE.create(pos, state);
     }
 
-    /** [6] */
     @Override
     @Nullable
     public <T extends net.minecraft.world.level.block.entity.BlockEntity>
@@ -245,48 +226,94 @@ public class CableBlock extends Block implements EntityBlock {
         return (lvl, pos, blockState, be) -> ((com.createstats.blockentity.CableBE) be).tick();
     }
 
-    /** A cut or extended run has a different shape, so the grid has to be rediscovered. */
+    // nothing re-floods when a neighbour appears, so placing a generator next to a run did nothing. yine mi
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbourBlock,
+                                   BlockPos neighbourPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighbourBlock, neighbourPos, movedByPiston);
+        if (level.isClientSide()
+                || !(level.getBlockEntity(pos) instanceof com.createstats.blockentity.CableBE cable)) {
+            return;
+        }
+        final com.createstats.power.FeWireNetwork network = cable.network();
+        if (network == null || network.isDirty()) {
+            return;
+        }
+        final Direction towards = Direction.fromDelta(neighbourPos.getX() - pos.getX(),
+                neighbourPos.getY() - pos.getY(), neighbourPos.getZ() - pos.getZ());
+        if (towards == null) {
+            return;
+        }
+
+        if (cable.joints().note(towards, face -> offersEnergy(level, pos, face))) {
+            cable.invalidateNetwork();
+        }
+    }
+
+    private static boolean offersEnergy(Level level, BlockPos pos, Direction towards) {
+        return level.getCapability(
+                net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
+                pos.relative(towards), towards.getOpposite()) != null;
+    }
+
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
         if (state.getBlock() != newState.getBlock() && !level.isClientSide()
                 && level.getBlockEntity(pos) instanceof com.createstats.blockentity.CableBE cable) {
+            com.createstats.power.BoreLinks.severAll(level, cable);
             cable.invalidateNetwork();
         }
         super.onRemove(state, level, pos, newState, moving);
     }
 
-    /** [7] */
     public static com.createstats.power.CableLinks.View linkViewOf(BlockGetter level) {
         return new com.createstats.power.CableLinks.View() {
+            @Nullable
+            private BlockState stateAt(BlockPos pos) {
+                if (level instanceof LevelReader reader && !reader.hasChunkAt(pos)) {
+                    return null;
+                }
+                return level.getBlockState(pos);
+            }
+
             @Override
             public boolean hasCableFace(BlockPos pos, Direction face) {
-                return CableBlock.hasFace(level.getBlockState(pos), face);
+                final BlockState state = stateAt(pos);
+                return state != null && CableBlock.hasFace(state, face);
             }
 
             @Override
             public boolean isCable(BlockPos pos) {
-                return level.getBlockState(pos).getBlock() instanceof CableBlock;
+                final BlockState state = stateAt(pos);
+                return state != null && state.getBlock() instanceof CableBlock;
+            }
+
+            @Override
+            public boolean isFree(BlockPos pos) {
+                final BlockState state = stateAt(pos);
+
+                return state != null && (state.isAir() || state.getBlock() instanceof CableBlock
+                        || state.canBeReplaced());
             }
 
             @Override
             public boolean isDevice(BlockPos pos, Direction fromSide) {
                 return level instanceof Level lvl
+                        && lvl.hasChunkAt(pos)
                         && lvl.getCapability(net.neoforged.neoforge.capabilities.Capabilities
                                 .EnergyStorage.BLOCK, pos, fromSide) != null;
             }
 
-            /** [8] */
             @Override
             public int colourAt(BlockPos pos) {
-                final BlockState state = level.getBlockState(pos);
-                return state.getBlock() instanceof CableBlock
+                final BlockState state = stateAt(pos);
+                return state != null && state.getBlock() instanceof CableBlock
                         ? state.getValue(COLOR).ordinal()
                         : com.createstats.power.CableLinks.NO_COLOUR;
             }
         };
     }
 
-    /** Adapts a level to what {@link CableRoute} needs, so routing and placement agree exactly. */
     public static CableRoute.SurfaceView viewOf(LevelReader level) {
         return new CableRoute.SurfaceView() {
             @Override
@@ -298,7 +325,9 @@ public class CableBlock extends Block implements EntityBlock {
 
             @Override
             public boolean isSolid(BlockPos pos) {
-                return level.getBlockState(pos).isCollisionShapeFullBlock(level, pos);
+                final BlockState state = level.getBlockState(pos);
+                return state.isCollisionShapeFullBlock(level, pos)
+                        || GirderMounting.kindOf(state) == GirderMounting.Kind.GIRDER;
             }
         };
     }

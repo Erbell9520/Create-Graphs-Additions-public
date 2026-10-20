@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "facing=up,lit=false": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_up"
+    },
+    "facing=up,lit=true": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_up_lit"
+    },
+    "facing=down,lit=false": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_down"
+    },
+    "facing=down,lit=true": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_down_lit"
+    },
+    "facing=north,lit=false": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_north"
+    },
+    "facing=north,lit=true": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_north_lit"
+    },
+    "facing=south,lit=false": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_south"
+    },
+    "facing=south,lit=true": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_south_lit"
+    },
+    "facing=west,lit=false": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_west"
+    },
+    "facing=west,lit=true": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_west_lit"
+    },
+    "facing=east,lit=false": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_east"
+    },
+    "facing=east,lit=true": {
+      "model": "create_stats:block/topology_scanner/topology_scanner_probe_east_lit"
+    }
+  }
+}

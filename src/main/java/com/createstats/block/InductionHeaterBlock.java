@@ -38,9 +38,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
 
-/** [1] */
+// reuses HEAT_LEVEL so basins and boilers just work, no mixins
 public class InductionHeaterBlock extends KineticBlock implements IBE<InductionHeaterBE> {
-
     private static final VoxelShape SHAPE = Shapes.or(
         Block.box(0, 0, 0, 16, 10, 16),
         Block.box(1, 10, 1, 15, 12, 15));
@@ -119,7 +118,7 @@ public class InductionHeaterBlock extends KineticBlock implements IBE<InductionH
         if (!(be instanceof InductionHeaterBE heater)) {
             return InteractionResult.PASS;
         }
-        // [2]
+
         if (player.isShiftKeyDown()) {
             if (heater.hasCoil()) {
                 if (!level.isClientSide()) {
@@ -172,7 +171,6 @@ public class InductionHeaterBlock extends KineticBlock implements IBE<InductionH
         };
     }
 
-    /** [3] */
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
         HeatLevel heat = state.getValue(BlazeBurnerBlock.HEAT_LEVEL);
@@ -201,7 +199,7 @@ public class InductionHeaterBlock extends KineticBlock implements IBE<InductionH
                 level.addParticle(ParticleTypes.ELECTRIC_SPARK, x, pos.getY() + 0.78, z, 0, 0.02, 0);
             }
         }
-        // Food actively sizzling on the plate sends up a thin smoke column.
+
         if (level.getBlockEntity(pos) instanceof InductionHeaterBE heater
             && heater.hasCookStack() && !heater.isCookDone() && random.nextInt(3) == 0) {
             level.addParticle(ParticleTypes.SMOKE,

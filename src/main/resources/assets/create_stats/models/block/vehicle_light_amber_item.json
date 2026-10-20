@@ -1,0 +1,262 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "housing": "create_stats:block/vehicle_light_housing",
+    "bezel": "create_stats:block/vehicle_light_bezel",
+    "lens": "create_stats:block/vehicle_light_lens_amber",
+    "particle": "create_stats:block/vehicle_light_housing"
+  },
+  "elements": [
+    {
+      "__comment": "flange",
+      "from": [
+        4.0,
+        4.0,
+        15
+      ],
+      "to": [
+        12.0,
+        12.0,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#housing"
+        },
+        "up": {
+          "texture": "#housing"
+        },
+        "east": {
+          "texture": "#housing"
+        },
+        "west": {
+          "texture": "#housing"
+        },
+        "north": {
+          "texture": "#housing"
+        },
+        "south": {
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "__comment": "body",
+      "from": [
+        4.5,
+        4.5,
+        12.5
+      ],
+      "to": [
+        11.5,
+        11.5,
+        15
+      ],
+      "faces": {
+        "down": {
+          "texture": "#housing"
+        },
+        "up": {
+          "texture": "#housing"
+        },
+        "east": {
+          "texture": "#housing"
+        },
+        "west": {
+          "texture": "#housing"
+        },
+        "north": {
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "__comment": "bezel north",
+      "from": [
+        4.5,
+        4.5,
+        11.5
+      ],
+      "to": [
+        11.5,
+        5.5,
+        12.5
+      ],
+      "faces": {
+        "down": {
+          "texture": "#bezel"
+        },
+        "up": {
+          "texture": "#bezel"
+        },
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "bezel south",
+      "from": [
+        4.5,
+        10.5,
+        11.5
+      ],
+      "to": [
+        11.5,
+        11.5,
+        12.5
+      ],
+      "faces": {
+        "down": {
+          "texture": "#bezel"
+        },
+        "up": {
+          "texture": "#bezel"
+        },
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "bezel west",
+      "from": [
+        4.5,
+        5.5,
+        11.5
+      ],
+      "to": [
+        5.5,
+        10.5,
+        12.5
+      ],
+      "faces": {
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "bezel east",
+      "from": [
+        10.5,
+        5.5,
+        11.5
+      ],
+      "to": [
+        11.5,
+        10.5,
+        12.5
+      ],
+      "faces": {
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "lens",
+      "from": [
+        5.5,
+        5.5,
+        11.9
+      ],
+      "to": [
+        10.5,
+        10.5,
+        12.5
+      ],
+      "faces": {
+        "down": {
+          "texture": "#lens"
+        },
+        "up": {
+          "texture": "#lens"
+        },
+        "east": {
+          "texture": "#lens"
+        },
+        "west": {
+          "texture": "#lens"
+        },
+        "north": {
+          "texture": "#lens",
+          "uv": [
+            0.0,
+            0.0,
+            5.0,
+            5.0
+          ],
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    },
+    {
+      "__comment": "lens 2",
+      "from": [
+        6.5,
+        6.5,
+        11.4
+      ],
+      "to": [
+        9.5,
+        9.5,
+        11.9
+      ],
+      "faces": {
+        "down": {
+          "texture": "#lens"
+        },
+        "up": {
+          "texture": "#lens"
+        },
+        "east": {
+          "texture": "#lens"
+        },
+        "west": {
+          "texture": "#lens"
+        },
+        "north": {
+          "texture": "#lens",
+          "uv": [
+            1.0,
+            1.0,
+            4.0,
+            4.0
+          ],
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    }
+  ]
+}

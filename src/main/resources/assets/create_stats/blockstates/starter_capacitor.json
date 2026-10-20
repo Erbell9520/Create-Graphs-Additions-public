@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,firing=false": {
+      "model": "create_stats:block/starter_capacitor"
+    },
+    "facing=north,firing=true": {
+      "model": "create_stats:block/starter_capacitor"
+    },
+    "facing=east,firing=false": {
+      "model": "create_stats:block/starter_capacitor",
+      "y": 90
+    },
+    "facing=east,firing=true": {
+      "model": "create_stats:block/starter_capacitor",
+      "y": 90
+    },
+    "facing=south,firing=false": {
+      "model": "create_stats:block/starter_capacitor",
+      "y": 180
+    },
+    "facing=south,firing=true": {
+      "model": "create_stats:block/starter_capacitor",
+      "y": 180
+    },
+    "facing=west,firing=false": {
+      "model": "create_stats:block/starter_capacitor",
+      "y": 270
+    },
+    "facing=west,firing=true": {
+      "model": "create_stats:block/starter_capacitor",
+      "y": 270
+    }
+  }
+}

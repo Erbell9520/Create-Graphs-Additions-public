@@ -1,0 +1,286 @@
+{
+ "credit": "gen_staff_redesign.py, sample jacob, written 16 units low (SurveyorStaffRenderer lifts it back)",
+ "textures": {
+  "atlas": "create_stats:item/surveyor_staff/jacob/atlas",
+  "vane_eye": "create_stats:item/surveyor_staff/jacob/vane_eye",
+  "particle": "create_stats:item/surveyor_staff/jacob/atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    5.5,
+    15.7,
+    17.4
+   ],
+   "to": [
+    10.5,
+    27.7,
+    18.4
+   ],
+   "name": "vane plate",
+   "faces": {
+    "north": {
+     "uv": [
+      0,
+      0,
+      5,
+      12
+     ],
+     "texture": "#vane_eye"
+    },
+    "south": {
+     "uv": [
+      0,
+      0,
+      5,
+      12
+     ],
+     "texture": "#vane_eye"
+    },
+    "east": {
+     "uv": [
+      3.75,
+      0.0,
+      3.875,
+      1.5
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      4.0,
+      0.0,
+      4.125,
+      1.5
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      10.5,
+      3.5,
+      11.125,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      11.25,
+      3.5,
+      11.875,
+      3.625
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    7.93,
+    16.7,
+    17.84
+   ],
+   "to": [
+    8.07,
+    20.7,
+    17.96
+   ],
+   "name": "hair",
+   "faces": {
+    "north": {
+     "uv": [
+      1.0,
+      2.0,
+      1.125,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      1.25,
+      2.0,
+      1.375,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      1.5,
+      2.0,
+      1.625,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      1.75,
+      2.0,
+      1.875,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      12.0,
+      4.25,
+      12.125,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      12.25,
+      4.25,
+      12.375,
+      4.375
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    9.65,
+    23.35,
+    18.4
+   ],
+   "to": [
+    10.35,
+    24.05,
+    18.46
+   ],
+   "name": "wheel axle seat",
+   "faces": {
+    "north": {
+     "uv": [
+      12.5,
+      4.25,
+      12.625,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      12.75,
+      4.25,
+      12.875,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      13.0,
+      4.25,
+      13.125,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      13.25,
+      4.25,
+      13.375,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      13.5,
+      4.25,
+      13.625,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      13.75,
+      4.25,
+      13.875,
+      4.375
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    10.9,
+    26.9,
+    18.4
+   ],
+   "to": [
+    11.9,
+    27.9,
+    19.1
+   ],
+   "name": "detent anchor",
+   "faces": {
+    "north": {
+     "uv": [
+      14.0,
+      4.25,
+      14.125,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      14.25,
+      4.25,
+      14.375,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      14.5,
+      4.25,
+      14.625,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      14.75,
+      4.25,
+      14.875,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      15.0,
+      4.25,
+      15.125,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      15.25,
+      4.25,
+      15.375,
+      4.375
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 {
   "pack": {
     "description": {
-      "text": "Create Stats and Numbers: Real-time kinetic analytics"
+      "text": "${mod_name} — kinetic analytics and Forge Energy"
     },
     "pack_format": 48
   }

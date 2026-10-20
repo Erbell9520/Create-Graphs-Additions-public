@@ -1,0 +1,217 @@
+{
+ "credit": "gen_cine_camera.py --ship",
+ "textures": {
+  "atlas": "create_stats:block/cine_camera/head_atlas",
+  "geneva": "create_stats:block/cine_camera/geneva",
+  "particle": "create_stats:block/cine_camera/head_atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    5.3,
+    8.5,
+    14.3
+   ],
+   "to": [
+    8.3,
+    13.5,
+    14.8
+   ],
+   "name": "Geneva wheel",
+   "faces": {
+    "north": {
+     "uv": [
+      1.0,
+      0.0,
+      4.0,
+      5.0
+     ],
+     "texture": "#geneva"
+    },
+    "south": {
+     "uv": [
+      1.0,
+      0.0,
+      4.0,
+      5.0
+     ],
+     "texture": "#geneva"
+    },
+    "east": {
+     "uv": [
+      2.0,
+      2.5,
+      2.125,
+      3.125
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      2.25,
+      2.5,
+      2.375,
+      3.125
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      5.5,
+      4.625,
+      5.875,
+      4.75
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      6.0,
+      4.625,
+      6.375,
+      4.75
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    4.3,
+    9.5,
+    14.3
+   ],
+   "to": [
+    5.3,
+    12.5,
+    14.8
+   ],
+   "name": "Geneva wheel",
+   "faces": {
+    "north": {
+     "uv": [
+      4.0,
+      1.0,
+      5.0,
+      4.0
+     ],
+     "texture": "#geneva"
+    },
+    "south": {
+     "uv": [
+      0.0,
+      1.0,
+      1.0,
+      4.0
+     ],
+     "texture": "#geneva"
+    },
+    "east": {
+     "uv": [
+      12.25,
+      3.25,
+      12.375,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      12.5,
+      3.25,
+      12.625,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      4.75,
+      5.625,
+      4.875,
+      5.75
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      5.0,
+      5.625,
+      5.125,
+      5.75
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    8.3,
+    9.5,
+    14.3
+   ],
+   "to": [
+    9.3,
+    12.5,
+    14.8
+   ],
+   "name": "Geneva wheel",
+   "faces": {
+    "north": {
+     "uv": [
+      -0.0,
+      1.0,
+      1.0,
+      4.0
+     ],
+     "texture": "#geneva"
+    },
+    "south": {
+     "uv": [
+      4.0,
+      1.0,
+      5.0,
+      4.0
+     ],
+     "texture": "#geneva"
+    },
+    "east": {
+     "uv": [
+      12.75,
+      3.25,
+      12.875,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      13.0,
+      3.25,
+      13.125,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      5.25,
+      5.625,
+      5.375,
+      5.75
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      5.5,
+      5.625,
+      5.625,
+      5.75
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

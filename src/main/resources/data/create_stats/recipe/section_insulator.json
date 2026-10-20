@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create:track_signal"
+    },
+    {
+      "item": "create_stats:porcelain_insulator"
+    }
+  ],
+  "result": {
+    "id": "create_stats:section_insulator",
+    "count": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:security/panel",
+  "display": {
+    "icon": {
+      "id": "create_stats:security_locker"
+    },
+    "title": {
+      "translate": "advancement.create_stats.security.locker.title",
+      "fallback": "Under the Pillow"
+    },
+    "description": {
+      "translate": "advancement.create_stats.security.locker.description",
+      "fallback": "Get a Security Locker, for when the family gold no longer fits under the pillow."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "locker": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:security_locker"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "locker"
+    ]
+  ]
+}

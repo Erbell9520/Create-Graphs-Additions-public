@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoadBalancerDisplaySource extends DisplaySource implements StatsLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         BlockEntity be = context.getSourceBlockEntity();
@@ -23,19 +22,7 @@ public class LoadBalancerDisplaySource extends DisplaySource implements StatsLin
         List<MutableComponent> lines = new ArrayList<>();
         int maxRows = Math.max(1, stats.maxRows());
 
-        Component state = switch (balancer.getTopologyStatus()) {
-            case NO_SOURCE -> Component.translatable("create_stats.load_balancer.display.state.idle");
-            case NO_BRANCHES -> Component.translatable("create_stats.load_balancer.display.state.no_branches");
-            case SIDE_INPUT -> Component.translatable("create_stats.load_balancer.display.state.wrong_input");
-            case MERGED_BRANCHES -> Component.translatable("create_stats.load_balancer.display.state.merged");
-            case BRANCH_SOURCE -> Component.translatable("create_stats.load_balancer.display.state.branch_source");
-            case TRUNCATED -> Component.translatable("create_stats.load_balancer.display.state.topology_limit");
-            case OK -> !balancer.getSettings().isEnabled()
-                    ? Component.translatable("create_stats.load_balancer.display.state.disabled")
-                    : balancer.isBalancing()
-                        ? Component.translatable("create_stats.load_balancer.display.state.balancing")
-                        : Component.translatable("create_stats.load_balancer.display.state.pass_through");
-        };
+        Component state = Component.translatable(balancer.getReportedState().stateKey());
         lines.add(Component.translatable("create_stats.load_balancer.display.line", state));
 
         if (maxRows >= 2) {

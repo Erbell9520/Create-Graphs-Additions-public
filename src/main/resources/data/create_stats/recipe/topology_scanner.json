@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BEB",
+    "SCS",
+    "BGB"
+  ],
+  "key": {
+    "B": { "tag": "c:plates/brass" },
+    "E": { "item": "create:electron_tube" },
+    "S": { "item": "create:shaft" },
+    "C": { "item": "create:precision_mechanism" },
+    "G": { "item": "minecraft:glass_pane" }
+  },
+  "result": {
+    "id": "create_stats:topology_scanner",
+    "count": 1
+  },
+  "show_notification": true
+}

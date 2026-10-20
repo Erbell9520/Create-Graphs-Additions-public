@@ -31,7 +31,6 @@ public record BattleObserverSnapshot(
         long cargoEnergyCapacity,
         BattleWeaponSnapshot weapon,
         BattleLightSnapshot lights) {
-
     public CompoundTag save() {
         CompoundTag entry = new CompoundTag();
         entry.putString("Name", this.name);

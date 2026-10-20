@@ -1,10 +1,27 @@
 {
   "variants": {
-    "facing=north": { "model": "create_stats:block/kinetic_flywheel/housing" },
-    "facing=south": { "model": "create_stats:block/kinetic_flywheel/housing", "y": 180 },
-    "facing=east":  { "model": "create_stats:block/kinetic_flywheel/housing", "y": 90 },
-    "facing=west":  { "model": "create_stats:block/kinetic_flywheel/housing", "y": 270 },
-    "facing=up":    { "model": "create_stats:block/kinetic_flywheel/housing", "x": 270 },
-    "facing=down":  { "model": "create_stats:block/kinetic_flywheel/housing", "x": 90 }
+    "facing=north": {
+      "model": "create_stats:block/kinetic_flywheel/housing"
+    },
+    "facing=south": {
+      "model": "create_stats:block/kinetic_flywheel/housing",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "create_stats:block/kinetic_flywheel/housing",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "create_stats:block/kinetic_flywheel/housing",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "create_stats:block/kinetic_flywheel/housing",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "create_stats:block/kinetic_flywheel/housing",
+      "x": 90
+    }
   }
 }

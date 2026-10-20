@@ -18,18 +18,18 @@ public class NeedlePhysics
     private float thetaPrev;
     private float omega;
     private float thetaTarget;
-    
+
     public NeedlePhysics() {
         this.theta = 0.0f;
         this.thetaPrev = 0.0f;
         this.omega = 0.0f;
         this.thetaTarget = 0.0f;
     }
-    
+
     public void setTarget(float target) {
         this.thetaTarget = Math.max(0.0f, Math.min(4.712389f, target));
     }
-    
+
     public void tick() {
         this.thetaPrev = this.theta;
         final float displacement = this.theta - this.thetaTarget;
@@ -54,15 +54,15 @@ public class NeedlePhysics
             this.omega = -this.omega * 0.3f;
         }
     }
-    
+
     public float getCurrentAngle() {
         return this.theta;
     }
-    
+
     public float getPreviousAngle() {
         return this.thetaPrev;
     }
-    
+
     public void reset(float angle) {
         this.theta = Math.max(0.0f, Math.min(4.712389f, angle));
         this.thetaPrev = this.theta;

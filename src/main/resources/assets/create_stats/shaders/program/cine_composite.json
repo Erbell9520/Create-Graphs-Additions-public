@@ -1,0 +1,53 @@
+{
+    "blend": {
+        "func": "add",
+        "srcrgb": "one",
+        "dstrgb": "zero"
+    },
+    "vertex": "create_stats:cine_quad",
+    "fragment": "create_stats:cine_composite",
+    "attributes": [
+        "Position"
+    ],
+    "samplers": [
+        {
+            "name": "DiffuseSampler"
+        },
+        {
+            "name": "DepthSampler"
+        },
+        {
+            "name": "BlurSampler"
+        },
+        {
+            "name": "FocusSampler"
+        }
+    ],
+    "uniforms": [
+        {
+            "name": "ProjParams",
+            "type": "float",
+            "count": 2,
+            "values": [
+                -1.0001,
+                -0.1
+            ]
+        },
+        {
+            "name": "CocScale",
+            "type": "float",
+            "count": 1,
+            "values": [
+                1.0
+            ]
+        },
+        {
+            "name": "MaxCoc",
+            "type": "float",
+            "count": 1,
+            "values": [
+                16.0
+            ]
+        }
+    ]
+}

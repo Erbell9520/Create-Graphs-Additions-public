@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " P ",
+    "CEC",
+    " M "
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/copper"
+    },
+    "C": {
+      "item": "create_stats:surface_cable"
+    },
+    "E": {
+      "item": "create_stats:eink_panel"
+    },
+    "M": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stats:universal_power_coupler",
+    "count": 1
+  },
+  "show_notification": true
+}

@@ -23,48 +23,74 @@ public class ClientEvents
 {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
+        PaVoicePlayer.clientTick();
+
+        com.createstats.train.smart.ClientRailNetwork.tick();
         MachineSelectionCardClientHandler.tick();
-        DamageObserverPreviewClientHandler.tick();
         DieselMultiblockOutlineClientHandler.tick();
+        CouplerBindHint.tick();
+        MainBreakerBindHint.tick();
+        ContactorBindHint.tick();
+        com.createstats.vccmk3.client.VccMk3Highlight.tick();
         PilotHelmetHudOverlay.tick();
-        // Drain keybind clicks. consumeClick() returns true once per press, so a
-        // while-loop correctly handles multiple rapid taps in the same tick.
+
         while (ModKeyMappings.TOGGLE_HELMET_NIGHT_VISION.consumeClick()) {
             PilotHelmetNightVisionClientHandler.onToggleKey();
         }
-        while (ModKeyMappings.TOGGLE_BATTLE_TACTICAL_V2_PIN.consumeClick()) {
-            PinnedBattleTacticalV2HudHandler.onToggleKey();
-        }
         while (ModKeyMappings.TOGGLE_HELMET_VISOR.consumeClick()) {
             PilotHelmetVisorState.requestToggle();
+        }
+        while (ModKeyMappings.OPEN_SUPPORT_TERMINAL.consumeClick()) {
+            if (com.createstats.support.SupportClientState.canOpen(
+                net.minecraft.client.Minecraft.getInstance().player)) {
+                ClientScreenHelper.openSupportTerminal();
+            }
         }
     }
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
-        BattleScreenPipHudOverlay.render(event.getGuiGraphics(), event.getPartialTick());
         PinnedAeroHudOverlay.render(event.getGuiGraphics(), event.getPartialTick());
-        PinnedBattleTacticalV2HudOverlay.render(event.getGuiGraphics(), event.getPartialTick());
         StressometerHudOverlay.render(event.getGuiGraphics(), event.getPartialTick());
         FccHudOverlay.render(event.getGuiGraphics(), event.getPartialTick());
+        com.createstats.vccmk3.client.VccMk3HudOverlay.render(event.getGuiGraphics(), event.getPartialTick());
         PilotHelmetHudOverlay.render(event.getGuiGraphics(), event.getPartialTick());
         CableRoutePreview.renderHud(event.getGuiGraphics());
+        CouplerBindHint.renderHud(event.getGuiGraphics());
+        MainBreakerBindHint.renderHud(event.getGuiGraphics());
+        ContactorBindHint.renderHud(event.getGuiGraphics());
     }
 
     @SubscribeEvent
     public static void onWorldUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
+            com.createstats.train.smart.ClientRailNetwork.clear();
+            com.createstats.client.train.ClientTrainCharge.clear();
+
+            com.createstats.train.map.RailHistory.clear();
+            com.createstats.train.smart.RailFilter.reset();
             PinnedAeroHudOverlay.clear();
-            PinnedBattleTacticalV2HudOverlay.clear();
-            BattleScreenPipHudOverlay.clear();
+            com.createstats.battle.client.BattleClientCache.clear();
             StressometerHudOverlay.clear();
             PilotHelmetHudOverlay.clear();
             PilotHelmetVisorState.clear();
             FccClientState.clear();
             MachineSelectionCardClientHandler.clearPreview();
-            DamageObserverPreviewClientHandler.clearPreview();
             DieselMultiblockOutlineClientHandler.clearPreview();
+            CouplerBindHint.clear();
+            MainBreakerBindHint.clear();
+            ContactorBindHint.clear();
+            com.createstats.vccmk3.client.VccMk3Highlight.clear();
             MiniDisplayTextureManager.disposeAll();
+            com.createstats.renderer.EInkPanelTextureManager.disposeAll();
+            com.createstats.renderer.SmartHomeFaceTextureManager.disposeAll();
+            com.createstats.renderer.WeatherFaceTextureManager.disposeAll();
+            com.createstats.renderer.DiagnosticJunctionTextureManager.disposeAll();
+            com.createstats.renderer.PowerMeterTextureManager.disposeAll();
+            com.createstats.renderer.PowerLimiterTextureManager.disposeAll();
+            com.createstats.renderer.PowerDistributionUnitTextureManager.disposeAll();
+            com.createstats.renderer.BatteryControllerTextureManager.disposeAll();
+            com.createstats.renderer.CapacitorBankTextureManager.disposeAll();
             DisplayTextureManager.disposeAll();
             DispatchBoardTextureManager.disposeAll();
             ProjectorTextureManager.cleanupAll();
@@ -75,5 +101,4 @@ public class ClientEvents
             CreateStats.LOGGER.debug("Disposed all display/projector/calculator/dispatch textures, prediction cache, and dashboard layouts on world unload");
         }
     }
-
 }

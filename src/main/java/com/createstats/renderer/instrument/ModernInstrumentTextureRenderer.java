@@ -23,7 +23,7 @@ public final class ModernInstrumentTextureRenderer
 {
     private ModernInstrumentTextureRenderer() {
     }
-    
+
     public static void renderAnalogPanel(NativeImage image, StatsDisplayPanelBE be, StatsDisplayPanelBE.DataChannel primaryChannel, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings, int pageIdx, int totalPages) {
         final List<ChannelView> channels = collectOrderedChannels(be, primaryChannel, settings);
         final int footerH = (totalPages > 1) ? Math.max(12, Math.min(20, h / 10)) : 0;
@@ -70,7 +70,7 @@ public final class ModernInstrumentTextureRenderer
             InstrumentRenderPrimitives.drawFooterDots(image, pageIdx, totalPages, x, y + mainH, w, footerH, theme);
         }
     }
-    
+
     private static void renderCompactPanel(NativeImage image, StatsDisplayPanelBE be, List<ChannelView> channels, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings, StyleFlags flags, int pageIdx, int totalPages) {
         final ChannelView hero = channels.get(0);
         final int pad = Math.max(6, w / 24);
@@ -87,7 +87,7 @@ public final class ModernInstrumentTextureRenderer
         AnalogGaugeRenderer.renderGaugeWidget(image, x + w / 2, y + pad + 20 + gaugeAreaH / 2, gaugeR, hero.channel(), hero.slotIndex(), be.getBlockPos(), theme, settings, flags.showZones, flags.showGlass, flags.showRivets, true);
         InstrumentRenderPrimitives.drawValuePlate(image, x + pad, y + h - cardH - pad, Math.max(24, w - pad * 2), cardH, "LIVE", InstrumentRenderPrimitives.formatChannelValue(hero.channel()), theme, accent, flags.highContrastText);
     }
-    
+
     private static void renderLocomotiveCab(NativeImage image, StatsDisplayPanelBE be, List<ChannelView> channels, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings, StyleFlags flags, int pageIdx, int totalPages) {
         final ChannelView hero = channels.get(0);
         final int pad = Math.max(8, w / 28);
@@ -154,7 +154,7 @@ public final class ModernInstrumentTextureRenderer
             InstrumentRenderPrimitives.drawBadge(image, x + pad, headerY + 2, 56, 12, state.label(), state.color());
         }
     }
-    
+
     private static void renderMechanicalBrass(NativeImage image, StatsDisplayPanelBE be, List<ChannelView> channels, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings, StyleFlags flags, int pageIdx, int totalPages) {
         final ChannelView hero = channels.get(0);
         final int pad = Math.max(8, w / 30);
@@ -186,7 +186,7 @@ public final class ModernInstrumentTextureRenderer
             InstrumentRenderPrimitives.drawLampRow(image, x + pad, y + h - 18, w - pad * 2, buildStatusLabels(), buildStatusStates(channels, settings), buildStatusColors(), theme, getRenderTick(be));
         }
     }
-    
+
     private static void renderScientificInstrument(NativeImage image, StatsDisplayPanelBE be, List<ChannelView> channels, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings, StyleFlags flags, int pageIdx, int totalPages) {
         final ChannelView hero = channels.get(0);
         final int pad = Math.max(8, w / 26);
@@ -208,7 +208,7 @@ public final class ModernInstrumentTextureRenderer
             InstrumentRenderPrimitives.drawSparkline(image, rightX, y + h - Math.max(52, h / 4), rightW, Math.max(46, h / 4 - 4), hero.channel().getStore(), theme, accent, "Trend");
         }
     }
-    
+
     private static void renderControlPanelWall(NativeImage image, StatsDisplayPanelBE be, List<ChannelView> channels, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings, StyleFlags flags, int pageIdx, int totalPages) {
         final ChannelView hero = channels.get(0);
         final int pad = Math.max(8, w / 28);
@@ -239,7 +239,7 @@ public final class ModernInstrumentTextureRenderer
             InstrumentRenderPrimitives.drawLampRow(image, x + pad, y + h - 18, w - pad * 2, buildStatusLabels(), buildStatusStates(channels, settings), buildStatusColors(), theme, getRenderTick(be));
         }
     }
-    
+
     private static void renderSupportGaugeColumn(NativeImage image, StatsDisplayPanelBE be, List<ChannelView> channels, int x, int y, int w, int h, int count, DisplayTheme theme, StatsDisplaySettings settings, StyleFlags flags) {
         final int renderCount = Math.min(count, channels.size());
         if (renderCount <= 0 || h <= 10) {
@@ -264,7 +264,7 @@ public final class ModernInstrumentTextureRenderer
             BitmapFont.drawString(image, InstrumentRenderPrimitives.truncate(InstrumentRenderPrimitives.formatChannelValue(view.channel()), Math.max(6, (cellW - radius * 2 - 14) / 6)), cellX + radius * 2 + 10, cy + 4, InstrumentRenderPrimitives.accentForChannel(view.channel(), theme, settings), 1);
         }
     }
-    
+
     private static void drawChannelCards(NativeImage image, List<ChannelView> channels, int startIndex, int x, int y, int w, int h, int count, DisplayTheme theme, StatsDisplaySettings settings, StyleFlags flags) {
         final int renderCount = Math.min(count, Math.max(0, channels.size() - startIndex));
         if (!flags.showNumericCards || renderCount <= 0 || w <= 12 || h <= 12) {
@@ -285,7 +285,7 @@ public final class ModernInstrumentTextureRenderer
             InstrumentRenderPrimitives.drawMetricCard(image, cardX, cardY, cardW, cardH, view.channel().getLabel(), InstrumentRenderPrimitives.formatChannelValue(view.channel()), theme, InstrumentRenderPrimitives.accentForChannel(view.channel(), theme, settings), flags.highContrastText);
         }
     }
-    
+
     private static List<ChannelView> collectOrderedChannels(StatsDisplayPanelBE be, StatsDisplayPanelBE.DataChannel primaryChannel, StatsDisplaySettings settings) {
         final ArrayList<ChannelView> visible = new ArrayList<ChannelView>();
         final String primarySourceId = (primaryChannel != null) ? extractSourceId(primaryChannel.getId()) : null;
@@ -323,7 +323,7 @@ public final class ModernInstrumentTextureRenderer
         }
         return ordered;
     }
-    
+
     private static StyleFlags resolveFlags(StatsDisplaySettings settings, boolean largeSurface) {
         final InstrumentStyleFamily family = settings.getInstrumentStyleFamily();
         final InstrumentEffectPreset effect = settings.getInstrumentEffectPreset();
@@ -332,7 +332,7 @@ public final class ModernInstrumentTextureRenderer
         final boolean rich = effect == InstrumentEffectPreset.RICH;
         return new StyleFlags(options.getOption(InstrumentStyleOptionKeys.SHOW_WARNING_ZONES, true), options.getOption(InstrumentStyleOptionKeys.SHOW_GLASS, rich && !largeSurface), options.getOption(InstrumentStyleOptionKeys.SHOW_RIVETS, (family == InstrumentStyleFamily.MECHANICAL_BRASS || rich) && !largeSurface), options.getOption(InstrumentStyleOptionKeys.SHOW_LAMPS, !low || family == InstrumentStyleFamily.CONTROL_PANEL_WALL), options.getOption(InstrumentStyleOptionKeys.SHOW_SHUTTERS, family == InstrumentStyleFamily.LOCOMOTIVE_CAB || family == InstrumentStyleFamily.CONTROL_PANEL_WALL), options.getOption(InstrumentStyleOptionKeys.SHOW_SPARKLINE, settings.getInstrumentDensityPreset() == InstrumentDensityPreset.DENSE && !largeSurface), options.getOption(InstrumentStyleOptionKeys.SHOW_NUMERIC_CARDS, true), options.getOption(InstrumentStyleOptionKeys.HIGH_CONTRAST_TEXT, family == InstrumentStyleFamily.SCIENTIFIC_INSTRUMENT));
     }
-    
+
     private static String resolveSourceName(StatsDisplayPanelBE be, StatsDisplayPanelBE.DataChannel channel) {
         if (channel == null) {
             return be.getSourceType();
@@ -361,11 +361,11 @@ public final class ModernInstrumentTextureRenderer
         }
         return rest;
     }
-    
+
     private static String[] buildStatusLabels() {
         return new String[] { "LIVE", "WARN", "LIMIT", "MULTI" };
     }
-    
+
     private static boolean[] buildStatusStates(List<ChannelView> channels, StatsDisplaySettings settings) {
         boolean warn = false;
         boolean limit = false;
@@ -383,11 +383,11 @@ public final class ModernInstrumentTextureRenderer
         }
         return new boolean[] { !channels.isEmpty(), warn, limit, channels.size() > 1 };
     }
-    
+
     private static int[] buildStatusColors() {
         return new int[] { InstrumentRenderPrimitives.SAFE_GREEN, InstrumentRenderPrimitives.ALERT_AMBER, InstrumentRenderPrimitives.DANGER_RED, InstrumentRenderPrimitives.COOL_BLUE };
     }
-    
+
     private static StateBadge describePanelState(List<ChannelView> channels, StatsDisplaySettings settings) {
         float peak = 0.0f;
         boolean triggered = false;
@@ -406,14 +406,14 @@ public final class ModernInstrumentTextureRenderer
         }
         return new StateBadge("READY", InstrumentRenderPrimitives.SAFE_GREEN);
     }
-    
+
     private static long getRenderTick(StatsDisplayPanelBE be) {
         return (be.getLevel() != null) ? be.getLevel().getGameTime() : 0L;
     }
-    
+
     private record ChannelView(StatsDisplayPanelBE.DataChannel channel, int slotIndex) {}
-    
+
     private record StateBadge(String label, int color) {}
-    
+
     private record StyleFlags(boolean showZones, boolean showGlass, boolean showRivets, boolean showLamps, boolean showShutters, boolean showSparkline, boolean showNumericCards, boolean highContrastText) {}
 }

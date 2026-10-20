@@ -32,9 +32,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-/** [1] */
 public class StageLightBlock extends Block implements IBE<StageLightBE> {
-
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
@@ -85,7 +83,6 @@ public class StageLightBlock extends Block implements IBE<StageLightBE> {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        // Wrench removes the colour filter (returns the glass); with no filter, let Create rotate / pick up.
         if (AllItems.WRENCH.isIn(stack)) {
             final BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof StageLightBE stageLight && stageLight.hasTint()) {
@@ -105,7 +102,7 @@ public class StageLightBlock extends Block implements IBE<StageLightBE> {
             }
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        // Right-click with stained glass (or a stained glass pane) to apply that colour filter; consumes one.
+
         final int tint = tintFromStack(stack);
         if (tint >= 0) {
             if (!level.isClientSide()) {
@@ -122,7 +119,6 @@ public class StageLightBlock extends Block implements IBE<StageLightBE> {
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
-    /** Maps a stained-glass (block or pane) stack to its 0xRRGGBB tint, or -1 if it is not stained glass. */
     private static int tintFromStack(ItemStack stack) {
         if (stack.isEmpty()) {
             return -1;
@@ -143,8 +139,6 @@ public class StageLightBlock extends Block implements IBE<StageLightBE> {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
                                                BlockHitResult hit) {
-        // Right-click opens the control screen (works on the ground and on Aeronautics ships). On/off,
-        // pan, tilt, range and brightness are all set there.
         if (level.isClientSide()) {
             final BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof StageLightBE stageLight) {
@@ -178,7 +172,6 @@ public class StageLightBlock extends Block implements IBE<StageLightBE> {
         }
     }
 
-    /** Light emission: the fixture glows while lit (also lights adjacent blocks, including on ships). */
     public static int getLightEmission(BlockState state) {
         return state.hasProperty(LIT) && state.getValue(LIT) ? StageLightBE.LIT_LIGHT_LEVEL : 0;
     }

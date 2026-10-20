@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.function.Consumer;
 
 public class LoadBalancerVisual extends KineticBlockEntityVisual<LoadBalancerBE> {
-
     protected final Direction[] ports;
     protected final RotatingInstance[] shafts = new RotatingInstance[3];
 

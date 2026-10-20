@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:transport/mk4",
+  "display": {
+    "icon": {
+      "id": "create_stats:freight_manifest_clipboard"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.clipboard.title",
+      "fallback": "Getting Off at the Next Stop!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.clipboard.description",
+      "fallback": "Get a Freight Manifest Clipboard. Any spot is a stop if you shout loud enough."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "clipboard": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:freight_manifest_clipboard"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "clipboard"
+    ]
+  ]
+}

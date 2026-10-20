@@ -10,12 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-/**
- * Display Link source for the Induction Heater. Streams the live heat tier, the thermal
- * charge ramp, the current SU draw and the installed coil's remaining life.
- */
 public class InductionHeaterDisplaySource extends DisplaySource implements StatsLinkSource {
-
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         final BlockEntity be = context.getSourceBlockEntity();
         if (!(be instanceof InductionHeaterBE heater)) {
@@ -58,8 +53,8 @@ public class InductionHeaterDisplaySource extends DisplaySource implements Stats
         });
     }
 
-    // Same rationale as the Flow Meter: keep refreshing on a steady cadence so an idle
-    // heater is not pruned as a stale source by the Stats Display.
+    // keep refreshing or the panel prunes an idle heater as stale
+
     @Override
     public int getPassiveRefreshTicks() {
         return 20;

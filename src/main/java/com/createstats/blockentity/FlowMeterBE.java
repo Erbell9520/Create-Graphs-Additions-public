@@ -25,23 +25,20 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
-/** [1] */
-public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformation {
-
+// reproduces create's max(1, pressure/2) mB/t
+public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformation,
+        com.createstats.util.CopyableSettings {
     private FluidStack currentFluid = FluidStack.EMPTY;
     private int flowRateMbPerTick;
     private Direction flowDirection;
     private long totalMovedMb;
 
-    // Redstone trigger, configured from the Stats Display panel GUI. When enabled the pipe itself
-    // emits a weak redstone signal (the linked display panel emits its own signal in parallel).
     private boolean triggerEnabled;
-    private int triggerMode; // 0 = flowing (binary presence), 1 = amount (mB/t threshold)
+    private int triggerMode;
     private int triggerThresholdMb;
     private boolean triggerAbove = true;
     private int emittedRedstone;
 
-    // Last reading pushed to the client (throttled) so the animated renderer + GUI see live data.
     private int syncedRate = -1;
     private FluidStack syncedFluid = FluidStack.EMPTY;
     private Direction syncedDir;
@@ -96,7 +93,7 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
                 float magnitude = Math.max(Math.abs(pressure.getFirst()), Math.abs(pressure.getSecond()));
                 rate = Math.max(1, (int) (magnitude / 2.0f));
             }
-            // A flow flagged inbound enters from this side, so the fluid travels toward the opposite face.
+
             Direction movement = flow.inbound ? side.getOpposite() : side;
             if (bestFluid.isEmpty() || rate > bestRate) {
                 bestFluid = flow.fluid;
@@ -105,7 +102,6 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
             }
         }
 
-        // [2]
         if (bestRate > 0 && bestMovement != null && !bestFluid.isEmpty() && this.level != null) {
             final BlockPos downstream = this.getBlockPos().relative(bestMovement);
             final IFluidHandler handler =
@@ -196,7 +192,6 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
         return this.emittedRedstone;
     }
 
-    /** Applies a trigger configuration pushed from the display panel GUI (server side). */
     public void applyTrigger(boolean enabled, int mode, int threshold, boolean above) {
         this.triggerEnabled = enabled;
         this.triggerMode = (mode == 1) ? 1 : 0;
@@ -204,6 +199,40 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
         this.triggerAbove = above;
         this.updateEmittedRedstone(false);
         this.notifyUpdate();
+    }
+
+    @Override
+    public String settingsKey() {
+        return "create_stats:flow_meter";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.putBoolean("TriggerEnabled", this.triggerEnabled);
+        tag.putInt("TriggerMode", this.triggerMode);
+        tag.putInt("TriggerThreshold", this.triggerThresholdMb);
+        tag.putBoolean("TriggerAbove", this.triggerAbove);
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player,
+                                 boolean simulate) {
+        if (!tag.contains("TriggerEnabled") || !tag.contains("TriggerMode") || !tag.contains("TriggerThreshold")) {
+            return false;
+        }
+        if (!simulate && !this.alreadyHolds(tag, registries)) {
+            this.applyTrigger(tag.getBoolean("TriggerEnabled"), tag.getInt("TriggerMode"),
+                    tag.getInt("TriggerThreshold"), !tag.contains("TriggerAbove") || tag.getBoolean("TriggerAbove"));
+        }
+        return true;
+    }
+
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeSafe(tag, registries);
+        writeFreshDefaults(tag);
+        writeSettings(tag, registries);
     }
 
     private int evaluateTrigger() {
@@ -235,7 +264,6 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
         }
     }
 
-    /** [3] */
     private void maybeSyncReading() {
         if (this.level == null || this.level.isClientSide) {
             return;
@@ -257,10 +285,6 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
         this.notifyUpdate();
     }
 
-    // goggle overlay
-    // Shown whenever the player wears Create's goggles or this mod's Pilot Helmet (registered as a
-    // goggles predicate in CreateStats.commonSetup), so the same live reading appears through both.
-
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         tooltip.add(Component.literal("  ").append(
@@ -280,12 +304,14 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
                     Component.translatable("block.create_stats.flow_meter.goggle.no_flow").withStyle(ChatFormatting.DARK_GRAY)));
         }
 
-        tooltip.add(Component.literal("    ").append(
-                Component.translatable("block.create_stats.flow_meter.goggle.total",
-                        String.format(Locale.ROOT, "%,d", this.totalMovedMb))
-                        .withStyle(ChatFormatting.DARK_AQUA)));
+        if (isPlayerSneaking) {
+            tooltip.add(Component.literal("    ").append(
+                    Component.translatable("block.create_stats.flow_meter.goggle.total",
+                            String.format(Locale.ROOT, "%,d", this.totalMovedMb))
+                            .withStyle(ChatFormatting.DARK_AQUA)));
+        }
 
-        if (this.triggerEnabled) {
+        if (this.triggerEnabled && (isPlayerSneaking || this.emittedRedstone > 0)) {
             final boolean active = this.emittedRedstone > 0;
             final Component desc = this.triggerMode == 1
                     ? Component.translatable(this.triggerAbove
@@ -296,6 +322,9 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
             tooltip.add(Component.literal("    ").append(
                     (active ? Component.translatable("block.create_stats.flow_meter.goggle.alarm_active", desc) : desc)
                             .copy().withStyle(active ? ChatFormatting.RED : ChatFormatting.YELLOW)));
+        }
+        if (!isPlayerSneaking) {
+            tooltip.add(com.createstats.power.FeGoggle.more());
         }
 
         return true;
@@ -331,7 +360,6 @@ public class FlowMeterBE extends SmartBlockEntity implements IHaveGoggleInformat
     }
 
     private class MeterPipeBehaviour extends FluidTransportBehaviour {
-
         MeterPipeBehaviour(SmartBlockEntity be) {
             super(be);
         }

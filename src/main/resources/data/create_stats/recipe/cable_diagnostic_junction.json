@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "BEB",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "create_stats:surface_cable"
+    },
+    "B": {
+      "item": "create_stats:conduit_junction_box"
+    },
+    "E": {
+      "item": "create_stats:eink_panel"
+    }
+  },
+  "result": {
+    "id": "create_stats:cable_diagnostic_junction",
+    "count": 1
+  },
+  "show_notification": true
+}

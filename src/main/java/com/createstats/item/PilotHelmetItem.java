@@ -24,7 +24,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class PilotHelmetItem extends ArmorItem {
-
     private static final String TAG_KEY = "PilotHelmet";
 
     public PilotHelmetItem(Holder<ArmorMaterial> material, Type type, Properties properties) {
@@ -78,7 +77,6 @@ public class PilotHelmetItem extends ArmorItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        // [1]
         tooltip.add(Component.translatable("item.create_stats.pilot_helmet.tooltip.summary").withStyle(ChatFormatting.GOLD));
         tooltip.add(Component.translatable("item.create_stats.pilot_helmet.tooltip.feature.armor").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("item.create_stats.pilot_helmet.tooltip.feature.goggles").withStyle(ChatFormatting.GRAY));
@@ -86,15 +84,12 @@ public class PilotHelmetItem extends ArmorItem {
         tooltip.add(Component.translatable("item.create_stats.pilot_helmet.tooltip.feature.link").withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.create_stats.pilot_helmet.tooltip.feature.setup").withStyle(ChatFormatting.DARK_GRAY));
 
-        // Live status: current mode + active links shown only when populated, so a
-        // freshly-crafted helmet stays uncluttered.
         PilotHelmetData data = getData(stack);
         tooltip.add(Component.translatable("item.create_stats.pilot_helmet.tooltip.mode", data.getMode().getDisplayName()).withStyle(ChatFormatting.AQUA));
         appendLinkTooltip(tooltip, "create_stats.pilot_helmet.link.fcc", data.getFccLink());
         appendLinkTooltip(tooltip, "create_stats.pilot_helmet.link.battle_bridge", data.getBattleBridgeLink());
         appendLinkTooltip(tooltip, "create_stats.pilot_helmet.link.stats_display", data.getStatsDisplayLink());
 
-        // [2]
         if (!net.neoforged.fml.ModList.get().isLoaded("geckolib")) {
             tooltip.add(Component.translatable("item.create_stats.pilot_helmet.tooltip.geckolib_hint").withStyle(ChatFormatting.DARK_GRAY));
         }

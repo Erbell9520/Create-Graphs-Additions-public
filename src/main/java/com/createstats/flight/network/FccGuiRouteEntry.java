@@ -13,7 +13,6 @@ public record FccGuiRouteEntry(
         double scale,
         boolean invert
 ) {
-
     public void encode(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(id);
         buf.writeUUID(controlId);

@@ -27,7 +27,6 @@ public final class StressometerHudWidgetRenderer {
     private static final int BORDER = 0xB09B8658;
     private static final int DIM_TEXT = 0xFFC4B793;
 
-    /** Thread-local scale set before each widget draw; read by drawCentered for text scaling. */
     private static float CURRENT_RENDER_SCALE = 1.0f;
 
     private StressometerHudWidgetRenderer() {
@@ -132,25 +131,21 @@ public final class StressometerHudWidgetRenderer {
             widgetPanel(g, x, y, w, h, theme, accent);
         }
 
-        // V3 variant dispatch: bespoke "fancy" renderers selected by widget.getRenderVariant().
-        // Returns true if a variant handled the draw fully.
         if (renderVariantSourcePart(g, font, theme, widget, source, channels, accent, x, y, w, h, tick)) {
             return;
         }
 
-        // Determine per-widget effective scale and padding
         final float globalScale = state != null ? state.getGlobalTextScale() : 1.0f;
         final int globalPad = state != null ? state.getGlobalPaddingOffset() : 0;
         final float effectiveScale = widget.getEffectiveTextScale(globalScale);
         final int padExtra = widget.getEffectivePaddingOffset(globalPad);
         final boolean isHorizon = widget.getPart() == StressometerHudState.Part.AERO_HORIZON;
-        // Apply padding inset for structured widgets; horizon uses scissor so skip scale
+
         final int cx = x + padExtra;
         final int cy = y + padExtra;
         final int cw = Math.max(20, w - 2 * padExtra);
         final int ch = Math.max(20, h - 2 * padExtra);
 
-        // Set scale for drawCentered calls; skip for horizon (scissor-based renderer)
         CURRENT_RENDER_SCALE = (!isHorizon && Math.abs(effectiveScale - 1.0f) > 0.01f) ? effectiveScale : 1.0f;
 
         if (renderStructuredSourcePart(g, font, theme, widget, source, channels, cx, cy, cw, ch)) {
@@ -518,7 +513,6 @@ public final class StressometerHudWidgetRenderer {
         return true;
     }
 
-
     private static void renderTripleCards(GuiGraphics g, Font font, DisplayTheme theme, StressometerHudState.PartWidget widget, int x, int y, int w, int h, String title,
                                           String aLabel, String aValue, String bLabel, String bValue, String cLabel, String cValue,
                                           int aAccent, int bAccent, int cAccent) {
@@ -603,20 +597,17 @@ public final class StressometerHudWidgetRenderer {
         final int bigSize = Math.max(adiW, adiH) * 2;
         final int pitchPx = (int) ((pitch / 90.0f) * (adiH * 0.45f));
 
-        // ADI background
         g.fill(adiX, adiY, adiX + adiW, adiY + adiH, 0xFF0A0A14);
 
-        // clipped, rotated sky + ground
         g.enableScissor(adiX, adiY, adiX + adiW, adiY + adiH);
         g.pose().pushPose();
         g.pose().translate(cx, cy + pitchPx, 0.0);
         g.pose().mulPose(Axis.ZP.rotationDegrees(-bank));
 
-        g.fill(-bigSize, -bigSize, bigSize, 0, 0xFF2A6899);   // sky
-        g.fill(-bigSize, 0, bigSize, bigSize, 0xFF6E4C0F);    // ground
-        g.fill(-bigSize, -1, bigSize, 1, 0xFFFFFFFF);         // horizon
+        g.fill(-bigSize, -bigSize, bigSize, 0, 0xFF2A6899);
+        g.fill(-bigSize, 0, bigSize, bigSize, 0xFF6E4C0F);
+        g.fill(-bigSize, -1, bigSize, 1, 0xFFFFFFFF);
 
-        // Pitch ladder lines at ±10° and ±20°
         final int p10 = (int) ((10.0f / 90.0f) * (adiH * 0.45f));
         final int p20 = (int) ((20.0f / 90.0f) * (adiH * 0.45f));
         final int lw  = adiW / 4;
@@ -631,13 +622,11 @@ public final class StressometerHudWidgetRenderer {
         g.pose().popPose();
         g.disableScissor();
 
-        // fixed aircraft reference mark (drawn over ADI in screen coords)
         final int armW = adiW / 6;
         g.fill(cx - armW - 2, cy - 1, cx - 2, cy + 1, 0xFFFFFFFF);
         g.fill(cx + 2, cy - 1, cx + armW + 2, cy + 1, 0xFFFFFFFF);
         g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFFFD700);
 
-        // bank scale (above ADI)
         final int bsCX  = x + w / 2;
         final int bsHW  = (adiW / 2) - 4;
         final float bsScale = (float) bsHW / 45.0f;
@@ -652,7 +641,6 @@ public final class StressometerHudWidgetRenderer {
         final int pointerX = bsCX + (int) (Math.max(-45.0f, Math.min(45.0f, bank)) * bsScale);
         g.fill(pointerX - 1, y + pad, pointerX + 1, ruleY, 0xCCFFD700);
 
-        // yaw readout
         final String yawStr = String.format(Locale.ROOT, "%03.0f\u00b0", yaw);
         drawCentered(g, font, yawStr, x + w / 2, y + h - pad - font.lineHeight, SAFE_GREEN, shadow);
     }
@@ -943,18 +931,15 @@ public final class StressometerHudWidgetRenderer {
     }
 
     private static void renderValueWidget(GuiGraphics g, Font font, String label, String value, int x, int y, int w, int h, DisplayTheme theme, int accent, boolean shadow) {
-        // Refined hierarchy: small dim label (top), strong value (centre), divider rule under value.
         final int labelY = y + Math.max(4, Math.min(8, h / 5));
         if (h >= 28) {
-            // Label header band, slightly translucent strip for separation in any theme.
             g.fill(x + 1, y + 1, x + w - 1, y + labelY + font.lineHeight + 2, com.createstats.client.hud.HudAnim.withAlpha(theme != null ? theme.bg : 0xFF000000, 90));
             drawCentered(g, font, truncate(font, label, w - 8), x + w / 2, labelY, theme.dim, shadow);
-            // Underline rule using accent at low opacity for theme cohesion.
+
             final int rule = com.createstats.client.hud.HudAnim.blendArgb(dim(theme.border, 0.5f), accent, 0.25f);
             g.fill(x + 4, labelY + font.lineHeight + 1, x + w - 4, labelY + font.lineHeight + 2, rule);
         }
 
-        // Value: subtle pulse on danger, otherwise crisp accent.
         final int valueColor = isDangerAccent(accent)
                 ? com.createstats.client.hud.HudAnim.blendArgb(dim(accent, 0.65f), accent,
                         0.6f + 0.4f * com.createstats.client.hud.HudAnim.pulse(System.currentTimeMillis(), 750L))
@@ -963,39 +948,35 @@ public final class StressometerHudWidgetRenderer {
         final int clampedValueY = Math.min(y + h - font.lineHeight - 4, valueY);
         drawCentered(g, font, truncate(font, value, w - 8), x + w / 2, clampedValueY, valueColor, shadow);
 
-        // Decorative under-rule for the value (centred, 50 % width), gives the readout a definite baseline.
         if (h >= 32) {
             final int ruleY = clampedValueY + font.lineHeight + 1;
             final int ruleStart = x + w / 4;
             final int ruleEnd = x + (3 * w) / 4;
             g.fill(ruleStart, ruleY, ruleEnd, ruleY + 1, dim(accent, 0.55f));
-            // Tiny end-caps for the rule.
+
             g.fill(ruleStart - 1, ruleY - 1, ruleStart + 1, ruleY + 2, dim(accent, 0.4f));
             g.fill(ruleEnd - 1, ruleY - 1, ruleEnd + 1, ruleY + 2, dim(accent, 0.4f));
         }
     }
 
     private static void widgetPanel(GuiGraphics g, int x, int y, int w, int h, DisplayTheme theme, int accent) {
-        // Theme-aware chrome with stepped corners, beveled inner edges, and accent rim.
-        // Falls back gracefully on every theme: dark panels stay dark; light panels keep readable contrast.
         final int bg = theme != null ? com.createstats.client.hud.HudAnim.withAlpha(theme.bg, 220) : PANEL_BG;
         final int borderTop = theme != null ? dim(theme.border, 0.95f) : BORDER;
         final int borderShadow = theme != null ? dim(theme.border, 0.55f) : 0x60000000;
 
-        // Body fill.
         g.fill(x + 1, y + 1, x + w - 1, y + h - 1, bg);
-        // Stepped corners (one-pixel notch each side).
+
         g.fill(x, y + 1, x + 1, y + h - 1, borderTop);
         g.fill(x + w - 1, y + 1, x + w, y + h - 1, borderTop);
         g.fill(x + 1, y, x + w - 1, y + 1, borderTop);
         g.fill(x + 1, y + h - 1, x + w - 1, y + h, borderTop);
-        // Inner highlight (top + left).
+
         g.fill(x + 1, y + 1, x + w - 1, y + 2, 0x18FFFFFF);
         g.fill(x + 1, y + 1, x + 2, y + h - 1, 0x10FFFFFF);
-        // Inner shadow (bottom + right).
+
         g.fill(x + 1, y + h - 2, x + w - 1, y + h - 1, 0x30000000);
         g.fill(x + w - 2, y + 1, x + w - 1, y + h - 1, 0x24000000);
-        // Accent rim along the top, pulses subtly when accent is in the danger band.
+
         if (w > 8 && h > 5) {
             final boolean danger = isDangerAccent(accent);
             int rim = dim(accent, 0.85f);
@@ -1004,16 +985,15 @@ public final class StressometerHudWidgetRenderer {
                 rim = com.createstats.client.hud.HudAnim.blendArgb(dim(accent, 0.7f), accent, 0.5f + 0.5f * pulse);
             }
             g.fill(x + 1, y + 1, x + w - 1, y + 3, rim);
-            // Faint side rim accents for polish.
+
             g.fill(x + 1, y + 1, x + 2, y + 4, dim(accent, 0.6f));
             g.fill(x + w - 2, y + 1, x + w - 1, y + 4, dim(accent, 0.6f));
         }
-        // Bottom hairline for separation.
+
         g.fill(x + 1, y + h - 2, x + w - 1, y + h - 1, borderShadow);
     }
 
     private static boolean isDangerAccent(int accent) {
-        // Treat anything close to DANGER_RED as danger for the rim pulse.
         final int dr = (DANGER_RED >> 16) & 0xFF;
         final int dg = (DANGER_RED >> 8) & 0xFF;
         final int db = DANGER_RED & 0xFF;
@@ -1174,9 +1154,6 @@ public final class StressometerHudWidgetRenderer {
         return a << 24 | r << 16 | g << 8 | b;
     }
 
-    // V3 variant renderers (P6.1 slice). Each variant renders a fully formed widget when selected; otherwise the classic path runs. Variant selection lives on PartWidget.
-
-    /** P6.1.a Reactor variant of LOAD_GAUGE, circular pressure dial with segmented arc. */
     private static void renderReactorLoadGauge(GuiGraphics g, Font font, DisplayTheme theme,
                                                 StressometerHudState.PartWidget widget,
                                                 StressometerHudReadout readout,
@@ -1185,7 +1162,6 @@ public final class StressometerHudWidgetRenderer {
         final boolean overstressed = readout.overstressed();
         final int accent = overstressed ? DANGER_RED : (pct > 0.85f ? DANGER_RED : pct > 0.6f ? ALERT_AMBER : SAFE_GREEN);
 
-        // Reserve a footer band for the numeric stress + RPM line; the rest is the dial.
         final int footerH = h >= 56 ? font.lineHeight + 6 : 0;
         final int dialW = w - 8;
         final int dialH = Math.max(20, h - footerH - 6);
@@ -1193,13 +1169,11 @@ public final class StressometerHudWidgetRenderer {
         final int cy = y + 4 + dialH / 2;
         final int ringRadius = Math.max(8, Math.min(dialW, dialH) / 2 - 2);
 
-        // Outer dim ring (full circle).
         ring(g, cx, cy, ringRadius, ringRadius - 1, dim(theme.border, 0.7f));
         ring(g, cx, cy, ringRadius - 1, ringRadius - 2, com.createstats.client.hud.HudAnim.withAlpha(theme.bg, 200));
 
-        // Segmented stress arc, 24 segments, ~270° sweep starting bottom-left.
         final int segments = 24;
-        final double startAngle = Math.toRadians(135.0); // bottom-left
+        final double startAngle = Math.toRadians(135.0);
         final double sweep = Math.toRadians(270.0);
         final int activeSegments = (int) Math.round(pct * segments);
         for (int i = 0; i < segments; i++) {
@@ -1215,7 +1189,6 @@ public final class StressometerHudWidgetRenderer {
             arcSegment(g, cx, cy, rInner, rOuter, a0, a1, segColor);
         }
 
-        // Inner rotating tick ring, 16 ticks, rotates ~1 rev / 4 s when running.
         if (ringRadius > 14) {
             final int innerR = ringRadius - 11;
             final double rot = (tick % 80L) / 80.0 * Math.PI * 2.0;
@@ -1229,7 +1202,6 @@ public final class StressometerHudWidgetRenderer {
             }
         }
 
-        // Fracture halo near overstress, pulse intensifies as stress climbs.
         if (overstressed || pct > 0.9f) {
             final float pulse = com.createstats.client.hud.HudAnim.pulse(System.currentTimeMillis(), overstressed ? 380L : 700L);
             final int haloAlpha = Math.round(40 + 90 * pulse);
@@ -1238,12 +1210,10 @@ public final class StressometerHudWidgetRenderer {
             ring(g, cx, cy, ringRadius + 2, ringRadius + 1, dim(halo, 0.55f));
         }
 
-        // Central numeric load.
         final String pctText = String.format(Locale.ROOT, "%.0f%%", readout.stressPercent());
         final int textY = cy - font.lineHeight / 2;
         drawCentered(g, font, pctText, cx, textY, accent, shadow);
 
-        // Footer line: RPM + LOAD label.
         if (footerH > 0) {
             final int footerY = y + h - footerH + 1;
             g.fill(x + 6, footerY, x + w - 6, footerY + 1, dim(accent, 0.55f));
@@ -1252,7 +1222,6 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    /** Hollow ring drawn as four 1-px arcs via filled rect approximation per pixel. */
     private static void ring(GuiGraphics g, int cx, int cy, int rOuter, int rInner, int color) {
         final int rOut2 = rOuter * rOuter;
         final int rIn2 = rInner * rInner;
@@ -1266,7 +1235,6 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    /** Filled annular wedge between radii [rInner..rOuter] over angles [a0..a1] (radians). */
     private static void arcSegment(GuiGraphics g, int cx, int cy, int rInner, int rOuter, double a0, double a1, int color) {
         final int rOut2 = rOuter * rOuter;
         final int rIn2 = rInner * rInner;
@@ -1278,7 +1246,7 @@ public final class StressometerHudWidgetRenderer {
             for (int dx = -rOuter; dx <= rOuter; dx++) {
                 final int d2 = dx * dx + dy * dy;
                 if (d2 > rOut2 || d2 < rIn2) continue;
-                // angle test via cross-products with the two boundary rays
+
                 final double crossA = dx * sinA0 - dy * cosA0;
                 final double crossB = dx * sinA1 - dy * cosA1;
                 if (crossA <= 0 && crossB >= 0) {
@@ -1288,7 +1256,6 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    /** Variant dispatch for source widgets, returns true if a variant fully handled the draw. */
     private static boolean renderVariantSourcePart(GuiGraphics g, Font font, DisplayTheme theme,
                                                    StressometerHudState.PartWidget widget,
                                                    SourceConfig source,
@@ -1302,14 +1269,14 @@ public final class StressometerHudWidgetRenderer {
             return false;
         }
         final String type = source.getSourceType();
-        // P6.1.b stockpile lamp: glass bulb for STOCKPILE_GAUGE; compact horizontal pill for STOCKPILE_OUTPUT.
+
         if ("lamp".equals(variant) && "Stockpile Switch".equals(type)
                 && (widget.getPart() == StressometerHudState.Part.STOCKPILE_GAUGE
                  || widget.getPart() == StressometerHudState.Part.STOCKPILE_OUTPUT)) {
             renderStockpileLamp(g, font, theme, widget, channels, accent, x, y, w, h, tick);
             return true;
         }
-        // P6.1.c droplet variant for tank/water/fuel parts.
+
         if ("droplet".equals(variant)
                 && (widget.getPart() == StressometerHudState.Part.FLUID_LEVEL
                  || widget.getPart() == StressometerHudState.Part.BOILER_WATER
@@ -1317,58 +1284,57 @@ public final class StressometerHudWidgetRenderer {
             renderDroplet(g, font, theme, widget, channels, accent, x, y, w, h, tick);
             return true;
         }
-        // P6.1.d flame variant for boiler heat.
+
         if ("flame".equals(variant) && widget.getPart() == StressometerHudState.Part.BOILER_HEAT) {
             renderFlame(g, font, theme, widget, channels, accent, x, y, w, h, tick);
             return true;
         }
-        // P6.2.b streak variant for axis velocity / aero drive.
+
         if ("streak".equals(variant)
                 && (widget.getPart() == StressometerHudState.Part.VELOCITY_AXIS
                  || widget.getPart() == StressometerHudState.Part.AERO_DRIVE)) {
             renderSpeedStreak(g, font, theme, widget, channels, accent, x, y, w, h, tick);
             return true;
         }
-        // P6.3.a marquee (split-flap) variant for INBOUND_TRAINS.
+
         if ("marquee".equals(variant) && widget.getPart() == StressometerHudState.Part.INBOUND_TRAINS) {
             renderInboundMarquee(g, font, theme, widget, channels, accent, x, y, w, h, tick);
             return true;
         }
-        // P6.2.a attitude_ladder variant for AERO_HORIZON.
+
         if ("attitude_ladder".equals(variant) && widget.getPart() == StressometerHudState.Part.AERO_HORIZON) {
             if (renderAttitudeLadder(g, font, theme, widget, channels, accent, x, y, w, h, tick)) return true;
         }
-        // P6.1.e Factory Pulse variant for PRODUCTION_RATE.
+
         if ("pulse".equals(variant) && widget.getPart() == StressometerHudState.Part.PRODUCTION_RATE) {
             if (renderFactoryPulse(g, font, theme, widget, channels, accent, x, y, w, h, tick)) return true;
         }
-        // P6.1.f Factory Bottleneck variant for FACTORY_SHORTFALL.
+
         if ("bottleneck".equals(variant) && widget.getPart() == StressometerHudState.Part.FACTORY_SHORTFALL) {
             if (renderFactoryBottleneck(g, font, theme, widget, channels, accent, x, y, w, h, tick)) return true;
         }
-        // P6.2.c Ship Compass variant for AERO_ORIENTATION.
+
         if ("compass".equals(variant) && widget.getPart() == StressometerHudState.Part.AERO_ORIENTATION) {
             if (renderShipCompass(g, font, theme, widget, channels, accent, x, y, w, h, tick)) return true;
         }
-        // P6.2.d Ship Docking/Proximity variant for DOCKING_PAIR.
+
         if ("proximity".equals(variant) && widget.getPart() == StressometerHudState.Part.DOCKING_PAIR) {
             if (renderShipDocking(g, font, theme, widget, channels, accent, x, y, w, h, tick)) return true;
         }
-        // P6.3.b Platform Occupancy / Signal Wait Board variant for TRAIN_STATION_STATUS.
+
         if ("signalbox".equals(variant) && widget.getPart() == StressometerHudState.Part.TRAIN_STATION_STATUS) {
             if (renderPlatformOccupancy(g, font, theme, widget, channels, accent, x, y, w, h, tick)) return true;
         }
         return false;
     }
 
-    /** P6.1.b Stockpile lamp variant, responsive: full bulb when tall, horizontal pill when small. */
     private static void renderStockpileLamp(GuiGraphics g, Font font, DisplayTheme theme,
                                             StressometerHudState.PartWidget widget,
                                             List<StatsDisplayPanelBE.DataChannel> channels,
                                             int accent, int x, int y, int w, int h, long tick) {
         final float fill = clamp01(StressometerHudDataResolver.latestValue(
                 StressometerHudDataResolver.findWidgetChannel(channels, "fill_pct"), 0f) / 100f);
-        // Thresholds are raw stock amounts; convert to percent via stock_capacity.
+
         final float capacity = Math.max(1f, StressometerHudDataResolver.latestValue(
                 StressometerHudDataResolver.findWidgetChannel(channels, "stock_capacity"), 1f));
         final float lower = clamp01(StressometerHudDataResolver.latestValue(
@@ -1384,14 +1350,12 @@ public final class StressometerHudWidgetRenderer {
         final int alarm = DANGER_RED;
         final int liquidColor = danger ? alarm : (fill < lower ? warn : (fill > upper ? warn : healthy));
 
-        // Soft danger flicker (pseudo-random by tick), only when danger.
         final float flicker = danger ? (((tick * 1103515245L + 12345L) >>> 16) & 0x3F) / 63.0f : 0f;
         final float bloom = (1f - flicker * 0.4f) * (0.6f + 0.4f * com.createstats.client.hud.HudAnim.pulse(System.currentTimeMillis(), 1100L));
 
         final boolean compact = h < 48;
         final boolean shadow = widget.hasTextShadow();
 
-        // Title strip on top.
         final int titlePad = 3;
         final int titleY = y + titlePad;
         final String title = !widget.getMetricLabel().isEmpty() ? widget.getMetricLabel() : "Stockpile";
@@ -1400,30 +1364,29 @@ public final class StressometerHudWidgetRenderer {
         }
 
         if (compact) {
-            // Compact horizontal pill lamp with fill bar inside.
             final int barTop = h >= 28 ? titleY + font.lineHeight + 2 : y + 4;
             final int barH = Math.max(8, y + h - barTop - 4);
             final int barX = x + 6;
             final int barW = w - 12;
-            // Bracket frame.
+
             g.fill(barX - 2, barTop - 1, barX + barW + 2, barTop, dim(theme.border, 0.85f));
             g.fill(barX - 2, barTop + barH, barX + barW + 2, barTop + barH + 1, dim(theme.border, 0.85f));
             g.fill(barX - 2, barTop, barX, barTop + barH, dim(theme.border, 0.85f));
             g.fill(barX + barW, barTop, barX + barW + 2, barTop + barH, dim(theme.border, 0.85f));
-            // Glass body.
+
             g.fill(barX, barTop, barX + barW, barTop + barH, com.createstats.client.hud.HudAnim.withAlpha(theme.bg, 240));
-            // Liquid fill.
+
             final int liquidW = Math.max(0, Math.round(barW * fill));
             g.fill(barX, barTop, barX + liquidW, barTop + barH, dim(liquidColor, 0.85f));
-            // Highlight glints.
+
             g.fill(barX, barTop, barX + barW, barTop + 1, 0x33FFFFFF);
             g.fill(barX, barTop + barH - 1, barX + barW, barTop + barH, 0x22000000);
-            // Threshold notches on glass.
+
             final int lowerX = barX + Math.round(barW * lower);
             final int upperX = barX + Math.round(barW * upper);
             g.fill(lowerX, barTop - 2, lowerX + 1, barTop + barH + 2, 0xCCFFFFFF);
             g.fill(upperX, barTop - 2, upperX + 1, barTop + barH + 2, 0xCCFFFFFF);
-            // Powered indicator: small dot at right.
+
             final int dotR = 2;
             final int dotX = x + w - dotR - 3;
             final int dotY = barTop - 4 < y + 1 ? y + 2 : barTop - 4;
@@ -1432,44 +1395,40 @@ public final class StressometerHudWidgetRenderer {
             return;
         }
 
-        // Full bulb-in-bracket layout.
         final int bodyTop = titleY + font.lineHeight + 4;
         final int bodyH = y + h - bodyTop - 6;
         final int bulbR = Math.max(10, Math.min(bodyH, w / 2 - 8) / 2);
         final int bulbCx = x + w / 2;
         final int bulbCy = bodyTop + bulbR + 2;
 
-        // Bracket arms.
         final int armW = bulbR + 6;
         final int armH = 4;
         g.fill(bulbCx - armW, bodyTop, bulbCx + armW, bodyTop + armH, dim(theme.border, 0.95f));
         g.fill(bulbCx - armW, bodyTop, bulbCx - armW + 3, bodyTop + bulbR + 4, dim(theme.border, 0.85f));
         g.fill(bulbCx + armW - 3, bodyTop, bulbCx + armW, bodyTop + bulbR + 4, dim(theme.border, 0.85f));
-        // Rivets.
+
         g.fill(bulbCx - armW + 1, bodyTop + 1, bulbCx - armW + 3, bodyTop + 3, 0xFFB89868);
         g.fill(bulbCx + armW - 3, bodyTop + 1, bulbCx + armW - 1, bodyTop + 3, 0xFFB89868);
 
-        // Glass bulb (filled disk) + inner liquid by clipped scanlines.
         disk(g, bulbCx, bulbCy, bulbR, com.createstats.client.hud.HudAnim.withAlpha(theme.bg, 235));
-        // Liquid level inside bulb, bottom-up fill.
+
         final int fillRows = Math.max(0, Math.round(bulbR * 2 * fill));
         final int liquidLight = com.createstats.client.hud.HudAnim.blendArgb(dim(liquidColor, 0.55f), liquidColor, 0.4f + 0.6f * bloom);
         diskBandClipped(g, bulbCx, bulbCy, bulbR, bulbCy + bulbR - fillRows, bulbCy + bulbR, liquidLight);
-        // Bulb outline.
+
         ring(g, bulbCx, bulbCy, bulbR, bulbR - 1, dim(theme.border, 0.9f));
-        // Glass highlight (top-left arc).
+
         for (int i = 0; i < bulbR / 2; i++) {
             final int gx = bulbCx - bulbR / 2 + i;
             final int gy = bulbCy - bulbR / 2 - i / 3;
             g.fill(gx, gy, gx + 1, gy + 1, 0x55FFFFFF);
         }
-        // Threshold notches etched on the glass, short horizontal ticks at sides.
+
         final int lowerY = bulbCy + bulbR - Math.round(bulbR * 2 * lower);
         final int upperY = bulbCy + bulbR - Math.round(bulbR * 2 * upper);
         g.fill(bulbCx - bulbR - 2, lowerY, bulbCx - bulbR + 2, lowerY + 1, 0xCCFFFFFF);
         g.fill(bulbCx + bulbR - 2, upperY, bulbCx + bulbR + 2, upperY + 1, 0xCCFFFFFF);
 
-        // Bottom plate with numeric readout + powered LED.
         final int plateY = y + h - font.lineHeight - 6;
         g.fill(x + 8, plateY - 2, x + w - 8, plateY - 1, dim(theme.border, 0.5f));
         final String pctText = String.format(Locale.ROOT, "%.0f%%", fill * 100f);
@@ -1492,7 +1451,6 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    /** Fills only those pixels of a disk centered (cx,cy) radius r whose y is within [yMin..yMax]. */
     private static void diskBandClipped(GuiGraphics g, int cx, int cy, int r, int yMin, int yMax, int color) {
         final int r2 = r * r;
         for (int dy = -r; dy <= r; dy++) {
@@ -1506,13 +1464,12 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    // p6.1.c droplet variant
     private static void renderDroplet(GuiGraphics g, Font font, DisplayTheme theme,
                                       StressometerHudState.PartWidget widget,
                                       List<StatsDisplayPanelBE.DataChannel> channels,
                                       int accent, int x, int y, int w, int h, long tick) {
         widgetPanel(g, x, y, w, h, theme, accent);
-        // Read fill source by Part.
+
         float pct;
         String unit = "%";
         switch (widget.getPart()) {
@@ -1525,17 +1482,17 @@ public final class StressometerHudWidgetRenderer {
             default -> pct = 0f;
         }
         final long ms = System.currentTimeMillis();
-        // Droplet bounding box centred-left; numeric on the right.
+
         final int dropW = Math.min(w - 6, h - 4);
         final int dropX = x + 3;
         final int dropY = y + 2;
         final int cx = dropX + dropW / 2;
         final int cyBase = dropY + dropW / 2;
         final int r = Math.max(4, dropW / 2 - 2);
-        // Outer chrome ring + glass inner.
+
         ring(g, cx, cyBase, r + 1, r, theme.border);
         disk(g, cx, cyBase, r, com.createstats.client.hud.HudAnim.withAlpha(theme.bg, 200));
-        // Liquid level with sloshing wave.
+
         final int liquidColor = com.createstats.client.hud.HudAnim.blendArgb(theme.accent, accent, 0.4f);
         final float wave = com.createstats.client.hud.HudAnim.triangle(ms, 1700) - 0.5f;
         final int yLevel = cyBase + r - Math.round(pct * (2 * r));
@@ -1547,9 +1504,9 @@ public final class StressometerHudWidgetRenderer {
                 if (py >= sliceTop) g.fill(cx + dx, py, cx + dx + 1, py + 1, liquidColor);
             }
         }
-        // Droplet highlight (specular).
+
         g.fill(cx - r / 3, cyBase - r / 2, cx - r / 3 + 2, cyBase - r / 2 + 2, com.createstats.client.hud.HudAnim.withAlpha(0xFFFFFFFF, 160));
-        // Numeric readout.
+
         final int textX = dropX + dropW + 6;
         if (textX < x + w - 4) {
             final String big = Math.round(pct * 100f) + unit;
@@ -1557,7 +1514,6 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    // p6.1.d flame variant
     private static void renderFlame(GuiGraphics g, Font font, DisplayTheme theme,
                                     StressometerHudState.PartWidget widget,
                                     List<StatsDisplayPanelBE.DataChannel> channels,
@@ -1569,13 +1525,13 @@ public final class StressometerHudWidgetRenderer {
                 StressometerHudDataResolver.findWidgetChannel(channels, "heat_level"), 0f);
         final float heat = com.createstats.client.hud.HudAnim.clamp01(heatRaw / 4f);
         final long ms = System.currentTimeMillis();
-        // Flame area (left), readout (right).
+
         final int flameW = Math.min(w - 4, h - 4);
         final int fx = x + 4;
         final int fy = y + 2;
         final int baseY = fy + flameW;
         final int peakBase = Math.max(8, Math.round(flameW * (0.25f + 0.7f * gauge)));
-        // Render flame as concentric bands using HudAnim.triangle wobble per column.
+
         final int outer = com.createstats.client.hud.HudAnim.blendArgb(0xFFFFB84A, 0xFFFF4D4D, heat);
         final int inner = com.createstats.client.hud.HudAnim.blendArgb(0xFFFFEFA8, outer, 0.5f);
         for (int col = 0; col < flameW; col++) {
@@ -1589,13 +1545,13 @@ public final class StressometerHudWidgetRenderer {
                 g.fill(fx + col, py, fx + col + 1, py + 1, com.createstats.client.hud.HudAnim.withAlpha(color, 220 - (int)(t * 80f)));
             }
         }
-        // Smoke wisp at peak when overheat.
+
         if (heat > 0.85f) {
             final int sx = fx + flameW / 2 + (int)(Math.sin(ms * 0.005f) * 3);
             final int sy = baseY - peakBase - 4 - (int)((ms / 80) % 6);
             disk(g, sx, sy, 2, com.createstats.client.hud.HudAnim.withAlpha(0xFF888888, 140));
         }
-        // Right-side readout.
+
         final int textX = fx + flameW + 6;
         if (textX < x + w - 4) {
             g.drawString(font, Math.round(gauge * 100f) + "%", textX, y + 4, theme.text, widget.hasTextShadow());
@@ -1603,7 +1559,6 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    // p6.2.b streak variant
     private static void renderSpeedStreak(GuiGraphics g, Font font, DisplayTheme theme,
                                           StressometerHudState.PartWidget widget,
                                           List<StatsDisplayPanelBE.DataChannel> channels,
@@ -1612,17 +1567,17 @@ public final class StressometerHudWidgetRenderer {
         final float vel = StressometerHudDataResolver.latestValue(
                 StressometerHudDataResolver.findWidgetChannel(channels, "adjusted_velocity"), 0f);
         final float absV = Math.abs(vel);
-        // Reference: ~256 rpm-equivalent considered "fast".
+
         final float intensity = com.createstats.client.hud.HudAnim.clamp01(absV / 256f);
         final long ms = System.currentTimeMillis();
         final int streakColor = com.createstats.client.hud.HudAnim.blendArgb(theme.accent, accent, 0.5f);
-        // Render motion lines: variable length proportional to speed; flow direction by vel sign.
+
         final int rows = Math.max(3, (h - 16) / 4);
         final int rowGap = Math.max(3, (h - 16) / Math.max(1, rows));
         final int dir = vel >= 0 ? 1 : -1;
         for (int i = 0; i < rows; i++) {
             final int rowY = y + 8 + i * rowGap;
-            // Phase per row (deterministic) with time progression.
+
             final float phase = ((ms * 0.06f) + i * 17f) % 100f;
             final int len = Math.max(2, Math.round((6 + (i * 3 % 9)) * (0.4f + intensity)));
             final int xStart;
@@ -1633,10 +1588,10 @@ public final class StressometerHudWidgetRenderer {
             }
             g.fill(xStart, rowY, xStart + len, rowY + 1, com.createstats.client.hud.HudAnim.withAlpha(streakColor, 150 + (int)(intensity * 80)));
         }
-        // Speed numeric centred at top.
+
         final String label = String.format(Locale.ROOT, "%.1f", vel);
         g.drawString(font, label, x + 4, y + 2, theme.text, widget.hasTextShadow());
-        // Direction chevron at right.
+
         final int cx = x + w - 8;
         final int cy = y + h / 2;
         final int chev = com.createstats.client.hud.HudAnim.blendArgb(theme.text, accent, 0.4f);
@@ -1651,7 +1606,6 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    // p6.3.a marquee (split-flap) variant
     private static void renderInboundMarquee(GuiGraphics g, Font font, DisplayTheme theme,
                                              StressometerHudState.PartWidget widget,
                                              List<StatsDisplayPanelBE.DataChannel> channels,
@@ -1660,30 +1614,30 @@ public final class StressometerHudWidgetRenderer {
         final int inbound = Math.round(StressometerHudDataResolver.latestValue(
                 StressometerHudDataResolver.findWidgetChannel(channels, "inbound_train"), 0f));
         final long ms = System.currentTimeMillis();
-        // Header bar darker than panel.
+
         final int headerH = 9;
         g.fill(x + 2, y + 2, x + w - 2, y + 2 + headerH, com.createstats.client.hud.HudAnim.withAlpha(0xFF000000, 110));
         g.drawString(font, "INBOUND", x + 5, y + 3, theme.accent, widget.hasTextShadow());
         final String countTxt = String.valueOf(inbound);
         final int cw = font.width(countTxt);
         g.drawString(font, countTxt, x + w - 5 - cw, y + 3, theme.text, widget.hasTextShadow());
-        // Split-flap row(s) underneath.
+
         final int rowsAvail = (h - headerH - 6) / 10;
         final int rows = Math.max(1, Math.min(rowsAvail, Math.max(1, inbound)));
-        // Build deterministic platform/ETA strings per row, animate with character flip.
+
         for (int i = 0; i < rows; i++) {
             final int ry = y + 2 + headerH + 2 + i * 10;
             final int rh = 9;
-            // Bay background with subtle striping.
+
             g.fill(x + 4, ry, x + w - 4, ry + rh, com.createstats.client.hud.HudAnim.withAlpha(0xFF111111, 180));
-            // Platform chip.
+
             final String plat = "P" + ((i + 1));
             g.fill(x + 5, ry + 1, x + 5 + 14, ry + rh - 1, com.createstats.client.hud.HudAnim.withAlpha(theme.accent, 200));
             g.drawString(font, plat, x + 7, ry + 1, 0xFF000000, false);
-            // ETA digits with deterministic flip animation.
+
             final int etaSec = Math.max(0, 30 - (int)((ms / 1000 + i * 7) % 60));
             final String txt = String.format(Locale.ROOT, "%02d:%02ds", etaSec / 60, etaSec % 60);
-            // Apply random char flip on the seconds digit when it changes.
+
             int tx = x + 24;
             for (int ci = 0; ci < txt.length(); ci++) {
                 char c = txt.charAt(ci);
@@ -1700,43 +1654,40 @@ public final class StressometerHudWidgetRenderer {
         }
     }
 
-    // p6.2.a attitude_ladder variant
     private static boolean renderAttitudeLadder(GuiGraphics g, Font font, DisplayTheme theme,
                                              StressometerHudState.PartWidget widget,
                                              List<StatsDisplayPanelBE.DataChannel> channels,
                                              int accent, int x, int y, int w, int h, long tick) {
-        // Required channel: attitude_pitch. Without it, fall back to classic.
         final var pitchCh = StressometerHudDataResolver.findWidgetChannel(channels, "attitude_pitch");
         if (pitchCh == null) return false;
         final float pitch = StressometerHudDataResolver.latestValue(pitchCh, 0f);
         final float bank = StressometerHudDataResolver.latestValue(
                 StressometerHudDataResolver.findWidgetChannel(channels, "attitude_bank"), 0f);
         final boolean shadow = widget.hasTextShadow();
-        // Clip to inset.
+
         final int ix = x + 3, iy = y + 12, iw = w - 6, ih = h - 16;
         if (iw < 12 || ih < 16) {
-            // Fallback: just numbers if too small.
             g.drawString(font, String.format(Locale.ROOT, "P %.0f", pitch), x + 4, y + 4, theme.text, shadow);
             g.drawString(font, String.format(Locale.ROOT, "B %.0f", bank), x + 4, y + 14, theme.text, shadow);
             return true;
         }
-        // Sky/ground gradient, single-band fill split at horizon line.
+
         final int cx = ix + iw / 2;
         final int cy = iy + ih / 2;
-        // Pixel offset for pitch: ~3px per degree, clamped to half-height.
+
         final int pitchOffset = Math.max(-ih, Math.min(ih, Math.round(pitch * 3f)));
         final int horizonY = cy + pitchOffset;
         final int sky = 0xFF335A8C;
         final int ground = 0xFF6E4A28;
-        // Fill sky.
+
         g.fill(ix, iy, ix + iw, Math.min(iy + ih, Math.max(iy, horizonY)), sky);
-        // Fill ground.
+
         g.fill(ix, Math.max(iy, Math.min(iy + ih, horizonY)), ix + iw, iy + ih, ground);
-        // Horizon stripe.
+
         if (horizonY > iy && horizonY < iy + ih) {
             g.fill(ix, horizonY, ix + iw, horizonY + 1, com.createstats.client.hud.HudAnim.withAlpha(theme.text, 220));
         }
-        // Pitch ladder ticks every 10°.
+
         final int tickColor = com.createstats.client.hud.HudAnim.withAlpha(theme.text, 200);
         for (int p = -30; p <= 30; p += 10) {
             if (p == 0) continue;
@@ -1744,11 +1695,11 @@ public final class StressometerHudWidgetRenderer {
             if (ly < iy + 2 || ly > iy + ih - 2) continue;
             final int tickW = (Math.abs(p) % 20 == 0) ? iw / 4 : iw / 7;
             g.fill(cx - tickW, ly, cx + tickW, ly + 1, tickColor);
-            // Label degrees on outer edge.
+
             final String lab = String.valueOf(Math.abs(p));
             g.drawString(font, lab, cx + tickW + 2, ly - 3, tickColor, false);
         }
-        // Bank indicator at top, small triangle at angle = bank.
+
         final int bankCx = cx;
         final int bankCy = iy + 4;
         final int bankR = Math.min(iw / 4, 10);
@@ -1757,17 +1708,16 @@ public final class StressometerHudWidgetRenderer {
         final int bty = bankCy + (int) (-Math.cos(bankRad) * bankR);
         com.createstats.client.hud.HudEffects.drawLine(g, bankCx, bankCy, btx, bty, accent);
         g.fill(btx - 1, bty - 1, btx + 2, bty + 2, accent);
-        // Centre crosshair (aircraft datum).
+
         g.fill(cx - 6, cy, cx - 2, cy + 1, accent);
         g.fill(cx + 2, cy, cx + 6, cy + 1, accent);
         g.fill(cx - 1, cy - 1, cx + 1, cy + 2, accent);
-        // Title.
+
         g.drawString(font, "ATT", x + 4, y + 2, theme.dim, shadow);
         g.drawString(font, String.format(Locale.ROOT, "P%+.0f° B%+.0f°", pitch, bank), x + 24, y + 2, theme.text, shadow);
         return true;
     }
 
-    // p6.1.e Factory Pulse variant, production cardiograph
     private static boolean renderFactoryPulse(GuiGraphics g, Font font, DisplayTheme theme,
                                            StressometerHudState.PartWidget widget,
                                            List<StatsDisplayPanelBE.DataChannel> channels,
@@ -1784,18 +1734,17 @@ public final class StressometerHudWidgetRenderer {
             else if (pid.contains("per_hr")) perMin = rawValue / 60f;
             else perMin = rawValue;
         } else {
-            // Synthetic rate so the heart still beats for stock-only channels.
             perMin = (float)(Math.sqrt(Math.max(0f, rawValue)) * 10f);
         }
         final float perSec = perMin / 60f;
         final int health = perMin >= 60f ? SAFE_GREEN : (perMin > 12f ? ALERT_AMBER : DANGER_RED);
-        // Title row.
+
         g.drawString(font, "PULSE", x + 4, y + 3, theme.dim, shadow);
         final String rateText = isRate
                 ? String.format(Locale.ROOT, "%.1f/min", perMin)
                 : formatCompact(rawValue);
         g.drawString(font, rateText, x + w - 4 - font.width(rateText), y + 3, health, shadow);
-        // Heartbeat waveform area.
+
         final int waveX = x + 4;
         final int waveY = y + 14;
         final int waveW = w - 8;
@@ -1805,7 +1754,8 @@ public final class StressometerHudWidgetRenderer {
             final int beatPeriod = Math.max(20, Math.round(1200f / Math.max(1f, perMin)));
             com.createstats.client.hud.HudEffects.heartbeatWave(g, waveX, waveY, waveW, waveH, tick, com.createstats.client.hud.HudAnim.clamp01(perSec / 4f), beatPeriod, health);
             final float orbitPeriod = Math.max(20f, 200f / Math.max(0.1f, perSec));
-            final float orbitT = (tick % orbitPeriod) / orbitPeriod;
+
+            final float orbitT = (float) (tick % (double) orbitPeriod / orbitPeriod);
             final int orbitX, orbitY;
             int dist = (int) (orbitT * (2 * (waveW + waveH)));
             if (dist < waveW) { orbitX = waveX + dist; orbitY = waveY; }
@@ -1816,7 +1766,7 @@ public final class StressometerHudWidgetRenderer {
             final int markX = waveX + (int) (waveW * 0.75f);
             g.fill(markX, waveY, markX + 1, waveY + waveH, com.createstats.client.hud.HudAnim.withAlpha(theme.dim, 160));
         }
-        // Footer: prefer unique_types, then total_items.
+
         final StatsDisplayPanelBE.DataChannel uniqueCh = StressometerHudDataResolver.findWidgetChannel(channels, "unique_types");
         final StatsDisplayPanelBE.DataChannel totalCh = StressometerHudDataResolver.findWidgetChannel(channels, "total_items");
         String footer = null;
@@ -1848,16 +1798,14 @@ public final class StressometerHudWidgetRenderer {
         return null;
     }
 
-    // p6.1.f Factory Bottleneck variant, clipboard / warning manifold
     private static boolean renderFactoryBottleneck(GuiGraphics g, Font font, DisplayTheme theme,
                                                 StressometerHudState.PartWidget widget,
                                                 List<StatsDisplayPanelBE.DataChannel> channels,
                                                 int accent, int x, int y, int w, int h, long tick) {
-        // Required channel: target. Without it, fall back to classic.
         final var targetCh = StressometerHudDataResolver.findWidgetChannel(channels, "target");
         if (targetCh == null) return false;
         final boolean shadow = widget.hasTextShadow();
-        // Clipboard top, angled brass strip with stamped "BOTTLENECK".
+
         g.fill(x + 2, y + 2, x + w - 2, y + 14, com.createstats.client.hud.HudAnim.withAlpha(0xFFB8943A, 220));
         g.drawString(font, "BOTTLENECK", x + 6, y + 4, 0xFF1A1209, false);
         final float target = StressometerHudDataResolver.latestValue(targetCh, 0f);
@@ -1889,17 +1837,15 @@ public final class StressometerHudWidgetRenderer {
         return true;
     }
 
-    // p6.2.c Ship Compass variant, brass compass rose
     private static boolean renderShipCompass(GuiGraphics g, Font font, DisplayTheme theme,
                                           StressometerHudState.PartWidget widget,
                                           List<StatsDisplayPanelBE.DataChannel> channels,
                                           int accent, int x, int y, int w, int h, long tick) {
-        // Required channel: attitude_yaw. Without it, fall back to classic.
         final var yawCh = StressometerHudDataResolver.findWidgetChannel(channels, "attitude_yaw");
         if (yawCh == null) return false;
         final boolean shadow = widget.hasTextShadow();
         final float yaw = StressometerHudDataResolver.latestValue(yawCh, 0f);
-        // Optional ghost target needle: prefer relative_angle (offset from heading), fall back to target_angle (absolute).
+
         final var relCh = StressometerHudDataResolver.findWidgetChannel(channels, "relative_angle");
         final var absCh = StressometerHudDataResolver.findWidgetChannel(channels, "target_angle");
         final boolean hasTarget = relCh != null || absCh != null;
@@ -1911,7 +1857,7 @@ public final class StressometerHudWidgetRenderer {
         } else {
             targetBearing = yaw;
         }
-        // Optional distance pill (no ETA source available).
+
         final var distCh = StressometerHudDataResolver.findWidgetChannel(channels, "distance_to_target");
         final int dialTop = y + 12;
         final int dialBottom = y + h - 14;
@@ -1941,15 +1887,14 @@ public final class StressometerHudWidgetRenderer {
             com.createstats.client.hud.HudEffects.drawLine(g, x0, y0, x1, y1, theme.border);
         }
         if (hasTarget) {
-            // Bearing rotates with the rose: target screen angle = (targetBearing - yaw).
             final double tgtRad = Math.toRadians((targetBearing - yaw) - 90);
             final int tx = cx + (int) (Math.cos(tgtRad) * (r - 6));
             final int ty = cy + (int) (Math.sin(tgtRad) * (r - 6));
             com.createstats.client.hud.HudEffects.drawLine(g, cx, cy, tx, ty, com.createstats.client.hud.HudAnim.withAlpha(accent, 180));
         }
-        // Lubber line (fixed at top centre).
+
         g.fill(cx, dialTop, cx + 1, dialTop + 4, accent);
-        // Hub.
+
         g.fill(cx - 1, cy - 1, cx + 2, cy + 2, theme.text);
         if (distCh != null) {
             final float dist = StressometerHudDataResolver.latestValue(distCh, 0f);
@@ -1961,12 +1906,10 @@ public final class StressometerHudWidgetRenderer {
         return true;
     }
 
-    // p6.2.d Ship Docking / Proximity variant
     private static boolean renderShipDocking(GuiGraphics g, Font font, DisplayTheme theme,
                                           StressometerHudState.PartWidget widget,
                                           List<StatsDisplayPanelBE.DataChannel> channels,
                                           int accent, int x, int y, int w, int h, long tick) {
-        // Required channel: closest_pair_distance OR paired. Without either, fall back to classic.
         final var distCh = StressometerHudDataResolver.findWidgetChannel(channels, "closest_pair_distance");
         final var pairCh = StressometerHudDataResolver.findWidgetChannel(channels, "paired");
         if (distCh == null && pairCh == null) return false;
@@ -2003,12 +1946,10 @@ public final class StressometerHudWidgetRenderer {
         return true;
     }
 
-    // p6.3.b Platform Occupancy / Signal Wait Board
     private static boolean renderPlatformOccupancy(GuiGraphics g, Font font, DisplayTheme theme,
                                                 StressometerHudState.PartWidget widget,
                                                 List<StatsDisplayPanelBE.DataChannel> channels,
                                                 int accent, int x, int y, int w, int h, long tick) {
-        // Required channel: station_status OR signal_wait. Without either, fall back to classic.
         final var statusCh = StressometerHudDataResolver.findWidgetChannel(channels, "station_status");
         final var waitCh = StressometerHudDataResolver.findWidgetChannel(channels, "signal_wait");
         if (statusCh == null && waitCh == null) return false;
@@ -2058,7 +1999,6 @@ public final class StressometerHudWidgetRenderer {
         return true;
     }
 
-    // production Detector / Inventory Display structured widget
     private static boolean renderProductionStructuredWidget(GuiGraphics g, Font font, DisplayTheme theme,
                                                             StressometerHudState.PartWidget widget,
                                                             List<StatsDisplayPanelBE.DataChannel> channels,
@@ -2111,7 +2051,6 @@ public final class StressometerHudWidgetRenderer {
             return true;
         }
 
-        // Full mode.
         drawCentered(g, font, truncate(font, widgetTitle(widget), w - pad * 2), x + w / 2, y + pad, theme.dim, shadow);
         g.fill(x + 6, y + pad + font.lineHeight + 1, x + w - 6, y + pad + font.lineHeight + 2, dim(theme.border, 0.55f));
 
@@ -2122,7 +2061,6 @@ public final class StressometerHudWidgetRenderer {
         final int tankX = x + pad;
         final int tankY = contentY;
 
-        // Tank background.
         g.fill(tankX, tankY, tankX + tankW, tankY + tankH, withAlpha(0xFF000000, 140));
         g.fill(tankX, tankY, tankX + tankW, tankY + 1, withAlpha(theme.border, 200));
         g.fill(tankX, tankY + tankH - 1, tankX + tankW, tankY + tankH, withAlpha(theme.border, 200));
@@ -2134,7 +2072,7 @@ public final class StressometerHudWidgetRenderer {
         final int fluidTop = tankY + tankH - 1 - fillH;
         if (fillH > 0) {
             g.fill(tankX + 1, fluidTop, tankX + tankW - 1, tankY + tankH - 1, primaryColor);
-            // Subtle wave highlight on top.
+
             final long tick = (System.currentTimeMillis() / 50L);
             final int waveOff = (int) ((tick / 2) % Math.max(1, tankW));
             for (int wx = 1; wx < tankW - 1; wx++) {
@@ -2142,7 +2080,7 @@ public final class StressometerHudWidgetRenderer {
                 final int yy = fluidTop + wy;
                 g.fill(tankX + wx, yy, tankX + wx + 1, yy + 1, withAlpha(lighten(primaryColor, 0.4f), 220));
             }
-            // 2-3 bubbles based on tick.
+
             final int bubbles = 3;
             for (int i = 0; i < bubbles; i++) {
                 final float phase = ((tick + i * 30L) % 120L) / 120f;
@@ -2154,7 +2092,6 @@ public final class StressometerHudWidgetRenderer {
             }
         }
 
-        // Side info column.
         final int infoX = tankX + tankW + 6;
         final int infoW = x + w - pad - infoX;
         if (infoW > 20) {
@@ -2170,7 +2107,7 @@ public final class StressometerHudWidgetRenderer {
                 drawText(g, font, pct, infoX, row, theme.dim, shadow);
                 row += font.lineHeight + 2;
             }
-            // Up to 3 secondary rows.
+
             int shownSecondary = 0;
             for (int i = 1; i < rows.size() && shownSecondary < 3; i++) {
                 if (row + font.lineHeight > tankY + tankH) break;
@@ -2184,7 +2121,6 @@ public final class StressometerHudWidgetRenderer {
             }
         }
 
-        // Footer badges.
         int badgeX = x + pad;
         final int badgeY = y + h - pad - (font.lineHeight + 2);
         if (StressometerHudDataResolver.findWidgetChannel(channels, "boiler_heat") != null) {
@@ -2214,7 +2150,6 @@ public final class StressometerHudWidgetRenderer {
         g.drawString(font, label, x + 4, y + 2, 0xFFFFFFFF, false);
     }
 
-    // helpers for production content widget
     private static List<StatsDisplayPanelBE.DataChannel> collectMetricRows(List<StatsDisplayPanelBE.DataChannel> channels,
                                                                             MetricType type, String... idFragments) {
         final List<StatsDisplayPanelBE.DataChannel> out = new ArrayList<>();

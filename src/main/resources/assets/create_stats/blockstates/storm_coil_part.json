@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_stats:block/storm_coil_part"
+    }
+  }
+}

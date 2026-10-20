@@ -1,0 +1,45 @@
+{
+  "parent": "create_stats:home/lamp",
+  "display": {
+    "icon": {
+      "id": "create_stats:stage_light"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.stage_light.title",
+      "fallback": "Halay Leader"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.stage_light.description",
+      "fallback": "Place a stage light. The wedding is on and someone is already twirling a handkerchief."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "stage": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:stage_light",
+                  "create_stats:stage_light_mk2"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "stage"
+    ]
+  ]
+}

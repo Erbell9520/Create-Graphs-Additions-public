@@ -33,7 +33,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class AutoTransmissionClutchBlock extends AbstractEncasedShaftBlock implements IBE<AutoTransmissionClutchBE> {
-
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     public static final EnumProperty<VisualState> VISUAL_STATE = EnumProperty.create("visual_state", VisualState.class);
 
@@ -48,10 +47,12 @@ public class AutoTransmissionClutchBlock extends AbstractEncasedShaftBlock imple
         super.createBlockStateDefinition(builder);
     }
 
+    // sneak + empty hand for the full page. anything held passes through so you can place against it again
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        if (AllItems.WRENCH.isIn(stack)) {
+        if (AllItems.WRENCH.isIn(stack) || !stack.isEmpty() || !player.isShiftKeyDown()
+                || hand != InteractionHand.MAIN_HAND) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         InteractionResult result = onBlockEntityUse(level, pos, transmission -> {

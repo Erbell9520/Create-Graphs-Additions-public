@@ -17,8 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public class CargoManifestMetCondition extends ScheduleWaitCondition {
-
-    private static final String SNAPSHOT_TAKEN_KEY = "create_stats_manifest_taken";
     private static final String STATUS_KEY = "create_stats_manifest_status";
 
     @Override
@@ -54,15 +52,8 @@ public class CargoManifestMetCondition extends ScheduleWaitCondition {
                 return true;
             }
 
-            if (!context.getBoolean(SNAPSHOT_TAKEN_KEY)) {
-                FreightManifestLogic.initializeProgress(train, context);
-                context.putBoolean(SNAPSHOT_TAKEN_KEY, true);
-                this.updateStatus(context, "Recording arrival cargo...");
-                return false;
-            }
-
-            FreightManifestEvaluationResult result = FreightManifestLogic.evaluate(manifest, train, context, savedData,
-                currentStation.getId(), stationLevel.getGameTime());
+            FreightManifestEvaluationResult result = FreightManifestLogic.evaluateStation(savedData,
+                currentStation.getId(), train, stationLevel.getGameTime(), context);
             this.updateStatus(context, result.getStatusMessage());
             return result.isComplete();
         } catch (LinkageError error) {

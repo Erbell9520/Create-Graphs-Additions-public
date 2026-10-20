@@ -11,9 +11,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** [1] */
+// silent no-op without the helmet
 public final class PilotHelmetNightVisionClientHandler {
-
     private PilotHelmetNightVisionClientHandler() {
     }
 
@@ -31,8 +30,6 @@ public final class PilotHelmetNightVisionClientHandler {
 
         PacketDistributor.sendToServer(new PilotHelmetNightVisionTogglePacket(newState));
 
-        // Optimistic action-bar feedback. If the server rejects (e.g. external
-        // potion active), its own message overwrites this one.
         player.displayClientMessage(
             Component.translatable(newState
                     ? "message.create_stats.pilot_helmet.nv_on"
@@ -41,4 +38,3 @@ public final class PilotHelmetNightVisionClientHandler {
             true);
     }
 }
-

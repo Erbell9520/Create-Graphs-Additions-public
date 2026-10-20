@@ -1,0 +1,155 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "tray": "create_stats:block/photovoltaic_array_tray",
+    "edge": "create_stats:block/photovoltaic_array_edge",
+    "cells": "create_stats:block/photovoltaic_array_cells",
+    "particle": "create_stats:block/photovoltaic_array_tray"
+  },
+  "elements": [
+    {
+      "__comment": "tray",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        1.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#tray"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#tray"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#tray"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#tray"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#tray"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#tray"
+        }
+      }
+    },
+    {
+      "__comment": "cells",
+      "from": [
+        0.0,
+        1.5,
+        0.0
+      ],
+      "to": [
+        16.0,
+        2.6,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#edge"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#edge"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#edge"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#edge"
+        }
+      }
+    },
+    {
+      "__comment": "cell_face",
+      "from": [
+        0.0,
+        1.5,
+        0.0
+      ],
+      "to": [
+        16.0,
+        2.6,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cells"
+        }
+      }
+    }
+  ]
+}

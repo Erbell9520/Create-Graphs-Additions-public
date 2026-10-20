@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "IPI",
+    "KTK",
+    "IHI"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "P": {
+      "item": "create:propeller"
+    },
+    "K": {
+      "item": "minecraft:dried_kelp"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    }
+  },
+  "result": {
+    "id": "create_stats:vacuum_cleaner",
+    "count": 1
+  },
+  "show_notification": true
+}

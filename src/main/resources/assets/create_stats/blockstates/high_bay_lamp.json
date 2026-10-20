@@ -4,14 +4,14 @@
       "model": "create_stats:block/high_bay_lamp"
     },
     "facing=up,lit=true": {
-      "model": "create_stats:block/high_bay_lamp_on"
+      "model": "create_stats:block/high_bay_lamp"
     },
     "facing=down,lit=false": {
       "model": "create_stats:block/high_bay_lamp",
       "x": 180
     },
     "facing=down,lit=true": {
-      "model": "create_stats:block/high_bay_lamp_on",
+      "model": "create_stats:block/high_bay_lamp",
       "x": 180
     },
     "facing=north,lit=false": {
@@ -19,7 +19,7 @@
       "x": 90
     },
     "facing=north,lit=true": {
-      "model": "create_stats:block/high_bay_lamp_on",
+      "model": "create_stats:block/high_bay_lamp",
       "x": 90
     },
     "facing=south,lit=false": {
@@ -28,7 +28,7 @@
       "y": 180
     },
     "facing=south,lit=true": {
-      "model": "create_stats:block/high_bay_lamp_on",
+      "model": "create_stats:block/high_bay_lamp",
       "x": 90,
       "y": 180
     },
@@ -38,7 +38,7 @@
       "y": 270
     },
     "facing=west,lit=true": {
-      "model": "create_stats:block/high_bay_lamp_on",
+      "model": "create_stats:block/high_bay_lamp",
       "x": 90,
       "y": 270
     },
@@ -48,7 +48,7 @@
       "y": 90
     },
     "facing=east,lit=true": {
-      "model": "create_stats:block/high_bay_lamp_on",
+      "model": "create_stats:block/high_bay_lamp",
       "x": 90,
       "y": 90
     }

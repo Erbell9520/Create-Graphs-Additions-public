@@ -1,6 +1,5 @@
 package com.createstats.flight;
 
-/** [1] */
 public enum SensorRequirement {
     GIMBAL,
     ALTITUDE,

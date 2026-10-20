@@ -4,16 +4,14 @@ import com.createstats.ModConfiguration;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-/** [1] */
+// in-memory override, ModConfigSpec only refreshes on reload
 @OnlyIn(Dist.CLIENT)
 public final class ClientGraphPrefs {
-
     private static Boolean signalGlowOverride = null;
 
     private ClientGraphPrefs() {
     }
 
-    /** Whether the soft phosphor glow is drawn around line-chart traces. */
     public static boolean signalGlow() {
         if (signalGlowOverride != null) {
             return signalGlowOverride;
@@ -26,7 +24,6 @@ public final class ClientGraphPrefs {
         }
     }
 
-    /** Flips the glow preference; effective immediately and persisted best-effort to the config. */
     public static void toggleSignalGlow() {
         final boolean v = !signalGlow();
         signalGlowOverride = v;

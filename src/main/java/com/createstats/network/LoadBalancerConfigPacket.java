@@ -12,11 +12,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class LoadBalancerConfigPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<LoadBalancerConfigPacket> TYPE = 
+    public static final CustomPacketPayload.Type<LoadBalancerConfigPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "load_balancer_config"));
-    
-    public static final StreamCodec<FriendlyByteBuf, LoadBalancerConfigPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, LoadBalancerConfigPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), LoadBalancerConfigPacket::new);
 
     private final BlockPos pos;

@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,open=true": {
+      "model": "create_stats:block/garage_door_body"
+    },
+    "facing=north,open=false": {
+      "model": "create_stats:block/garage_door_body"
+    },
+    "facing=east,open=true": {
+      "model": "create_stats:block/garage_door_body",
+      "y": 90
+    },
+    "facing=east,open=false": {
+      "model": "create_stats:block/garage_door_body",
+      "y": 90
+    },
+    "facing=south,open=true": {
+      "model": "create_stats:block/garage_door_body",
+      "y": 180
+    },
+    "facing=south,open=false": {
+      "model": "create_stats:block/garage_door_body",
+      "y": 180
+    },
+    "facing=west,open=true": {
+      "model": "create_stats:block/garage_door_body",
+      "y": 270
+    },
+    "facing=west,open=false": {
+      "model": "create_stats:block/garage_door_body",
+      "y": 270
+    }
+  }
+}

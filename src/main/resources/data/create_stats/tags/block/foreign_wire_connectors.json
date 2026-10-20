@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "createaddition:connector",
+      "required": false
+    },
+    {
+      "id": "createaddition:large_connector",
+      "required": false
+    },
+    {
+      "id": "createaddition:small_light_connector",
+      "required": false
+    },
+    {
+      "id": "create_new_age:electrical_connector",
+      "required": false
+    },
+    {
+      "id": "create_new_age:street_light",
+      "required": false
+    }
+  ]
+}

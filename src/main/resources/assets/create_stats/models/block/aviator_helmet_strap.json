@@ -1,0 +1,201 @@
+{
+ "credit": "Create: Stats & Power, gen_aviator_helmet.py",
+ "textures": {
+  "helmet": "create_stats:block/aviator_helmet",
+  "particle": "create_stats:block/aviator_helmet"
+ },
+ "elements": [
+  {
+   "name": "gog_side3_l",
+   "from": [
+    2.36,
+    8.911,
+    8.17487
+   ],
+   "to": [
+    2.66,
+    9.489,
+    13.329
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "uv": [
+      2.14625,
+      6.46944,
+      2.165,
+      6.50556
+     ],
+     "texture": "#helmet"
+    },
+    "south": {
+     "uv": [
+      2.335,
+      6.46944,
+      2.35375,
+      6.50556
+     ],
+     "texture": "#helmet"
+    },
+    "west": {
+     "uv": [
+      9.63593,
+      3.65694,
+      9.95806,
+      3.69306
+     ],
+     "texture": "#helmet"
+    },
+    "east": {
+     "uv": [
+      9.16694,
+      3.65694,
+      9.48907,
+      3.69306
+     ],
+     "texture": "#helmet"
+    },
+    "up": {
+     "uv": [
+      10.1475,
+      1.44843,
+      10.16625,
+      1.77056
+     ],
+     "texture": "#helmet"
+    },
+    "down": {
+     "uv": [
+      9.96,
+      1.47944,
+      9.97875,
+      1.80157
+     ],
+     "texture": "#helmet"
+    }
+   }
+  },
+  {
+   "name": "gog_side3_r",
+   "from": [
+    13.34,
+    8.911,
+    8.17487
+   ],
+   "to": [
+    13.64,
+    9.489,
+    13.329
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "uv": [
+      2.5225,
+      6.46944,
+      2.54125,
+      6.50556
+     ],
+     "texture": "#helmet"
+    },
+    "south": {
+     "uv": [
+      2.70875,
+      6.46944,
+      2.7275,
+      6.50556
+     ],
+     "texture": "#helmet"
+    },
+    "west": {
+     "uv": [
+      10.63593,
+      3.65694,
+      10.95806,
+      3.69306
+     ],
+     "texture": "#helmet"
+    },
+    "east": {
+     "uv": [
+      10.16694,
+      3.65694,
+      10.48907,
+      3.69306
+     ],
+     "texture": "#helmet"
+    },
+    "up": {
+     "uv": [
+      10.52125,
+      1.44843,
+      10.54,
+      1.77056
+     ],
+     "texture": "#helmet"
+    },
+    "down": {
+     "uv": [
+      10.33375,
+      1.47944,
+      10.3525,
+      1.80157
+     ],
+     "texture": "#helmet"
+    }
+   }
+  },
+  {
+   "name": "gog_back",
+   "from": [
+    2.4,
+    8.9,
+    13.16
+   ],
+   "to": [
+    13.6,
+    9.5,
+    13.34
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "uv": [
+      0.65,
+      3.65625,
+      1.35,
+      3.69375
+     ],
+     "texture": "#helmet"
+    },
+    "south": {
+     "uv": [
+      1.525,
+      3.65625,
+      2.225,
+      3.69375
+     ],
+     "texture": "#helmet"
+    },
+    "up": {
+     "uv": [
+      3.775,
+      6.4475,
+      4.475,
+      6.45875
+     ],
+     "texture": "#helmet"
+    },
+    "down": {
+     "uv": [
+      2.9,
+      6.47875,
+      3.6,
+      6.49
+     ],
+     "texture": "#helmet"
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,24 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:dirt",
+    "#minecraft:base_stone_overworld",
+    "#minecraft:base_stone_nether",
+    "#minecraft:sand",
+    "minecraft:gravel",
+    "#minecraft:leaves",
+    "#minecraft:logs",
+    "#minecraft:flowers",
+    "#minecraft:saplings",
+    "minecraft:snow_block",
+    "minecraft:ice",
+    "minecraft:packed_ice",
+    "minecraft:blue_ice",
+    "minecraft:clay",
+    "minecraft:mud",
+    {
+      "id": "#c:ores",
+      "required": false
+    }
+  ]
+}

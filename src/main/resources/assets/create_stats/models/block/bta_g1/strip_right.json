@@ -1,0 +1,50 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "shell": "create_stats:block/bta_g1_shell",
+    "alu": "create_stats:block/bta_g1_alu",
+    "brass": "create_stats:block/bta_g1_brass",
+    "leather": "create_stats:block/bta_g1_leather",
+    "desk": "create_stats:block/bta_g1_desk",
+    "cluster": "create_stats:block/bta_g1_cluster",
+    "front": "create_stats:block/bta_g1_front",
+    "side": "create_stats:block/bta_g1_side",
+    "rear": "create_stats:block/bta_g1_rear",
+    "visor": "create_stats:block/bta_g1_visor",
+    "flank": "create_stats:block/bta_g1_flank",
+    "back": "create_stats:block/bta_g1_back",
+    "enamel_red": "create_stats:block/bta_g1_enamel_red",
+    "enamel_black": "create_stats:block/bta_g1_enamel_black",
+    "needle": "create_stats:block/bta_g1_needle",
+    "lit": "create_stats:block/bta_g1_lit",
+    "glass": "create_stats:block/bta_g1_glass",
+    "wheel_flat": "create_stats:block/bta_g1_wheel_flat",
+    "particle": "create_stats:block/bta_g1_shell"
+  },
+  "elements": [
+    {
+      "name": "strip_right",
+      "from": [
+        12,
+        14.5,
+        5.55
+      ],
+      "to": [
+        14,
+        16,
+        5.55
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            1,
+            11.5,
+            3,
+            13
+          ],
+          "texture": "#lit"
+        }
+      }
+    }
+  ]
+}

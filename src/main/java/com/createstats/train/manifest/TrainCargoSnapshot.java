@@ -16,7 +16,6 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 public class TrainCargoSnapshot {
-
     private final Map<FreightManifestResourceKey, Integer> amounts;
 
     public TrainCargoSnapshot() {

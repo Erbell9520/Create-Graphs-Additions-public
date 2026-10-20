@@ -13,28 +13,28 @@ public class CogDataPacket implements CustomPacketPayload
     public static final StreamCodec<FriendlyByteBuf, CogDataPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), CogDataPacket::new);
 
     private final TimeSeriesStore store;
-    
+
     public CogDataPacket(TimeSeriesStore store) {
         this.store = store;
     }
-    
+
     public CogDataPacket(FriendlyByteBuf buf) {
         this.store = TimeSeriesStore.readFromBuf(buf);
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         this.store.writeToBuf(buf);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(CogDataPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> StatsClientHooks.openCogDashboard(packet.store));
     }
-    
+
     public TimeSeriesStore getStore() {
         return this.store;
     }

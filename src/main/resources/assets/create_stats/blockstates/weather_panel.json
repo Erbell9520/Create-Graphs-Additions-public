@@ -1,0 +1,109 @@
+{
+  "variants": {
+    "facing=north,screen=dark": {
+      "model": "create_stats:block/weather_panel_dark"
+    },
+    "facing=east,screen=dark": {
+      "model": "create_stats:block/weather_panel_dark",
+      "y": 90
+    },
+    "facing=south,screen=dark": {
+      "model": "create_stats:block/weather_panel_dark",
+      "y": 180
+    },
+    "facing=west,screen=dark": {
+      "model": "create_stats:block/weather_panel_dark",
+      "y": 270
+    },
+    "facing=north,screen=clear": {
+      "model": "create_stats:block/weather_panel_clear"
+    },
+    "facing=east,screen=clear": {
+      "model": "create_stats:block/weather_panel_clear",
+      "y": 90
+    },
+    "facing=south,screen=clear": {
+      "model": "create_stats:block/weather_panel_clear",
+      "y": 180
+    },
+    "facing=west,screen=clear": {
+      "model": "create_stats:block/weather_panel_clear",
+      "y": 270
+    },
+    "facing=north,screen=rain": {
+      "model": "create_stats:block/weather_panel_rain"
+    },
+    "facing=east,screen=rain": {
+      "model": "create_stats:block/weather_panel_rain",
+      "y": 90
+    },
+    "facing=south,screen=rain": {
+      "model": "create_stats:block/weather_panel_rain",
+      "y": 180
+    },
+    "facing=west,screen=rain": {
+      "model": "create_stats:block/weather_panel_rain",
+      "y": 270
+    },
+    "facing=north,screen=storm": {
+      "model": "create_stats:block/weather_panel_storm"
+    },
+    "facing=east,screen=storm": {
+      "model": "create_stats:block/weather_panel_storm",
+      "y": 90
+    },
+    "facing=south,screen=storm": {
+      "model": "create_stats:block/weather_panel_storm",
+      "y": 180
+    },
+    "facing=west,screen=storm": {
+      "model": "create_stats:block/weather_panel_storm",
+      "y": 270
+    },
+    "facing=north,screen=snow": {
+      "model": "create_stats:block/weather_panel_snow"
+    },
+    "facing=east,screen=snow": {
+      "model": "create_stats:block/weather_panel_snow",
+      "y": 90
+    },
+    "facing=south,screen=snow": {
+      "model": "create_stats:block/weather_panel_snow",
+      "y": 180
+    },
+    "facing=west,screen=snow": {
+      "model": "create_stats:block/weather_panel_snow",
+      "y": 270
+    },
+    "facing=north,screen=dry": {
+      "model": "create_stats:block/weather_panel_dry"
+    },
+    "facing=east,screen=dry": {
+      "model": "create_stats:block/weather_panel_dry",
+      "y": 90
+    },
+    "facing=south,screen=dry": {
+      "model": "create_stats:block/weather_panel_dry",
+      "y": 180
+    },
+    "facing=west,screen=dry": {
+      "model": "create_stats:block/weather_panel_dry",
+      "y": 270
+    },
+    "facing=north,screen=no_sky": {
+      "model": "create_stats:block/weather_panel_no_sky"
+    },
+    "facing=east,screen=no_sky": {
+      "model": "create_stats:block/weather_panel_no_sky",
+      "y": 90
+    },
+    "facing=south,screen=no_sky": {
+      "model": "create_stats:block/weather_panel_no_sky",
+      "y": 180
+    },
+    "facing=west,screen=no_sky": {
+      "model": "create_stats:block/weather_panel_no_sky",
+      "y": 270
+    }
+  }
+}

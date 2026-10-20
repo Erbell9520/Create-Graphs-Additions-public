@@ -5,12 +5,10 @@ import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
 
-/** [1] */
 public record FccBinding(BlockPos prop, BlockPos governor,
                          boolean calibratedGainValid,
                          double calibratedK,
                          double yawFactor) {
-
     public FccBinding(BlockPos prop, BlockPos governor) {
         this(prop, governor, false, 0.0, 0.0);
     }

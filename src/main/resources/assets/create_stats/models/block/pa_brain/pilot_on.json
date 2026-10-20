@@ -1,0 +1,77 @@
+{
+  "textures": {
+    "chips": "create_stats:block/pa_brain_chips",
+    "particle": "create_stats:block/pa_brain_chips"
+  },
+  "elements": [
+    {
+      "from": [
+        -0.7,
+        -0.3,
+        -0.7
+      ],
+      "to": [
+        0.7,
+        0.32,
+        0.7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#chips",
+          "uv": [
+            0,
+            1,
+            1,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#chips",
+          "uv": [
+            0,
+            1,
+            1,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#chips",
+          "uv": [
+            0,
+            1,
+            1,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#chips",
+          "uv": [
+            0,
+            1,
+            1,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#chips",
+          "uv": [
+            0,
+            1,
+            1,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#chips",
+          "uv": [
+            0,
+            1,
+            1,
+            2
+          ]
+        }
+      },
+      "name": "pilot"
+    }
+  ]
+}

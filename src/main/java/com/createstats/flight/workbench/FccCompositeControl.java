@@ -26,7 +26,6 @@ public record FccCompositeControl(
         boolean systemOwned,
         List<FccControlRoute> routes
 ) {
-
     public FccCompositeControl {
         if (id == null) throw new IllegalArgumentException("id");
         if (label == null || label.isEmpty()) throw new IllegalArgumentException("label");

@@ -21,14 +21,14 @@ public class DashboardScreen extends Screen
     private GraphWidget graphWidget;
     private static final int GUI_WIDTH = 280;
     private static final int GUI_HEIGHT = 200;
-    
+
     public DashboardScreen(TimeSeriesStore store) {
         super(Component.literal("Stats Dashboard"));
         this.store = store;
         this.metricType = ((store != null) ? store.getMetricType() : MetricType.GENERIC);
         this.settings = new StatsDisplaySettings();
     }
-    
+
     protected void init() {
         super.init();
         final int left = (this.width - 280) / 2;
@@ -61,7 +61,7 @@ public class DashboardScreen extends Screen
         this.addRenderableWidget(Button.builder(Component.literal("Close"), btn -> this.onClose()).bounds(startX + 3 * (btnW + spacing), btnY, btnW, btnH).build());
         btnY += btnH + 6;
     }
-    
+
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(graphics);
         final int left = (this.width - 280) / 2;
@@ -107,7 +107,7 @@ public class DashboardScreen extends Screen
         }
         return this.store.getDataForTimeScale(this.settings.getTimeRange().getSeconds());
     }
-    
+
     public boolean isPauseScreen() {
         return false;
     }

@@ -13,12 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PathRoutePlannerSmoothingTest {
-
     private static final int Y = 64;
 
-    // A rectangular field of fully passable cells (same height, no hazards).
     private static Map<Long, PathRoutePlanner.Cell> field(int x0, int z0, int x1, int z1) {
         Map<Long, PathRoutePlanner.Cell> m = new HashMap<>();
         for (int x = x0; x <= x1; x++) {
@@ -51,7 +48,6 @@ class PathRoutePlannerSmoothingTest {
 
     @Test
     void resampleProducesEvenSpacingAndKeepsEndpoints() {
-        // Three collinear points (resample intentionally returns 2-point inputs unchanged).
         List<Vec3> line = List.of(new Vec3(0, Y, 0), new Vec3(8, Y, 0), new Vec3(20, Y, 0));
         List<Vec3> out = PathRoutePlanner.resample(line, 2.0);
         assertTrue(out.size() >= 10, "expected roughly 10 points, got " + out.size());
@@ -87,7 +83,7 @@ class PathRoutePlannerSmoothingTest {
             arc.add(new Vec3(radius * Math.cos(ang), Y, radius * Math.sin(ang)));
         }
         double r = PathRoutePlanner.localRadius(arc, arc.size() / 2, 2.0);
-        // Menger curvature of three points on a circle is the exact circumradius, so this is tight.
+
         assertEquals(radius, r, 1.5, "curvature radius of a circular arc should match its radius");
     }
 
@@ -109,26 +105,25 @@ class PathRoutePlannerSmoothingTest {
         List<Float> speeds = PathRoutePlanner.vehicleSpeeds(arc, 16.0f, 0, 4.0);
         float min = Float.MAX_VALUE;
         for (float s : speeds) min = Math.min(min, s);
-        // sqrt(a_lat * R) = sqrt(3.2 * 5) ~ 4.0, well under the 16 cap.
+
         assertTrue(min < 6.0f, "a tight curve should force a low speed, got min " + min);
     }
 
     @Test
     void speedProfileBrakesBeforeACorner() {
-        // Long straight approach, then a sharp near-90-degree kink.
         List<Vec3> path = new ArrayList<>();
         for (int x = 0; x <= 20; x += 2) path.add(new Vec3(x, Y, 0));
         for (int z = 2; z <= 12; z += 2) path.add(new Vec3(20, Y, z));
         List<Float> speeds = PathRoutePlanner.vehicleSpeeds(path, 16.0f, 0, 4.0);
-        int cornerIndex = 10; // the (20,0) vertex where the path turns
-        // A few points before the corner the speed must already be reduced (braking early), not still full.
+        int cornerIndex = 10;
+
         assertTrue(speeds.get(cornerIndex - 2) < 16.0f, "should be braking before the corner");
     }
 
     @Test
     void stringPullCollapsesAStaircaseInOpenField() {
         Map<Long, PathRoutePlanner.Cell> grid = field(-2, -2, 12, 12);
-        // 8-connected staircase from (0,0) to (8,8).
+
         List<PathRoutePlanner.Cell> staircase = cellPath(0, 0, 1, 0, 1, 1, 2, 1, 2, 2, 3, 2, 3, 3,
             4, 3, 4, 4, 5, 4, 5, 5, 6, 5, 6, 6, 7, 6, 7, 7, 8, 7, 8, 8);
         List<PathRoutePlanner.Cell> pulled = PathRoutePlanner.stringPull(staircase, grid, 0.5);
@@ -140,7 +135,7 @@ class PathRoutePlannerSmoothingTest {
     @Test
     void stringPullKeepsACornerWhenAWallBlocksTheDirectLine() {
         Map<Long, PathRoutePlanner.Cell> grid = field(-1, -1, 12, 12);
-        // Vertical wall at x=6 for z=0..8 (hole cells), forcing a detour up and over.
+
         for (int z = 0; z <= 8; z++) grid.remove(PathRoutePlanner.cellKey(6, z));
         List<PathRoutePlanner.Cell> around = cellPath(0, 0, 0, 10, 12, 10, 12, 0);
         List<PathRoutePlanner.Cell> pulled = PathRoutePlanner.stringPull(around, grid, 0.5);
@@ -163,7 +158,7 @@ class PathRoutePlannerSmoothingTest {
     @Test
     void smoothedPathNeverLeavesADrivableCell() {
         Map<Long, PathRoutePlanner.Cell> grid = field(-4, -4, 20, 20);
-        // An L-shaped A* path with a hard right angle.
+
         List<PathRoutePlanner.Cell> raw = cellPath(0, 0, 4, 0, 8, 0, 12, 0, 12, 4, 12, 8, 12, 12);
         List<Vec3> smoothed = PathRoutePlanner.smoothPath(raw, grid, 0.5, 4.0);
         assertTrue(smoothed.size() >= 2);
@@ -189,9 +184,8 @@ class PathRoutePlannerSmoothingTest {
 
     @Test
     void filletNearAnObstacleStaysInsideDrivableCells() {
-        // [2]
         Map<Long, PathRoutePlanner.Cell> grid = field(-4, -4, 16, 16);
-        grid.remove(PathRoutePlanner.cellKey(8, 8)); // obstacle just inside the corner
+        grid.remove(PathRoutePlanner.cellKey(8, 8));
         List<Vec3> corner = List.of(new Vec3(0, Y, 4), new Vec3(10, Y, 4), new Vec3(10, Y, 14));
         List<Vec3> out = PathRoutePlanner.filletCorners(corner, grid, 0.5, 4.0);
         for (Vec3 p : out) {

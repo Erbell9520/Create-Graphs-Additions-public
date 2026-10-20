@@ -17,7 +17,7 @@ public final class CornerIndicatorRenderer
 {
     private CornerIndicatorRenderer() {
     }
-    
+
     public static void render(NativeImage image, DashboardZone zone, StatsDisplayPanelBE.DataChannel channel, StatsDisplayPanelBE be, DisplayTheme theme) {
         final int x = zone.x;
         final int y = zone.y;
@@ -48,7 +48,7 @@ public final class CornerIndicatorRenderer
             }
         }
     }
-    
+
     public static int getIndicatorColor(StatsDisplayPanelBE.DataChannel channel) {
         if (channel == null) {
             return -12303292;
@@ -66,7 +66,7 @@ public final class CornerIndicatorRenderer
             default -> -16711800;
         };
     }
-    
+
     static void renderSourceStatus(NativeImage image, DashboardZone zone, StatsDisplayPanelBE be, DisplayTheme theme) {
         boolean anyActive = false;
         for (SourceConfig src : be.getSourceRegistry().values()) {
@@ -78,11 +78,11 @@ public final class CornerIndicatorRenderer
         final int color = be.getSourceRegistry().isEmpty() ? -12303292 : (anyActive ? -16711800 : -48060);
         renderLightAndLabel(image, zone, color, "SRC", theme);
     }
-    
+
     static void renderChannelCount(NativeImage image, DashboardZone zone, int count, DisplayTheme theme) {
         renderLightAndLabel(image, zone, theme.accent, count + " ch", theme);
     }
-    
+
     static void renderDataFreshness(NativeImage image, DashboardZone zone, StatsDisplayPanelBE be, DisplayTheme theme) {
         boolean anyActive = false;
         boolean anyInactive = false;
@@ -109,12 +109,12 @@ public final class CornerIndicatorRenderer
         }
         renderLightAndLabel(image, zone, color, "DATA", theme);
     }
-    
+
     static void renderAlertCount(NativeImage image, DashboardZone zone, int alertCount, DisplayTheme theme) {
         final int color = (alertCount == 0) ? -16711800 : ((alertCount <= 2) ? -22016 : -48060);
         renderLightAndLabel(image, zone, color, alertCount + " ALR", theme);
     }
-    
+
     private static void renderLightAndLabel(NativeImage image, DashboardZone zone, int color, String label, DisplayTheme theme) {
         final int lightH = Math.max(4, zone.height / 3);
         TextureGraphRenderer.fillRect(image, zone.x + 3, zone.y + 2, zone.width - 6, lightH, color);

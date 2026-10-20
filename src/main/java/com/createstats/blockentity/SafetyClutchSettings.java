@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class SafetyClutchSettings {
-
     private float threshold;
     private float hysteresis;
     private ClutchMode mode;
@@ -22,6 +21,9 @@ public class SafetyClutchSettings {
     }
 
     public void setThreshold(float t) {
+        // NaN goes straight through max/min and never compares true. clutch would never trip again
+
+        if (!Float.isFinite(t)) return;
         this.threshold = Math.max(5.0f, Math.min(100.0f, t));
     }
 
@@ -30,7 +32,12 @@ public class SafetyClutchSettings {
     }
 
     public void setHysteresis(float h) {
+        if (!Float.isFinite(h)) return;
         this.hysteresis = Math.max(0.0f, Math.min(20.0f, h));
+    }
+
+    public float getRearmBelow() {
+        return this.threshold - this.hysteresis;
     }
 
     public ClutchMode getMode() {
@@ -64,8 +71,9 @@ public class SafetyClutchSettings {
 
     public static SafetyClutchSettings load(CompoundTag tag) {
         final SafetyClutchSettings s = new SafetyClutchSettings();
-        if (tag.contains("Threshold")) s.threshold = tag.getFloat("Threshold");
-        if (tag.contains("Hysteresis")) s.hysteresis = tag.getFloat("Hysteresis");
+
+        if (tag.contains("Threshold")) s.setThreshold(tag.getFloat("Threshold"));
+        if (tag.contains("Hysteresis")) s.setHysteresis(tag.getFloat("Hysteresis"));
         try {
             s.mode = ClutchMode.valueOf(tag.getString("Mode"));
         } catch (Exception ignored) {

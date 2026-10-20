@@ -5,12 +5,7 @@ import com.createstats.train.manifest.DeliveryOrderLineView;
 import com.createstats.train.manifest.FreightStationLink;
 import com.createstats.train.manifest.ManifestOperation;
 
-/**
- * Top-level berth/header state for the dispatch wall.
- * Drives the header color, icon, and summary text across all tiers.
- */
 public enum BoardHeaderState {
-
     UNLINKED("Unlinked", 0x999999),
     IDLE("Idle", 0xAAAAAA),
     ARRIVING("Arriving", 0x55CCFF),
@@ -33,15 +28,10 @@ public enum BoardHeaderState {
         return this.displayName;
     }
 
-    /** Suggested ARGB color for the header status indicator (alpha = 0xFF implied). */
     public int getIndicatorColor() {
         return this.indicatorColor;
     }
 
-    /**
-     * Derives the header state from the current board data.
-     * Uses link state, train presence, arrival tracking, and row progress.
-     */
     public static BoardHeaderState derive(FreightStationLink link, DeliveryOrderBoardView board) {
         if (!link.isLinked()) {
             return UNLINKED;
@@ -54,7 +44,9 @@ public enum BoardHeaderState {
         }
 
         int total = board.getTotalOrders();
-        int completed = board.getCompletedOrders() + board.getDismissedOrders();
+        // dismissed is a subset of complete. summing them declared trains READY early
+
+        int completed = board.getCompletedOrders();
         if (total > 0 && completed >= total) {
             return READY;
         }

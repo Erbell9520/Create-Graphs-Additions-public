@@ -14,7 +14,7 @@ public class DashboardLayout
     private final DashboardZone bottomZone;
     private final List<DashboardZone> sparklineZones;
     private final List<DashboardZone> cornerZones;
-    
+
     public DashboardLayout(List<DashboardZone> zones) {
         this.allZones = Collections.unmodifiableList((List<? extends DashboardZone>)new ArrayList<DashboardZone>(zones));
         DashboardZone main = null;
@@ -55,27 +55,27 @@ public class DashboardLayout
         this.sparklineZones = Collections.unmodifiableList((List<? extends DashboardZone>)sparks);
         this.cornerZones = Collections.unmodifiableList((List<? extends DashboardZone>)corners);
     }
-    
+
     public List<DashboardZone> getAllZones() {
         return this.allZones;
     }
-    
+
     public DashboardZone getMainZone() {
         return this.mainZone;
     }
-    
+
     public DashboardZone getHeaderZone() {
         return this.headerZone;
     }
-    
+
     public DashboardZone getBottomZone() {
         return this.bottomZone;
     }
-    
+
     public List<DashboardZone> getSparklineZones() {
         return this.sparklineZones;
     }
-    
+
     public List<DashboardZone> getCornerZones() {
         return this.cornerZones;
     }

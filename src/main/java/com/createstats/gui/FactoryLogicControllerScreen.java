@@ -16,7 +16,6 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 
 public class FactoryLogicControllerScreen extends AbstractContainerScreen<FactoryLogicControllerMenu> {
-
     private static final int SCREEN_BG = 0xE6080A0D;
     private static final int FRAME_BG = 0xF011151A;
     private static final int FRAME_INNER = 0xF0151B22;
@@ -222,7 +221,7 @@ public class FactoryLogicControllerScreen extends AbstractContainerScreen<Factor
             this.renderConsole(graphics);
             super.render(graphics, mouseX, mouseY, partialTick);
         }
-        // FE Dependent Mode panel, drawn unscaled in the screen corner (self-gating).
+
         com.createstats.power.client.FeStatusWidget.draw(graphics, font, 8, 8, 110,
                 this.menu.getController() == null ? null : this.menu.getController().feConsumer());
     }
@@ -353,7 +352,6 @@ public class FactoryLogicControllerScreen extends AbstractContainerScreen<Factor
             int machineSlotLeft = this.leftPos + FactoryLogicControllerMenu.MACHINE_SLOT_X - 1;
             boolean flywheelOnlyRow = controller.isRowFlywheelLinked(row) && controller.getMachineCardStack(row).isEmpty();
             if (flywheelOnlyRow) {
-                // Single-card flywheel control: the machine slot is intentionally unused, mark it disabled.
                 graphics.fill(machineSlotLeft, slotTop - 1, machineSlotLeft + 18, slotTop + 17, 0x55101419);
                 this.border(graphics, machineSlotLeft, slotTop - 1, 18, 18, SOFT_BORDER);
                 graphics.fill(machineSlotLeft + 5, slotTop + 7, machineSlotLeft + 13, slotTop + 9, MUTED);
@@ -654,7 +652,6 @@ public class FactoryLogicControllerScreen extends AbstractContainerScreen<Factor
     }
 
     private static class ConsoleButton extends Button {
-
         private final ButtonStyle style;
 
         private ConsoleButton(int x, int y, int width, int height, Component message, OnPress onPress, ButtonStyle style) {

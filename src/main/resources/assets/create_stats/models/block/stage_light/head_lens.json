@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light glowing LENS only, split out so the BER can tint it with the colour filter and render it full-bright. FACING=up reference; matches the head's lens cuboid position.",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

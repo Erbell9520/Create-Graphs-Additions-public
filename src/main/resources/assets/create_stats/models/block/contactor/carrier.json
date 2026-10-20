@@ -1,0 +1,131 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "armature": "create_stats:block/contactor/armature",
+    "ivory": "create_stats:block/contactor/ivory",
+    "stack": "create_stats:block/contactor/stack",
+    "particle": "create_stats:block/contactor/phenolic"
+  },
+  "elements": [
+    {
+      "__comment": "carrier",
+      "from": [
+        9.3,
+        1.3,
+        7.7
+      ],
+      "to": [
+        13.7,
+        4.2,
+        8.7
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2.5,
+            3.5,
+            6.9,
+            4.5
+          ],
+          "texture": "#ivory"
+        },
+        "north": {
+          "uv": [
+            8.5,
+            8.0,
+            12.9,
+            10.9
+          ],
+          "texture": "#ivory"
+        },
+        "south": {
+          "uv": [
+            7.5,
+            12.5,
+            11.9,
+            15.4
+          ],
+          "texture": "#ivory"
+        },
+        "east": {
+          "uv": [
+            13.5,
+            7.5,
+            14.5,
+            10.4
+          ],
+          "texture": "#ivory"
+        },
+        "west": {
+          "uv": [
+            6.0,
+            11.0,
+            7.0,
+            13.9
+          ],
+          "texture": "#ivory"
+        }
+      }
+    },
+    {
+      "__comment": "armature",
+      "from": [
+        9.4,
+        1.15,
+        6.9
+      ],
+      "to": [
+        13.6,
+        3.5,
+        7.7
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            4.2,
+            0.8,
+            0,
+            0
+          ],
+          "texture": "#armature"
+        },
+        "north": {
+          "uv": [
+            7.5,
+            4.0,
+            11.7,
+            6.35
+          ],
+          "texture": "#stack"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            2.0,
+            4.2,
+            4.35
+          ],
+          "texture": "#stack"
+        },
+        "east": {
+          "uv": [
+            4.0,
+            9.5,
+            4.8,
+            11.85
+          ],
+          "texture": "#stack"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            9.0,
+            4.3,
+            11.35
+          ],
+          "texture": "#stack"
+        }
+      }
+    }
+  ]
+}

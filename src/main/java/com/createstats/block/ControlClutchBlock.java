@@ -33,7 +33,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ControlClutchBlock extends AbstractEncasedShaftBlock implements IBE<ControlClutchBE> {
-
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public ControlClutchBlock(Properties properties) {

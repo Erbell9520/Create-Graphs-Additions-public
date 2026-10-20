@@ -1,0 +1,38 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "create_stats:item/toast_3"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "create_stats:item/toast_1"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "create_stats:item/toast_2"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "create_stats:item/toast_3"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "create_stats:item/toast_4"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "create_stats:item/toast_5"
+    }
+  ]
+}

@@ -14,13 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.joml.Vector3f;
 
-/** [1] */
 public class StageLightBE extends SmartBlockEntity implements com.createstats.power.IFeConsumer {
-
-    /**
-     * FE Dependent Mode buffer, shared by Mk2 (which inherits this tick). Receive-only; exposed
-     * as a block capability via FeCapabilities.
-     */
     protected final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_STAGE_LIGHT));
 
@@ -28,32 +22,25 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return feConsumer;
     }
 
-    /** Maximum pan/tilt of the head away from the mounted-face normal, on each axis, in degrees. */
     public static final int MAX_TILT_DEG = 75;
 
-    /** Range bounds in blocks. Brightness holds full up to PEAK_RANGE then tapers to MAX_RANGE. */
     public static final int MIN_RANGE = 4;
     public static final int PEAK_RANGE = 32;
     public static final int MAX_RANGE = 64;
 
-    /** Brightness (peak luminance) bounds. */
     public static final int MIN_BRIGHTNESS = 1;
     public static final int MAX_BRIGHTNESS = 15;
 
-    /** Focus bounds: low = tight spotlight (narrow cone), high = wide flood. */
     public static final int MIN_FOCUS = 1;
     public static final int MAX_FOCUS = 10;
     public static final int DEFAULT_FOCUS = 4;
 
-    /** [2] */
     public static final int MIN_WIDTH = 2;
     public static final int MAX_WIDTH = 16;
     public static final int DEFAULT_WIDTH = 9;
 
-    /** Beam colour filter sentinel meaning "no filter" (renders as bright white). */
     public static final int NO_TINT = 0xFFFFFF;
 
-    /** [3] */
     public static final int EFFECT_NONE = 0;
     public static final int EFFECT_STROBE = 1;
     public static final int EFFECT_PULSE = 2;
@@ -63,57 +50,47 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
     public static final int MAX_EFFECT_SPEED = 10;
     public static final int DEFAULT_EFFECT_SPEED = 5;
 
-    /** How far (blocks) the battle-bridge auto-aim will keep tracking a target. Overridden by larger tiers. */
     public static final int TRACKING_RANGE = 96;
 
-    /** [4] */
     public static final int LIT_LIGHT_LEVEL = 6;
 
-    private int pan;          // -75..+75
-    private int tilt;         // -75..+75
-    private int range = PEAK_RANGE;        // 4..64
-    private int brightness = MAX_BRIGHTNESS; // 1..15
-    private int focus = DEFAULT_FOCUS;       // 1..10 (tight..wide)
-    private int beamWidth = DEFAULT_WIDTH;   // 2..16 max radius of the VISIBLE cone shaft (cosmetic)
-    private int lightSpread = DEFAULT_WIDTH; // 2..16 max radius of the LIT pool (LambDynamicLights; perf-bound)
-    private int tint = NO_TINT;              // 0xRRGGBB beam colour filter (white = none)
-    private boolean beamVisible = false;     // show the rendered light cone
-    private boolean volumetric = false;      // render the cone as soft volumetric fog
-    private int effect = EFFECT_NONE;        // beam effect program (none/strobe/pulse/rainbow)
-    private int effectSpeed = DEFAULT_EFFECT_SPEED; // 1..10 effect tempo
+    private int pan;
+    private int tilt;
+    private int range = PEAK_RANGE;
+    private int brightness = MAX_BRIGHTNESS;
+    private int focus = DEFAULT_FOCUS;
+    private int beamWidth = DEFAULT_WIDTH;
+    private int lightSpread = DEFAULT_WIDTH;
+    private int tint = NO_TINT;
+    private boolean beamVisible = false;
+    private boolean volumetric = false;
+    private int effect = EFFECT_NONE;
+    private int effectSpeed = DEFAULT_EFFECT_SPEED;
 
     private boolean redstoneActive;
     private int handPan;
     private int handTilt;
 
-    /** Battle-bridge auto-aim: when set, the head tracks this entity each server tick. */
     private java.util.UUID battleTarget;
     private boolean autoAimActive;
 
-    /** Server-only: position of the projected real-light block this fixture currently owns (persisted). */
     private BlockPos projectedLightPos;
-    /** Server-only throttle: next game time at which the projected real light is recomputed. */
+
     private long projectedRecalcAt;
-    /** How often (ticks) the projected real light is recomputed and maintained. */
+
     private static final int PROJECTED_RECALC_TICKS = 5;
 
-    /** Client-only eased display angles for the smooth moving-head animation (not persisted). */
     public float clientPan;
     public float clientTilt;
     public boolean clientAnimInit;
-    /** Client-only angular velocities + last render time for critically-damped (motor-like) easing. */
+
     public float clientPanVel;
     public float clientTiltVel;
     public long clientLastNanos;
-    /** Client-only cached beam occlusion raycast (avoids a full clip every frame for long beams). */
+
     public float clientBeamLen;
     public boolean clientBeamBlocked;
     public long clientBeamClipNanos;
-    /** [5] */
-    public float clientLightReach;
-    public long clientLightClipNanos;
-    /** Whether the cached {@link #clientLightReach} ended on a solid block (so the cone lights that surface). */
-    public boolean clientLightOccluded;
 
     public StageLightBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -121,11 +98,7 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
 
     @Override
     public void addBehaviours(java.util.List<com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour> behaviours) {
-        // No value-box behaviours: aim/range/brightness are configured via the GUI screen so it also works
-        // on Aeronautics sub-levels, where Create value boxes cannot be hovered.
     }
-
-    // state accessors
 
     public int getPan() {
         return this.pan;
@@ -147,32 +120,26 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return this.focus;
     }
 
-    /** Max radius (blocks) of the VISIBLE beam cone shaft (cosmetic, no light cost). */
     public int getBeamWidth() {
         return this.beamWidth;
     }
 
-    /** Max radius (blocks) of the LIT pool (the actual LambDynamicLights illumination). */
     public int getLightSpread() {
         return this.lightSpread;
     }
 
-    /** Maximum battle-bridge tracking distance in blocks (tier-dependent). */
     public int getTrackingRange() {
         return TRACKING_RANGE;
     }
 
-    /** Distance (blocks) the beam holds full brightness; tier/upgrade dependent. */
     public int getPeakRange() {
         return PEAK_RANGE;
     }
 
-    /** Maximum reachable range (blocks); tier/upgrade dependent. */
     public int getMaxRange() {
         return MAX_RANGE;
     }
 
-    /** Beam colour filter as 0xRRGGBB ({@link #NO_TINT} = no filter). */
     public int getTint() {
         return this.tint;
     }
@@ -181,27 +148,22 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return this.tint != NO_TINT;
     }
 
-    /** Whether the rendered light cone (beam shaft + splash) is shown. */
     public boolean isBeamVisible() {
         return this.beamVisible;
     }
 
-    /** Whether the cone is rendered as soft volumetric fog instead of a crisp cone. */
     public boolean isVolumetric() {
         return this.volumetric;
     }
 
-    /** Active beam effect program ({@link #EFFECT_NONE} .. {@link #EFFECT_RAINBOW}). */
     public int getEffect() {
         return this.effect;
     }
 
-    /** Effect tempo, {@link #MIN_EFFECT_SPEED}..{@link #MAX_EFFECT_SPEED}. */
     public int getEffectSpeed() {
         return this.effectSpeed;
     }
 
-    /** Set the colour filter (used by the stained-glass interaction). Persists and syncs. */
     public void setTint(int rgb) {
         this.tint = rgb & 0xFFFFFF;
         this.markUpdated();
@@ -220,7 +182,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return state.hasProperty(StageLightBlock.LIT) && state.getValue(StageLightBlock.LIT);
     }
 
-    /** [6] */
     public void applyConfig(int newPan, int newTilt, int newRange, int newBrightness, int newFocus, int newTint,
                             boolean newBeamVisible, boolean newVolumetric, int newBeamWidth, int newLightSpread,
                             int newEffect, int newEffectSpeed) {
@@ -250,9 +211,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         }
     }
 
-    // battle-bridge control actions (server-side)
-
-    /** Set the lit blockstate (the master on/off the beam + dynamic light follow). */
     public void setLit(boolean lit) {
         if (this.level == null || this.level.isClientSide()) {
             return;
@@ -282,19 +240,16 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         this.markUpdated();
     }
 
-    /** Widen/narrow the VISIBLE beam cone cap (cosmetic). */
     public void adjustBeamWidth(int delta) {
         this.beamWidth = Mth.clamp(this.beamWidth + delta, MIN_WIDTH, MAX_WIDTH);
         this.markUpdated();
     }
 
-    /** Widen/narrow the LIT pool cap (actual illumination radius). */
     public void adjustLightSpread(int delta) {
         this.lightSpread = Mth.clamp(this.lightSpread + delta, MIN_WIDTH, MAX_WIDTH);
         this.markUpdated();
     }
 
-    /** Step the colour filter through [None, 16 dyes]. */
     public void cycleColor(int delta) {
         final net.minecraft.world.item.DyeColor[] dyes = net.minecraft.world.item.DyeColor.values();
         final net.minecraft.world.item.DyeColor current = com.createstats.util.StageLightColors.fromRgb(this.tint);
@@ -305,7 +260,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         this.markUpdated();
     }
 
-    /** Step through the effect programs (wraps both ways). */
     public void cycleEffect(int delta) {
         this.effect = ((this.effect + delta) % EFFECT_COUNT + EFFECT_COUNT) % EFFECT_COUNT;
         this.markUpdated();
@@ -316,7 +270,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         this.markUpdated();
     }
 
-    /** [7] */
     public static float effectBrightnessFactor(int effect, int speed, long gameTime, float partialTick) {
         if (effect != EFFECT_STROBE && effect != EFFECT_PULSE) {
             return 1.0f;
@@ -332,7 +285,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return (float) (0.35 + 0.65 * s);
     }
 
-    /** Beam colour of an effect at a moment in time: rainbow sweeps the hue, everything else keeps the filter. */
     public static int effectTint(int effect, int speed, int baseTint, long gameTime, float partialTick) {
         if (effect != EFFECT_RAINBOW) {
             return baseTint;
@@ -353,8 +305,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         this.markUpdated();
     }
 
-    // battle-bridge target tracking (auto-aim)
-
     public void setBattleTarget(java.util.UUID id) {
         this.battleTarget = id;
         this.autoAimActive = id != null;
@@ -371,7 +321,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return this.battleTarget != null;
     }
 
-    /** Display name of the tracked battle target, or empty when idle / unresolvable (server-side). */
     public String getBattleTargetName() {
         if (!this.autoAimActive || this.battleTarget == null) {
             return "";
@@ -393,8 +342,7 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         if (this.level == null || this.level.isClientSide()) {
             return;
         }
-        // FE Dependent Mode gate: a dead stage light snaps its emitted light out of the world
-        // (the existing clearProjectedLight path) and stops tracking until recharged.
+
         final boolean fePowered = this.feConsumer.serviceTick(this.redstoneActive || this.autoAimActive);
         com.createstats.power.FePowerFx.handleTransition(this.level, this.worldPosition, this.feConsumer);
         if (!fePowered) {
@@ -407,11 +355,10 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         this.updateProjectedLight();
     }
 
-    /** Aim the head at the tracked entity or ship, computing pan/tilt in the block's local frame (ship-aware). */
     private void aimAtBattleTarget() {
         final net.minecraft.world.phys.Vec3 tgtWorld = this.resolveBattleTargetWorld();
         if (tgtWorld == null) {
-            return; // target gone or unloaded; hold last aim
+            return;
         }
         final double hx = this.worldPosition.getX() + 0.5;
         final double hy = this.worldPosition.getY() + 0.8;
@@ -431,7 +378,7 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         }
         final float dist = localDir.length();
         if (dist < 1.0e-3f || dist > this.getTrackingRange()) {
-            return; // nothing to aim at, or out of tracking range: hold the last aim
+            return;
         }
         localDir.normalize();
 
@@ -445,7 +392,7 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         final Vector3f up = new Vector3f(upDir.getStepX(), upDir.getStepY(), upDir.getStepZ());
         final float dn = localDir.dot(normal);
         if (dn <= 0.08f) {
-            return; // target is behind the mounting face; keep the last aim
+            return;
         }
         final int newPan = Mth.clamp(Math.round((float) Math.toDegrees(Math.atan2(localDir.dot(right), dn))), -MAX_TILT_DEG, MAX_TILT_DEG);
         final int newTilt = Mth.clamp(Math.round((float) Math.toDegrees(Math.atan2(localDir.dot(up), dn))), -MAX_TILT_DEG, MAX_TILT_DEG);
@@ -456,7 +403,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         }
     }
 
-    /** Resolve the tracked target's world position: a living entity's eyes, any entity's centre, or a ship's centre. */
     private net.minecraft.world.phys.Vec3 resolveBattleTargetWorld() {
         final net.minecraft.world.entity.Entity entity = this.findTargetEntity(this.battleTarget);
         if (entity != null) {
@@ -464,7 +410,7 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
                     ? entity.getEyePosition()
                     : entity.getBoundingBox().getCenter();
         }
-        // Ship (Aeronautics / Sable sub-level) target.
+
         final Object subLevel = SableBridge.findSubLevelById(this.level, this.battleTarget);
         if (subLevel != null) {
             final org.joml.Vector3d c = SableBridge.subLevelWorldCenter(subLevel);
@@ -491,8 +437,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         }
         return null;
     }
-
-    // redstone differential gimbal (overrides pan/tilt while powered)
 
     public void applyRedstoneGimbal(Level level, BlockPos pos, Direction face) {
         if (level.isClientSide()) {
@@ -530,8 +474,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         final BlockPos neighbor = pos.relative(side);
         return level.getSignal(neighbor, side);
     }
-
-    // beam direction math
 
     public Vector3f computeBeamDirection() {
         final BlockState state = this.getBlockState();
@@ -578,7 +520,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         };
     }
 
-    /** [8] */
     public static Vector3f rotateFacingToUpFrame(Direction facing, Vector3f d) {
         final float x = d.x;
         final float y = d.y;
@@ -593,12 +534,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         };
     }
 
-    // range -> area + brightness model
-
-    /**
-     * The luminance of the projected pool. Holds full {@link #getBrightness()} up to {@link #PEAK_RANGE},
-     * then tapers linearly down toward {@link #MIN_BRIGHTNESS} at {@link #MAX_RANGE}.
-     */
     public int computePoolLuminance() {
         final int peak = this.getPeakRange();
         if (this.range <= peak) {
@@ -608,14 +543,12 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return Math.round(Mth.lerp(t, this.brightness, MIN_BRIGHTNESS));
     }
 
-    /** [9] */
     public double computePoolRadius(double baseRadius) {
         return baseRadius * Math.sqrt(this.range / (double) this.getPeakRange());
     }
 
-    // [10]
+    // invisible real light block where the beam lands. not on flying ships, moving a block every tick would kill the light engine
 
-    /** Maintain (place / move / remove) this fixture's projected real-light block. Server-side, throttled. */
     private void updateProjectedLight() {
         if (!(this.level instanceof net.minecraft.server.level.ServerLevel sl)) {
             return;
@@ -643,7 +576,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         this.ensureProjectedLight(sl);
     }
 
-    /** Raycast the beam through the real world and return the air block where it lands (or its far end). */
     private BlockPos computeProjectedTargetPos(net.minecraft.server.level.ServerLevel sl) {
         final Vector3f a = this.computeBeamDirection();
         net.minecraft.world.phys.Vec3 dir = new net.minecraft.world.phys.Vec3(a.x, a.y, a.z);
@@ -664,12 +596,12 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return BlockPos.containing(end);
     }
 
-    /** Ensure the owned light block exists at {@link #projectedLightPos} at the right brightness (air only). */
     private void ensureProjectedLight(net.minecraft.server.level.ServerLevel sl) {
         if (this.projectedLightPos == null || !sl.isLoaded(this.projectedLightPos)) {
             return;
         }
-        // [11]
+        // strobe keeps the real light solid, toggling it would thrash the light engine
+
         int lum = Mth.clamp(this.computePoolLuminance(), 1, MAX_BRIGHTNESS);
         if (this.effect == EFFECT_PULSE) {
             lum = Math.max(1, Math.round(lum * effectBrightnessFactor(EFFECT_PULSE, this.effectSpeed, sl.getGameTime(), 0.0f)));
@@ -687,7 +619,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         }
     }
 
-    /** Remove the owned light block (only if it is still ours) and forget it. */
     private void clearProjectedLight() {
         if (this.projectedLightPos == null) {
             return;
@@ -699,8 +630,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         }
         this.projectedLightPos = null;
     }
-
-    // persistence + client lifecycle
 
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
@@ -728,7 +657,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
             tag.putLong("ProjectedLight", this.projectedLightPos.asLong());
         }
         if (!clientPacket) {
-            // Power reaches the client as an FePowerSyncPacket, not through this tag.
             this.feConsumer.save(tag);
         }
     }
@@ -761,9 +689,8 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
 
     @Override
     public void invalidate() {
-        if (this.level != null && this.level.isClientSide()
-                && net.neoforged.fml.ModList.get().isLoaded("lambdynlights")) {
-            com.createstats.compat.lambdynlights.StageLightDynamicLightClient.unregister(this);
+        if (this.level != null && this.level.isClientSide()) {
+            com.createstats.dynlight.ClientLightOwners.unloaded(this);
         }
         if (this.level != null && !this.level.isClientSide()) {
             this.clearProjectedLight();
@@ -774,9 +701,8 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
     @Override
     public void initialize() {
         super.initialize();
-        if (this.level != null && this.level.isClientSide()
-                && net.neoforged.fml.ModList.get().isLoaded("lambdynlights")) {
-            com.createstats.compat.lambdynlights.StageLightDynamicLightClient.register(this);
+        if (this.level != null && this.level.isClientSide()) {
+            com.createstats.dynlight.ClientLightOwners.loaded(this);
         }
     }
 }

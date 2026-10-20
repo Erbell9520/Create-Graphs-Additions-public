@@ -1,0 +1,34 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "create_stats:experimental_blocks_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BMB",
+    "EPE",
+    "BGB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "M": {
+      "item": "create_stats:blank_monitor_bezel"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "G": {
+      "item": "create_stats:rpm_governor"
+    }
+  },
+  "result": {
+    "id": "create_stats:vcc_mk3",
+    "count": 1
+  }
+}

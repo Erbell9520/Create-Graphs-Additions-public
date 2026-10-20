@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "facing=north,lamp=dead": {
+      "model": "create_stats:block/power_outlet_duplex_dead"
+    },
+    "facing=north,lamp=live": {
+      "model": "create_stats:block/power_outlet_duplex_live"
+    },
+    "facing=north,lamp=loaded": {
+      "model": "create_stats:block/power_outlet_duplex_loaded"
+    },
+    "facing=east,lamp=dead": {
+      "model": "create_stats:block/power_outlet_duplex_dead",
+      "y": 90
+    },
+    "facing=east,lamp=live": {
+      "model": "create_stats:block/power_outlet_duplex_live",
+      "y": 90
+    },
+    "facing=east,lamp=loaded": {
+      "model": "create_stats:block/power_outlet_duplex_loaded",
+      "y": 90
+    },
+    "facing=south,lamp=dead": {
+      "model": "create_stats:block/power_outlet_duplex_dead",
+      "y": 180
+    },
+    "facing=south,lamp=live": {
+      "model": "create_stats:block/power_outlet_duplex_live",
+      "y": 180
+    },
+    "facing=south,lamp=loaded": {
+      "model": "create_stats:block/power_outlet_duplex_loaded",
+      "y": 180
+    },
+    "facing=west,lamp=dead": {
+      "model": "create_stats:block/power_outlet_duplex_dead",
+      "y": 270
+    },
+    "facing=west,lamp=live": {
+      "model": "create_stats:block/power_outlet_duplex_live",
+      "y": 270
+    },
+    "facing=west,lamp=loaded": {
+      "model": "create_stats:block/power_outlet_duplex_loaded",
+      "y": 270
+    }
+  }
+}

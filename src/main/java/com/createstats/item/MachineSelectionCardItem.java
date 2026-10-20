@@ -26,7 +26,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 public class MachineSelectionCardItem extends Item {
-
     private static final String TAG_KEY = "MachineSelectionCard";
 
     public MachineSelectionCardItem(Properties properties) {

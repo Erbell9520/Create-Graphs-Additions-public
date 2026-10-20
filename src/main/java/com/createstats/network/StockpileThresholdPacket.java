@@ -10,9 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** [1] */
 public class StockpileThresholdPacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<StockpileThresholdPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "stockpile_threshold"));
 
@@ -62,7 +60,7 @@ public class StockpileThresholdPacket implements CustomPacketPayload {
             if (be instanceof ThresholdSwitchBlockEntity tsw) {
                 tsw.offWhenBelow = Math.max(0, packet.offBelow);
                 tsw.onWhenAbove = Math.max(0, packet.onAbove);
-                // Recompute the redstone state against the new thresholds and persist.
+
                 tsw.updateCurrentLevel();
                 tsw.setChanged();
             }

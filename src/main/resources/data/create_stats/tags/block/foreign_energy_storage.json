@@ -1,0 +1,85 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "createaddition:modular_accumulator",
+      "required": false
+    },
+    {
+      "id": "mekanism:induction_casing",
+      "required": false
+    },
+    {
+      "id": "mekanism:induction_port",
+      "required": false
+    },
+    {
+      "id": "mekanism:basic_energy_cube",
+      "required": false
+    },
+    {
+      "id": "mekanism:advanced_energy_cube",
+      "required": false
+    },
+    {
+      "id": "mekanism:elite_energy_cube",
+      "required": false
+    },
+    {
+      "id": "mekanism:ultimate_energy_cube",
+      "required": false
+    },
+    {
+      "id": "thermal:energy_cell",
+      "required": false
+    },
+    {
+      "id": "powah:energy_cell_starter",
+      "required": false
+    },
+    {
+      "id": "powah:energy_cell_basic",
+      "required": false
+    },
+    {
+      "id": "powah:energy_cell_hardened",
+      "required": false
+    },
+    {
+      "id": "powah:energy_cell_blazing",
+      "required": false
+    },
+    {
+      "id": "powah:energy_cell_niotic",
+      "required": false
+    },
+    {
+      "id": "powah:energy_cell_spirited",
+      "required": false
+    },
+    {
+      "id": "powah:energy_cell_nitro",
+      "required": false
+    },
+    {
+      "id": "immersiveengineering:capacitor_lv",
+      "required": false
+    },
+    {
+      "id": "immersiveengineering:capacitor_mv",
+      "required": false
+    },
+    {
+      "id": "immersiveengineering:capacitor_hv",
+      "required": false
+    },
+    {
+      "id": "ae2:energy_cell",
+      "required": false
+    },
+    {
+      "id": "ae2:dense_energy_cell",
+      "required": false
+    }
+  ]
+}

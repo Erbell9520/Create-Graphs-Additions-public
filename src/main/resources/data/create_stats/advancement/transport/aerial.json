@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:transport/mk4",
+  "display": {
+    "icon": {
+      "id": "create_stats:vcc_mk4_aerial"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.aerial.title",
+      "fallback": "Teknofest Champion"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.aerial.description",
+      "fallback": "Get a VCC Mk IV Aerial. Teknofest called: they want you on the poster."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "aerial": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:vcc_mk4_aerial"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "aerial"
+    ]
+  ]
+}

@@ -41,9 +41,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class FactoryLogicControllerBlock extends HorizontalDirectionalBlock implements EntityBlock {
-
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
-    // [1]
+
     private static final VoxelShape SHAPE_NORTH = Shapes.or(
             Block.box(0.0, 0.0, 0.0, 16.0, 3.0, 16.0),
             Block.box(0.0, 3.0, 0.0, 16.0, 5.0, 6.0),

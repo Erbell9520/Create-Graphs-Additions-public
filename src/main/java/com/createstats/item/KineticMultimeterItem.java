@@ -25,9 +25,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-/** [1] */
 public class KineticMultimeterItem extends Item {
-
     public KineticMultimeterItem(Item.Properties properties) {
         super(properties);
     }
@@ -49,7 +47,8 @@ public class KineticMultimeterItem extends Item {
         long now = level.getGameTime();
         Direction face = context.getClickedFace();
 
-        // [2]
+        // Route through the mod's unified source reader so the meter inherits every kinetic block we
+
         SourceReadout readout = be == null ? null : InstrumentSourceHelper.readSource(be, face);
         boolean kinetic = readout != null
             && (readout.sourceKind() == InstrumentSourceHelper.SourceKind.KINETIC_STRESS
@@ -68,8 +67,6 @@ public class KineticMultimeterItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        // Signed RPM straight from the kinetic BE when possible (direction-true for the cog/needle);
-        // multiblock engines that are not KineticBlockEntity fall back to the readout's magnitude.
         float rpm = be instanceof KineticBlockEntity kbe
             ? kbe.getSpeed()
             : metric(readout, 0f, "rpm", "abs_rpm", "network_rpm", "stored_rpm");
@@ -82,7 +79,6 @@ public class KineticMultimeterItem extends Item {
                 : (kbe.calculateStressApplied() > 0f ? KineticMultimeterData.ROLE_CONSUMER
                 : KineticMultimeterData.ROLE_NONE);
         } else {
-            // diesel engines / portable engines / generators surfaced via compat are all sources
             role = KineticMultimeterData.ROLE_SOURCE;
         }
 
@@ -92,8 +88,6 @@ public class KineticMultimeterItem extends Item {
             healthState = used > cap ? KineticMultimeterData.STATE_OVER
                 : (load >= 70f ? KineticMultimeterData.STATE_WARN : KineticMultimeterData.STATE_OK);
         } else {
-            // kinetic but no stress readout (a shaft / speed-only source): powered look if it is
-            // actually spinning or networked, otherwise cold (matches design plan sec.32).
             boolean live = Math.abs(rpm) > 0.01f
                 || (be instanceof KineticBlockEntity kbe && kbe.hasNetwork());
             healthState = live ? KineticMultimeterData.STATE_OK : KineticMultimeterData.STATE_NONET;
@@ -108,7 +102,6 @@ public class KineticMultimeterItem extends Item {
         return InteractionResult.SUCCESS;
     }
 
-    /** First present metric value among {@code keys}, or {@code def} if none are present. */
     private static float metric(SourceReadout readout, float def, String... keys) {
         for (String key : keys) {
             InstrumentSourceHelper.MetricSample sample = readout.metrics().get(key);

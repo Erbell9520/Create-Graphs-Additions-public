@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 
 public class OverflowGateRenderer extends SmartBlockEntityRenderer<OverflowGateBE> {
-
     public OverflowGateRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }

@@ -28,10 +28,10 @@ public final class ProjectorTextureManager
     private static final int MAX_IDLE_TICKS = 200;
     private static int cleanupCounter;
     private static final int CLEANUP_INTERVAL = 100;
-    
+
     private ProjectorTextureManager() {
     }
-    
+
     public static ResourceLocation getOrUpdateTexture(HolographicProjectorBE be) {
         final BlockPos pos = be.getBlockPos();
         TextureEntry entry = ProjectorTextureManager.textures.get(pos);
@@ -55,28 +55,28 @@ public final class ProjectorTextureManager
         }
         return entry.location;
     }
-    
+
     public static void markDirty(BlockPos pos) {
         final TextureEntry entry = ProjectorTextureManager.textures.get(pos);
         if (entry != null) {
             entry.needsRedraw = true;
         }
     }
-    
+
     public static void cleanup(BlockPos pos) {
         final TextureEntry entry = ProjectorTextureManager.textures.remove(pos);
         if (entry != null) {
             disposeEntry(entry);
         }
     }
-    
+
     public static void cleanupAll() {
         for (TextureEntry e : ProjectorTextureManager.textures.values()) {
             disposeEntry(e);
         }
         ProjectorTextureManager.textures.clear();
     }
-    
+
     private static TextureEntry createEntry(BlockPos pos) {
         NativeImage image = null;
         try {
@@ -101,7 +101,7 @@ public final class ProjectorTextureManager
             return null;
         }
     }
-    
+
     private static void updateTexture(TextureEntry entry, HolographicProjectorBE be) {
         final HologramSettings settings = be.getHologramSettings();
         final DisplayTheme theme = settings.getDisplayTheme();
@@ -126,8 +126,8 @@ public final class ProjectorTextureManager
         }
         currentPage = Math.min(currentPage, totalPages - 1);
         final HolographicProjectorBE.DataChannel currentChannel = channels.get(currentPage);
-        // channelIdx must reflect the channel's position in the unfiltered list so that color
-        // assignment (CHANNEL_COLORS[channelIdx % len]) stays stable even when channels are hidden.
+        // index in the unfiltered list so colours stay put when channels are hidden
+
         int channelIdx = currentPage;
         for (int i = 0; i < allChannels.size(); i++) {
             if (allChannels.get(i).getId().equals(currentChannel.getId())) {
@@ -139,7 +139,7 @@ public final class ProjectorTextureManager
         TextureGraphRenderer.renderProjectorPage(entry.image, currentChannel, channelIdx, currentPage, totalPages, theme, renderSettings);
         entry.dynTex.upload();
     }
-    
+
     private static StatsDisplaySettings buildRenderSettings(HologramSettings hs) {
         final StatsDisplaySettings s = new StatsDisplaySettings();
         s.setGraphType(mapDisplayModeToGraphType(hs.getDisplayMode()));
@@ -157,7 +157,7 @@ public final class ProjectorTextureManager
             default        -> StatsDisplaySettings.GraphType.LINE_CHART;
         };
     }
-    
+
     private static void cleanupStale() {
         final long currentTick = getGameTime();
         final Iterator<Map.Entry<BlockPos, TextureEntry>> it = ProjectorTextureManager.textures.entrySet().iterator();
@@ -169,7 +169,7 @@ public final class ProjectorTextureManager
             }
         }
     }
-    
+
     private static void disposeEntry(TextureEntry entry) {
         try {
             if (entry.dynTex != null) {
@@ -180,19 +180,19 @@ public final class ProjectorTextureManager
             CreateStats.LOGGER.warn("Failed to dispose projector texture", ex);
         }
     }
-    
+
     private static long getGameTime() {
         if (Minecraft.getInstance().level != null) {
             return Minecraft.getInstance().level.getGameTime();
         }
         return System.currentTimeMillis() / 50L;
     }
-    
+
     static {
         textures = new HashMap<BlockPos, TextureEntry>();
         ProjectorTextureManager.cleanupCounter = 0;
     }
-    
+
     private static class TextureEntry
     {
         NativeImage image;

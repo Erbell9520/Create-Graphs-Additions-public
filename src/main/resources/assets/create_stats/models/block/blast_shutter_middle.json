@@ -1,0 +1,8 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "case": "create_stats:block/blast_shutter_case",
+    "slat": "create_stats:block/blast_shutter_slat",
+    "particle": "create_stats:block/blast_shutter_case"
+  }
+}

@@ -30,10 +30,10 @@ import net.neoforged.api.distmarker.OnlyIn;
 public final class TextureGraphRenderer
 {
     public static final int[] CHANNEL_COLORS;
-    
+
     private TextureGraphRenderer() {
     }
-    
+
     public static void renderPage(NativeImage image, StatsDisplayPanelBE be, StatsDisplayPanelBE.DataChannel channel, int channelIdx, int pageIdx, int totalPages) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -137,7 +137,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     public static void renderProjectorPage(NativeImage image, HolographicProjectorBE.DataChannel projChannel, int channelIdx, int pageIdx, int totalPages, DisplayTheme theme, StatsDisplaySettings settings) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -177,7 +177,7 @@ public final class TextureGraphRenderer
         }
         renderGraph(image, adapted, channelIdx, settings.getGraphType(), contentX, graphY, contentW, graphH, theme, settings);
     }
-    
+
     public static int renderHeader(NativeImage image, StatsDisplayPanelBE be, StatsDisplayPanelBE.DataChannel channel, int x, int y, int w, DisplayTheme theme, StatsDisplaySettings settings) {
         final int baseScale = getTextScale(image.getWidth());
         String sourceName = "";
@@ -216,14 +216,14 @@ public final class TextureGraphRenderer
         BitmapFont.drawRight(image, valueText, x + w, lineY, color, valueScale);
         return sourceLineH + Math.max(BitmapFont.textHeight(labelScale), BitmapFont.textHeight(valueScale)) + 4;
     }
-    
+
     private static int renderTopologyHeader(NativeImage image, int x, int y, int w, DisplayTheme theme, int imageWidth) {
         final int scale = getTextScale(imageWidth);
         final int lineH = BitmapFont.textHeight(scale) + 2;
         BitmapFont.drawString(image, "Network Topology", x, y, theme.border, scale);
         return lineH + 2;
     }
-    
+
     public static void renderGraph(NativeImage image, StatsDisplayPanelBE.DataChannel channel, int channelIdx, StatsDisplaySettings.GraphType type, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         if (type == StatsDisplaySettings.GraphType.LINE_CHART) {
             renderLineChart(image, channel, channelIdx, x, y, w, h, theme, settings);
@@ -250,16 +250,16 @@ public final class TextureGraphRenderer
             return;
         }
         if (type == StatsDisplaySettings.GraphType.INVENTORY_STATUS) {
-            return; // handled by renderPanelInventoryStatus via renderPage()
+            return;
         }
         if (type == StatsDisplaySettings.GraphType.FACTORY_STATUS) {
-            return; // handled by renderPanelFactoryStatus via renderPage()
+            return;
         }
         if (type == StatsDisplaySettings.GraphType.TOPOLOGY) {
             TopologyRenderer.renderTopology(image, x, y, w, h, theme, settings);
         }
     }
-    
+
     private static void renderLineChart(NativeImage image, StatsDisplayPanelBE.DataChannel channel, int channelIdx, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final TimeSeriesStore store = channel.getStore();
         final float[] data = getVisibleData(store, settings);
@@ -411,7 +411,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     private static void renderPredictionLine(NativeImage image, PredictionResult pred, float[] data, int chartX, int chartY, int chartW, int chartH, float yMin, float yMax, int color, int futureSamples) {
         final int n = data.length;
         final int totalRange = n + futureSamples - 1;
@@ -435,7 +435,7 @@ public final class TextureGraphRenderer
             drawDashedLine(image, px0, py0, px2, py2, predColor, 4, 3);
         }
     }
-    
+
     private static void renderConfidenceBand(NativeImage image, PredictionResult pred, float[] data, int chartX, int chartY, int chartW, int chartH, float yMin, float yMax, int color, int futureSamples, double tCritical) {
         final int n = data.length;
         final int totalRange = n + futureSamples - 1;
@@ -464,7 +464,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     private static int blendPixelAbgr(NativeImage image, int px, int py, int newArgb) {
         final int newAbgr = BitmapFont.argbToAbgr(newArgb);
         final int existing = image.getPixelRGBA(px, py);
@@ -476,7 +476,7 @@ public final class TextureGraphRenderer
         final int a = Math.max(existing >> 24 & 0xFF, newA);
         return a << 24 | b << 16 | g << 8 | r;
     }
-    
+
     private static void drawDashedLine(NativeImage image, int x0, int y0, int x1, int y1, int argbColor, int dashLen, int gapLen) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -508,7 +508,7 @@ public final class TextureGraphRenderer
             ++pixelCount;
         }
     }
-    
+
     private static void renderBarChart(NativeImage image, StatsDisplayPanelBE.DataChannel channel, int channelIdx, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final TimeSeriesStore store = channel.getStore();
         final float[] data = getVisibleData(store, settings);
@@ -544,7 +544,7 @@ public final class TextureGraphRenderer
         drawHLine(image, x + 2, y + h - 2, w - 4, theme.dim);
         drawVLine(image, x + 2, y, h - 2, theme.dim);
     }
-    
+
     private static void renderGauge(NativeImage image, StatsDisplayPanelBE.DataChannel channel, int channelIdx, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final TimeSeriesStore store = channel.getStore();
         final float latest = store.getLatestValue();
@@ -574,7 +574,7 @@ public final class TextureGraphRenderer
         final String value = store.getMetricType().formatValue(latest);
         BitmapFont.drawCentered(image, value, x, cy - BitmapFont.textHeight(bigScale) / 2, w, color, bigScale);
     }
-    
+
     private static void renderNumeric(NativeImage image, StatsDisplayPanelBE.DataChannel channel, int channelIdx, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final TimeSeriesStore store = channel.getStore();
         int color = TextureGraphRenderer.CHANNEL_COLORS[channelIdx % TextureGraphRenderer.CHANNEL_COLORS.length];
@@ -593,7 +593,7 @@ public final class TextureGraphRenderer
             BitmapFont.drawCentered(image, unit, x, y + h - BitmapFont.textHeight(scale) - 2, w, theme.dim, scale);
         }
     }
-    
+
     private static void renderCapacity(NativeImage image, StatsDisplayPanelBE.DataChannel channel, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final TimeSeriesStore store = channel.getStore();
         final float latest = store.getLatestValue();
@@ -664,7 +664,7 @@ public final class TextureGraphRenderer
         final String valText = formatCapacityValue(amountType, used) + " / " + formatCapacityValue(amountType, total);
         BitmapFont.drawCentered(image, valText, x, barY + barH + 4, w, theme.text, scale);
     }
-    
+
     private static void renderProduction(NativeImage image, StatsDisplayPanelBE.DataChannel channel, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final TimeSeriesStore store = channel.getStore();
         final float latest = store.getLatestValue();
@@ -702,13 +702,13 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     private static void renderPanelProductionSummary(NativeImage image, StatsDisplayPanelBE be, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final int scale = getTextScale(image.getWidth());
         final int lineH = BitmapFont.textHeight(scale) + 3;
         final java.util.List<StatsDisplayPanelBE.DataChannel> channels = be.getVisibleChannels();
-        // Collect production rates
-        final java.util.List<float[]> entries = new java.util.ArrayList<>(); // [rate, nameHash_unused]
+
+        final java.util.List<float[]> entries = new java.util.ArrayList<>();
         final java.util.List<String> entryLabels = new java.util.ArrayList<>();
         float net = 0f;
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
@@ -725,7 +725,7 @@ public final class TextureGraphRenderer
             entries.add(new float[]{ rate });
             entryLabels.add(label);
         }
-        // Header
+
         final String hdr = "Production";
         BitmapFont.drawCentered(image, hdr, x, y + 2, w, theme.accent, scale);
         final String netStr = String.format("NET %+.1f/m", net);
@@ -735,7 +735,7 @@ public final class TextureGraphRenderer
             BitmapFont.drawCentered(image, "No active flows", x, y + h / 2, w, theme.dim, scale);
             return;
         }
-        // Sort by |rate| descending and show top 4
+
         final int n = entries.size();
         final Integer[] order = new Integer[n];
         for (int i = 0; i < n; i++) order[i] = i;
@@ -769,14 +769,14 @@ public final class TextureGraphRenderer
         final int scale = getTextScale(image.getWidth());
         final int lineH = BitmapFont.textHeight(scale) + 2;
         final java.util.List<StatsDisplayPanelBE.DataChannel> channels = be.getVisibleChannels();
-        // Group channels by sourceId
+
         final java.util.LinkedHashMap<String, java.util.List<StatsDisplayPanelBE.DataChannel>> bySource = new java.util.LinkedHashMap<>();
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
             final String sid = StatsDisplaySettings.extractSourceId(ch.getId());
             bySource.computeIfAbsent(sid, k -> new java.util.ArrayList<>()).add(ch);
         }
-        // Resolve capacity per source
-        final java.util.List<float[]> capEntries = new java.util.ArrayList<>(); // [used, total, pct]
+
+        final java.util.List<float[]> capEntries = new java.util.ArrayList<>();
         final java.util.List<String> capLabels = new java.util.ArrayList<>();
         for (java.util.Map.Entry<String, java.util.List<StatsDisplayPanelBE.DataChannel>> e : bySource.entrySet()) {
             if ("legacy".equals(e.getKey())) continue;
@@ -870,7 +870,7 @@ public final class TextureGraphRenderer
             fillRect(image, dotsX + i * dotSpacing, dotsY, dotSize, dotSize, dotColor);
         }
     }
-    
+
     public static void renderPageDots(NativeImage image, int currentPage, int totalPages, int x, int y, int w, int h, DisplayTheme theme) {
         final int dotSize = Math.max(2, h / 3);
         final int dotSpacing = dotSize * 2;
@@ -883,7 +883,7 @@ public final class TextureGraphRenderer
             fillRect(image, startX + i * dotSpacing, dotY, dotSize, dotSize, color);
         }
     }
-    
+
     public static void fillRect(NativeImage image, int x, int y, int w, int h, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -899,22 +899,22 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     public static void drawHLine(NativeImage image, int x, int y, int w, int argbColor) {
         fillRect(image, x, y, w, 1, argbColor);
     }
-    
+
     public static void drawVLine(NativeImage image, int x, int y, int h, int argbColor) {
         fillRect(image, x, y, 1, h, argbColor);
     }
-    
+
     public static void drawBorder(NativeImage image, int x, int y, int w, int h, int thickness, int argbColor) {
         fillRect(image, x, y, w, thickness, argbColor);
         fillRect(image, x, y + h - thickness, w, thickness, argbColor);
         fillRect(image, x, y, thickness, h, argbColor);
         fillRect(image, x + w - thickness, y, thickness, h, argbColor);
     }
-    
+
     public static void drawLine(NativeImage image, int x0, int y0, int x1, int y1, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -1043,7 +1043,7 @@ public final class TextureGraphRenderer
     private static float rfpart(float x) {
         return 1.0f - fpart(x);
     }
-    
+
     public static void drawGrid(NativeImage image, int x, int y, int w, int h, int hDivs, int vDivs, int argbColor) {
         for (int i = 1; i < hDivs; ++i) {
             final int gy = y + h * i / hDivs;
@@ -1054,7 +1054,7 @@ public final class TextureGraphRenderer
             drawVLine(image, gx, y, h, argbColor);
         }
     }
-    
+
     public static void drawArcFill(NativeImage image, int cx, int cy, int innerR, int outerR, double startAngle, double endAngle, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -1097,7 +1097,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     public static void fillCircle(NativeImage image, int cx, int cy, int r, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -1113,7 +1113,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     public static void fillTriangle(NativeImage image, int x0, int y0, int x1, int y1, int x2, int y2, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -1163,7 +1163,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     public static void setPixelBlended(NativeImage image, int px, int py, int argbSrc) {
         if (px < 0 || px >= image.getWidth() || py < 0 || py >= image.getHeight()) {
             return;
@@ -1190,7 +1190,7 @@ public final class TextureGraphRenderer
         final int outA = 255;
         image.setPixelRGBA(px, py, outA << 24 | outB << 16 | outG << 8 | outR);
     }
-    
+
     public static int getTextScale(int imageWidth) {
         if (imageWidth >= 768) {
             return 2;
@@ -1205,7 +1205,7 @@ public final class TextureGraphRenderer
         }
         return scale;
     }
-    
+
     public static String truncate(String text, int maxWidth, int scale) {
         if (BitmapFont.measureString(text, scale) <= maxWidth) {
             return text;
@@ -1215,7 +1215,7 @@ public final class TextureGraphRenderer
         }
         return text + "..";
     }
-    
+
     public static String getTrendArrow(TimeSeriesStore store) {
         return getTrendArrow(store, null);
     }
@@ -1275,7 +1275,7 @@ public final class TextureGraphRenderer
         }
         return windowStartTick;
     }
-    
+
     public static String formatCompact(float value, float range) {
         final float abs = Math.abs(value);
         if (abs >= 1000000.0f) {
@@ -1322,7 +1322,7 @@ public final class TextureGraphRenderer
             default -> metricType.formatValue(value);
         };
     }
-    
+
     public static float niceNumber(float value) {
         if (value <= 0.0f) {
             return 1.0f;
@@ -1344,7 +1344,7 @@ public final class TextureGraphRenderer
         }
         return nice * (float)Math.pow(10.0, exp);
     }
-    
+
     public static String formatTimeLabel(float seconds) {
         if (seconds < 60.0f) {
             return "" + (int)seconds;
@@ -1358,11 +1358,11 @@ public final class TextureGraphRenderer
         final int min2 = (int)(seconds % 3600.0f / 60.0f);
         return (min2 > 0) ? (hr + "h" + min2) : ("" + hr);
     }
-    
+
     public static int withAlpha(int color, int alpha) {
         return alpha << 24 | (color & 0xFFFFFF);
     }
-    
+
     private static void renderAnnotations(NativeImage image, StatsDisplayPanelBE be, int chartX, int chartY, int chartW, int chartH, DisplayTheme theme, int scale, StatsDisplaySettings settings) {
         final AnnotationManager mgr = be.getAnnotationManager();
         if (mgr.size() == 0) {
@@ -1429,7 +1429,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     private static void drawDashedVLine(NativeImage image, int x, int y, int height, int dashLen, int gapLen, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -1449,7 +1449,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     private static void renderEfficiencyFullPage(NativeImage image, StatsDisplayPanelBE be, int x, int y, int w, int h, DisplayTheme theme) {
         final EfficiencyScore score = be.getLatestEfficiencyScore();
         final GradeHistory history = be.getGradeHistory();
@@ -1484,12 +1484,19 @@ public final class TextureGraphRenderer
         for (int i = 0; i < dims.length; ++i) {
             final EfficiencyDimension dim = dims[i];
             final float dimScore = score.getDimensionPercent(dim);
+            final boolean known = score.isKnown(dim);
             final int barY = zoneBTop + i * barTotalH;
             final String truncLabel = truncate(dim.getDisplayName(), (int)(w * 0.33f), 1);
-            BitmapFont.drawString(image, truncLabel, x, barY, theme.text, 1);
+            BitmapFont.drawString(image, truncLabel, x, barY, known ? theme.text : theme.dim, 1);
             final int barX = x + (int)(w * 0.35f);
             final int barW = (int)(w * 0.5f);
             fillRect(image, barX, barY + 1, barW, barH, theme.grid);
+            if (!known) {
+                // "--" not an empty bar, unmeasured and zero need opposite fixes
+
+                BitmapFont.drawRight(image, "--", x + w, barY, theme.dim, 1);
+                continue;
+            }
             final int fillW = (int)(barW * dimScore / 100.0f);
             final int fillColor = (dimScore >= 80.0f) ? dim.getBarColor() : ((dimScore >= 50.0f) ? lerpColor(-22016, dim.getBarColor(), (dimScore - 50.0f) / 30.0f) : lerpColor(-48060, -22016, dimScore / 50.0f));
             if (fillW > 0) {
@@ -1525,7 +1532,7 @@ public final class TextureGraphRenderer
             }
         }
     }
-    
+
     private static int lerpColor(int colorA, int colorB, float t) {
         t = Math.max(0.0f, Math.min(1.0f, t));
         final int aA = colorA >> 24 & 0xFF;
@@ -1542,7 +1549,7 @@ public final class TextureGraphRenderer
         final int b = (int)(bA + (bB - bA) * t);
         return a << 24 | r << 16 | g << 8 | b;
     }
-    
+
     static {
         CHANNEL_COLORS = new int[] { -16711800, -12276993, -39356, -13312, -47873, -12255284, -30652, -7798972, -7811841, -21880, -3372801, -5570748 };
     }
@@ -1552,7 +1559,6 @@ public final class TextureGraphRenderer
         final int lineH = BitmapFont.textHeight(scale) + 2;
         final java.util.List<InventoryPanelEntry> entries = buildInventoryPanelEntries(be);
 
-        // Header band
         final int headerH = lineH + 4;
         fillRect(image, x, y, w, headerH, withAlpha(theme.grid, 60));
         BitmapFont.drawString(image, "INVENTORY STATUS", x + 3, y + 2, theme.accent, scale);
@@ -1563,7 +1569,6 @@ public final class TextureGraphRenderer
             return;
         }
 
-        // Header summary: total observed items + total fluid
         long totalItems = 0L;
         long totalFluidMb = 0L;
         int sourceCount = entries.size();
@@ -1581,7 +1586,6 @@ public final class TextureGraphRenderer
         }
         BitmapFont.drawRight(image, summary, x + w - 3, y + 2, theme.text, scale);
 
-        // Card grid layout
         final int bodyY = y + headerH + 2;
         final int bodyH = h - headerH - 2;
         final int gap = 2;
@@ -1607,7 +1611,6 @@ public final class TextureGraphRenderer
     }
 
     private static void renderInventoryCard(NativeImage image, InventoryPanelEntry entry, int cx, int cy, int cw, int ch, int lineH, int scale, DisplayTheme theme) {
-        // Card chrome
         fillRect(image, cx, cy, cw, ch, withAlpha(theme.bg, 200));
         drawBorder(image, cx, cy, cw, ch, 1, theme.border);
 
@@ -1615,7 +1618,6 @@ public final class TextureGraphRenderer
         final int innerW = cw - padX * 2;
         final int rowColor = entry.hasCapacity ? (entry.percent > 90.0f ? theme.warn : entry.percent > 60.0f ? theme.accent : theme.text) : theme.dim;
 
-        // Line 1: Source/target label  (left)  + chip (right)
         final String chip = inventoryTypeChip(entry.sourceType);
         final int chipW = chip.isEmpty() ? 0 : BitmapFont.measureString(chip, scale) + 4;
         BitmapFont.drawString(image, truncate(entry.label, innerW - chipW - 2, scale), cx + padX, cy + 2, theme.text, scale);
@@ -1625,13 +1627,11 @@ public final class TextureGraphRenderer
             BitmapFont.drawString(image, chip, chipX + 2, cy + 3, theme.accent, scale);
         }
 
-        // Line 2: amount  (used / total)  - emphasised
         final String amountLine = entry.hasCapacity
                 ? formatCapacityValue(entry.amountType, entry.usedAmount) + " / " + formatCapacityValue(entry.amountType, entry.totalAmount)
                 : formatCapacityValue(entry.amountType, entry.usedAmount);
         BitmapFont.drawString(image, truncate(amountLine, innerW, scale), cx + padX, cy + 2 + lineH, rowColor, scale);
 
-        // Line 3: bar
         final int barY = cy + 3 + lineH * 2;
         final int barH = Math.max(4, lineH - 4);
         fillRect(image, cx + padX, barY, innerW, barH, withAlpha(theme.grid, 200));
@@ -1643,7 +1643,6 @@ public final class TextureGraphRenderer
         }
         drawBorder(image, cx + padX, barY, innerW, barH, 1, theme.border);
 
-        // Line 4: percent + suffix
         final String footer = entry.hasCapacity
                 ? String.format("%.0f%% full", entry.percent)
                 : (entry.sourceType == null ? "" : entry.sourceType);
@@ -1665,7 +1664,7 @@ public final class TextureGraphRenderer
         final int scale = getTextScale(image.getWidth());
         final int lineH = BitmapFont.textHeight(scale) + 2;
         final java.util.List<FactoryPanelEntry> entries = buildFactoryPanelEntries(be);
-        // Header band
+
         final int headerH = lineH + 4;
         fillRect(image, x, y, w, headerH, withAlpha(theme.grid, 60));
         BitmapFont.drawString(image, "FACTORY STATUS", x + 3, y + 2, theme.accent, scale);
@@ -1674,7 +1673,7 @@ public final class TextureGraphRenderer
             BitmapFont.drawCentered(image, "Link kinetic sources", x, y + h / 2 + 2, w, theme.dim, scale);
             return;
         }
-        // Aggregate: avg stress% from real stress entries; running count over all
+
         float sumStress = 0.0f; int stressCount = 0; int runningCount = 0;
         for (FactoryPanelEntry e : entries) {
             if (e.running) runningCount++;
@@ -1688,21 +1687,18 @@ public final class TextureGraphRenderer
         final String summary = entries.size() + " src | " + runningCount + " run" + (heroIsStress ? (" | avg " + String.format("%.0f%%", avgStress)) : " | RPM only");
         BitmapFont.drawRight(image, summary, x + w - 3, y + 2, theme.dim, scale);
 
-        // Layout: hero gauge on left taking ~45% width, satellite list on right
         final int heroW = Math.max(60, (int)(w * 0.45f));
         final int heroX = x + 2;
         final int heroY = y + headerH + 2;
-        final int heroH = Math.min(h - headerH - 6, heroW); // square-ish for gauge
+        final int heroH = Math.min(h - headerH - 6, heroW);
         renderFactoryHeroGauge(image, heroX, heroY, heroW, heroH, avgStress, runningCount > 0, heroIsStress, theme, scale);
 
-        // Satellite right-side: top sources as chips with mini bars
         final int satX = heroX + heroW + 4;
         final int satY = heroY;
         final int satW = x + w - satX - 2;
         final int satH = heroH;
         renderFactorySatellites(image, satX, satY, satW, satH, entries, theme, scale, lineH);
 
-        // Bottom RPM strip
         final int stripY = heroY + heroH + 3;
         final int stripH = (y + h) - stripY - 1;
         if (stripH >= lineH + 2) {
@@ -1711,18 +1707,17 @@ public final class TextureGraphRenderer
     }
 
     private static void renderFactoryHeroGauge(NativeImage image, int x, int y, int w, int h, float pct, boolean running, boolean isStress, DisplayTheme theme, int scale) {
-        // Bordered card
         drawBorder(image, x, y, w, h, 1, theme.border);
         fillRect(image, x + 1, y + 1, w - 2, h - 2, withAlpha(theme.bg, 200));
         final int lineH = BitmapFont.textHeight(scale) + 2;
         BitmapFont.drawString(image, isStress ? "STRESS LOAD" : "ACTIVITY", x + 3, y + 2, theme.accent, scale);
-        // Gauge geometry: bottom-centered semicircle, leave room below for the percentage text
+
         final int pctScale = Math.max(scale, scale + 1);
         final int pctTextH = BitmapFont.textHeight(pctScale) + 2;
         final int cx = x + w / 2;
         final int cy = y + h - pctTextH - 4;
         final int availR = Math.min(w / 2 - 4, cy - (y + lineH + 4));
-        // Compact fallback for very small cards: skip arc, just show big % centered
+
         if (availR < 8 || h < lineH * 4 || w < 32) {
             final String pctTxtFb = String.format("%.0f%%", Math.max(0.0f, Math.min(100.0f, pct)));
             final int pctWFb = BitmapFont.measureString(pctTxtFb, pctScale);
@@ -1731,9 +1726,9 @@ public final class TextureGraphRenderer
         }
         final int rOut = availR;
         final int rIn = Math.max(4, rOut - Math.max(3, rOut / 4));
-        // Background arc (full half)
+
         drawSemicircleArc(image, cx, cy, rOut, rIn, -90.0f, 90.0f, withAlpha(theme.grid, 200));
-        // Color zones overlay only meaningful for stress; for activity show single accent fill
+
         if (pct > 0.01f) {
             final float clampPct = Math.max(0.0f, Math.min(100.0f, pct));
             final float endDeg = -90.0f + (clampPct / 100.0f) * 180.0f;
@@ -1766,7 +1761,7 @@ public final class TextureGraphRenderer
         } else {
             drawBorder(image, cx - 2, cy - 2, 4, 4, 1, theme.dim);
         }
-        // Big % text below hub but inside card
+
         final String pctTxt = String.format("%.0f%%", Math.max(0.0f, Math.min(100.0f, pct)));
         final int pctW = BitmapFont.measureString(pctTxt, pctScale);
         BitmapFont.drawString(image, pctTxt, cx - pctW / 2, y + h - pctTextH - 1, running ? theme.text : theme.dim, pctScale);
@@ -1778,7 +1773,7 @@ public final class TextureGraphRenderer
         BitmapFont.drawString(image, "SOURCES", x + 3, y + 2, theme.accent, scale);
         int rowY = y + lineH + 3;
         final int rowH = lineH + 4;
-        // Sort by percent descending so heavy hitters surface
+
         java.util.List<FactoryPanelEntry> sorted = new java.util.ArrayList<>(entries);
         sorted.sort((a, b) -> Float.compare(b.percent, a.percent));
         final int maxRows = Math.max(1, (y + h - rowY - 2) / rowH);
@@ -1786,11 +1781,11 @@ public final class TextureGraphRenderer
         for (FactoryPanelEntry e : sorted) {
             if (shown >= maxRows) break;
             final int color = e.percent > 85.0f ? 0xFFFF6060 : (e.percent > 60.0f ? theme.warn : (e.running ? theme.accent : theme.dim));
-            // Status dot
+
             fillCircle(image, x + 5, rowY + lineH / 2, 2, color);
             final String label = truncate(e.label, w - 38, scale);
             BitmapFont.drawString(image, label, x + 10, rowY, theme.text, scale);
-            // Mini bar at right
+
             final int barW = 24;
             final int barX = x + w - barW - 18;
             final int barY = rowY + (rowH - 4) / 2;
@@ -1810,11 +1805,10 @@ public final class TextureGraphRenderer
         drawBorder(image, x, y, w, h, 1, theme.border);
         fillRect(image, x + 1, y + 1, w - 2, h - 2, withAlpha(theme.grid, 40));
         BitmapFont.drawString(image, "RPM", x + 3, y + 2, theme.accent, scale);
-        // Show comma separated detail-derived rpm chips
+
         int cursorX = x + 26;
         final int chipPadY = 1;
         for (FactoryPanelEntry e : entries) {
-            // Extract first "RPM nnn" from detail
             final String d = e.detail == null ? "" : e.detail;
             int idx = d.indexOf("RPM ");
             if (idx < 0) continue;
@@ -1862,7 +1856,7 @@ public final class TextureGraphRenderer
         final int tx = cx + (int)Math.round(len * sin);
         final int ty = cy - (int)Math.round(len * cos);
         drawLine(image, cx, cy, tx, ty, color);
-        // Slight thickness: shift perpendicular
+
         final double pxd = cos;
         final double pyd = sin;
         final int ox = (int)Math.round(pxd);
@@ -1911,7 +1905,7 @@ public final class TextureGraphRenderer
                 entries.add(capacityEntry(sourceLabel, sourceType, usedCh, totalCh, pctCh, usedCh.getStore().getMetricType()));
                 continue;
             }
-            // Content Observer with slot_capacity: synthesise capacity bar from total_items / slot_capacity
+
             StatsDisplayPanelBE.DataChannel obsTotalItems = null;
             StatsDisplayPanelBE.DataChannel obsSlotCap = null;
             for (StatsDisplayPanelBE.DataChannel ch : sourceEntry.getValue()) {

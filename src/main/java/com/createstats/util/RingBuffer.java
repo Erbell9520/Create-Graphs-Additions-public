@@ -14,14 +14,25 @@ public class RingBuffer
     private int count;
     private float[] cachedArray;
     private boolean cacheDirty;
-    
+    private boolean extremaDirty;
+    private float cachedMin;
+    private float cachedMax;
+    private float cachedAverage;
+    private long revision;
+
+    // global revision counter. per instance counts all said 180 after three minutes and the cache never refreshed
+    private static final java.util.concurrent.atomic.AtomicLong REVISIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+
     public RingBuffer(int capacity) {
         this.cacheDirty = true;
+        this.extremaDirty = true;
         this.data = new float[Math.max(capacity, 1)];
         this.head = 0;
         this.count = 0;
+        this.revision = REVISIONS.incrementAndGet();
     }
-    
+
     public void add(float value) {
         this.data[this.head] = value;
         this.head = (this.head + 1) % this.data.length;
@@ -29,8 +40,10 @@ public class RingBuffer
             ++this.count;
         }
         this.cacheDirty = true;
+        this.extremaDirty = true;
+        this.revision = REVISIONS.incrementAndGet();
     }
-    
+
     public float get(int age) {
         if (age < 0 || age >= this.count) {
             return 0.0f;
@@ -38,27 +51,31 @@ public class RingBuffer
         final int index = ((this.head - 1 - age) % this.data.length + this.data.length) % this.data.length;
         return this.data[index];
     }
-    
+
     public float latest() {
         return (this.count > 0) ? this.get(0) : 0.0f;
     }
-    
+
     public int size() {
         return this.count;
     }
-    
+
     public int capacity() {
         return this.data.length;
     }
-    
+
+    public long revision() {
+        return this.revision;
+    }
+
     public boolean isEmpty() {
         return this.count == 0;
     }
-    
+
     public boolean isFull() {
         return this.count == this.data.length;
     }
-    
+
     public float[] toArray() {
         if (!this.cacheDirty && this.cachedArray != null && this.cachedArray.length == this.count) {
             return this.cachedArray;
@@ -71,47 +88,73 @@ public class RingBuffer
         this.cacheDirty = false;
         return result;
     }
-    
+
+    public int copyRecent(float[] destination, int maxSamples) {
+        if (destination == null || maxSamples <= 0 || this.count == 0) {
+            return 0;
+        }
+        final int copied = Math.min(Math.min(maxSamples, this.count), destination.length);
+        final int logicalStart = this.count - copied;
+        final int oldest = Math.floorMod(this.head - this.count, this.data.length);
+        for (int i = 0; i < copied; i++) {
+            destination[i] = this.data[(oldest + logicalStart + i) % this.data.length];
+        }
+        return copied;
+    }
+
     public float min() {
         if (this.count == 0) {
             return 0.0f;
         }
-        float min = Float.MAX_VALUE;
-        for (int i = 0; i < this.count; ++i) {
-            min = Math.min(min, this.get(i));
-        }
-        return min;
+        ensureExtrema();
+        return this.cachedMin;
     }
-    
+
     public float max() {
         if (this.count == 0) {
             return 0.0f;
         }
-        float max = -3.4028235E38f;
-        for (int i = 0; i < this.count; ++i) {
-            max = Math.max(max, this.get(i));
-        }
-        return max;
+        ensureExtrema();
+        return this.cachedMax;
     }
-    
+
     public float average() {
         if (this.count == 0) {
             return 0.0f;
         }
-        float sum = 0.0f;
-        for (int i = 0; i < this.count; ++i) {
-            sum += this.get(i);
-        }
-        return sum / this.count;
+        ensureExtrema();
+        return this.cachedAverage;
     }
-    
+
+    private void ensureExtrema() {
+        if (!this.extremaDirty) {
+            return;
+        }
+        float min = Float.MAX_VALUE;
+        float max = -Float.MAX_VALUE;
+        float sum = 0.0f;
+        final int oldest = Math.floorMod(this.head - this.count, this.data.length);
+        for (int i = 0; i < this.count; i++) {
+            final float value = this.data[(oldest + i) % this.data.length];
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+            sum += value;
+        }
+        this.cachedMin = min;
+        this.cachedMax = max;
+        this.cachedAverage = sum / this.count;
+        this.extremaDirty = false;
+    }
+
     public void clear() {
         this.head = 0;
         this.count = 0;
         this.cacheDirty = true;
+        this.extremaDirty = true;
         this.cachedArray = null;
+        this.revision = REVISIONS.incrementAndGet();
     }
-    
+
     public CompoundTag save() {
         return this.saveLimited(this.count);
     }
@@ -132,7 +175,7 @@ public class RingBuffer
         tag.put("Data", (Tag)list);
         return tag;
     }
-    
+
     public static RingBuffer load(CompoundTag tag) {
         final int capacity = Math.max(1, Math.min(MAX_SERIALIZED_SAMPLES, tag.getInt("Capacity")));
         final RingBuffer buffer = new RingBuffer(capacity);
@@ -143,7 +186,7 @@ public class RingBuffer
         }
         return buffer;
     }
-    
+
     public void writeToBuf(FriendlyByteBuf buf) {
         buf.writeVarInt(this.data.length);
         buf.writeVarInt(this.count);
@@ -153,7 +196,7 @@ public class RingBuffer
             buf.writeFloat(v);
         }
     }
-    
+
     public static RingBuffer readFromBuf(FriendlyByteBuf buf) {
         final int encodedCapacity = buf.readVarInt();
         final int encodedCount = buf.readVarInt();

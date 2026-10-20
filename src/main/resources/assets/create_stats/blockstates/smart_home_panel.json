@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "facing=north,screen=dark": {
+      "model": "create_stats:block/smart_home_panel_dark"
+    },
+    "facing=east,screen=dark": {
+      "model": "create_stats:block/smart_home_panel_dark",
+      "y": 90
+    },
+    "facing=south,screen=dark": {
+      "model": "create_stats:block/smart_home_panel_dark",
+      "y": 180
+    },
+    "facing=west,screen=dark": {
+      "model": "create_stats:block/smart_home_panel_dark",
+      "y": 270
+    },
+    "facing=north,screen=live": {
+      "model": "create_stats:block/smart_home_panel_live"
+    },
+    "facing=east,screen=live": {
+      "model": "create_stats:block/smart_home_panel_live",
+      "y": 90
+    },
+    "facing=south,screen=live": {
+      "model": "create_stats:block/smart_home_panel_live",
+      "y": 180
+    },
+    "facing=west,screen=live": {
+      "model": "create_stats:block/smart_home_panel_live",
+      "y": 270
+    },
+    "facing=north,screen=alert": {
+      "model": "create_stats:block/smart_home_panel_alert"
+    },
+    "facing=east,screen=alert": {
+      "model": "create_stats:block/smart_home_panel_alert",
+      "y": 90
+    },
+    "facing=south,screen=alert": {
+      "model": "create_stats:block/smart_home_panel_alert",
+      "y": 180
+    },
+    "facing=west,screen=alert": {
+      "model": "create_stats:block/smart_home_panel_alert",
+      "y": 270
+    }
+  }
+}

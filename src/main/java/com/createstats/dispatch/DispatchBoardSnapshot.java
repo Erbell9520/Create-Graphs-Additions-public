@@ -17,9 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-/** [1] */
 public class DispatchBoardSnapshot {
-
     private final BoardLayoutSpec layout;
     private final BoardHeaderState headerState;
     private final String stationName;
@@ -28,22 +26,17 @@ public class DispatchBoardSnapshot {
     private final boolean trainPresent;
     private final boolean arrivalTracking;
 
-    // Dispatch rows (already filtered/sliced to layout capacity)
     private final List<DispatchRowEntry> visibleRows;
     private final int totalRowCount;
     private final int completedRowCount;
     private final int dismissedRowCount;
 
-    // Cargo summary (top-N items from freight totals, sliced to layout capacity)
     private final List<CargoSummaryEntry> cargoSummary;
 
-    // History entries (sliced to layout capacity)
     private final List<DeliveryOrderHistoryEntry> visibleHistory;
 
-    // Train roster (FULL tier only)
     private final List<TrainSummarySnapshot> rosterEntries;
 
-    // Visit history timeline (RICH+ tier)
     private final List<TrainVisitRecord> visibleVisits;
 
     private final long captureTick;
@@ -76,21 +69,6 @@ public class DispatchBoardSnapshot {
         this.captureTick = captureTick;
     }
 
-    /**
-     * Assembles a complete board snapshot from the controller's raw data.
-     * This is the single entry point for both the renderer and the UI ,
-     * they receive the same consistent, pre-sliced, pre-derived data.
-     *
-     * @param width       multiblock width
-     * @param height      multiblock height
-     * @param link        station link (may be unlinked)
-     * @param board       current delivery order board view
-     * @param manifest    current manifest (for line count context)
-     * @param cargoView   current freight cargo view
-     * @param roster      station train roster (may be empty)
-     * @param visitHistory visit history from the controller
-     * @return assembled snapshot
-     */
     public static DispatchBoardSnapshot assemble(int width, int height,
                                                   FreightStationLink link,
                                                   DeliveryOrderBoardView board,
@@ -103,7 +81,6 @@ public class DispatchBoardSnapshot {
         String stationName = link.isLinked() ? link.getStationName() : "";
         boolean trainPresent = board.isTrainPresent();
 
-        // Build dispatch row entries with derived state
         List<DispatchRowEntry> allRows = new ArrayList<>();
         for (int i = 0; i < board.getLineViews().size(); i++) {
             DeliveryOrderLineView line = board.getLineViews().get(i);
@@ -111,26 +88,26 @@ public class DispatchBoardSnapshot {
             allRows.add(new DispatchRowEntry(line, rowState, i));
         }
 
-        // Slice to layout capacity
+        allRows.removeIf(row -> row.getLineView().isDismissed());
+        allRows.sort(Comparator
+                .comparing((DispatchRowEntry row) -> row.getLineView().isComplete())
+                .thenComparingInt(DispatchRowEntry::getRowIndex));
+
         int rowCap = layout.getDispatchRowCapacity();
         List<DispatchRowEntry> visibleRows = allRows.size() <= rowCap
                 ? allRows
                 : new ArrayList<>(allRows.subList(0, rowCap));
 
-        // Cargo summary from freight totals
         List<CargoSummaryEntry> cargoSummary = buildCargoSummary(cargoView, layout.getCargoSummarySlots());
 
-        // History entries
         List<DeliveryOrderHistoryEntry> historyEntries = board.getHistoryEntries();
         int histCap = layout.getHistoryEntryCapacity();
         List<DeliveryOrderHistoryEntry> visibleHistory = historyEntries.size() <= histCap
                 ? new ArrayList<>(historyEntries)
                 : new ArrayList<>(historyEntries.subList(0, histCap));
 
-        // Train roster (FULL tier only)
         List<TrainSummarySnapshot> rosterList = new ArrayList<>();
         if (layout.hasRosterRegion()) {
-            // Present train first, then associated trains
             if (roster.getPresentTrain() != null) {
                 rosterList.add(roster.getPresentTrain());
             }
@@ -140,7 +117,6 @@ public class DispatchBoardSnapshot {
             }
         }
 
-        // Visit timeline (RICH+ tier)
         List<TrainVisitRecord> visibleVisits = new ArrayList<>();
         if (layout.getTier().showsVisitTimeline()) {
             int visitCap = Math.min(visitHistory.size(), layout.getHistoryEntryCapacity());
@@ -159,9 +135,6 @@ public class DispatchBoardSnapshot {
                 board.getCurrentTick());
     }
 
-    /**
-     * Builds a list of top-N cargo entries sorted by amount descending.
-     */
     private static List<CargoSummaryEntry> buildCargoSummary(FreightStationCargoView cargoView, int maxSlots) {
         if (maxSlots <= 0 || !cargoView.isTrainPresent()) {
             return List.of();
@@ -177,8 +150,6 @@ public class DispatchBoardSnapshot {
         }
         return result;
     }
-
-    // getters
 
     public BoardLayoutSpec getLayout() {
         return this.layout;
@@ -212,7 +183,6 @@ public class DispatchBoardSnapshot {
         return this.arrivalTracking;
     }
 
-    /** Dispatch rows visible in the current layout (pre-sliced). */
     public List<DispatchRowEntry> getVisibleRows() {
         return this.visibleRows;
     }
@@ -229,27 +199,23 @@ public class DispatchBoardSnapshot {
         return this.dismissedRowCount;
     }
 
-    /** Whether there are more rows than the layout can show. */
     public boolean hasOverflowRows() {
-        return this.totalRowCount > this.layout.getDispatchRowCapacity();
+        return this.visibleRows.size() >= this.layout.getDispatchRowCapacity()
+                && this.totalRowCount - this.dismissedRowCount > this.visibleRows.size();
     }
 
-    /** Cargo summary entries (pre-sliced, sorted by amount desc). */
     public List<CargoSummaryEntry> getCargoSummary() {
         return this.cargoSummary;
     }
 
-    /** History entries visible in the current layout (pre-sliced). */
     public List<DeliveryOrderHistoryEntry> getVisibleHistory() {
         return this.visibleHistory;
     }
 
-    /** Train roster entries (FULL tier; present train first, then associated). */
     public List<TrainSummarySnapshot> getRosterEntries() {
         return this.rosterEntries;
     }
 
-    /** Visit history timeline entries (RICH+ tier, most recent first). */
     public List<TrainVisitRecord> getVisibleVisits() {
         return this.visibleVisits;
     }
@@ -258,18 +224,14 @@ public class DispatchBoardSnapshot {
         return this.captureTick;
     }
 
-    /** Compact completion string for the header, e.g. "3/5 complete". */
     public String getCompletionLabel() {
         if (this.totalRowCount <= 0) {
             return "No orders";
         }
-        int done = this.completedRowCount + this.dismissedRowCount;
-        return done + "/" + this.totalRowCount + " complete";
+
+        return this.completedRowCount + "/" + this.totalRowCount + " complete";
     }
 
-    /**
-     * Count of rows in a specific state among the visible rows.
-     */
     public int countRowsInState(DispatchRowState state) {
         int count = 0;
         for (DispatchRowEntry row : this.visibleRows) {
@@ -280,9 +242,6 @@ public class DispatchBoardSnapshot {
         return count;
     }
 
-    /**
-     * Whether any visible row is in an error/invalid/warning state.
-     */
     public boolean hasExceptions() {
         for (DispatchRowEntry row : this.visibleRows) {
             if (row.getState() == DispatchRowState.INVALID

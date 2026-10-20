@@ -3,9 +3,7 @@ package com.createstats.blockentity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
-/** [1] */
 public class KineticFlywheelSettings {
-
     private boolean dischargeArmed;
     private float lowReservePct;
 

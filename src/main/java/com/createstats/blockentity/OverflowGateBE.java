@@ -35,7 +35,6 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class OverflowGateBE extends BrassTunnelBlockEntity {
-
     private static final int OVERFLOW_DELAY_TICKS = 20;
 
     private ItemStack bufferedStack;
@@ -55,6 +54,11 @@ public class OverflowGateBE extends BrassTunnelBlockEntity {
 
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        // no super.addBehaviours(), the parent's split scroll means nothing here. but tick() derefs selectionMode, so set it anyway. 4am code, leave it
+
+        selectionMode = new ScrollOptionBehaviour<>(BrassTunnelBlockEntity.SelectionMode.class,
+            Component.translatable("create.logistics.when_multiple_outputs_available"), this, new BrassTunnelModeSlot());
+
         behaviours.add(overflowMode = new ScrollOptionBehaviour<>(OverflowMode.class,
             Component.translatable("create_stats.overflow_gate.mode_label"), this, new BrassTunnelModeSlot()));
         overflowMode.onlyActiveWhen(this::hasDistributionBehaviour);
@@ -98,9 +102,7 @@ public class OverflowGateBE extends BrassTunnelBlockEntity {
     @Override
     protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
         bufferedStack = ItemStack.parseOptional(registries, compound.getCompound("OverflowGateStack"));
-        // Migration: old builds stored three separate per-tier cursors
-        // (OverflowGateNextFiltered/Any/Overflow). Those are intentionally
-        // discarded; the new algorithm uses a single unified cursor.
+
         roundRobinCursor = compound.getInt("OverflowGateCursor");
         blockedOutputTicks = compound.getInt("OverflowGateBlockedTicks");
         super.read(compound, registries, clientPacket);
@@ -224,7 +226,6 @@ public class OverflowGateBE extends BrassTunnelBlockEntity {
             normalTargets.add(side);
         }
 
-        // Phase A: non-overflow outputs with an explicit matching filter.
         List<Direction> phaseA = new ArrayList<>(normalTargets.size());
         for (Direction side : normalTargets) {
             if (!flapFilterEmpty(side) && testFlapFilter(side, remaining)) {
@@ -233,7 +234,6 @@ public class OverflowGateBE extends BrassTunnelBlockEntity {
         }
         remaining = distributeRoundRobin(remaining, phaseA);
 
-        // Phase B: non-overflow wildcard outputs.
         if (!remaining.isEmpty()) {
             List<Direction> phaseB = new ArrayList<>(normalTargets.size());
             for (Direction side : normalTargets) {

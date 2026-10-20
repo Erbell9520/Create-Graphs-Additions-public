@@ -15,10 +15,10 @@ public final class ClockWidget
     public static final int FORMAT_REAL_TIME = 2;
     public static final int FORMAT_UPTIME = 3;
     public static final int FORMAT_HIDDEN = 4;
-    
+
     private ClockWidget() {
     }
-    
+
     public static void render(NativeImage image, int x, int y, int w, int h, long dayTime, int format, DisplayTheme theme) {
         if (format == 4) {
             return;
@@ -34,7 +34,7 @@ public final class ClockWidget
         final int textY = y + (h - textH) / 2;
         BitmapFont.drawCentered(image, timeText, x, textY, w, theme.accent, scale);
     }
-    
+
     public static String formatMinecraftTime(long dayTime) {
         final long timeOfDay = dayTime % 24000L;
         final int hours = (int)((timeOfDay / 1000L + 6L) % 24L);
@@ -42,7 +42,7 @@ public final class ClockWidget
         final long day = dayTime / 24000L + 1L;
         return String.format("Day %d, %02d:%02d", day, hours, minutes);
     }
-    
+
     public static String formatMinecraftTime12H(long dayTime) {
         final long timeOfDay = dayTime % 24000L;
         final int hours24 = (int)((timeOfDay / 1000L + 6L) % 24L);
@@ -55,12 +55,12 @@ public final class ClockWidget
         }
         return String.format("Day %d, %d:%02d %s", day, hours25, minutes, ampm);
     }
-    
+
     public static String formatRealTime() {
         final LocalTime now = LocalTime.now();
         return String.format("%02d:%02d:%02d", now.getHour(), now.getMinute(), now.getSecond());
     }
-    
+
     public static String formatUptime(long startTick, long currentTick) {
         final long seconds = (currentTick - startTick) / 20L;
         if (seconds < 60L) {

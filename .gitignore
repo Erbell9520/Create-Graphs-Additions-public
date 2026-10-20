@@ -1,4 +1,4 @@
-# Build output
+# Ignore build output
 build/
 .gradle/
 out/
@@ -8,7 +8,6 @@ bin/
 .idea/
 *.iml
 .vscode/
-.eclipse/
 .settings/
 .project
 .classpath
@@ -23,11 +22,17 @@ Thumbs.db
 gradle-app.setting
 !gradle-wrapper.jar
 
-# Runtime / local dev
+# Runtime
 run/
 logs/
-.jdk/
+/.local-jdk
+modrinth_description.txt
 
-# JVM crash artifacts
-hs_err_pid*.log
-replay_pid*.log
+# Secrets. Never commit an API key.
+.env
+*.key
+STATS_TIER2_KEY
+
+# test output
+*_preview/
+config/

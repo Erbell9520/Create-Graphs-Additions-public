@@ -28,11 +28,11 @@ import net.minecraft.world.item.Item;
 public class StatsConfiguratorItem extends Item
 {
     private static final String TAG_COPIED = "CopiedSettings";
-    
+
     public StatsConfiguratorItem(Item.Properties properties) {
         super(properties);
     }
-    
+
     public InteractionResult useOn(UseOnContext context) {
         final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
@@ -101,7 +101,7 @@ public class StatsConfiguratorItem extends Item
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
-    
+
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
@@ -114,7 +114,7 @@ public class StatsConfiguratorItem extends Item
             tooltip.add(Component.translatable("item.create_stats.stats_configurator.tooltip.alarm"));
         }
     }
-    
+
     @Nullable
     private StatsDisplayPanelBE getController(Level level, StatsDisplayPanelBE member) {
         final BlockPos controllerPos = member.getControllerPos();

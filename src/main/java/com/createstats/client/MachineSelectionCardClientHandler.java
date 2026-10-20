@@ -20,7 +20,6 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public final class MachineSelectionCardClientHandler {
-
     private static final Object PREVIEW_SLOT = new Object();
     private static final int VALID_HOVER_COLOR = 0x5B8CFF;
     private static final int VALID_AREA_COLOR = 0x68C586;

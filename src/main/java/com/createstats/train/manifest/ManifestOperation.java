@@ -1,7 +1,6 @@
 package com.createstats.train.manifest;
 
 public enum ManifestOperation {
-
     LOAD("load", "Load"),
     UNLOAD("unload", "Unload");
 

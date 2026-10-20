@@ -1,0 +1,38 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    },
+    {
+      "tag": "create_stats:biofuel/plank"
+    }
+  ],
+  "results": [
+    {
+      "count": 5,
+      "id": "create_stats:compacted_biofuel"
+    }
+  ]
+}

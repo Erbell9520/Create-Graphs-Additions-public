@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "controller=true,facing=north": {
+      "model": "create_stats:block/garage_door_header"
+    },
+    "controller=false,facing=north": {
+      "model": "create_stats:block/garage_door_header"
+    },
+    "controller=true,facing=east": {
+      "model": "create_stats:block/garage_door_header",
+      "y": 90
+    },
+    "controller=false,facing=east": {
+      "model": "create_stats:block/garage_door_header",
+      "y": 90
+    },
+    "controller=true,facing=south": {
+      "model": "create_stats:block/garage_door_header",
+      "y": 180
+    },
+    "controller=false,facing=south": {
+      "model": "create_stats:block/garage_door_header",
+      "y": 180
+    },
+    "controller=true,facing=west": {
+      "model": "create_stats:block/garage_door_header",
+      "y": 270
+    },
+    "controller=false,facing=west": {
+      "model": "create_stats:block/garage_door_header",
+      "y": 270
+    }
+  }
+}

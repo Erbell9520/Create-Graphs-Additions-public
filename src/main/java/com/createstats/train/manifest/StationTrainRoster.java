@@ -22,9 +22,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 
-/** [1] */
 public class StationTrainRoster {
-
     @Nullable
     private final TrainSummarySnapshot presentTrain;
     private final List<TrainSummarySnapshot> associatedTrains;
@@ -41,22 +39,6 @@ public class StationTrainRoster {
         this.captureTick = captureTick;
     }
 
-    /**
-     * Captures a roster from the live Create train graph.
-     * Iterates all active trains to find:
-     * <ol>
-     *   <li>The train currently docked at the station (present train)</li>
-     *   <li>Trains whose schedule contains a destination matching the station name</li>
-     * </ol>
-     * Only creates {@link TrainSummarySnapshot} objects for relevant trains to minimize cost.
-     *
-     * @param server         the server instance (for owner name resolution)
-     * @param station        the GlobalStation being monitored
-     * @param stationName    the station display name (for schedule filter matching)
-     * @param persistedVisits the controller's persisted visit history
-     * @param tick           current game tick
-     * @return a populated roster view
-     */
     public static StationTrainRoster capture(MinecraftServer server, GlobalStation station,
                                              String stationName, List<TrainVisitRecord> persistedVisits,
                                              long tick) {
@@ -68,7 +50,6 @@ public class StationTrainRoster {
             return new StationTrainRoster(null, associated, persistedVisits, tick);
         }
 
-        // Build station name lookup for currentStationName resolution in snapshots
         Map<UUID, String> stationNames = new HashMap<>();
         for (TrackGraph graph : new ArrayList<>(railways.trackNetworks.values())) {
             for (GlobalStation s : graph.getPoints(EdgePointType.STATION)) {
@@ -90,7 +71,7 @@ public class StationTrainRoster {
                 continue;
             }
 
-            TrainSummarySnapshot snapshot = TrainSummarySnapshot.capture(train, server, stationNames, tick);
+            TrainSummarySnapshot snapshot = TrainSummarySnapshot.capture(train, server, stationNames, station, tick);
             if (isPresent) {
                 presentSnapshot = snapshot;
             }
@@ -99,13 +80,14 @@ public class StationTrainRoster {
             }
         }
 
+        associated.sort(java.util.Comparator
+                .comparing(TrainSummarySnapshot::isInboundToStation).reversed()
+                .thenComparing(TrainSummarySnapshot::getTrainName, String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(TrainSummarySnapshot::getTrainId));
+
         return new StationTrainRoster(presentSnapshot, associated, persistedVisits, tick);
     }
 
-    /**
-     * Checks if a train's schedule contains a stop matching the given station name.
-     * Uses the same wildcard matching as Create's station filters.
-     */
     private static boolean hasStationInSchedule(Train train, String stationName) {
         if (train.runtime == null || train.runtime.schedule == null) {
             return false;
@@ -124,8 +106,6 @@ public class StationTrainRoster {
     public static StationTrainRoster empty(long tick) {
         return new StationTrainRoster(null, List.of(), List.of(), tick);
     }
-
-    // getters
 
     @Nullable
     public TrainSummarySnapshot getPresentTrain() {
@@ -165,8 +145,6 @@ public class StationTrainRoster {
         return new StationTrainRoster(pCopy, aCopy, vCopy, this.captureTick);
     }
 
-    // NBT persistence
-
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("HasPresent", this.presentTrain != null);
@@ -203,8 +181,6 @@ public class StationTrainRoster {
         long tick = tag.getLong("CaptureTick");
         return new StationTrainRoster(present, associated, visits, tick);
     }
-
-    // network
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeBoolean(this.presentTrain != null);

@@ -8,9 +8,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-/** [1] */
 public class InductionHeaterArmPointType extends ArmInteractionPointType {
-
     @Override
     public boolean canCreatePoint(Level level, BlockPos pos, BlockState state) {
         return state.is(ModBlocks.INDUCTION_HEATER.get());

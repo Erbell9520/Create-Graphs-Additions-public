@@ -24,10 +24,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
 
-/** [1] */
 public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynamoBE> {
-
-    /** [2] */
     private static final VoxelShape OPEN_FRAME_SHAPE = Shapes.or(
             Block.box(1, 0, 1, 15, 2, 15),
             Block.box(2, 2, 5, 14, 12, 11),
@@ -43,6 +40,10 @@ public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynam
             Block.box(5, 13.5, 5, 11, 16, 11),
             Block.box(12, 5, 6, 16, 10, 10));
 
+    public static final int TOP_RPM = 256;
+
+    public static final float SMOKE_LOAD = 0.75f;
+
     private final com.createstats.power.DynamoTier tier;
 
     public KineticDynamoBlock(Properties properties, com.createstats.power.DynamoTier tier) {
@@ -50,7 +51,6 @@ public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynam
         this.tier = tier;
     }
 
-    /** Which grade this is. Read by the block entity for output and stress. */
     public com.createstats.power.DynamoTier tier() {
         return tier;
     }
@@ -74,7 +74,6 @@ public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynam
         };
     }
 
-    /** [3] */
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (!(level.getBlockEntity(pos) instanceof KineticDynamoBE dynamo)) {
@@ -84,8 +83,8 @@ public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynam
         if (speed <= 1.0f) {
             return;
         }
-        final float load = Math.min(1.0f, speed / 256.0f);
-        // Two sparks a tick flat out, roughly one every eight ticks at a crawl.
+        final float load = Math.min(1.0f, speed / (float) TOP_RPM);
+
         final int sparks = random.nextFloat() < load * 0.9f ? (load > 0.6f ? 2 : 1) : 0;
         final double top = terminalHeight();
         for (int i = 0; i < sparks; i++) {
@@ -95,7 +94,7 @@ public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynam
                     pos.getZ() + 0.32 + random.nextDouble() * 0.36,
                     0.0, 0.01 + 0.02 * load, 0.0);
         }
-        if (load > 0.75f && random.nextFloat() < (load - 0.75f) * 2.0f) {
+        if (load > SMOKE_LOAD && random.nextFloat() < (load - SMOKE_LOAD) * 2.0f) {
             level.addParticle(ParticleTypes.SMOKE,
                     pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.3,
                     pos.getY() + top + 0.08,
@@ -104,7 +103,6 @@ public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynam
         }
     }
 
-    /** Where the sparks belong on this grade: at the top of its rotor, not at a shared guess. */
     private double terminalHeight() {
         return switch (tier) {
             case OPEN_FRAME -> 0.80;
@@ -123,8 +121,16 @@ public class KineticDynamoBlock extends KineticBlock implements IBE<KineticDynam
         return ModBlockEntities.KINETIC_DYNAMO.get();
     }
 
+    // per-grade keys and numbers. all three used to quote the middle one. at 256 rpm so they compare
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.kinetic_dynamo");
+        final int rpm = TOP_RPM;
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip,
+                stack.getItem().getDescriptionId(),
+                List.of(com.createstats.util.CreateStatsTooltipHelper.spec("tooltip.create_stats.dynamo_rate",
+                        com.createstats.power.FeRates.perTick((int) Math.round(tier.fePerRpm() * rpm)),
+                        rpm,
+                        String.format(java.util.Locale.ROOT, "%,d", Math.round(tier.stressPerRpm() * rpm)),
+                        String.format(java.util.Locale.ROOT, "%.4f", tier.fePerStress()))));
     }
 }

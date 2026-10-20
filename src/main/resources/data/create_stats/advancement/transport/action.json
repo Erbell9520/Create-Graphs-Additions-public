@@ -1,0 +1,30 @@
+{
+  "parent": "create_stats:transport/cine_camera",
+  "display": {
+    "icon": {
+      "id": "create_stats:cine_camera"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.action.title",
+      "fallback": "Action!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.action.description",
+      "fallback": "Roll film on a Cine Camera. Quiet on set, and cue the dramatic slap."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "rolling": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "rolling"
+    ]
+  ]
+}

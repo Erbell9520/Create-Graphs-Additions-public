@@ -42,9 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/** [1] */
 public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.createstats.power.IFeConsumer {
-
     public static final int CARD_ROWS = 8;
     public static final int CARD_SLOTS = CARD_ROWS * 2;
 
@@ -56,7 +54,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return row * 2 + 1;
     }
 
-    /** Input channels the VCC can receive on; each has a 2-item Redstone Link frequency. */
     public static final String[] CHANNELS = {
             "throttle_up", "throttle_dn", "yaw_left", "yaw_right", "lev_up", "lev_dn",
             "pitch_up", "pitch_dn", "roll_left", "roll_right", "brake",
@@ -76,7 +73,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
     private boolean profileChosen;
     private boolean armed;
 
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_VCC_MK2));
 
@@ -84,17 +80,13 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return feConsumer;
     }
     private boolean autoMode;
-    /** Stabilization: true = Assisted (self-level via gimbal), false = Direct (raw). */
+
     private boolean assisted = true;
 
-    /** Bitmask of {@link VccMk2Role} per engine row; 0 = idle. An engine can hold several roles. */
     private final int[] roleMasks = new int[CARD_ROWS];
 
-    /** [2] */
     private final boolean[] redstoneEngine = new boolean[CARD_ROWS];
 
-    // backend (control)
-    /** Universal control-axis demands set by the cockpit (set-and-hold). Signed, -1..1. */
     public static final int AXIS_THROTTLE = 0;
     public static final int AXIS_YAW = 1;
     public static final int AXIS_VERTICAL = 2;
@@ -104,30 +96,28 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
     private static final int AXIS_COUNT = 6;
     private static final int WHEEL_MAX_RPM = 256;
 
-    /** Gear (ground vehicles): Park / Reverse / Neutral / Drive. Sets the drive direction. */
     public static final int GEAR_PARK = 0;
     public static final int GEAR_REVERSE = 1;
     public static final int GEAR_NEUTRAL = 2;
     public static final int GEAR_DRIVE = 3;
-    /** Steering mode: Front-only, All-Wheel (4WS, rear steers opposite), Crab (rear steers the same). */
+
     public static final int STEER_FRONT = 0;
     public static final int STEER_4WS = 1;
     public static final int STEER_CRAB = 2;
-    /** Drive mode: which axles are powered. */
+
     public static final int DRIVE_RWD = 0;
     public static final int DRIVE_FWD = 1;
     public static final int DRIVE_4X4 = 2;
-    /** Differential: Open (wheels free), Rear lock, Full lock. */
+
     public static final int DIFF_OPEN = 0;
     public static final int DIFF_REAR = 1;
     public static final int DIFF_FULL = 2;
 
-    /** Persistent identity for RPM Governor ownership (the setCommand/heartbeat handshake). */
     @Nullable
     private UUID uuid;
-    /** Live axis demands; NOT persisted, so a reloaded craft never moves until a control is touched. */
+
     private final float[] axisDemand = new float[AXIS_COUNT];
-    /** Governors this VCC currently commands, so they can be released on disarm / removal. */
+
     private final Set<BlockPos> ownedGovernors = new LinkedHashSet<>();
     private int gear = GEAR_DRIVE;
     private int steerMode = STEER_FRONT;
@@ -136,62 +126,55 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
     private int diffMode = DIFF_OPEN;
     private boolean steerInvert;
     private boolean handbrake;
-    /** [3] */
+
     private boolean controlsActive;
-    /** Live aux toggles (lights etc.); NOT persisted, default off. */
+
     private final boolean[] aux = new boolean[2];
-    /** Active redstone-link output transmitters, keyed by engine row. */
+
     private final Map<Integer, VccMk2RedstoneTransmitter> redstoneTransmitters = new LinkedHashMap<>();
-    /** Active Linked Controller input receivers, keyed by input channel. */
+
     private final Map<Integer, VccMk2LinkedControllerReceiver> linkedReceivers = new LinkedHashMap<>();
-    /** Last 0-15 received per input channel (pushed by the redstone-link network). */
+
     private final int[] channelStrength = new int[CHANNELS.length];
     private final boolean[] prevToggle = new boolean[CHANNELS.length];
-    /** Smoothed (ramped) Linked Controller axis values, -1..1. */
+
     private final float[] rampedCtl = new float[AXIS_COUNT];
     private int rampTicks = 8;
 
-    // telemetry (synced to GUI/CRT/HUD)
-    /** Live readouts, computed server-side, synced to the client (transient, paced). */
-    private float telemSpeed;      // km/h ground speed
-    private float telemHeading;    // 0..360 deg
-    private float telemPitch;      // deg
-    private float telemRoll;       // deg
-    private float telemAltitude;   // blocks (worldY)
-    private int telemRpm;          // average actual governor RPM
+    private float telemSpeed;
+    private float telemHeading;
+    private float telemPitch;
+    private float telemRoll;
+    private float telemAltitude;
+    private int telemRpm;
     private long lastTelemSync = Long.MIN_VALUE;
 
-    // sensors (Display Link bound)
-    /** Sensor slots the VCC can bind, via a Create Display Link aimed from the sensor to this block. */
     public static final int SENSOR_GIMBAL = 0;
     public static final int SENSOR_ALTITUDE = 1;
     public static final int SENSOR_VELOCITY = 2;
     public static final int SENSOR_NAVTABLE = 3;
     public static final int SENSOR_COUNT = 4;
-    /** Connection state per sensor, synced to the GUI. */
+
     public static final int SENSOR_NONE = 0;
     public static final int SENSOR_CONNECTED = 1;
     public static final int SENSOR_LOST = 2;
-    /** Player-bound (Display Link) sensor positions; persisted. Null = rely on auto-discovery. */
+
     private final BlockPos[] sensorManualPos = new BlockPos[SENSOR_COUNT];
-    /** Auto-discovered sensor positions (transient, refreshed by the scan helper). */
+
     private final BlockPos[] sensorAutoPos = new BlockPos[SENSOR_COUNT];
-    /** Live connection state per sensor, synced to the client. */
+
     private final byte[] sensorState = new byte[SENSOR_COUNT];
-    /** Server-side scan + hysteresis helper; lazily created on first tick. */
+
     @Nullable
     private transient VccMk2Sensors sensors;
 
-    // drivetrain + fuel telemetry
-    /** Per-wheel commanded / actual drive RPM, synced for the cockpit wheel diagram. */
     private final int[] wheelCmdRpm = new int[CARD_ROWS];
     private final int[] wheelActRpm = new int[CARD_ROWS];
-    /** Diesel fuel summed across the contraption's diesel engines (mB), synced for the fuel gauge. */
+
     private float telemFuelAmount;
     private float telemFuelCapacity;
     private long lastFuelScan = Long.MIN_VALUE;
 
-    /** Player-defined craft forward (nose). Null until first resolved from the block facing. */
     @Nullable
     private Direction noseDir;
 
@@ -212,7 +195,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     };
 
-    /** Redstone Link frequency items, 2 per input channel (channelIndex * 2 + which). */
     private final ItemStackHandler frequencies = new ItemStackHandler(CHANNELS.length * 2) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -220,7 +202,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     };
 
-    /** Per-engine output frequency for redstone engines: 2 items per row (row * 2 + which). */
     private final ItemStackHandler engineFreq = new ItemStackHandler(CARD_ROWS * 2) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -228,7 +209,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     };
 
-    /** Dedicated 2-item frequency for the LIGHTS output (transmits 0/15 driven by the lights switch). */
     private final ItemStackHandler lightsFreq = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -240,7 +220,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         super(type, pos, state);
     }
 
-    // state
     public VccMk2CraftProfile profile() {
         return profile;
     }
@@ -297,7 +276,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         markUpdated();
     }
 
-    /** Server-side: keep the block's CRT VISUAL_STATE in step with armed state. */
     private void syncVisualState() {
         if (level == null || level.isClientSide) {
             return;
@@ -312,7 +290,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    // detection
     public int boundPropellerCount() {
         int n = 0;
         for (int r = 0; r < CARD_ROWS; r++) {
@@ -342,7 +319,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return FlightCardData.get(stack, tagKey).getLinkedPos();
     }
 
-    /** True if this block sits on an assembled contraption / Sable sub-level. */
     public boolean isOnContraption() {
         if (level == null) {
             return false;
@@ -364,7 +340,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return n;
     }
 
-    // mixer roles
     public int rowRoleMask(int row) {
         return (row < 0 || row >= CARD_ROWS) ? 0 : roleMasks[row];
     }
@@ -373,7 +348,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return role != null && role != VccMk2Role.UNASSIGNED && (rowRoleMask(row) & role.bit()) != 0;
     }
 
-    /** Toggle a single role on an engine row. Engines may hold several roles at once. */
     public void toggleRole(int row, VccMk2Role role) {
         if (row < 0 || row >= CARD_ROWS || role == null || role == VccMk2Role.UNASSIGNED) {
             return;
@@ -389,7 +363,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Count of engine rows (with a bound propeller) that hold the given role. */
     public int roleCount(VccMk2Role role) {
         int n = 0;
         for (int r = 0; r < CARD_ROWS; r++) {
@@ -400,7 +373,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return n;
     }
 
-    /** Count of bound engines that have at least one role assigned. */
     public int assignedEngineCount() {
         int n = 0;
         for (int r = 0; r < CARD_ROWS; r++) {
@@ -411,12 +383,10 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return n;
     }
 
-    /** True if this engine row has a linked governor (without one it cannot be driven). */
     public boolean hasGovernor(int row) {
         return linkedPos(govSlot(row), GovernorCardItem.TAG_KEY) != null;
     }
 
-    /** Engines that have a propeller + a role but no linked governor (assigned but cannot move). */
     public int enginesMissingGovernor() {
         int n = 0;
         for (int r = 0; r < CARD_ROWS; r++) {
@@ -427,18 +397,16 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return n;
     }
 
-    // engine type (kinetic / redstone)
     public boolean isRedstoneEngine(int row) {
         return row >= 0 && row < CARD_ROWS && redstoneEngine[row];
     }
 
-    /** Toggle an engine row between kinetic (governor) and redstone (frequency) output. */
     public void setRedstoneEngine(Player player, int row, boolean redstone) {
         if (row < 0 || row >= CARD_ROWS || redstoneEngine[row] == redstone) {
             return;
         }
         redstoneEngine[row] = redstone;
-        // eject whatever the new type can't use, so nothing gets stuck in a hidden slot
+
         if (redstone) {
             ItemStack gov = cards.getStackInSlot(govSlot(row));
             if (!gov.isEmpty()) {
@@ -469,17 +437,14 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return engineFreq.getStackInSlot(slot);
     }
 
-    /** A redstone engine is configured once it has at least one frequency item set. */
     public boolean hasEngineFreq(int row) {
         return !engineFreqStack(row, 0).isEmpty() || !engineFreqStack(row, 1).isEmpty();
     }
 
-    /** True if this engine has a working output driver: a governor (kinetic) or a frequency (redstone). */
     public boolean hasOutput(int row) {
         return isRedstoneEngine(row) ? hasEngineFreq(row) : hasGovernor(row);
     }
 
-    /** Engines that have a propeller + a role but no output driver (assigned but cannot move). */
     public int enginesMissingOutput() {
         int n = 0;
         for (int r = 0; r < CARD_ROWS; r++) {
@@ -490,8 +455,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return n;
     }
 
-    // backend control loop
-    /** Lazily-created persistent identity used to own RPM governors. */
     public UUID getOrCreateUuid() {
         if (uuid == null) {
             uuid = UUID.randomUUID();
@@ -500,7 +463,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return uuid;
     }
 
-    /** Cockpit set-and-hold: store a control-axis demand (clamped to -1..1). */
     public void setAxisDemand(int axis, float value) {
         if (axis < 0 || axis >= AXIS_COUNT) {
             return;
@@ -540,7 +502,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return steerMode;
     }
 
-    /** Set the steer mode, clamped to what the bound wheels can actually do (4WS/Crab need 2+ axles). */
     public void setSteerMode(int m) {
         int max = steerableAxleCount() >= 2 ? STEER_CRAB : STEER_FRONT;
         int v = Math.max(STEER_FRONT, Math.min(m, max));
@@ -550,7 +511,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Number of distinct fore/aft axles among the bound, Steer-tagged wheels. */
     public int steerableAxleCount() {
         java.util.Set<Integer> levels = new java.util.HashSet<>();
         BlockPos o = getBlockPos();
@@ -613,20 +573,17 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Rightward (lateral) block offset of a position from the console, in the craft's nose frame. */
     private static int lateralOffset(BlockPos pos, BlockPos origin, Direction nose) {
         int dx = pos.getX() - origin.getX();
         int dz = pos.getZ() - origin.getZ();
         return dx * (-nose.getStepZ()) + dz * nose.getStepX();
     }
 
-    /** [4] */
     public void serverTick() {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        // FE Dependent Mode gate: an unpowered cockpit releases its actuators (the existing
-        // disarmed-safe path) and does nothing else until the buffer is charged again.
+
         final boolean fePowered = feConsumer.serviceTick(armed);
         com.createstats.power.FePowerFx.handleTransition(level, getBlockPos(), feConsumer);
         if (!fePowered) {
@@ -635,8 +592,8 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
             }
             return;
         }
-        // Sensor discovery runs every tick (cadenced internally) so the Hangar shows live
-        // connections whether or not the craft is armed; it only pushes an update on a change.
+        // discovery every tick, cadenced inside, pushes only on change
+
         if (sensors == null) {
             sensors = new VccMk2Sensors(this);
         }
@@ -648,12 +605,11 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
             }
             return;
         }
-        // Live telemetry only when armed (gauges read real values; disarmed shows a calm idle).
+
         updateTelemetry(serverLevel);
         if (profile == VccMk2CraftProfile.OTOMOBIL) {
             tickOtomobil(serverLevel);
         } else if (!ownedGovernors.isEmpty()) {
-            // other profiles aren't wired yet (mode by mode); make sure nothing is left driving
             releaseOutputs();
         }
     }
@@ -668,7 +624,7 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         double brakeAmt = Math.max(Math.max(0.0, effectiveAxis(AXIS_BRAKE)),
                 Math.max(handbrake ? 1.0 : 0.0, park ? 1.0 : 0.0));
         int gearSign = gear == GEAR_DRIVE ? 1 : gear == GEAR_REVERSE ? -1 : 0;
-        // [5]
+
         int baseRpm;
         boolean braking = brakeAmt > 0.05;
         if (braking) {
@@ -680,7 +636,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         Direction nose = noseDirection();
         BlockPos o = getBlockPos();
 
-        // Fore/aft extents for steering wheels and for drive wheels (they can differ).
         int steerFront = Integer.MIN_VALUE;
         int steerRear = Integer.MAX_VALUE;
         int driveFront = Integer.MIN_VALUE;
@@ -749,7 +704,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
             }
         }
 
-        // Release any governor we owned last tick but no longer command.
         for (BlockPos g : ownedGovernors) {
             if (!nowOwned.contains(g)) {
                 releaseGovernor(serverLevel, g, id);
@@ -759,7 +713,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         ownedGovernors.addAll(nowOwned);
     }
 
-    /** Resolve a single drive wheel's commanded RPM from drive mode (which axles power) + differential. */
     private int driveWheelRpm(int baseRpm, BlockPos partPos, int f, int driveFront, int driveRear,
                               double yaw, BlockPos o, Direction nose) {
         boolean isFront = f >= driveFront - 1;
@@ -768,13 +721,13 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         boolean driven = switch (driveMode) {
             case DRIVE_RWD -> isRear;
             case DRIVE_FWD -> isFront;
-            default -> !isMid || midAxleDrive; // 4x4: front + rear always, mid only if enabled
+            default -> !isMid || midAxleDrive;
         };
         if (!driven) {
             return 0;
         }
         int rpm = baseRpm;
-        // Open / unlocked axles let the inside wheel slow during a turn (a soft differential).
+
         boolean axleLocked = diffMode == DIFF_FULL || (diffMode == DIFF_REAR && isRear);
         if (!axleLocked && rpm != 0 && Math.abs(yaw) > 0.1) {
             int lat = lateralOffset(partPos, o, nose);
@@ -794,7 +747,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Release every actuator this VCC commands (disarm / removal / disassemble safety). */
     public void releaseOutputs() {
         if (level instanceof ServerLevel serverLevel && uuid != null) {
             for (BlockPos g : ownedGovernors) {
@@ -805,7 +757,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         removeAllRedstoneTransmitters();
     }
 
-    // telemetry
     public float telemSpeed() {
         return telemSpeed;
     }
@@ -830,7 +781,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return telemRpm;
     }
 
-    // drivetrain + fuel API
     public int wheelCmdRpm(int row) {
         return row >= 0 && row < CARD_ROWS ? wheelCmdRpm[row] : 0;
     }
@@ -847,7 +797,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return telemFuelCapacity;
     }
 
-    /** [6] */
     private void updateFuel(ServerLevel serverLevel) {
         long now = serverLevel.getGameTime();
         if (lastFuelScan != Long.MIN_VALUE && now - lastFuelScan < 20) {
@@ -903,7 +852,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
                 }
             }
         } catch (Throwable ignored) {
-            // diesel mod missing / scan glitch -> show no fuel
         }
         if (Math.abs(amt - telemFuelAmount) > 1f || Math.abs(cap - telemFuelCapacity) > 1f) {
             telemFuelAmount = amt;
@@ -917,19 +865,15 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return sample != null ? sample.value() : 0f;
     }
 
-    // sensors API
-    /** Connection state of a sensor slot: {@link #SENSOR_NONE} / {@link #SENSOR_CONNECTED} / {@link #SENSOR_LOST}. */
     public int sensorState(int which) {
         return which >= 0 && which < SENSOR_COUNT ? sensorState[which] : SENSOR_NONE;
     }
 
-    /** The player-bound (Display Link) position for a sensor slot, or {@code null} if relying on auto-discovery. */
     @Nullable
     public BlockPos sensorManualPos(int which) {
         return which >= 0 && which < SENSOR_COUNT ? sensorManualPos[which] : null;
     }
 
-    /** The position actually feeding a sensor slot: the manual bind if set, else the auto-discovered block. */
     @Nullable
     public BlockPos sensorEffectivePos(int which) {
         if (which < 0 || which >= SENSOR_COUNT) {
@@ -938,7 +882,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return sensorManualPos[which] != null ? sensorManualPos[which] : sensorAutoPos[which];
     }
 
-    /** True if any sensor slot reports a live connection (used to badge telemetry as sensor-backed). */
     public boolean hasSensor(int which) {
         return sensorState(which) == SENSOR_CONNECTED;
     }
@@ -959,7 +902,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         bindSensor(SENSOR_NAVTABLE, pos);
     }
 
-    /** Clear the manual binding for a sensor slot, returning it to auto-discovery. */
     public void clearSensor(int which) {
         bindSensor(which, null);
     }
@@ -976,10 +918,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         markUpdated();
     }
 
-    /**
-     * Called by {@link VccMk2Sensors} after a scan. Writes the resolved state + auto positions back
-     * and only pushes a client update when a connection state actually changed (keeps the wire quiet).
-     */
     void applySensorScan(byte[] states, BlockPos[] autoPos) {
         boolean changed = false;
         for (int i = 0; i < SENSOR_COUNT; i++) {
@@ -994,7 +932,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Recompute live telemetry from the contraption + governors; sync to the client at a gentle cadence. */
     private void updateTelemetry(ServerLevel serverLevel) {
         float speed = 0f;
         float heading = telemHeading;
@@ -1004,7 +941,7 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
             org.joml.Vector3d v = SableBridge.linearVelocityWorld(this);
             if (v != null) {
                 double horiz = Math.sqrt(v.x * v.x + v.z * v.z);
-                // blocks/tick -> km/h: * 20 ticks/s * 3.6 = * 72
+
                 speed = (float) (horiz * 72.0);
                 if (horiz > 0.02) {
                     heading = (float) ((Math.toDegrees(Math.atan2(v.x, -v.z)) % 360 + 360) % 360);
@@ -1020,9 +957,8 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
                 roll = (float) Math.toDegrees(Math.atan2(up.x, up.y));
             }
         } catch (Throwable ignored) {
-            // not assembled / bridge unavailable -> keep last values at rest
         }
-        // average actual governor RPM across owned, kinetic engines
+
         int rpmSum = 0;
         int rpmN = 0;
         for (BlockPos g : ownedGovernors) {
@@ -1042,7 +978,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         telemAltitude = alt;
         telemRpm = rpm;
 
-        // sync to client at ~5 Hz while running
         long now = serverLevel.getGameTime();
         if (lastTelemSync == Long.MIN_VALUE || now - lastTelemSync >= 4) {
             lastTelemSync = now;
@@ -1050,7 +985,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    // redstone outputs (lights / burner / jet)
     public boolean aux(int i) {
         return i >= 0 && i < aux.length && aux[i];
     }
@@ -1062,7 +996,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** The dedicated LIGHTS output frequency (2 items). The lights switch transmits 0/15 here. */
     public ItemStackHandler lightsFreq() {
         return lightsFreq;
     }
@@ -1075,7 +1008,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return !lightsFreqStack(0).isEmpty() || !lightsFreqStack(1).isEmpty();
     }
 
-    /** Place one inventory item into a lights frequency slot. */
     public void assignLightsFreq(Player player, int which, int invIndex) {
         if (which < 0 || which >= lightsFreq.getSlots() || !lightsFreq.getStackInSlot(which).isEmpty()) {
             return;
@@ -1138,10 +1070,9 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
                 RedstoneLinkNetworkHandler.Frequency.of(b));
     }
 
-    /** Register / refresh / drop redstone transmitters so each configured redstone engine has one. */
     private void refreshRedstoneTransmitters(ServerLevel serverLevel) {
         Set<Integer> keep = new LinkedHashSet<>();
-        // dedicated LIGHTS output uses row index -1
+
         registerTransmitter(serverLevel, -1, lightsNetworkKey(), keep);
         for (int row = 0; row < CARD_ROWS; row++) {
             registerTransmitter(serverLevel, row, engineRedstoneKey(row), keep);
@@ -1179,7 +1110,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Drive each redstone transmitter's 0-15 strength from its engine's role demand (or aux toggle). */
     private void applyRedstoneOutputs(ServerLevel serverLevel) {
         for (VccMk2RedstoneTransmitter tx : new ArrayList<>(redstoneTransmitters.values())) {
             if (!tx.setTransmittedStrength(redstoneDemandStrength(tx.row()))) {
@@ -1188,20 +1118,17 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
             try {
                 Create.REDSTONE_LINK_NETWORK_HANDLER.updateNetworkOf(serverLevel, tx);
             } catch (RuntimeException | LinkageError ignored) {
-                // network glitch; next tick retries
             }
         }
     }
 
     private int redstoneDemandStrength(int row) {
         if (row < 0) {
-            // dedicated LIGHTS output, driven by the lights switch (aux0)
             return aux[0] ? 15 : 0;
         }
         int mask = roleMasks[row];
         double d;
         if (mask == 0) {
-            // no role: a plain aux output (lights), toggled by the first aux switch
             d = aux[0] ? 1.0 : 0.0;
         } else {
             d = 0.0;
@@ -1236,7 +1163,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         try {
             Create.REDSTONE_LINK_NETWORK_HANDLER.removeFromNetwork(level, tx);
         } catch (RuntimeException | LinkageError ignored) {
-            // already gone
         }
     }
 
@@ -1246,7 +1172,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Self-contained redstone-link transmitter for one redstone engine. Never shares FCC code. */
     private final class VccMk2RedstoneTransmitter implements IRedstoneLinkable {
         private final int row;
         private final Couple<RedstoneLinkNetworkHandler.Frequency> key;
@@ -1310,8 +1235,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    // nose / forward
-    /** Craft forward (nose) direction; defaults to the console's facing until the player sets it. */
     public Direction noseDirection() {
         if (noseDir != null) {
             return noseDir;
@@ -1323,13 +1246,12 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return Direction.NORTH;
     }
 
-    /** Rotate the nose 90 degrees clockwise (N -> E -> S -> W). */
     public void rotateNose() {
         noseDir = noseDirection().getClockWise();
         markUpdated();
     }
 
-    /** [7] */
+    // best effort roles from the live thrust direction
     public void autoAssignRoles() {
         if (level == null || level.isClientSide) {
             return;
@@ -1365,7 +1287,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
                 return (ay >= ax && ay >= az) ? VccMk2Role.LIFT : VccMk2Role.THRUST;
             }
         } catch (Throwable ignored) {
-            // not assembled / not a readable propeller -> fall through to profile default
         }
         return switch (profile) {
             case MULTIROTOR -> VccMk2Role.LIFT;
@@ -1374,7 +1295,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         };
     }
 
-    /** Add Steer to the front-most wheels (furthest along the nose direction); the rest stay Drive. */
     private void assignFrontAxleSteer() {
         BlockPos o = getBlockPos();
         Direction nose = noseDirection();
@@ -1400,8 +1320,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return (pos.getX() - origin.getX()) * nose.getStepX() + (pos.getZ() - origin.getZ()) * nose.getStepZ();
     }
 
-    // card moves
-    /** Click a card cell: empty -> pull a matching card from the player's inventory; filled -> return it. */
     public void toggleCardSlot(Player player, int slot) {
         if (slot < 0 || slot >= CARD_SLOTS) {
             return;
@@ -1421,7 +1339,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Manual place: put one specific inventory card into a chosen slot (player picks position + pairing). */
     public void placeCardInSlot(Player player, int slot, int invIndex) {
         if (slot < 0 || slot >= CARD_SLOTS || !cards.getStackInSlot(slot).isEmpty()) {
             return;
@@ -1445,10 +1362,8 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         cards.setStackInSlot(slot, one);
     }
 
-    /** Fill every empty cell with a matching card pulled from the player's inventory. */
     public void bindAllCards(Player player) {
         for (int slot = 0; slot < CARD_SLOTS; slot++) {
-            // skip the governor slot of redstone rows: those drive by frequency, not a governor
             if (slot % 2 == 1 && redstoneEngine[slot / 2]) {
                 continue;
             }
@@ -1461,7 +1376,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Return every card in the rack to the player's inventory. */
     public void clearAllCards(Player player) {
         for (int slot = 0; slot < CARD_SLOTS; slot++) {
             ItemStack s = cards.getStackInSlot(slot);
@@ -1506,7 +1420,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    // input channels (frequencies)
     public ItemStackHandler frequencies() {
         return frequencies;
     }
@@ -1519,12 +1432,10 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         return frequencies.getStackInSlot(slot);
     }
 
-    /** A channel is paired once both frequency items are set. */
     public boolean channelPaired(int channelIndex) {
         return !freqStack(channelIndex, 0).isEmpty() && !freqStack(channelIndex, 1).isEmpty();
     }
 
-    /** Place one of an inventory item into a frequency slot (defines the channel frequency). */
     public void assignFreq(Player player, int slot, int invIndex) {
         if (slot < 0 || slot >= frequencies.getSlots() || !frequencies.getStackInSlot(slot).isEmpty()) {
             return;
@@ -1542,7 +1453,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         frequencies.setStackInSlot(slot, one);
     }
 
-    /** Return a frequency item to the player. */
     public void returnFreq(Player player, int slot) {
         if (slot < 0 || slot >= frequencies.getSlots()) {
             return;
@@ -1555,18 +1465,16 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         giveBack(player, cur);
     }
 
-    // linked Controller (real-time input)
     private int ch(int index) {
         return (index >= 0 && index < channelStrength.length) ? channelStrength[index] : 0;
     }
 
-    /** Effective axis demand: the Linked Controller overrides the held cockpit value while it is driving. */
     private float effectiveAxis(int axis) {
         boolean engaged = controllerButtonForAxis(axis) || Math.abs(rampedCtl[axis]) > 0.02f;
         if (engaged) {
             return rampedCtl[axis];
         }
-        // Held cockpit demand only applies once activated this session (re-touch gate after load).
+
         return controlsActive ? axisDemand[axis] : 0f;
     }
 
@@ -1587,9 +1495,9 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         float step = 1f / Math.max(1, rampTicks);
         boolean ground = profile.isGround();
         if (ground) {
-            rampToward(AXIS_THROTTLE, ch(0) / 15f, step);       // W = forward pedal (gear sets direction)
-            rampToward(AXIS_BRAKE, ch(1) / 15f, step);          // S = brake
-            rampToward(AXIS_YAW, (ch(3) - ch(2)) / 15f, step);  // D - A
+            rampToward(AXIS_THROTTLE, ch(0) / 15f, step);
+            rampToward(AXIS_BRAKE, ch(1) / 15f, step);
+            rampToward(AXIS_YAW, (ch(3) - ch(2)) / 15f, step);
         } else {
             rampToward(AXIS_THROTTLE, (ch(0) - ch(1)) / 15f, step);
             rampToward(AXIS_YAW, (ch(3) - ch(2)) / 15f, step);
@@ -1610,7 +1518,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         rampedCtl[axis] = Math.max(-1f, Math.min(1f, v));
     }
 
-    /** Rising-edge toggle / momentary channels (arm, mode, stabilization, aux). */
     private void processControllerToggles() {
         if (risingEdge(11)) {
             toggleArmed();
@@ -1700,7 +1607,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         try {
             Create.REDSTONE_LINK_NETWORK_HANDLER.removeFromNetwork(level, rx);
         } catch (RuntimeException | LinkageError ignored) {
-            // already gone
         }
     }
 
@@ -1713,7 +1619,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    /** Self-contained Linked Controller input receiver for one channel. Never shares FCC code. */
     private final class VccMk2LinkedControllerReceiver implements IRedstoneLinkable {
         private final int channel;
         private final Couple<RedstoneLinkNetworkHandler.Frequency> key;
@@ -1765,7 +1670,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    // persistence
     @Override
     public void setRemoved() {
         removeAllRedstoneTransmitters();
@@ -1811,14 +1715,14 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         tag.put("Freq", frequencies.serializeNBT(registries));
         tag.put("EngineFreq", engineFreq.serializeNBT(registries));
         tag.put("LightsFreq", lightsFreq.serializeNBT(registries));
-        // transient telemetry (synced so the client gauges read real values; harmless if saved to disk)
+
         tag.putFloat("TSpd", telemSpeed);
         tag.putFloat("THdg", telemHeading);
         tag.putFloat("TPit", telemPitch);
         tag.putFloat("TRol", telemRoll);
         tag.putFloat("TAlt", telemAltitude);
         tag.putInt("TRpm", telemRpm);
-        // sensors: manual binds persist; state + auto pos sync for the GUI (auto is re-derived on load)
+
         for (int i = 0; i < SENSOR_COUNT; i++) {
             if (sensorManualPos[i] != null) {
                 tag.putLong("SenM" + i, sensorManualPos[i].asLong());
@@ -1865,7 +1769,7 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         axisDemand[AXIS_YAW] = tag.getFloat("AxYaw");
         axisDemand[AXIS_VERTICAL] = tag.getFloat("AxVert");
         axisDemand[AXIS_BRAKE] = tag.getFloat("AxBrk");
-        // Held controls stay inert after a world load unless the config opts in (no surprise movement).
+
         this.controlsActive = com.createstats.ModConfiguration.COMMON.vccPersistControlsOnLoad.get();
         this.uuid = tag.hasUUID("Uuid") ? tag.getUUID("Uuid") : null;
         this.noseDir = tag.contains("Nose") ? Direction.from2DDataValue(tag.getByte("Nose")) : null;
@@ -1961,7 +1865,6 @@ public class VccMk2BlockEntity extends BlockEntity implements MenuProvider, com.
         }
     }
 
-    // menu / render
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.create_stats.vcc_mk2");

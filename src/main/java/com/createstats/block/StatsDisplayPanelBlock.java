@@ -55,7 +55,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
     private static final VoxelShape SHAPE_SOUTH;
     private static final VoxelShape SHAPE_EAST;
     private static final VoxelShape SHAPE_WEST;
-    
+
     public StatsDisplayPanelBlock(BlockBehaviour.Properties properties) {
         super(properties);
         this.registerDefaultState((this.stateDefinition.any()).setValue(StatsDisplayPanelBlock.FACING, Direction.NORTH));
@@ -65,15 +65,15 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return simpleCodec(StatsDisplayPanelBlock::new);
     }
-    
+
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(new Property[] { StatsDisplayPanelBlock.FACING });
     }
-    
+
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(StatsDisplayPanelBlock.FACING, context.getHorizontalDirection());
     }
-    
+
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return switch ((Direction)state.getValue(StatsDisplayPanelBlock.FACING)) {
             case SOUTH -> StatsDisplayPanelBlock.SHAPE_SOUTH;
@@ -82,7 +82,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
             default -> StatsDisplayPanelBlock.SHAPE_NORTH;
         };
     }
-    
+
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.getItem() instanceof StatsConfiguratorItem) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -103,13 +103,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
                 if (be instanceof StatsDisplayPanelBE panel) {
                     final StatsDisplayPanelBE controller = panel.isController() ? panel : this.getController(level, panel);
                     if (controller != null) {
-                        final StatsDisplaySettings settings = controller.getSettings();
-                        final StatsDisplaySettings.GraphType nextGraphType = StatsDisplaySettings.nextGraphType(settings.getGraphType(), controller.hasTrainConnection());
-                        settings.setGraphType(nextGraphType);
-                        settings.setDisplayMode(StatsDisplaySettings.normalizeDisplayMode(settings.getDisplayMode(), nextGraphType, controller.getMultiblockWidth(), controller.getMultiblockHeight()));
-                        controller.setSettings(settings);
-                        level.sendBlockUpdated(controller.getBlockPos(), controller.getBlockState(), controller.getBlockState(), 3);
-                        player.displayClientMessage(Component.translatable("message.create_stats.stats_panel.view", controller.getSettings().getGraphType().getDisplayName()), true);
+                        this.onShiftUse(level, controller, player);
                     }
                 }
             }
@@ -133,11 +127,20 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /** [1] */
     protected void openConfigScreen(StatsDisplayPanelBE panel) {
         ClientScreenAccess.openStatsDisplay(panel);
     }
-    
+
+    protected void onShiftUse(Level level, StatsDisplayPanelBE controller, Player player) {
+        final StatsDisplaySettings settings = controller.getSettings();
+        final StatsDisplaySettings.GraphType nextGraphType = StatsDisplaySettings.nextGraphType(settings.getGraphType(), controller.hasTrainConnection());
+        settings.setGraphType(nextGraphType);
+        settings.setDisplayMode(StatsDisplaySettings.normalizeDisplayMode(settings.getDisplayMode(), nextGraphType, controller.getMultiblockWidth(), controller.getMultiblockHeight()));
+        controller.setSettings(settings);
+        level.sendBlockUpdated(controller.getBlockPos(), controller.getBlockState(), controller.getBlockState(), 3);
+        player.displayClientMessage(Component.translatable("message.create_stats.stats_panel.view", controller.getSettings().getGraphType().getDisplayName()), true);
+    }
+
     @Nullable
     private StatsDisplayPanelBE getController(Level level, StatsDisplayPanelBE member) {
         final BlockPos controllerPos = member.getControllerPos();
@@ -151,17 +154,17 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
         }
         return null;
     }
-    
+
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip,
                 "block.create_stats.stats_display_panel");
     }
-    
+
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new StatsDisplayPanelBE((BlockEntityType<?>)ModBlockEntities.STATS_DISPLAY_PANEL.get(), pos, state);
     }
-    
+
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) {
@@ -170,7 +173,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
         if (type != ModBlockEntities.STATS_DISPLAY_PANEL.get()) return null;
         return (lvl, pos, st, be) -> ((StatsDisplayPanelBE) be).tick();
     }
-    
+
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         if (!level.isClientSide() && !state.is(oldState.getBlock())) {
@@ -184,7 +187,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
             panel.refreshPlacementMultiblock();
         }
     }
-    
+
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide() || !(placer instanceof Player)) {
@@ -309,7 +312,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
             }
         }
     }
-    
+
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
             final BlockEntity be = level.getBlockEntity(pos);
@@ -319,11 +322,11 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }
-    
+
     public boolean isSignalSource(BlockState state) {
         return true;
     }
-    
+
     public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction dir) {
         final BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof StatsDisplayPanelBE panel) {
@@ -331,7 +334,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
         }
         return 0;
     }
-    
+
     public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction dir) {
         final BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof StatsDisplayPanelBE panel) {
@@ -339,7 +342,7 @@ public class StatsDisplayPanelBlock extends HorizontalDirectionalBlock implement
         }
         return 0;
     }
-    
+
     static {
         FACING = HorizontalDirectionalBlock.FACING;
         SHAPE_NORTH = Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 3.0);

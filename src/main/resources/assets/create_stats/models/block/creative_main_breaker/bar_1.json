@@ -1,0 +1,78 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "lens": "create_stats:block/creative_main_breaker_lens",
+    "particle": "create_stats:block/creative_main_breaker_case"
+  },
+  "elements": [
+    {
+      "name": "seg",
+      "from": [
+        4.05,
+        5.2,
+        7.81
+      ],
+      "to": [
+        5.15,
+        5.46,
+        8.49
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      }
+    }
+  ]
+}

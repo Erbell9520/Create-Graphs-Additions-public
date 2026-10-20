@@ -17,7 +17,6 @@ public enum AntennaTier {
     }
 
     public int getRangeMultiplier() {
-        // [1]
         try {
             return switch (this) {
                 case SMALL -> com.createstats.ModConfiguration.COMMON.antennaRangeMultiplierSmall.get();

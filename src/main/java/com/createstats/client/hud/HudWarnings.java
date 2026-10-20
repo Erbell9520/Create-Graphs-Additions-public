@@ -10,9 +10,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/** [1] */
 public final class HudWarnings {
-
     private HudWarnings() {}
 
     public enum Severity {
@@ -30,7 +28,6 @@ public final class HudWarnings {
 
     public record Entry(Severity severity, String text) {}
 
-    /** Collect craft-state warnings from the snapshot, most severe first. Never returns null. */
     public static List<Entry> collect(@Nullable FccGuiSnapshot snapshot) {
         List<Entry> list = new ArrayList<>();
         if (snapshot == null) {
@@ -52,7 +49,6 @@ public final class HudWarnings {
             list.add(new Entry(Severity.WARNING, trim(warning, 24)));
         }
 
-        // [2]
         if (!snapshot.fePowered()) {
             list.add(new Entry(Severity.ALARM, "NO POWER"));
         } else if (snapshot.feBufferPct() < com.createstats.power.FeConsumer.LOW_POWER_PCT) {
@@ -63,7 +59,6 @@ public final class HudWarnings {
             list.add(new Entry(Severity.INFO, "DISARMED"));
         }
 
-        // Most severe first; stable for equal severity so ordering stays deterministic frame to frame.
         list.sort((a, b) -> b.severity().ordinal() - a.severity().ordinal());
         return list;
     }
@@ -76,7 +71,6 @@ public final class HudWarnings {
         return top;
     }
 
-    /** [3] */
     public static int render(GuiGraphics g, Font font, int x, int y, List<Entry> entries, int maxRows) {
         int shown = Math.min(entries.size(), Math.max(0, maxRows));
         int rowY = y;

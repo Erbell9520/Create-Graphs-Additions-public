@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": {
+      "id": "create_stats:stats_display_mk3"
+    },
+    "title": {
+      "translate": "advancement.create_stats.root.title",
+      "fallback": "Tea's On the House"
+    },
+    "description": {
+      "translate": "advancement.create_stats.root.description",
+      "fallback": "Create: Stats & Power. Pull up a stool, the tea is brewing."
+    },
+    "frame": "task",
+    "background": "create_stats:textures/block/flywheel_casing.png",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "requirements": [
+    [
+      "tick"
+    ]
+  ]
+}

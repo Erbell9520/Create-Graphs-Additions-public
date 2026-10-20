@@ -13,7 +13,6 @@ public record FccGuiDeviceEntry(
         boolean resolved,
         boolean grouped
 ) {
-
     public void encode(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(id);
         buf.writeUtf(label == null ? "" : label, 128);

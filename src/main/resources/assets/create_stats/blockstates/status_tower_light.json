@@ -1,8 +1,52 @@
 {
-  "multipart": [
-    { "when": { "visual": "off" }, "apply": { "model": "create_stats:block/status_tower_light_off" } },
-    { "when": { "visual": "green" }, "apply": { "model": "create_stats:block/status_tower_light_green" } },
-    { "when": { "visual": "yellow" }, "apply": { "model": "create_stats:block/status_tower_light_yellow" } },
-    { "when": { "visual": "red" }, "apply": { "model": "create_stats:block/status_tower_light_red" } }
-  ]
+  "variants": {
+    "glow=off,segment=single": {
+      "model": "create_stats:block/status_tower_light_single"
+    },
+    "glow=dim,segment=single": {
+      "model": "create_stats:block/status_tower_light_single"
+    },
+    "glow=mid,segment=single": {
+      "model": "create_stats:block/status_tower_light_single"
+    },
+    "glow=hot,segment=single": {
+      "model": "create_stats:block/status_tower_light_single"
+    },
+    "glow=off,segment=base": {
+      "model": "create_stats:block/status_tower_light_base"
+    },
+    "glow=dim,segment=base": {
+      "model": "create_stats:block/status_tower_light_base"
+    },
+    "glow=mid,segment=base": {
+      "model": "create_stats:block/status_tower_light_base"
+    },
+    "glow=hot,segment=base": {
+      "model": "create_stats:block/status_tower_light_base"
+    },
+    "glow=off,segment=middle": {
+      "model": "create_stats:block/status_tower_light_middle"
+    },
+    "glow=dim,segment=middle": {
+      "model": "create_stats:block/status_tower_light_middle"
+    },
+    "glow=mid,segment=middle": {
+      "model": "create_stats:block/status_tower_light_middle"
+    },
+    "glow=hot,segment=middle": {
+      "model": "create_stats:block/status_tower_light_middle"
+    },
+    "glow=off,segment=top": {
+      "model": "create_stats:block/status_tower_light_top"
+    },
+    "glow=dim,segment=top": {
+      "model": "create_stats:block/status_tower_light_top"
+    },
+    "glow=mid,segment=top": {
+      "model": "create_stats:block/status_tower_light_top"
+    },
+    "glow=hot,segment=top": {
+      "model": "create_stats:block/status_tower_light_top"
+    }
+  }
 }

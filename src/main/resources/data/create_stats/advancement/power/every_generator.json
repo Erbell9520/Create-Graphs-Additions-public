@@ -1,0 +1,117 @@
+{
+  "parent": "create_stats:power/alternator",
+  "display": {
+    "icon": {
+      "id": "create_stats:photovoltaic_array"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.every_generator.title",
+      "fallback": "Rival to TEDAŞ"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.every_generator.description",
+      "fallback": "Own every kind of generator in the mod. TEDAŞ is getting nervous."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "open_frame_dynamo": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:open_frame_dynamo"
+            ]
+          }
+        ]
+      }
+    },
+    "kinetic_dynamo": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:kinetic_dynamo"
+            ]
+          }
+        ]
+      }
+    },
+    "industrial_alternator": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:industrial_alternator"
+            ]
+          }
+        ]
+      }
+    },
+    "biofuel_burner": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:biofuel_burner"
+            ]
+          }
+        ]
+      }
+    },
+    "solar_panel": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:solar_panel"
+            ]
+          }
+        ]
+      }
+    },
+    "photovoltaic_array": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:photovoltaic_array"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "open_frame_dynamo"
+    ],
+    [
+      "kinetic_dynamo"
+    ],
+    [
+      "industrial_alternator"
+    ],
+    [
+      "biofuel_burner"
+    ],
+    [
+      "solar_panel"
+    ],
+    [
+      "photovoltaic_array"
+    ]
+  ],
+  "rewards": {
+    "experience": 100
+  }
+}

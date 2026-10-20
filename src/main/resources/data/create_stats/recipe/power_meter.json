@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " B ",
+    "CEC",
+    " T "
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "C": {
+      "item": "create_stats:surface_cable"
+    },
+    "E": {
+      "item": "create_stats:eink_panel"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:power_meter",
+    "count": 1
+  },
+  "show_notification": true
+}

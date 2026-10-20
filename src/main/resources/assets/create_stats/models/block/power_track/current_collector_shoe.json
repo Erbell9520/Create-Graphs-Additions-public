@@ -1,0 +1,222 @@
+{
+  "textures": {
+    "particle": "create_stats:block/power_track/hardwood",
+    "steel": "create_stats:block/power_track/steel",
+    "hardwood": "create_stats:block/power_track/hardwood",
+    "iron": "create_stats:block/power_track/iron",
+    "porcelain": "create_stats:block/power_track/porcelain",
+    "shoe": "create_stats:block/power_track/shoe",
+    "copper": "create_stats:block/power_track/copper",
+    "rubber": "create_stats:block/power_track/rubber",
+    "brass": "create_stats:block/power_track/brass"
+  },
+  "elements": [
+    {
+      "name": "shoe",
+      "from": [
+        4.5,
+        -14.3,
+        0.5
+      ],
+      "to": [
+        11.5,
+        -13.1,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            13.0,
+            7.0,
+            15.0
+          ],
+          "texture": "#shoe"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            13.0,
+            7.0,
+            15.0
+          ],
+          "texture": "#shoe"
+        },
+        "east": {
+          "uv": [
+            8.0,
+            13.0,
+            13.0,
+            15.0
+          ],
+          "texture": "#shoe"
+        },
+        "west": {
+          "uv": [
+            8.0,
+            13.0,
+            13.0,
+            15.0
+          ],
+          "texture": "#shoe"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            0.5,
+            11.5,
+            5.5
+          ],
+          "texture": "#shoe"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            8.0,
+            7.5,
+            13.0
+          ],
+          "texture": "#shoe"
+        }
+      }
+    },
+    {
+      "name": "toe",
+      "from": [
+        4.5,
+        -13.85,
+        -0.4
+      ],
+      "to": [
+        11.5,
+        -13.1,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            13.5,
+            7.0,
+            15.0
+          ],
+          "texture": "#shoe"
+        },
+        "south": {
+          "uv": [
+            4.5,
+            13.1,
+            11.5,
+            13.85
+          ],
+          "texture": "#shoe"
+        },
+        "east": {
+          "uv": [
+            8.0,
+            13.5,
+            9.0,
+            15.0
+          ],
+          "texture": "#shoe"
+        },
+        "west": {
+          "uv": [
+            8.0,
+            13.5,
+            9.0,
+            15.0
+          ],
+          "texture": "#shoe"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            15.1,
+            11.5,
+            16.0
+          ],
+          "texture": "#shoe"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            8.0,
+            7.5,
+            9.0
+          ],
+          "texture": "#shoe"
+        }
+      }
+    },
+    {
+      "name": "lug",
+      "from": [
+        7.0,
+        -13.1,
+        2.1
+      ],
+      "to": [
+        9.0,
+        -12.0,
+        3.9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.0,
+            12.0,
+            9.0,
+            13.1
+          ],
+          "texture": "#iron"
+        },
+        "south": {
+          "uv": [
+            7.0,
+            12.0,
+            9.0,
+            13.1
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            12.1,
+            12.0,
+            13.9,
+            13.1
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            2.1,
+            12.0,
+            3.9,
+            13.1
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            7.0,
+            2.1,
+            9.0,
+            3.9
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            7.0,
+            2.1,
+            9.0,
+            3.9
+          ],
+          "texture": "#iron"
+        }
+      }
+    }
+  ]
+}

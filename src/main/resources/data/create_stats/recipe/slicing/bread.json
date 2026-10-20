@@ -1,0 +1,10 @@
+{
+  "type": "create_stats:slicing",
+  "loaf": {
+    "item": "minecraft:bread"
+  },
+  "result": {
+    "id": "create_stats:bread_slice",
+    "count": 1
+  }
+}

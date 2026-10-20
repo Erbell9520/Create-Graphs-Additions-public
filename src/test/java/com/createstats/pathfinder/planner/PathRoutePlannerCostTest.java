@@ -8,9 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PathRoutePlannerCostTest {
-
     private static final int Y = 64;
 
     private static Map<Long, PathRoutePlanner.Cell> field(int x0, int z0, int x1, int z1) {
@@ -27,8 +25,6 @@ class PathRoutePlannerCostTest {
         return cells.get(PathRoutePlanner.cellKey(x, z));
     }
 
-    // slope penalty
-
     @Test
     void slopeStepPenaltyEscalatesDeeperIntoAClimb() {
         double first = PathRoutePlanner.slopeStepPenalty(0, 1);
@@ -40,7 +36,6 @@ class PathRoutePlannerCostTest {
 
     @Test
     void slopeStepPenaltyIsCappedPerBlock() {
-        // Beyond the cap, additional accumulated run cannot keep increasing a single block's charge.
         assertEquals(PathRoutePlanner.slopeStepPenalty(1000, 1),
             PathRoutePlanner.slopeStepPenalty(4000, 1), 1e-9, "per-block slope charge must saturate");
     }
@@ -53,7 +48,6 @@ class PathRoutePlannerCostTest {
 
     @Test
     void longSustainedClimbCostsFarMoreThanIsolatedBumps() {
-        // Total charge for a continuous 10-block 1:1 climb versus ten isolated 1-block bumps.
         double sustained = 0.0;
         for (int run = 0; run < 10; run++) {
             sustained += PathRoutePlanner.slopeStepPenalty(run, 1);
@@ -63,8 +57,6 @@ class PathRoutePlannerCostTest {
             "a long steep face must be punished far harder than the same number of short bumps (sustained="
                 + sustained + " isolated=" + isolatedBumps + ")");
     }
-
-    // obstacle berth
 
     @Test
     void obstacleBerthIsZeroInTheOpen() {
@@ -76,11 +68,11 @@ class PathRoutePlannerCostTest {
     @Test
     void obstacleBerthGrowsCloserToTheObstacle() {
         Map<Long, PathRoutePlanner.Cell> cells = field(0, 0, 40, 40);
-        // Punch a single-cell obstacle (a trunk) at (20,20); missing cells read as blocked.
+
         cells.remove(PathRoutePlanner.cellKey(20, 20));
-        double adjacent = PathRoutePlanner.obstacleBerthPenalty(cells, at(cells, 21, 20), 4.0); // distance 1
-        double mid = PathRoutePlanner.obstacleBerthPenalty(cells, at(cells, 23, 20), 4.0);      // distance 3
-        double beyond = PathRoutePlanner.obstacleBerthPenalty(cells, at(cells, 27, 20), 4.0);   // distance 7 > berth
+        double adjacent = PathRoutePlanner.obstacleBerthPenalty(cells, at(cells, 21, 20), 4.0);
+        double mid = PathRoutePlanner.obstacleBerthPenalty(cells, at(cells, 23, 20), 4.0);
+        double beyond = PathRoutePlanner.obstacleBerthPenalty(cells, at(cells, 27, 20), 4.0);
         assertTrue(adjacent > mid, "passing right next to a trunk must cost more than passing farther out");
         assertTrue(mid > 0.0, "passing within the berth must cost something");
         assertEquals(0.0, beyond, 1e-9, "outside the berth ring there is no cost");

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "QQQ",
+    "BWB",
+    "QQQ"
+  ],
+  "key": {
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "B": {
+      "item": "create:brass_nugget"
+    },
+    "W": {
+      "item": "create_stats:copper_wire"
+    }
+  },
+  "result": {
+    "id": "create_stats:duplex_power_outlet",
+    "count": 4
+  },
+  "show_notification": true
+}

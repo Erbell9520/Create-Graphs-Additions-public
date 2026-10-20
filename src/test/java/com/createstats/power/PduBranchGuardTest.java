@@ -9,9 +9,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduBranchGuardTest {
-
     @Test
     void keepsOnlyPositionsThatAreOnTheBranch() {
         final Set<BlockPos> branch = Set.of(new BlockPos(0, 0, 0), new BlockPos(1, 0, 0));

@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "lever": "create_stats:block/smelter_lever",
+    "particle": "create_stats:block/smelter_body"
+  },
+  "elements": [
+    {
+      "from": [
+        -0.3,
+        0.0,
+        -0.3
+      ],
+      "to": [
+        0.3,
+        2.9,
+        0.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#lever"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#lever"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#lever"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#lever"
+        },
+        "up": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#lever"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#lever"
+        }
+      },
+      "__comment": "damper lever"
+    }
+  ]
+}

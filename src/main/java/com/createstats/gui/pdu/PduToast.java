@@ -9,9 +9,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 
-/** [1] */
 public final class PduToast {
-
     public enum Severity {
         INFO, WARN, OK
     }

@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "milk": "create_stats:block/coffee_milk",
+    "particle": "create_stats:block/coffee_milk"
+  },
+  "elements": [
+    {
+      "__comment": "body",
+      "from": [
+        -1.14,
+        0.4,
+        -1.14
+      ],
+      "to": [
+        1.14,
+        3.2,
+        1.14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#milk"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#milk"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#milk"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#milk"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#milk"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#milk"
+        }
+      }
+    }
+  ]
+}

@@ -8,14 +8,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 public class MemoryCogData {
-
     private static final String TAG_KEY = "MemoryCogData";
     private static final String META_KEY = "MemoryCogMeta";
     private static final int SCHEMA_VERSION = 1;
 
     public record SnapshotMetadata(int schemaVersion, String sourceLabel, String sourceType, String dimensionId,
                                    @Nullable BlockPos sourcePos, long capturedGameTime, String lastDisplayText) {
-
         public static SnapshotMetadata empty() {
             return new SnapshotMetadata(SCHEMA_VERSION, "", "", "", null, 0L, "");
         }

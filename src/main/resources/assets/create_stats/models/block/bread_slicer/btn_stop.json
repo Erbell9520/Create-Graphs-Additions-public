@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "btn_red": "create_stats:block/bread_slicer_btn_red",
+    "particle": "create_stats:block/bread_slicer_btn_red"
+  },
+  "elements": [
+    {
+      "__comment": "cap",
+      "from": [
+        11.32,
+        4.44,
+        0.76
+      ],
+      "to": [
+        13.88,
+        7.0,
+        1.32
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#btn_red"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#btn_red"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#btn_red"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#btn_red"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#btn_red"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#btn_red"
+        }
+      }
+    }
+  ]
+}

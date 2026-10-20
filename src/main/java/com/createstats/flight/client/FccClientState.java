@@ -16,13 +16,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.Objects;
 
-/**
- * Client cache of the latest FCC GUI snapshot/telemetry, keyed by containerId.
- * Drops packets whose containerId does not match the currently open FCC screen.
- */
 public final class FccClientState {
+    // both windows agree, no frozen gap
 
-    // [1]
     private static final double MAX_HELMET_EXTRAPOLATION_SECONDS = 0.35D;
     private static final double MAX_HELMET_STALE_SECONDS = 0.35D;
 
@@ -152,7 +148,6 @@ public final class FccClientState {
         return BlockPos.of(helmetTelemetry.controllerPosLong()).equals(helmetControllerPos) ? helmetTelemetry : null;
     }
 
-    /** [2] */
     public static double helmetTelemetryAgeSeconds() {
         FccTelemetryPacket latest = helmetTelemetry;
         long latestNanos = helmetTelemetryNanos;
@@ -205,16 +200,10 @@ public final class FccClientState {
         return pinnedControllerPos != null && pinnedControllerPos.equals(controllerPos);
     }
 
-    /** Snapshot for the given container, or null if cache is for a different one. */
     public static FccGuiSnapshot snapshotFor(int containerId) {
         return (cachedContainerId == containerId) ? lastSnapshot : null;
     }
 
-    /**
-     * Snapshot lookup for pinned HUD rendering.
-     * Falls back to the latest snapshot when HUD is pinned and ids drift
-     * (e.g. menu close/open transitions).
-     */
     @Nullable
     public static FccGuiSnapshot snapshotForPinned(int containerId) {
         if (pinnedControllerPos == null) return null;

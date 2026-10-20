@@ -2,6 +2,7 @@ package com.createstats.blockentity;
 
 import com.createstats.ModConfiguration;
 import com.createstats.block.LoadBalancerBlock;
+import com.createstats.block.LoadBalancerValueBoxTransform;
 import com.createstats.topology.NetworkDiscovery;
 import com.createstats.topology.NetworkGraph;
 import com.createstats.topology.NodeType;
@@ -10,10 +11,14 @@ import com.createstats.topology.TopologyNode;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -27,11 +32,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class LoadBalancerBE extends SplitShaftBlockEntity {
-
+public class LoadBalancerBE extends SplitShaftBlockEntity implements com.createstats.util.CopyableSettings {
     private static final int FALLBACK_CHECK_INTERVAL = 20;
     private static final int RECALC_INTERVAL_DIRTY = 4;
     private static final int SOURCE_DIRECTION_CONFIRM_TICKS = 10;
@@ -44,6 +49,10 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
     private static final float PILOT_RPM = 8.0f;
 
     private LoadBalancerSettings settings;
+
+    private ScrollValueBehaviour splitDial;
+
+    private boolean syncingSplitDial;
     private float currentModifierLeft;
     private float currentModifierRight;
     private float targetModifierLeft;
@@ -90,11 +99,51 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
     }
 
     @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+        this.splitDial = new ScrollValueBehaviour(
+                Component.translatable("create_stats.load_balancer.split_dial"), this,
+                new LoadBalancerValueBoxTransform());
+        this.splitDial.between(0, 100);
+        this.splitDial.withFormatter(v -> "L " + v + " / R " + (100 - v));
+        this.splitDial.withCallback(this::onSplitDialChanged);
+        behaviours.add(this.splitDial);
+    }
+
+    private void onSplitDialChanged(int leftSharePct) {
+        if (this.syncingSplitDial || this.settings == null) {
+            return;
+        }
+        if (Math.round(this.settings.getLeftSharePct()) == leftSharePct) {
+            return;
+        }
+        this.settings.setLeftSharePct(leftSharePct);
+        if (level != null && !level.isClientSide()) {
+            refreshNetworkSnapshot();
+            markDirty();
+        }
+        notifyUpdate();
+    }
+
+    // settings win. old worlds showed 0 on the box while splitting 50/50
+    private void syncSplitDial() {
+        if (this.splitDial == null || this.settings == null) {
+            return;
+        }
+        this.syncingSplitDial = true;
+        try {
+            this.splitDial.setValue(Math.round(this.settings.getLeftSharePct()));
+        } finally {
+            this.syncingSplitDial = false;
+        }
+    }
+
+    @Override
     public float getRotationSpeedModifier(Direction face) {
         if (face == getInputFacing()) {
             return 1.0f;
         }
-        // [1]
+
         if (face == getLeftOutputFacing()) {
             return clampOutputModifierLive(this.currentModifierLeft);
         }
@@ -253,7 +302,39 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
                 applyModifierChange(oldLeft, oldRight);
             }
         }
+        syncSplitDial();
         notifyUpdate();
+    }
+
+    @Override
+    public String settingsKey() {
+        return "create_stats:load_balancer";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put("LoadBalancerSettings", this.settings.save());
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player,
+                                 boolean simulate) {
+        if (!tag.contains("LoadBalancerSettings")) {
+            return false;
+        }
+        if (!simulate) {
+            setSettings(LoadBalancerSettings.load(tag.getCompound("LoadBalancerSettings")));
+        }
+        return true;
+    }
+
+    // spelled out, SmartBlockEntity.writeSafe beats the interface default and drops the settings from schematics
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeSafe(tag, registries);
+        writeFreshDefaults(tag);
+        writeSettings(tag, registries);
     }
 
     public float getCurrentModifierLeft() {
@@ -294,8 +375,7 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
 
     public boolean isBalancing() {
         if (!this.settings.isEnabled()) return false;
-        // Only count deviations from neutral for branches that are actually attached.
-        // A modifier of 0 on an absent branch must not falsely read as "BALANCING".
+
         boolean leftActive = this.leftBranchAttached
                 && Math.abs(this.currentModifierLeft - MODIFIER_NEUTRAL) > MODIFIER_EPSILON;
         boolean rightActive = this.rightBranchAttached
@@ -363,6 +443,59 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
         return this.topologyNodeLimit;
     }
 
+    public ReportedState getReportedState() {
+        if (!this.settings.isEnabled()) {
+            return ReportedState.DISABLED;
+        }
+        return switch (this.topologyStatus) {
+            case TRUNCATED -> ReportedState.TOPOLOGY_LIMIT;
+            case SIDE_INPUT -> ReportedState.WRONG_INPUT;
+            case MERGED_BRANCHES -> ReportedState.MERGED;
+            case BRANCH_SOURCE -> ReportedState.BRANCH_SOURCE;
+            case NO_BRANCHES -> ReportedState.NO_BRANCHES;
+            case NO_SOURCE -> ReportedState.IDLE;
+
+            case OK -> !this.leftBranchAttached || !this.rightBranchAttached
+                    ? ReportedState.ONE_BRANCH
+                    : isBalancing() ? ReportedState.BALANCING : ReportedState.PASS_THROUGH;
+        };
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        final ReportedState state = getReportedState();
+        tooltip.add(Component.literal("  ").append(
+                Component.translatable("block.create_stats.load_balancer").withStyle(ChatFormatting.GRAY)));
+        tooltip.add(Component.literal("    ").append(Component.translatable(state.stateKey())));
+
+        tooltip.add(Component.literal("    ").append(Component.translatable(
+                "create_stats.load_balancer.display.split",
+                fmt0(this.settings.getLeftSharePct()),
+                fmt0(this.settings.getRightSharePct()),
+                this.settings.getSharingMode().getDisplayName())));
+
+        if (this.leftBranchAttached || this.rightBranchAttached) {
+            tooltip.add(Component.literal("    ").append(Component.translatable(
+                    "create_stats.load_balancer.display.lr",
+                    fmt0(getTransmittedSpeedLeft()), fmt0(getTransmittedSpeedRight()),
+                    fmt0(this.lastLeftStressSU), fmt0(this.lastRightStressSU))));
+            tooltip.add(Component.literal("    ").append(Component.translatable(
+                    "create_stats.load_balancer.display.load",
+                    String.format(Locale.ROOT, "%.1f", this.lastStressPercent),
+                    fmt0(this.lastLeftBudgetSU), fmt0(this.lastRightBudgetSU))));
+        }
+
+        if (state.severity() != Severity.OK) {
+            tooltip.add(Component.literal("    ").append(
+                    Component.translatable(state.hintKey()).withStyle(state.severity().formatting())));
+        }
+        return true;
+    }
+
+    private static String fmt0(float value) {
+        return String.format(Locale.ROOT, "%.0f", value);
+    }
+
     private void updateVisualStatus() {
         if (this.level == null || this.level.isClientSide()) return;
         BlockState state = getBlockState();
@@ -375,17 +508,7 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
     }
 
     private int computeVisualStatus() {
-        if (this.topologyStatus == TopologyStatus.TRUNCATED) return 4;
-        boolean hardError = switch (this.topologyStatus) {
-            case SIDE_INPUT, MERGED_BRANCHES, BRANCH_SOURCE -> true;
-            default -> false;
-        };
-        int missingBranches = 0;
-        if (!this.leftBranchAttached) missingBranches++;
-        if (!this.rightBranchAttached) missingBranches++;
-        if (hardError || missingBranches >= 2) return 3;
-        if (missingBranches == 1) return 2;
-        return 1;
+        return getReportedState().severity().casingVariant();
     }
 
     private void recalculateTargets() {
@@ -691,7 +814,6 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
             return maxAllowedModifier;
         }
 
-        // Overstress guard: keep halving the last known output RPM until the network settles, always on whole RPMs.
         float guardedOutputRPM = Mth.clamp((float) Math.ceil(referenceOutputRPM * 0.5f), 0.0f, getEffectiveMaxRPM());
         if (guardedOutputRPM <= 0.0f) {
             return 0.0f;
@@ -837,11 +959,9 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
     private void performModifierRebuild() {
         this.inModifierChange = true;
         try {
-            // [2]
             detachKinetics();
             attachKinetics();
-            // Reset the source-direction debounce so stale observations from before
-            // re-propagation cannot falsely confirm a SIDE_INPUT state.
+
             this.observedSourceFacing = null;
             this.observedSourceTicks = 0;
             syncNetworkState();
@@ -951,8 +1071,6 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
 
             rememberLastKnownOutputRPMs(sourceSpeed);
 
-            // applyModifierChange (when called above) already invokes notifyUpdate → sendData.
-            // An unconditional sendData here would fire on every RPM tick even when nothing changed.
             setChanged();
         } finally {
             this.inNetworkCallback = false;
@@ -980,9 +1098,8 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
         tag.putBoolean("RightBranchAttached", this.rightBranchAttached);
         tag.putInt("LastTopologyNodeCount", this.lastTopologyNodeCount);
         tag.putInt("TopologyNodeLimit", this.topologyNodeLimit);
-        // TopologyStatus is transient – only include it in client sync packets,
-        // never persist to disk (stale SIDE_INPUT on disk causes a false-positive
-        // flicker every time the chunk reloads).
+        // client packets only, persisting it flickered on every chunk reload
+
         if (clientPacket) {
             tag.putString("TopologyStatus", this.topologyStatus.name());
         }
@@ -1019,6 +1136,69 @@ public class LoadBalancerBE extends SplitShaftBlockEntity {
             }
         }
         this.lastComparatorLevel = getAnalogOutputSignal();
+
+        syncSplitDial();
+    }
+
+    public enum Severity {
+        OK(1, ChatFormatting.GREEN),
+
+        NOTICE(1, ChatFormatting.GRAY),
+
+        INCOMPLETE(2, ChatFormatting.YELLOW),
+
+        FAULT(3, ChatFormatting.RED),
+
+        LIMIT(4, ChatFormatting.RED);
+
+        private final int casingVariant;
+        private final ChatFormatting formatting;
+
+        Severity(int casingVariant, ChatFormatting formatting) {
+            this.casingVariant = casingVariant;
+            this.formatting = formatting;
+        }
+
+        public int casingVariant() {
+            return this.casingVariant;
+        }
+
+        public ChatFormatting formatting() {
+            return this.formatting;
+        }
+    }
+
+    public enum ReportedState {
+        DISABLED("disabled", Severity.NOTICE),
+        IDLE("idle", Severity.NOTICE),
+        PASS_THROUGH("pass_through", Severity.OK),
+        BALANCING("balancing", Severity.OK),
+        NO_BRANCHES("no_branches", Severity.INCOMPLETE),
+        ONE_BRANCH("one_branch", Severity.INCOMPLETE),
+        TOPOLOGY_LIMIT("topology_limit", Severity.LIMIT),
+        WRONG_INPUT("wrong_input", Severity.FAULT),
+        MERGED("merged", Severity.FAULT),
+        BRANCH_SOURCE("branch_source", Severity.FAULT);
+
+        private final String id;
+        private final Severity severity;
+
+        ReportedState(String id, Severity severity) {
+            this.id = id;
+            this.severity = severity;
+        }
+
+        public Severity severity() {
+            return this.severity;
+        }
+
+        public String stateKey() {
+            return "create_stats.load_balancer.display.state." + this.id;
+        }
+
+        public String hintKey() {
+            return "create_stats.load_balancer.hint." + this.id;
+        }
     }
 
     public enum TopologyStatus {

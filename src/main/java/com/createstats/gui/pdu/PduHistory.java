@@ -1,12 +1,10 @@
 package com.createstats.gui.pdu;
 
-/** [1] */
 public final class PduHistory {
-
     public static final int SIZE = 300;
-    /** The largest FE per tick a sample can hold; higher values clamp here. */
+
     public static final int MAX_FE = Short.MAX_VALUE;
-    /** The largest shed count a sample can hold, since it is stored in a byte. */
+
     public static final int MAX_SHED = 127;
 
     private final short[] supply = new short[SIZE];
@@ -27,12 +25,10 @@ public final class PduHistory {
         return count == 0;
     }
 
-    /** Records one sample, clamping FE per tick to the short range and the shed count to a byte. */
     public void record(int supplyFe, int demandFe, int shedCount) {
         pushRaw(clampFe(supplyFe), clampFe(demandFe), (byte) Math.max(0, Math.min(MAX_SHED, shedCount)));
     }
 
-    /** Pushes a pre clamped sample, for the client appending a delta it received already scaled. */
     public void pushRaw(short supplySample, short demandSample, byte shedSample) {
         supply[head] = supplySample;
         demand[head] = demandSample;
@@ -57,7 +53,6 @@ public final class PduHistory {
         }
     }
 
-    /** Sample {@code i}, from 0 for the oldest held to {@code count - 1} for the newest. */
     public short supplyAt(int i) {
         check(i);
         return supply[(start() + i) % SIZE];
@@ -97,7 +92,6 @@ public final class PduHistory {
         return out;
     }
 
-    /** Replaces the whole buffer from a chronological snapshot, for the client receiving a full send. */
     public void replace(short[] supplyChrono, short[] demandChrono, byte[] shedChrono, int n) {
         head = 0;
         count = 0;

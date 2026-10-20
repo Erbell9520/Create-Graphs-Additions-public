@@ -33,14 +33,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 
-/** [1] */
 public class VccMk2Block extends HorizontalDirectionalBlock implements EntityBlock {
-
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final EnumProperty<VccMk2VisualState> VISUAL_STATE =
             EnumProperty.create("visual_state", VccMk2VisualState.class);
 
-    // CRT-terminal silhouette (self-contained copy of the shared console geometry).
     private static final VoxelShape SHAPE_NORTH = Shapes.or(
             Block.box(0.0, 0.0, 0.0, 16.0, 3.0, 16.0),
             Block.box(0.0, 3.0, 0.0, 16.0, 5.0, 6.0),
@@ -114,7 +111,6 @@ public class VccMk2Block extends HorizontalDirectionalBlock implements EntityBlo
         return RenderShape.MODEL;
     }
 
-    // Right-click opens the console GUI.
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
                                                BlockHitResult hit) {

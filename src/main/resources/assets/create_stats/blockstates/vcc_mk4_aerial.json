@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "create_stats:block/vcc_mk4_aerial_cockpit/body"
+  },
+  "facing=east": {
+   "model": "create_stats:block/vcc_mk4_aerial_cockpit/body",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "create_stats:block/vcc_mk4_aerial_cockpit/body",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "create_stats:block/vcc_mk4_aerial_cockpit/body",
+   "y": 270
+  }
+ }
+}

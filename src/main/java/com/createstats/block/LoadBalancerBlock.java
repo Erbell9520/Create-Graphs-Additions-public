@@ -32,7 +32,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class LoadBalancerBlock extends HorizontalKineticBlock implements IBE<LoadBalancerBE> {
-
     public static final IntegerProperty VISUAL_STATUS = IntegerProperty.create("visual_status", 1, 4);
 
     public LoadBalancerBlock(Properties properties) {
@@ -100,7 +99,6 @@ public class LoadBalancerBlock extends HorizontalKineticBlock implements IBE<Loa
 
     @Override
     public Direction.Axis getRotationAxis(BlockState state) {
-        // [1]
         return state.getValue(HORIZONTAL_FACING).getAxis();
     }
 
@@ -130,8 +128,6 @@ public class LoadBalancerBlock extends HorizontalKineticBlock implements IBE<Loa
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("block.create_stats.load_balancer.tooltip").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("block.create_stats.load_balancer.tooltip.placement").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("block.create_stats.load_balancer.tooltip.usage").withStyle(ChatFormatting.DARK_GRAY));
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.load_balancer");
     }
 }

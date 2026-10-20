@@ -1,6 +1,8 @@
 package com.createstats.block;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import com.createstats.antenna.AntennaAttachmentHelper;
 import com.createstats.blockentity.FreightManifestClipboardBE;
 import com.createstats.item.FreightManifestClipboardItem;
@@ -39,6 +41,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -57,24 +60,27 @@ import net.minecraft.world.item.Item;
 import javax.annotation.Nullable;
 
 public class FreightManifestClipboardBlock extends HorizontalDirectionalBlock implements EntityBlock {
-
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final EnumProperty<MountType> MOUNT = EnumProperty.create("mount", MountType.class);
-    private static final VoxelShape BASE_SHAPE = Block.box(4.0, 0.0, 4.0, 12.0, 1.0, 12.0);
-    private static final VoxelShape STANDING_NS = Shapes.or(BASE_SHAPE, Block.box(3.0, 1.0, 7.0, 13.0, 15.0, 9.0));
-    private static final VoxelShape STANDING_EW = Shapes.or(BASE_SHAPE, Block.box(7.0, 1.0, 3.0, 9.0, 15.0, 13.0));
-    private static final VoxelShape WALL_NORTH = Shapes.or(
-        Block.box(3.0, 1.0, 14.75, 13.0, 15.0, 16.0),
-        Block.box(5.0, 12.0, 12.5, 11.0, 16.0, 14.75));
-    private static final VoxelShape WALL_SOUTH = Shapes.or(
-        Block.box(3.0, 1.0, 0.0, 13.0, 15.0, 1.25),
-        Block.box(5.0, 12.0, 1.25, 11.0, 16.0, 3.5));
-    private static final VoxelShape WALL_EAST = Shapes.or(
-        Block.box(0.0, 1.0, 3.0, 1.25, 15.0, 13.0),
-        Block.box(1.25, 12.0, 5.0, 3.5, 16.0, 11.0));
-    private static final VoxelShape WALL_WEST = Shapes.or(
-        Block.box(14.75, 1.0, 3.0, 16.0, 15.0, 13.0),
-        Block.box(12.5, 12.0, 5.0, 14.75, 16.0, 11.0));
+
+    private static final double[][] STANDING_BOXES = {
+            {3.0, 0.0, 3.0, 13.0, 2.0, 13.0},
+            {6.0, 2.0, 8.0, 10.0, 4.0, 11.0},
+            {2.0, 4.0, 6.0, 14.0, 5.0, 11.0},
+            {3.0, 4.6, 5.7, 13.0, 8.0, 9.8},
+            {3.0, 8.0, 8.0, 13.0, 11.6, 11.4},
+            {3.0, 11.6, 9.4, 13.0, 15.3, 12.8},
+    };
+
+    private static final double[][] WALL_BOXES = {
+            {3.0, 3.0, 13.5, 13.0, 13.0, 16.0},
+            {6.0, 13.0, 14.0, 10.0, 14.0, 16.0},
+            {3.0, 3.0, 12.5, 13.0, 4.0, 14.5},
+            {4.0, 11.0, 12.5, 12.0, 13.0, 14.5},
+    };
+
+    private static final Map<Direction, VoxelShape> STANDING_SHAPES = buildShapes(STANDING_BOXES);
+    private static final Map<Direction, VoxelShape> WALL_SHAPES = buildShapes(WALL_BOXES);
 
     public FreightManifestClipboardBlock(BlockBehaviour.Properties properties) {
         super(properties);
@@ -110,19 +116,32 @@ public class FreightManifestClipboardBlock extends HorizontalDirectionalBlock im
             : null;
     }
 
+    private static Map<Direction, VoxelShape> buildShapes(double[][] boxes) {
+        Map<Direction, VoxelShape> map = new EnumMap<>(Direction.class);
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            VoxelShape shape = Shapes.empty();
+            for (double[] b : boxes) {
+                shape = Shapes.or(shape, rotateBox(b, facing));
+            }
+            map.put(facing, shape);
+        }
+        return map;
+    }
+
+    private static VoxelShape rotateBox(double[] b, Direction facing) {
+        return switch (facing) {
+            case EAST -> Block.box(16 - b[5], b[1], b[0], 16 - b[2], b[4], b[3]);
+            case SOUTH -> Block.box(16 - b[3], b[1], 16 - b[5], 16 - b[0], b[4], 16 - b[2]);
+            case WEST -> Block.box(b[2], b[1], 16 - b[3], b[5], b[4], 16 - b[0]);
+            default -> Block.box(b[0], b[1], b[2], b[3], b[4], b[5]);
+        };
+    }
+
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        Direction facing = state.getValue(FACING);
-        if (state.getValue(MOUNT) == MountType.WALL) {
-            return switch (facing) {
-                case NORTH -> WALL_NORTH;
-                case SOUTH -> WALL_SOUTH;
-                case EAST -> WALL_EAST;
-                case WEST -> WALL_WEST;
-                default -> WALL_NORTH;
-            };
-        }
-        return facing.getAxis() == Direction.Axis.Z ? STANDING_NS : STANDING_EW;
+        Map<Direction, VoxelShape> shapes =
+                state.getValue(MOUNT) == MountType.WALL ? WALL_SHAPES : STANDING_SHAPES;
+        return shapes.get(state.getValue(FACING));
     }
 
     @Override
@@ -200,13 +219,10 @@ public class FreightManifestClipboardBlock extends HorizontalDirectionalBlock im
             return ItemInteractionResult.CONSUME;
         }
 
-        FreightManifestSavedData savedData = FreightManifestSavedData.get(stationLevel);
-        FreightManifest manifest = savedData.getManifest(link.getStationId());
-        if (manifest == null) {
-            manifest = new FreightManifest();
-        }
-        FreightStationCargoView cargoView = FreightManifestStationResolver.captureCargoView(stationLevel, link);
-        DeliveryOrderBoardView deliveryBoard = FreightManifestStationResolver.captureDeliveryBoard(stationLevel, link);
+        FreightManifestStationResolver.StationView view = FreightManifestStationResolver.captureStationView(stationLevel, link);
+        FreightManifest manifest = view.manifest();
+        FreightStationCargoView cargoView = view.cargoView();
+        DeliveryOrderBoardView deliveryBoard = view.deliveryBoard();
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return ItemInteractionResult.CONSUME;
         }
@@ -245,6 +261,16 @@ public class FreightManifestClipboardBlock extends HorizontalDirectionalBlock im
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new FreightManifestClipboardBE(ModBlockEntities.FREIGHT_MANIFEST_CLIPBOARD.get(), pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
+                                                                  BlockEntityType<T> type) {
+        if (level.isClientSide() || type != ModBlockEntities.FREIGHT_MANIFEST_CLIPBOARD.get()) {
+            return null;
+        }
+        return (lvl, pos, st, be) -> ((FreightManifestClipboardBE) be).serverTick();
     }
 
     @Override

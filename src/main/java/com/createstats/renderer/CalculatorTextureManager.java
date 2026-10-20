@@ -20,10 +20,10 @@ public final class CalculatorTextureManager
 {
     private static final Map<BlockPos, TextureEntry> TEXTURES;
     private static int cleanupCounter;
-    
+
     private CalculatorTextureManager() {
     }
-    
+
     public static ResourceLocation getOrUpdateTexture(CalculatorBE be) {
         final CalculatorBE controller = be.getControllerBE();
         final BlockPos pos = controller.getBlockPos();
@@ -55,28 +55,28 @@ public final class CalculatorTextureManager
         }
         return entry.location;
     }
-    
+
     public static void markDirty(BlockPos pos) {
         final TextureEntry entry = CalculatorTextureManager.TEXTURES.get(pos);
         if (entry != null) {
             entry.needsRedraw = true;
         }
     }
-    
+
     public static void cleanup(BlockPos pos) {
         final TextureEntry entry = CalculatorTextureManager.TEXTURES.remove(pos);
         if (entry != null) {
             disposeEntry(entry);
         }
     }
-    
+
     public static void cleanupAll() {
         for (TextureEntry entry : CalculatorTextureManager.TEXTURES.values()) {
             disposeEntry(entry);
         }
         CalculatorTextureManager.TEXTURES.clear();
     }
-    
+
     private static TextureEntry createEntry(BlockPos pos, int width, int height) {
         try {
             final NativeImage image = new NativeImage(width, height, false);
@@ -99,7 +99,7 @@ public final class CalculatorTextureManager
             return null;
         }
     }
-    
+
     private static void updateTexture(TextureEntry entry, CalculatorBE be, String pressedToken) {
         final NativeImage image = entry.image;
         final int width = image.getWidth();
@@ -121,7 +121,7 @@ public final class CalculatorTextureManager
         }
         entry.dynTex.upload();
     }
-    
+
     private static void drawDisplay(NativeImage image, CalculatorBE be, int width, int height) {
         final FaceRegion display = CalculatorLayout.getDisplayArea();
         final int x = scaleX(display.getX(), width);
@@ -146,7 +146,7 @@ public final class CalculatorTextureManager
         final int resultY = y + h - innerInset - BitmapFont.textHeight(resultScale) - 3;
         BitmapFont.drawString(image, truncate(result, w - innerInset * 2 - 8, resultScale), x + innerInset + 4, resultY, be.getErrorMessage().isEmpty() ? -10445081 : -5813901, resultScale);
     }
-    
+
     private static void drawButton(NativeImage image, FaceRegion button, int width, int height, boolean pressed) {
         final int x = scaleX(button.getX(), width);
         final int y = scaleY(button.getY(), height);
@@ -181,23 +181,23 @@ public final class CalculatorTextureManager
         final int textY = y + h / 2 - BitmapFont.textHeight(scale) / 2 + textOffset;
         BitmapFont.drawCentered(image, button.getLabel(), x + textOffset, textY, w, -131587, scale);
     }
-    
+
     private static int scaleX(double value, int width) {
         return (int)Math.round(value * width);
     }
-    
+
     private static int scaleY(double value, int height) {
         return (int)Math.round(value * height);
     }
-    
+
     private static int scaleWidth(double value, int width) {
         return Math.max(1, (int)Math.round(value * width));
     }
-    
+
     private static int scaleHeight(double value, int height) {
         return Math.max(1, (int)Math.round(value * height));
     }
-    
+
     private static int fitScale(String text, int maxWidth, int preferred) {
         int scale = Math.max(1, Math.min(5, preferred));
         while (scale > 1 && BitmapFont.measureString(text, scale) > maxWidth) {
@@ -205,7 +205,7 @@ public final class CalculatorTextureManager
         }
         return scale;
     }
-    
+
     private static String truncate(String text, int maxWidth, int scale) {
         if (BitmapFont.measureString(text, scale) <= maxWidth) {
             return text;
@@ -216,7 +216,7 @@ public final class CalculatorTextureManager
         }
         return working + "..";
     }
-    
+
     private static void drawRaisedPlate(NativeImage image, int x, int y, int w, int h, int depth, int fillColor, int highlightColor, int shadowColor) {
         TextureGraphRenderer.fillRect(image, x + depth, y + depth, w - depth, h - depth, shadowColor);
         TextureGraphRenderer.fillRect(image, x, y, w - depth, h - depth, fillColor);
@@ -225,7 +225,7 @@ public final class CalculatorTextureManager
         TextureGraphRenderer.fillRect(image, x + depth, y + h - depth, w - depth, depth, shadowColor);
         TextureGraphRenderer.fillRect(image, x + w - depth, y + depth, depth, h - depth, shadowColor);
     }
-    
+
     private static void drawInsetPanel(NativeImage image, int x, int y, int w, int h, int depth, int rimColor, int innerShadowColor, int highlightColor) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, rimColor);
         TextureGraphRenderer.fillRect(image, x + depth, y + depth, w - depth, h - depth, highlightColor);
@@ -233,7 +233,7 @@ public final class CalculatorTextureManager
         TextureGraphRenderer.fillRect(image, x, y, w, depth, innerShadowColor);
         TextureGraphRenderer.fillRect(image, x, y, depth, h, innerShadowColor);
     }
-    
+
     private static void drawRaisedButton(NativeImage image, int x, int y, int w, int h, int depth, int fillColor) {
         TextureGraphRenderer.fillRect(image, x + depth, y + depth, w - depth, h - depth, -15329770);
         TextureGraphRenderer.fillRect(image, x, y, w - depth, h - depth, fillColor);
@@ -243,7 +243,7 @@ public final class CalculatorTextureManager
         TextureGraphRenderer.fillRect(image, x + w - depth, y + depth, depth, h - depth, -16513786);
         TextureGraphRenderer.drawBorder(image, x, y, w - depth, h - depth, 1, -7237231);
     }
-    
+
     private static void drawPressedButton(NativeImage image, int x, int y, int w, int h, int depth, int fillColor) {
         final int inset = Math.max(1, depth - 1);
         TextureGraphRenderer.fillRect(image, x, y, w, h, -15920374);
@@ -254,7 +254,7 @@ public final class CalculatorTextureManager
         TextureGraphRenderer.fillRect(image, x + w - depth, y + inset, depth, h - inset, -2235938);
         TextureGraphRenderer.drawBorder(image, x + inset, y + inset, w - inset, h - inset, 1, -8288897);
     }
-    
+
     private static void cleanupStale() {
         final long currentTick = getGameTime();
         final Iterator<Map.Entry<BlockPos, TextureEntry>> iterator = CalculatorTextureManager.TEXTURES.entrySet().iterator();
@@ -266,7 +266,7 @@ public final class CalculatorTextureManager
             }
         }
     }
-    
+
     private static void disposeEntry(TextureEntry entry) {
         try {
             if (entry.dynTex != null) {
@@ -277,19 +277,19 @@ public final class CalculatorTextureManager
             CreateStats.LOGGER.warn("Failed to dispose calculator texture", ex);
         }
     }
-    
+
     private static long getGameTime() {
         if (Minecraft.getInstance().level != null) {
             return Minecraft.getInstance().level.getGameTime();
         }
         return System.currentTimeMillis() / 50L;
     }
-    
+
     static {
         TEXTURES = new HashMap<BlockPos, TextureEntry>();
         CalculatorTextureManager.cleanupCounter = 0;
     }
-    
+
     private static class TextureEntry
     {
         NativeImage image;

@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:security/panel",
+  "display": {
+    "icon": {
+      "id": "create_stats:mob_repeller"
+    },
+    "title": {
+      "translate": "advancement.create_stats.security.repeller.title",
+      "fallback": "Nazar Charm"
+    },
+    "description": {
+      "translate": "advancement.create_stats.security.repeller.description",
+      "fallback": "Place an Ultrasonic Mob Repeller. Works like a nazar charm, except you can prove it."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "repeller": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:mob_repeller"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "repeller"
+    ]
+  ]
+}

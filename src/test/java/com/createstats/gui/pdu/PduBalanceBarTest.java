@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** [1] */
 class PduBalanceBarTest {
-
     @Test
     @DisplayName("an idle branch says it is idle rather than denying the devices exist")
     void idleDevicesAreNotDeniedAltogether() {

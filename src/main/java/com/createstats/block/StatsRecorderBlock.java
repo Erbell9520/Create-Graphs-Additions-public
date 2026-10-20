@@ -43,7 +43,6 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
 {
     public static final DirectionProperty FACING;
 
-    // [1]
     private static final VoxelShape SHAPE = Block.box(1.0, 0.0, 1.0, 15.0, 12.0, 15.0);
 
     public StatsRecorderBlock(BlockBehaviour.Properties properties) {
@@ -55,11 +54,11 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return simpleCodec(StatsRecorderBlock::new);
     }
-    
+
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(new Property[] { StatsRecorderBlock.FACING });
     }
-    
+
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(StatsRecorderBlock.FACING, context.getHorizontalDirection().getOpposite());
     }
@@ -91,7 +90,7 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
-    
+
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         List<ItemStack> drops = super.getDrops(state, builder);
@@ -110,12 +109,12 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.stats_recorder");
     }
-    
+
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new StatsRecorderBE((BlockEntityType<?>)ModBlockEntities.STATS_RECORDER.get(), pos, state);
     }
-    
+
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) {
@@ -124,11 +123,11 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
         if (type != ModBlockEntities.STATS_RECORDER.get()) return null;
         return (lvl, pos, st, be) -> ((StatsRecorderBE) be).tick();
     }
-    
+
     public boolean isSignalSource(BlockState state) {
         return true;
     }
-    
+
     public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction dir) {
         final BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof StatsRecorderBE recorder) {
@@ -136,7 +135,7 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
         }
         return 0;
     }
-    
+
     public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction dir) {
         final BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof StatsRecorderBE recorder) {
@@ -145,11 +144,11 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
         }
         return 0;
     }
-    
+
     public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
-    
+
     public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         final BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof StatsRecorderBE recorder) {
@@ -157,7 +156,7 @@ public class StatsRecorderBlock extends HorizontalDirectionalBlock implements En
         }
         return 0;
     }
-    
+
     static {
         FACING = HorizontalDirectionalBlock.FACING;
     }

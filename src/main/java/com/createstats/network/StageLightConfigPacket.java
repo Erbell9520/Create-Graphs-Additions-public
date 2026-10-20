@@ -16,9 +16,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.createstats.block.StageLightBlock;
 
-/** [1] */
+// generous radius for ship mounted ones
 public class StageLightConfigPacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<StageLightConfigPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "stage_light_config"));
 

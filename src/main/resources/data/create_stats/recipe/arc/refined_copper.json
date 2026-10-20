@@ -1,0 +1,15 @@
+{
+  "type": "create_stats:arc_smelting",
+  "first": {
+    "tag": "c:ingots/copper"
+  },
+  "first_count": 3,
+  "second": {
+    "tag": "c:sands"
+  },
+  "result": {
+    "id": "create_stats:refined_copper",
+    "count": 2
+  },
+  "duration": 400
+}

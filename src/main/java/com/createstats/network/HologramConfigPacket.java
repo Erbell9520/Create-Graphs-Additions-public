@@ -22,7 +22,7 @@ public class HologramConfigPacket implements CustomPacketPayload
     private final boolean redstoneAbove;
     private final int redstoneMode;
     private final boolean scanEnabled;
-    
+
     public static final CustomPacketPayload.Type<HologramConfigPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "hologram_config"));
     public static final StreamCodec<FriendlyByteBuf, HologramConfigPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), HologramConfigPacket::new);
 
@@ -40,7 +40,7 @@ public class HologramConfigPacket implements CustomPacketPayload
         this.redstoneMode = redstoneMode;
         this.scanEnabled = scanEnabled;
     }
-    
+
     public HologramConfigPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.newSettings = buf.readNbt();
@@ -51,7 +51,7 @@ public class HologramConfigPacket implements CustomPacketPayload
         this.redstoneMode = buf.readVarInt();
         this.scanEnabled = buf.readBoolean();
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeNbt(this.newSettings);
@@ -62,12 +62,12 @@ public class HologramConfigPacket implements CustomPacketPayload
         buf.writeVarInt(this.redstoneMode);
         buf.writeBoolean(this.scanEnabled);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(HologramConfigPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();

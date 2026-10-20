@@ -27,8 +27,7 @@ public record PathScanSettings(
     public static final int MAX_FORWARD_CHUNKS = 10;
     public static final int MAX_SIDE_CHUNKS = 3;
     public static final int MAX_CHUNKS_PER_TICK = 8;
-    // Fixed rearward scan margin (chunks) applied on top of the forward window so the planner can
-    // see and maneuver behind the vehicle (reverse detours, K-turns). Not player-configurable.
+
     public static final int BACKWARD_CHUNKS = 3;
     public static final int MAX_SCAN_CHUNKS = (MAX_FORWARD_CHUNKS + BACKWARD_CHUNKS) * (MAX_SIDE_CHUNKS * 2 + 1);
     public static final int MAX_PATHFINDER_ROUTE_CHUNKS = MAX_SCAN_CHUNKS;
@@ -51,7 +50,6 @@ public record PathScanSettings(
     }
 
     public int expectedChunkCount() {
-        // [1]
         return forwardChunks * (sideChunks * 2 + 1);
     }
 

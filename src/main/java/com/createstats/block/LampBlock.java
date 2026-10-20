@@ -23,57 +23,99 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-/** [1] */
-public class LampBlock extends Block implements net.minecraft.world.level.block.EntityBlock {
-
+public class LampBlock extends Block implements net.minecraft.world.level.block.EntityBlock,
+        com.simibubi.create.content.equipment.wrench.IWrenchable, GirderMounting.Fixture {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
 
-    /** The lamp's shape in its canonical upward-pointing orientation, in pixels. */
+    public static final net.minecraft.world.level.block.state.properties.IntegerProperty SPIN =
+            net.minecraft.world.level.block.state.properties.IntegerProperty.create("spin", 0, 3);
+
+    // ten notches, light is an int 0..15 anyway, a slider would be lying
+    public static final net.minecraft.world.level.block.state.properties.IntegerProperty DIM =
+            net.minecraft.world.level.block.state.properties.IntegerProperty.create("level", 0, 9);
+
+    public static final float[] DIM_FRACTION = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+
+    public static class Spun extends LampBlock {
+        public Spun(Properties properties, VoxelShape upShape, int litLevel) {
+            super(properties, upShape, litLevel);
+        }
+
+        @Override
+        protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+            super.createBlockStateDefinition(builder);
+            builder.add(SPIN);
+        }
+    }
+
     private final VoxelShape upShape;
 
-    /**
-     * @param litLevel accepted for symmetry with the shape, but deliberately NOT stored.
-     *
-     *     <p>Light emission is fixed at registration instead, as a literal in the properties lambda.
-     *     It cannot come from a field here: {@code super(properties)} builds the state definition,
-     *     and every {@code BlockState} constructor evaluates the light emission function immediately,
-     *     which is before any field on this subclass has been assigned. Reading {@code litLevel} there
-     *     yields 0 for every state, so the lamp changes texture when lit and emits no light at all.
-     *     That is exactly the bug this comment exists to stop somebody reintroducing.</p>
-     */
     public LampBlock(Properties properties, VoxelShape upShape, int litLevel) {
         super(properties);
         this.upShape = upShape;
         registerDefaultState(defaultBlockState()
                 .setValue(FACING, Direction.UP)
                 .setValue(LIT, false)
-                .setValue(COLOR, DyeColor.WHITE));
+                .setValue(COLOR, DyeColor.WHITE)
+                .setValue(DIM, DIM_FRACTION.length - 1));
+    }
+
+    public static java.util.function.ToIntFunction<BlockState> emission(int full) {
+        return state -> {
+            if (!state.getValue(LIT)) {
+                return 0;
+            }
+            return Math.max(1, Math.round(full * DIM_FRACTION[state.getValue(DIM)]));
+        };
+    }
+
+    public static float dimFraction(BlockState state) {
+        return state.hasProperty(DIM) ? DIM_FRACTION[state.getValue(DIM)] : 1.0f;
+    }
+
+    public static int spin(BlockState state) {
+        return state.hasProperty(SPIN) ? state.getValue(SPIN) : 0;
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, LIT, COLOR);
+        builder.add(FACING, LIT, COLOR, DIM);
     }
 
     @Override
     @Nullable
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        // [2]
         final Direction facing = context.getClickedFace();
-        final Level level = context.getLevel();
-        final BlockPos pos = context.getClickedPos();
-        // Placed dark: it lights only once cable actually feeds it.
-        return defaultBlockState().setValue(FACING, facing).setValue(LIT, false);
+
+        final BlockState placed = defaultBlockState().setValue(FACING, facing).setValue(LIT, false);
+        if (!placed.hasProperty(SPIN)) {
+            return placed;
+        }
+
+        return placed.setValue(SPIN,
+                MountedPart.spinTowards(facing, context.getHorizontalDirection().getOpposite()));
+    }
+
+    @Override
+    public BlockState getRotatedBlockState(BlockState originalState, Direction targetedFace) {
+        if (!originalState.hasProperty(SPIN)) {
+            return originalState;
+        }
+        return originalState.setValue(SPIN, (originalState.getValue(SPIN) + 1) % 4);
     }
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return LampShapes.rotate(upShape, state.getValue(FACING));
+        return LampShapes.rotate(upShape, state.getValue(FACING), spin(state));
     }
 
-    /** Right-click with a dye to recolour the diffuser. Anything else falls through as normal. */
+    @Override
+    public boolean isBackedBy(BlockState state, Direction towardSupport) {
+        return state.getValue(FACING) == towardSupport.getOpposite();
+    }
+
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
@@ -108,5 +150,16 @@ public class LampBlock extends Block implements net.minecraft.world.level.block.
             return null;
         }
         return (lvl, pos, blockState, be) -> ((com.createstats.blockentity.LampBE) be).tick();
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context,
+                                java.util.List<net.minecraft.network.chat.Component> tooltip,
+                                net.minecraft.world.item.TooltipFlag flag) {
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip,
+                stack.getItem().getDescriptionId(),
+                java.util.List.of(com.createstats.util.CreateStatsTooltipHelper.spec(
+                        "tooltip.create_stats.lamp_draw",
+                        com.createstats.power.FeRates.perTick(com.createstats.blockentity.LampBE.drawPerTick()))));
     }
 }

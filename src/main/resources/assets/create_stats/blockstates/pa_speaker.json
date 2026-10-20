@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "create_stats:block/pa_speaker"
+    },
+    "facing=down": {
+      "model": "create_stats:block/pa_speaker",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "create_stats:block/pa_speaker",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/pa_speaker",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/pa_speaker",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "create_stats:block/pa_speaker",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

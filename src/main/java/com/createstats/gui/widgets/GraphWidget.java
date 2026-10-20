@@ -19,26 +19,26 @@ public class GraphWidget extends AbstractWidget
     private float[] data;
     private StatsDisplaySettings settings;
     private MetricType metricType;
-    
+
     public GraphWidget(int x, int y, int width, int height) {
         super(x, y, width, height, Component.empty());
         this.metricType = MetricType.GENERIC;
         this.settings = new StatsDisplaySettings();
         this.data = new float[0];
     }
-    
+
     public void setData(float[] data) {
         this.data = ((data != null) ? data : new float[0]);
     }
-    
+
     public void setSettings(StatsDisplaySettings settings) {
         this.settings = settings;
     }
-    
+
     public void setMetricType(MetricType type) {
         this.metricType = type;
     }
-    
+
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         final StatsColorScheme scheme = this.settings.getColorScheme();
         graphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, scheme.getBackgroundColor());
@@ -114,7 +114,7 @@ public class GraphWidget extends AbstractWidget
             }
         }
     }
-    
+
     protected void updateWidgetNarration(NarrationElementOutput output) {
         this.defaultButtonNarrationText(output);
     }

@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:transport/mk4",
+  "display": {
+    "icon": {
+      "id": "create_stats:surveyor_staff"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.surveyor.title",
+      "fallback": "The Deed Is Mine"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.surveyor.description",
+      "fallback": "Get a Surveyor's Staff. Measure twice. The neighbour will still fight you over the fence."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "staff": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:surveyor_staff"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "staff"
+    ]
+  ]
+}

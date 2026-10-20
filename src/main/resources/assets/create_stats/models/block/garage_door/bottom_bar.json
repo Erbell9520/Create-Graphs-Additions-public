@@ -1,0 +1,76 @@
+{
+  "textures": {
+    "face": "create_stats:block/garage_door_bar",
+    "particle": "create_stats:block/garage_door_bar"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        5.5
+      ],
+      "to": [
+        16,
+        4,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#face",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#face",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#face",
+          "uv": [
+            0,
+            5,
+            16,
+            10.0
+          ]
+        },
+        "down": {
+          "texture": "#face",
+          "uv": [
+            0,
+            5,
+            16,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#face",
+          "uv": [
+            0,
+            5,
+            5.0,
+            9
+          ]
+        },
+        "west": {
+          "texture": "#face",
+          "uv": [
+            0,
+            5,
+            5.0,
+            9
+          ]
+        }
+      }
+    }
+  ]
+}

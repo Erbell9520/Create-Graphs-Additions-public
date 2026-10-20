@@ -2,7 +2,6 @@ package com.createstats.vccmk2;
 
 import net.minecraft.util.StringRepresentable;
 
-/** [1] */
 public enum VccMk2CraftProfile implements StringRepresentable {
     AIRSHIP("airship", "Airship", "lift + thrust"),
     MULTIROTOR("multirotor", "Multirotor", "quad / hexa"),
@@ -36,7 +35,6 @@ public enum VccMk2CraftProfile implements StringRepresentable {
         return sub;
     }
 
-    /** True for ground vehicles (wheel/track drive-steer domain). */
     public boolean isGround() {
         return this == OTOMOBIL || this == TANK;
     }

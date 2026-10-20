@@ -143,7 +143,7 @@ public class StatsDisplayScreen extends Screen
     private boolean showStats;
     private boolean showLog;
     private boolean redstoneConfigOpen;
-    // Battle Tactical V2, on-screen 2D/3D view switch hit-rect (set each frame in render).
+
     private boolean battleViewToggleVisible;
     private int battleViewToggleX;
     private int battleViewToggleY;
@@ -163,7 +163,7 @@ public class StatsDisplayScreen extends Screen
     private long singleGaugeEaseMs;
     private long singleGaugeOpenMs;
     private long dashOpenMs;
-    // Line-chart "Live Signal Instrument" trace animation state (frame-rate independent).
+
     private final java.util.Map<String, float[]> lineRangeEase = new java.util.HashMap<>();
     private long lineTraceLastMs;
     private long lineTraceOpenMs;
@@ -182,10 +182,7 @@ public class StatsDisplayScreen extends Screen
     private int hoverDataIndex;
     private float hoverValue;
     private String hoverLabel;
-    private boolean alertConfigOpen;
-    private String alertValueInput;
     private String redstoneValueInput;
-    private EditBox alertThresholdInput;
     private EditBox redstoneThresholdInput;
     private EditBox fmTriggerThresholdInput;
     private String fmTriggerThresholdDraft = "";
@@ -253,6 +250,10 @@ public class StatsDisplayScreen extends Screen
     private int effFormulasBtnY;
     private int effFormulasBtnW;
     private int effFormulasBtnH;
+    private int effLiveMathBtnX;
+    private int effLiveMathBtnY;
+    private int effLiveMathBtnW;
+    private int effLiveMathBtnH;
     private int topologyExpandBtnX;
     private int topologyExpandBtnY;
     private int topologyExpandBtnW;
@@ -326,6 +327,7 @@ public class StatsDisplayScreen extends Screen
     private static final int SOURCE_PAGE_VEHICLE_SETTINGS = -6;
     private static final int SOURCE_PAGE_INVENTORY_STATUS = -7;
     private static final int SOURCE_PAGE_FACTORY_STATUS = -8;
+    private static final int SOURCE_PAGE_POWER = -9;
     private static final String SOURCE_GROUP_PREFIX = "__group__:";
     private static final String PRODUCTION_DETECTOR_GROUP_PAGE = "__group__:production_detector";
     private static final String REMEMBERED_HOME_PAGE = "__home__";
@@ -336,21 +338,25 @@ public class StatsDisplayScreen extends Screen
     private static final String REMEMBERED_GUIDANCE_PAGE = "__aeroline__";
     private static final String REMEMBERED_INVENTORY_STATUS_PAGE = "__inventory_status__";
     private static final String REMEMBERED_FACTORY_STATUS_PAGE = "__factory_status__";
+    private static final String REMEMBERED_POWER_PAGE = "__power__";
+
+    private final com.createstats.client.statspower.StatsPowerPage powerPage =
+            new com.createstats.client.statspower.StatsPowerPage();
     private static String lastOpenedPageKey = REMEMBERED_HOME_PAGE;
     private static boolean openHomeOnNextOpen = false;
     private static final int PRODUCTION_RATE_WINDOW_SECONDS = 15;
     private static final long PRODUCTION_RATE_WINDOW_TICKS = PRODUCTION_RATE_WINDOW_SECONDS * 20L;
     private static final int PRODUCTION_SNAPSHOT_SAMPLE_TICKS = 20;
     private static final float MIN_VISIBLE_PRODUCTION_RATE = 0.01f;
-    
+
     private enum RightPanelTab
     {
         DATA("Data", "Data"),
         TOOLS("Tools", "Tools");
-        
+
         private final String label;
         private final String title;
-        
+
         RightPanelTab(String label, String title) {
             this.label = label;
             this.title = title;
@@ -360,7 +366,7 @@ public class StatsDisplayScreen extends Screen
     public static void showHomeOnNextOpen() {
         openHomeOnNextOpen = true;
     }
-    
+
     private enum HomeOutputMode
     {
         SINGLE("Single Channel"),
@@ -370,14 +376,14 @@ public class StatsDisplayScreen extends Screen
         AERO("Is that a ship?"),
         AEROLINE("Aeroline Director"),
         ANALOG("Instruments");
-        
+
         private final String label;
-        
+
         HomeOutputMode(String label) {
             this.label = label;
         }
     }
-    
+
     private enum HomeClickAction
     {
         FILTER_TYPE,
@@ -409,7 +415,7 @@ public class StatsDisplayScreen extends Screen
         EXPORT_SUMMARY,
         EXPORT_CSV;
     }
-    
+
     private static final class HomeClickTarget
     {
         private final HomeClickAction action;
@@ -420,7 +426,7 @@ public class StatsDisplayScreen extends Screen
         private final String value;
         private final HomeOutputMode outputMode;
         private final StatsDisplaySettings.GraphType graphType;
-        
+
         private HomeClickTarget(HomeClickAction action, int x, int y, int w, int h, String value, HomeOutputMode outputMode, StatsDisplaySettings.GraphType graphType) {
             this.action = action;
             this.x = x;
@@ -431,7 +437,7 @@ public class StatsDisplayScreen extends Screen
             this.outputMode = outputMode;
             this.graphType = graphType;
         }
-        
+
         private boolean contains(double mx, double my) {
             return mx >= this.x && mx < this.x + this.w && my >= this.y && my < this.y + this.h;
         }
@@ -634,7 +640,7 @@ public class StatsDisplayScreen extends Screen
             this.autoZoomed = autoZoomed;
         }
     }
-      
+
     public StatsDisplayScreen(StatsDisplayPanelBE panel) {
         super(Component.literal("Stats Display"));
         this.selectedTab = -1;
@@ -656,8 +662,6 @@ public class StatsDisplayScreen extends Screen
         this.hoverDataIndex = -1;
         this.hoverValue = 0.0f;
         this.hoverLabel = "";
-        this.alertConfigOpen = false;
-        this.alertValueInput = "";
         this.redstoneValueInput = "";
         this.manualYAxisEnabled = false;
         this.manualYAxisMinDraft = "";
@@ -903,7 +907,7 @@ public class StatsDisplayScreen extends Screen
         }
         return String.format("%.2f", value);
     }
-    
+
     private void applyTheme(DisplayTheme theme) {
         this.BG = theme.bg;
         this.TEXT = theme.text;
@@ -918,7 +922,7 @@ public class StatsDisplayScreen extends Screen
         this.WARN = theme.warn;
         this.THRESH_LINE = theme.threshLine;
     }
-    
+
     protected void init() {
         this.syncSourceIds();
         this.restoreRememberedSourcePage();
@@ -1046,9 +1050,7 @@ public class StatsDisplayScreen extends Screen
             final Button predictBtn = Button.builder(Component.literal(this.predictionButtonLabel()), b -> this.togglePrediction()).bounds(r2x + 212, row2Y, 70, 16).build();
             this.addRenderableWidget(predictBtn);
             if (this.selectedTab >= 0) {
-                final Button alertBtn = Button.builder(Component.literal("\u26a0 Alert"), b -> this.toggleAlertConfigPanel()).bounds(r2x + 286, row2Y, 52, 16).build();
-                this.addRenderableWidget(alertBtn);
-                final Button rsBtn = Button.builder(Component.literal("\u26a1 Redstone"), b -> this.toggleRedstoneConfigPanel()).bounds(r2x + 342, row2Y, 62, 16).build();
+                final Button rsBtn = Button.builder(Component.literal("\u26a1 Redstone"), b -> this.toggleRedstoneConfigPanel()).bounds(r2x + 286, row2Y, 62, 16).build();
                 this.addRenderableWidget(rsBtn);
             }
             final int annotateX = (this.selectedTab >= 0) ? (r2x + 408) : (r2x + 286);
@@ -1147,107 +1149,6 @@ public class StatsDisplayScreen extends Screen
                 this.editingAnnotationId = null;
                 this.rebuildWidgets();
             }).bounds(popX + 144, popY + 20, 18, 14).build());
-        }
-        this.alertThresholdInput = null;
-        if (this.alertConfigOpen && this.selectedTab >= 0) {
-            final List<StatsDisplayPanelBE.DataChannel> achs = this.getFilteredChannels();
-            if (this.selectedTab < achs.size()) {
-                final StatsDisplayPanelBE.DataChannel ach = achs.get(this.selectedTab);
-                final int apw = Math.max(135, this.optionPanelWidth);
-                final int apx = this.optionPanelLeft;
-                final int apy = this.graphTop;
-                this.addPanelButton(apx + apw - 18, apy + 2, 14, 14, Component.literal("\u2715"), b -> {
-                    this.applyAlertThreshold();
-                    this.alertConfigOpen = false;
-                    this.alertValueInput = "";
-                    this.rebuildWidgets();
-                });
-                (this.alertThresholdInput = new EditBox(this.font, apx + 4, apy + 32, 55, 16, Component.literal("Threshold"))).setFilter(text -> text.isEmpty() || text.matches("-?[0-9]*\\.?[0-9]*"));
-                if (this.alertValueInput.isEmpty()) {
-                    this.alertValueInput = String.valueOf(ach.getAlertThreshold());
-                }
-                this.alertThresholdInput.setValue(this.alertValueInput);
-                this.alertThresholdInput.setResponder(text -> this.alertValueInput = text);
-                this.addRenderableWidget(this.alertThresholdInput);
-                this.addPanelButton(apx + 63, apy + 32, 18, 16, Component.literal("\u25b2"), b -> this.adjustAlertThreshold(true));
-                this.addPanelButton(apx + 83, apy + 32, 18, 16, Component.literal("\u25bc"), b -> this.adjustAlertThreshold(false));
-                final PanelButton aboveBtn = this.addPanelButton(apx + 4, apy + 60, 62, 16, Component.literal("Above \u2191"), b -> {
-                    final List<StatsDisplayPanelBE.DataChannel> chs = this.getFilteredChannels();
-                    if (this.selectedTab >= 0 && this.selectedTab < chs.size()) {
-                        chs.get(this.selectedTab).setAlertAbove(true);
-                        this.sendAlertPacket(chs.get(this.selectedTab));
-                    }
-                    this.rebuildWidgets();
-                });
-                aboveBtn.active = !ach.isAlertAbove();
-                final PanelButton belowBtn = this.addPanelButton(apx + 69, apy + 60, 62, 16, Component.literal("Below \u2193"), b -> {
-                    final List<StatsDisplayPanelBE.DataChannel> chs = this.getFilteredChannels();
-                    if (this.selectedTab >= 0 && this.selectedTab < chs.size()) {
-                        chs.get(this.selectedTab).setAlertAbove(false);
-                        this.sendAlertPacket(chs.get(this.selectedTab));
-                    }
-                    this.rebuildWidgets();
-                });
-                belowBtn.active = ach.isAlertAbove();
-                final boolean alertEnabled = ach.isAlertEnabled();
-                this.addPanelButton(apx + 4, apy + 80, 86, 16, Component.literal(alertEnabled ? "\u25cf Enabled" : "\u25cb Disabled"), b -> {
-                    final List<StatsDisplayPanelBE.DataChannel> chs = this.getFilteredChannels();
-                    if (this.selectedTab >= 0 && this.selectedTab < chs.size()) {
-                        final StatsDisplayPanelBE.DataChannel c = chs.get(this.selectedTab);
-                        final boolean wasEnabled = c.isAlertEnabled();
-                        c.setAlertEnabled(!wasEnabled);
-                        // First time an alarm is armed, give it a sane per-metric default instead of
-                        // "above 0" (which made any positive value, e.g. full RPM, trip immediately).
-                        if (!wasEnabled && c.getAlertThreshold() == 0.0f) {
-                            final float[] da = com.createstats.display.MetricContract.defaultAlarm(c.getStore().getMetricType(), c.getStore());
-                            c.setAlertThreshold(da[0]);
-                            c.setAlertAbove(da[1] > 0.5f);
-                        }
-                        this.sendAlertPacket(c);
-                    }
-                    this.rebuildWidgets();
-                });
-                final TimeSeriesStore alertStore = ach.getStore();
-                final int alertWindow = this.getWindowSampleLimit(alertStore);
-                this.addPanelButton(apx + 4, apy + 108, 40, 16, Component.literal("Min"), b -> this.setAlertThresholdQuick(alertStore.getMinWindow(alertWindow)));
-                this.addPanelButton(apx + 47, apy + 108, 40, 16, Component.literal("Avg"), b -> this.setAlertThresholdQuick(alertStore.getAverageWindow(alertWindow)));
-                this.addPanelButton(apx + 90, apy + 108, 40, 16, Component.literal("Max"), b -> this.setAlertThresholdQuick(alertStore.getMaxWindow(alertWindow)));
-                final int gty = apy + 136;
-                int gtx = apx + 4;
-                int gtRowY = gty;
-                final int gtMaxX = apx + apw - 4;
-                for (StatsDisplaySettings.GraphType t2 : StatsDisplaySettings.GraphType.values()) {
-                    if (t2 == StatsDisplaySettings.GraphType.TRAIN_MAP
-                            || t2 == StatsDisplaySettings.GraphType.CAPACITY
-                            || t2 == StatsDisplaySettings.GraphType.PRODUCTION
-                            || t2 == StatsDisplaySettings.GraphType.INVENTORY_STATUS
-                            || t2 == StatsDisplaySettings.GraphType.FACTORY_STATUS) {
-                        continue;
-                    }
-                    final StatsDisplaySettings.GraphType type2 = t2;
-                    final String gtLabel = switch (type2) {
-                        case LINE_CHART -> ",";
-                        case BAR_CHART -> "\u2581";
-                        case GAUGE -> "\u25d4";
-                        case NUMERIC -> "#";
-                        case ANALOG_GAUGE -> "\u2609";
-                        case EFFICIENCY -> "\u2605";
-                        case TOPOLOGY -> "\u2b21";
-                        default -> "?";
-                    };
-                    if (gtx + 20 > gtMaxX) {
-                        gtx = apx + 4;
-                        gtRowY += 18;
-                    }
-                    final PanelButton gtBtn = this.addPanelButton(gtx, gtRowY, 20, 16, Component.literal(gtLabel), b -> {
-                        this.viewType = t2;
-                        this.ensureGuiViewTypeValid();
-                        this.rebuildWidgets();
-                    });
-                    gtBtn.active = this.viewType != type2;
-                    gtx += 22;
-                }
-            }
         }
         this.redstoneThresholdInput = null;
         if (this.redstoneConfigOpen && this.selectedTab >= 0) {
@@ -1367,8 +1268,7 @@ public class StatsDisplayScreen extends Screen
     }
 
     private void addOptionPanelWidgets() {
-        // [1]
-        if (this.alertConfigOpen || this.redstoneConfigOpen) {
+        if (this.redstoneConfigOpen) {
             return;
         }
         final int tabX = this.optionPanelLeft + 4;
@@ -1394,7 +1294,7 @@ public class StatsDisplayScreen extends Screen
         switch (this.selectedRightPanelTab) {
             case DATA -> {
                 final int channelCount = this.getFilteredChannels().size();
-                // [2]
+
                 final int listBudget = this.optionPanelHeight - 54 - 11 - 30 - 160;
                 final int maxRows = Math.max(0, Math.min(3, listBudget / 16));
                 int listH = 0;
@@ -1418,7 +1318,7 @@ public class StatsDisplayScreen extends Screen
                     this.addStockpileThresholdWidgets(contentX, contentY, contentW);
                     this.addToolOptionWidgets(contentX, contentY + 54, contentW);
                 } else {
-                    final int summaryH = (this.selectedTab >= 0 && !this.alertConfigOpen && !this.redstoneConfigOpen) ? 26 : 0;
+                    final int summaryH = (this.selectedTab >= 0 && !this.redstoneConfigOpen) ? 26 : 0;
                     this.addToolOptionWidgets(contentX, contentY + summaryH, contentW);
                 }
             }
@@ -1492,15 +1392,12 @@ public class StatsDisplayScreen extends Screen
     }
 
     private void addToolOptionWidgets(int x, int y, int w) {
-        if (this.alertConfigOpen || this.redstoneConfigOpen) {
+        if (this.redstoneConfigOpen) {
             return;
         }
         int rowY = y;
         final PanelCapabilities.ChannelKind toolKind = this.focusedChannelKind(this.getFilteredChannels());
         final boolean allowThreshold = toolKind == null || PanelCapabilities.supportsThreshold(toolKind);
-        final PanelButton alertBtn = this.addPanelButton(x, rowY, w, 16, Component.literal("\u26a0 Alert Rule"), b -> this.toggleAlertConfigPanel());
-        alertBtn.active = this.selectedTab >= 0 && allowThreshold;
-        rowY += 18;
         final PanelButton redstoneBtn = this.addPanelButton(x, rowY, w, 16, Component.literal("\u26a1 Redstone Trigger"), b -> this.toggleRedstoneConfigPanel());
         redstoneBtn.active = this.selectedTab >= 0 && allowThreshold;
         rowY += 18;
@@ -1525,9 +1422,8 @@ public class StatsDisplayScreen extends Screen
         if (!this.shouldShowChartControls() || this.optionPanelWidth <= 0 || this.optionPanelHeight <= 0) {
             return;
         }
-        // The Alert/Redstone editor draws its own full-panel surface; don't draw the normal header/caption/
-        // status/summary underneath it or they bleed through and overlap.
-        if (this.alertConfigOpen || this.redstoneConfigOpen) {
+
+        if (this.redstoneConfigOpen) {
             return;
         }
         final int x = this.optionPanelLeft;
@@ -1538,7 +1434,7 @@ public class StatsDisplayScreen extends Screen
         this.border(g, x, y, w, h, this.BORDER);
         g.fill(x + 1, y + 1, x + w - 1, y + 3, this.optionPanelAccent());
         g.drawString(this.font, this.selectedRightPanelTab.title, x + 6, y + 24, this.TEXT);
-        // Block 1.3: per-source live/stale status chip in the panel header (right-aligned on the title row).
+
         final boolean srcInterrupted = !this.panel.isStatsDisplayLinkOptInRequired() && this.isCurrentViewInterrupted();
         final boolean srcLive = !channels.isEmpty() && !srcInterrupted;
         final String statusChip = srcInterrupted ? "STALE" : (srcLive ? "LIVE" : "WAIT");
@@ -1570,7 +1466,6 @@ public class StatsDisplayScreen extends Screen
         }
     }
 
-    // [3]
     private void renderOptionPanelChannelList(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels, int mx, int my) {
         if (this.channelListVisibleRows <= 0 || channels.isEmpty()) {
             return;
@@ -1681,9 +1576,8 @@ public class StatsDisplayScreen extends Screen
         return true;
     }
 
-    // [4]
     private void renderTriggersSummary(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels) {
-        if (this.alertConfigOpen || this.redstoneConfigOpen) {
+        if (this.redstoneConfigOpen) {
             return;
         }
         final int x = this.optionPanelLeft + 6;
@@ -1729,8 +1623,6 @@ public class StatsDisplayScreen extends Screen
         g.drawString(this.font, this.truncate(rsStr, w), x, y + 12, rsColor);
     }
 
-    // Block 5: Stockpile Switch (Create Threshold Switch) tailored editor - tune the on/off thresholds from
-    // the panel. Thresholds are absolute item/fluid amounts (integers), matching Create's own fields.
     private boolean isStockpileSourceView() {
         final String sourceId = this.getCurrentSourcePageId();
         if (sourceId == null || sourceId.isEmpty()) {
@@ -1809,13 +1701,11 @@ public class StatsDisplayScreen extends Screen
         this.addPanelButton(x, inY + 20, w, 16, Component.literal("Apply Thresholds"), b -> this.applyStockpileThresholds());
     }
 
-    // Block 7: hover tooltip for a channel-inspector row - explains the cryptic label (full name, kind,
-    // live value + unit, alert state) so long/truncated names and metric types are legible.
     private void renderChannelRowTooltip(GuiGraphics g, int mx, int my) {
         if (!this.shouldShowChartControls() || this.channelListVisibleRows <= 0) {
             return;
         }
-        if (this.selectedRightPanelTab != RightPanelTab.DATA || this.alertConfigOpen || this.redstoneConfigOpen) {
+        if (this.selectedRightPanelTab != RightPanelTab.DATA || this.redstoneConfigOpen) {
             return;
         }
         if (this.sourceDropdownOpen || this.signalDropdownOpen) {
@@ -1866,9 +1756,6 @@ public class StatsDisplayScreen extends Screen
         };
     }
 
-    // capability model (Block 2): classify the focused source/channel so the panel only shows
-    // controls that make sense, instead of the identical generic form for every source type.
-
     private PanelCapabilities.ChannelKind focusedChannelKind(List<StatsDisplayPanelBE.DataChannel> channels) {
         if (this.selectedTab >= 0 && channels != null && this.selectedTab < channels.size()) {
             return PanelCapabilities.classify(channels.get(this.selectedTab));
@@ -1887,9 +1774,6 @@ public class StatsDisplayScreen extends Screen
         }
         return PanelCapabilities.resolve(family, channels);
     }
-
-    // flow Meter specialized view: replace the generic Data/Tools panel with a focused
-    // alarm + redstone trigger panel that watches the flow rate.
 
     private boolean isSpecializedFlowMeterView() {
         if (this.selectedTab != -1) {
@@ -2000,8 +1884,6 @@ public class StatsDisplayScreen extends Screen
         this.sendAlertPacket(rateCh);
     }
 
-    // Called when the shared condition (mode/threshold/above) changes. Only pushes to consumers
-    // that are actually enabled, to avoid needless packets and redstone neighbour churn.
     private void onFlowMeterConditionChanged() {
         if (this.fmTriggerRedstone) {
             this.sendFlowMeterPipe();
@@ -2125,21 +2007,6 @@ public class StatsDisplayScreen extends Screen
         }
     }
 
-    private void toggleAlertConfigPanel() {
-        this.selectedRightPanelTab = RightPanelTab.TOOLS;
-        if (this.alertConfigOpen) {
-            this.applyAlertThreshold();
-        }
-        this.alertConfigOpen = !this.alertConfigOpen;
-        this.alertValueInput = "";
-        if (this.redstoneConfigOpen) {
-            this.applyRedstoneThreshold();
-        }
-        this.redstoneConfigOpen = false;
-        this.redstoneValueInput = "";
-        this.rebuildWidgets();
-    }
-
     private void toggleRedstoneConfigPanel() {
         this.selectedRightPanelTab = RightPanelTab.TOOLS;
         if (this.redstoneConfigOpen) {
@@ -2147,11 +2014,6 @@ public class StatsDisplayScreen extends Screen
         }
         this.redstoneConfigOpen = !this.redstoneConfigOpen;
         this.redstoneValueInput = "";
-        if (this.alertConfigOpen) {
-            this.applyAlertThreshold();
-        }
-        this.alertConfigOpen = false;
-        this.alertValueInput = "";
         this.rebuildWidgets();
     }
 
@@ -2226,6 +2088,9 @@ public class StatsDisplayScreen extends Screen
         if (this.isFactoryStatusPage()) {
             return "Factory Status";
         }
+        if (this.isPowerPage()) {
+            return "StatsPower";
+        }
         if (this.isTrainPage()) {
             return "Train Map";
         }
@@ -2272,8 +2137,6 @@ public class StatsDisplayScreen extends Screen
     }
 
     private String buildPanelStatusLabel(boolean isLive, boolean interrupted) {
-        // FE Dependent Mode takes priority over every data-state message: a panel with no power is
-        // not receiving anything, so never claim live data while it is dark.
         if (com.createstats.power.client.FePowerVisuals.isDead(this.panel.feConsumer())) {
             return "● NO POWER - display offline";
         }
@@ -2324,11 +2187,6 @@ public class StatsDisplayScreen extends Screen
     }
 
     private void closeInlineAutomationEditors() {
-        if (this.alertConfigOpen) {
-            this.applyAlertThreshold();
-            this.alertConfigOpen = false;
-            this.alertValueInput = "";
-        }
         if (this.redstoneConfigOpen) {
             this.applyRedstoneThreshold();
             this.redstoneConfigOpen = false;
@@ -2337,7 +2195,7 @@ public class StatsDisplayScreen extends Screen
     }
 
     private boolean resetPageScopedSelection() {
-        final boolean changed = this.selectedTab != -1 || !this.pinnedChannels.isEmpty() || this.alertConfigOpen || this.redstoneConfigOpen;
+        final boolean changed = this.selectedTab != -1 || !this.pinnedChannels.isEmpty() || this.redstoneConfigOpen;
         this.selectedTab = -1;
         this.pinnedChannels.clear();
         this.closeInlineAutomationEditors();
@@ -2346,7 +2204,7 @@ public class StatsDisplayScreen extends Screen
 
     private boolean sanitizeChannelSelection(List<StatsDisplayPanelBE.DataChannel> channels) {
         boolean changed = this.pinnedChannels.removeIf(pinIdx -> pinIdx < 0 || pinIdx >= channels.size());
-        final boolean editorsWereOpen = this.alertConfigOpen || this.redstoneConfigOpen;
+        final boolean editorsWereOpen = this.redstoneConfigOpen;
         if (this.selectedTab >= channels.size()) {
             this.selectedTab = -1;
             changed = true;
@@ -2377,10 +2235,10 @@ public class StatsDisplayScreen extends Screen
         this.applyPanelSettingsChange();
         this.rebuildWidgets();
     }
-     
+
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(g);
-        // FE Dependent Mode panel in the free screen corner (self-gating).
+
         com.createstats.power.client.FeStatusWidget.draw(g, this.font, this.width - 130, 8, 120, this.panel.feConsumer());
         final LinkedHashMap<String, SourceConfig> registry = this.panel.getSourceRegistry();
         if (this.syncSourceIds()) {
@@ -2477,6 +2335,9 @@ public class StatsDisplayScreen extends Screen
         else if (this.isInventoryStatusPage()) {
             this.renderInventoryStatus(g, channels, mouseX, mouseY);
         }
+        else if (this.isPowerPage()) {
+            this.renderPowerPage(g, mouseX, mouseY, partialTick);
+        }
         else if (this.isTrainPage()) {
             this.renderTrainDashboard(g, mouseX, mouseY);
         }
@@ -2493,8 +2354,6 @@ public class StatsDisplayScreen extends Screen
         else if (displayMode == StatsDisplaySettings.DisplayMode.SPECIALIZED
             && this.selectedTab == -1
             && this.tryRenderBattleTacticalV2Viewport3D(g, partialTick)) {
-            // Phase B: 3D voxel viewport replaced the standard specialized panel render
-            // for Battle Bridge sources in V2 mode. No preset overlay needed here.
         }
         else if (displayMode == StatsDisplaySettings.DisplayMode.SPECIALIZED
             && this.selectedTab == -1
@@ -2569,9 +2428,6 @@ public class StatsDisplayScreen extends Screen
                 this.renderOptionPanel(g, channels, mouseX, mouseY);
             }
         }
-        if (chartContext && this.alertConfigOpen && this.selectedTab >= 0 && this.selectedTab < channels.size()) {
-            this.renderAlertConfig(g, channels.get(this.selectedTab), mouseX, mouseY);
-        }
         if (chartContext && this.redstoneConfigOpen && this.selectedTab >= 0 && this.selectedTab < channels.size()) {
             this.renderRedstoneConfig(g, channels.get(this.selectedTab), mouseX, mouseY);
         }
@@ -2592,7 +2448,7 @@ public class StatsDisplayScreen extends Screen
         }
         if (chartContext && this.hoverDataIndex >= 0) {
             this.renderTooltip(g, mouseX, mouseY);
-            // If the hovered channel maps to a known item, draw its icon near the cursor
+
             final List<StatsDisplayPanelBE.DataChannel> hoverChs = this.getFilteredChannels();
             if (this.selectedTab >= 0 && this.selectedTab < hoverChs.size()) {
                 final ItemStack hoverIcon = this.resolveItemIcon(hoverChs.get(this.selectedTab).getLabel());
@@ -2750,7 +2606,7 @@ public class StatsDisplayScreen extends Screen
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
     }
-    
+
     private void renderSplashQuote(GuiGraphics g, float partialTick) {
         if (this.splashQuote == null) {
             return;
@@ -2781,7 +2637,7 @@ public class StatsDisplayScreen extends Screen
         g.drawCenteredString(font, splashQuote, n, -9 / 2, color);
         pose.popPose();
     }
-    
+
     private void renderSourceBar(GuiGraphics g, LinkedHashMap<String, SourceConfig> registry, int mx, int my) {
         final int srcY = this.panelTop + 22;
         final int tabH = 18;
@@ -2795,8 +2651,12 @@ public class StatsDisplayScreen extends Screen
         final boolean showFlightDeck = this.hasFlightDeckPage();
         final boolean showGuidance = this.hasGuidancePage();
         final boolean showTrain = this.hasTrainSourcePage();
+        final boolean showPower = this.hasPowerPage();
         int systemX = rightEdge;
         systemX = this.renderRightNavPill(g, mx, my, systemX, srcY, tabH, "Tools", this.isFactoryPage(), this.ACCENT);
+        if (showPower) {
+            systemX = this.renderRightNavPill(g, mx, my, systemX, srcY, tabH, "Power", this.isPowerPage(), this.getPowerNavDotColor());
+        }
         if (showTrain) {
             systemX = this.renderRightNavPill(g, mx, my, systemX, srcY, tabH, "Train", this.isTrainPage(), this.ACCENT);
         }
@@ -2877,7 +2737,6 @@ public class StatsDisplayScreen extends Screen
         this.vline(g, x + w - 1, y + 4, y + h - 4, darken(borderColor, 0.72f));
     }
 
-    // [5]
     private PanelButton addPanelButton(int x, int y, int w, int h, Component label, Button.OnPress onPress) {
         return this.addRenderableWidget(new PanelButton(x, y, w, h, label, onPress));
     }
@@ -2932,7 +2791,7 @@ public class StatsDisplayScreen extends Screen
             final boolean enabled = this.active;
             final boolean hot = this.isHoveredOrFocused() && enabled;
             final boolean down = this.pressed && hot;
-            // Solid body colour, brighter on hover; a real vertical gradient gives it depth (not flat).
+
             final int base = !enabled
                     ? darken(StatsDisplayScreen.this.TAB_BG, 0.5f)
                     : (hot ? StatsDisplayScreen.this.TAB_HOVER : darken(StatsDisplayScreen.this.TAB_BG, 0.92f));
@@ -2944,14 +2803,14 @@ public class StatsDisplayScreen extends Screen
             final int textC = !enabled
                     ? StatsDisplayScreen.this.DIM
                     : (hot ? 0xFFFFFFFF : StatsDisplayScreen.this.TEXT);
-            // Solid filled body.
+
             g.fillGradient(bx + 1, by + 1, bx + bw - 1, by + bh - 1, topFill, botFill);
-            // Full, connected rectangle border (all four corners meet).
+
             StatsDisplayScreen.this.border(g, bx, by, bw, bh, borderC);
-            // Bevel: top highlight + bottom shadow for a solid, raised look (inverted when pressed).
+
             StatsDisplayScreen.this.hline(g, bx + 1, bx + bw - 1, down ? by + bh - 2 : by + 1, opaque(brighten(topFill, 1.18f)));
             StatsDisplayScreen.this.hline(g, bx + 1, bx + bw - 1, down ? by + 1 : by + bh - 2, opaque(darken(botFill, 0.72f)));
-            // Dynamic hover: a lit accent frame just inside the border.
+
             if (hot) {
                 StatsDisplayScreen.this.border(g, bx + 1, by + 1, bw - 2, bh - 2, opaque(darken(StatsDisplayScreen.this.ACCENT, 0.55f)));
             }
@@ -3036,7 +2895,7 @@ public class StatsDisplayScreen extends Screen
             visible = this.getVisibleSourceTabIndices(availableWidth);
         }
     }
-    
+
     private void renderTabBar(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels, int mx, int my) {
         final boolean multiSource = this.getVisibleSourceTabCount() > 1;
         final int sourceBarH = multiSource ? 20 : 0;
@@ -3333,7 +3192,7 @@ public class StatsDisplayScreen extends Screen
     private int getChannelTabScopeWidth() {
         return Math.min(104, Math.max(58, this.font.width(this.getChannelTabScopeLabel()) + 6));
     }
-    
+
     private ItemStack resolveItemIcon(String displayName) {
         final String clean = displayName.trim();
         final ItemStack cached = this.itemIconCache.get(clean);
@@ -3396,10 +3255,8 @@ public class StatsDisplayScreen extends Screen
             candidates.add(clean);
         }
     }
-    
+
     public boolean mouseClicked(double mx, double my, int button) {
-        // Battle Tactical V2, on-screen 2D/3D view switch. Hit-tested before the viewport
-        // routing below so it works even though it overlays the 3D viewport's rect.
         if (button == 0 && this.battleViewToggleVisible
                 && mx >= this.battleViewToggleX && mx < this.battleViewToggleX + this.battleViewToggleW
                 && my >= this.battleViewToggleY && my < this.battleViewToggleY + this.battleViewToggleH) {
@@ -3407,7 +3264,9 @@ public class StatsDisplayScreen extends Screen
             this.rebuildWidgets();
             return true;
         }
-        // [6]
+
+        // Routed first so the viewport "owns" clicks inside its rect before the screen
+
         if (com.createstats.client.battle.BattleTacticalV2Viewport3D.mouseClicked(this.panel, mx, my, button)) {
             return true;
         }
@@ -3438,6 +3297,9 @@ public class StatsDisplayScreen extends Screen
             return true;
         }
         if (button == 0 && this.isVehicleSettingsPage() && this.handleVehicleSettingsPageClick(mx, my)) {
+            return true;
+        }
+        if (button == 0 && this.isPowerPage() && this.powerPage.mouseClicked(mx, my, button)) {
             return true;
         }
         if (button == 0 && this.handleBattleBoardPresetClick(mx, my)) {
@@ -3480,13 +3342,16 @@ public class StatsDisplayScreen extends Screen
                     final boolean showFlightDeck = this.hasFlightDeckPage();
                     final boolean showGuidance = this.hasGuidancePage();
                     final boolean showTrain = this.hasTrainSourcePage();
+                    final boolean showPower = this.hasPowerPage();
                     final int vehicleW = this.font.width("Vehicle") + 20;
                     final int flightDeckW = this.font.width("Flight") + 20;
                     final int guidanceW = this.font.width("Aero") + 20;
                     final int trainW = this.font.width("Train") + 20;
+                    final int powerW = this.font.width("Power") + 20;
                     final int factoryW = this.font.width("Tools") + 20;
                     final int factoryX = rightEdge - factoryW;
-                    final int trainX = showTrain ? (factoryX - 5 - trainW) : factoryX;
+                    final int powerX = showPower ? (factoryX - 5 - powerW) : factoryX;
+                    final int trainX = showTrain ? (powerX - 5 - trainW) : powerX;
                     final int guidanceX = showGuidance ? (trainX - 5 - guidanceW) : trainX;
                     final int flightDeckX = showFlightDeck ? (guidanceX - 5 - flightDeckW) : guidanceX;
                     final int vehicleX = showVehicle ? (flightDeckX - 5 - vehicleW) : flightDeckX;
@@ -3550,6 +3415,13 @@ public class StatsDisplayScreen extends Screen
                         }
                         return false;
                     }
+                    if (showPower && mx >= powerX && mx < powerX + powerW) {
+                        if (button == 0) {
+                            this.selectPowerPage();
+                            return true;
+                        }
+                        return false;
+                    }
                     if (mx >= factoryX && mx < factoryX + factoryW) {
                         if (button == 0) {
                             this.selectFactoryPage();
@@ -3607,12 +3479,11 @@ public class StatsDisplayScreen extends Screen
             return true;
         }
         if (this.isInventoryStatusPage() && button == 0) {
-            // Sort button
             if (mx >= this.prodSortBtnX && mx <= this.prodSortBtnX + this.prodSortBtnW && my >= this.prodSortBtnY && my <= this.prodSortBtnY + this.prodSortBtnH) {
                 this.inventorySortMode = (this.inventorySortMode + 1) % 2;
                 return true;
             }
-            // Row hit testing, first try storage expand toggle, then flow rows
+
             if (mx >= this.graphLeft && mx <= this.graphLeft + this.graphWidth) {
                 for (InventoryStorageRowHit shit : this.inventoryStorageHits) {
                     if (my >= shit.yMin && my < shit.yMax && shit.sourceId != null) {
@@ -3675,7 +3546,11 @@ public class StatsDisplayScreen extends Screen
             }
         }
         if (this.shouldShowChartControls() && this.viewType == StatsDisplaySettings.GraphType.EFFICIENCY && button == 0 && mx >= this.effFormulasBtnX && mx <= this.effFormulasBtnX + this.effFormulasBtnW && my >= this.effFormulasBtnY && my <= this.effFormulasBtnY + this.effFormulasBtnH + 2) {
-            this.minecraft.setScreen((Screen)new EfficiencyFormulaScreen(this.panel, this));
+            this.minecraft.setScreen((Screen)new EfficiencyFormulaScreen(this.panel, this, false));
+            return true;
+        }
+        if (this.shouldShowChartControls() && this.viewType == StatsDisplaySettings.GraphType.EFFICIENCY && button == 0 && mx >= this.effLiveMathBtnX && mx <= this.effLiveMathBtnX + this.effLiveMathBtnW && my >= this.effLiveMathBtnY && my <= this.effLiveMathBtnY + this.effLiveMathBtnH + 2) {
+            this.minecraft.setScreen((Screen)new EfficiencyFormulaScreen(this.panel, this, true));
             return true;
         }
         return super.mouseClicked(mx, my, button);
@@ -3683,7 +3558,6 @@ public class StatsDisplayScreen extends Screen
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
-        // V2 3D viewport: drag-rotate yaw/pitch. dx/dy are pixel deltas (positive right/down).
         if (com.createstats.client.battle.BattleTacticalV2Viewport3D.mouseDragged(this.panel, mx, my, button, dx, dy)) {
             return true;
         }
@@ -3692,15 +3566,13 @@ public class StatsDisplayScreen extends Screen
 
     @Override
     public boolean mouseReleased(double mx, double my, int button) {
-        // V2 3D viewport: end drag-rotate session.
         if (com.createstats.client.battle.BattleTacticalV2Viewport3D.mouseReleased(this.panel, mx, my, button)) {
             return true;
         }
         return super.mouseReleased(mx, my, button);
     }
-    
+
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
-        // V2 3D viewport zoom.
         if (com.createstats.client.battle.BattleTacticalV2Viewport3D.mouseScrolled(this.panel, mx, my, scrollY)) {
             return true;
         }
@@ -3737,6 +3609,9 @@ public class StatsDisplayScreen extends Screen
         if (this.isHomePage() && this.handleHomePageScroll(mx, my, scrollY)) {
             return true;
         }
+        if (this.isPowerPage() && this.powerPage.mouseScrolled(mx, my, scrollY)) {
+            return true;
+        }
         if (this.isTrainPage()) {
             if (this.handleTrainDashboardScroll(mx, my, scrollY)) {
                 return true;
@@ -3756,7 +3631,7 @@ public class StatsDisplayScreen extends Screen
         }
         return super.mouseScrolled(mx, my, scrollX, scrollY);
     }
-    
+
     private void renderDashboard(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels) {
         final int count = channels.size();
         if (count == 0) {
@@ -3835,7 +3710,7 @@ public class StatsDisplayScreen extends Screen
             g.drawString(this.font, "+" + (count - cols * rows) + " more...", this.graphLeft + 4, this.graphTop + this.graphHeight - 12, this.DIM);
         }
     }
-    
+
     private void renderMiniLineChart(GuiGraphics g, float[] data, int x, int y, int w, int h, int color) {
         float min = Float.MAX_VALUE;
         float max = -3.4028235E38f;
@@ -3866,7 +3741,7 @@ public class StatsDisplayScreen extends Screen
             prevPy = py;
         }
     }
-    
+
     private static float[] downsample(float[] data, int targetLen) {
         if (data.length <= targetLen || targetLen < 2) {
             return data;
@@ -3881,7 +3756,7 @@ public class StatsDisplayScreen extends Screen
         }
         return out;
     }
-    
+
     private void renderChannelGraph(GuiGraphics g, StatsDisplayPanelBE.DataChannel channel, int color, int mx, int my) {
         final TimeSeriesStore store = channel.getStore();
         final MetricType mtype = store.getMetricType();
@@ -3955,7 +3830,7 @@ public class StatsDisplayScreen extends Screen
             this.drawAlertThresholdLine(g, data, channel);
         }
     }
-    
+
     private void renderAnalogGaugeGUI(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels) {
         if (channels.isEmpty()) {
             return;
@@ -3998,8 +3873,7 @@ public class StatsDisplayScreen extends Screen
         if (this.dashOpenMs == 0L) {
             this.dashOpenMs = easeNowMs;
         }
-        // Power-on self-test sweep: needles rush to full then settle onto the live value when the
-        // dashboard first appears, like an instrument cluster booting up.
+
         final float introT = Math.min(1.0f, (easeNowMs - this.dashOpenMs) / 900.0f);
         for (int i = 0; i < channels.size(); ++i) {
             final StatsDisplayPanelBE.DataChannel ch = channels.get(i);
@@ -4020,8 +3894,6 @@ public class StatsDisplayScreen extends Screen
             if (!(min < max)) {
                 final float[] fixedRange = com.createstats.display.MetricContract.fixedRange(store.getMetricType());
                 if (fixedRange != null) {
-                    // Canonical per-metric range: the same stat reads the same regardless of
-                    // display settings or which source is primary (no more inverted gauges).
                     min = fixedRange[0];
                     max = fixedRange[1];
                 } else {
@@ -4043,8 +3915,7 @@ public class StatsDisplayScreen extends Screen
             }
             float normalized = (latest - min) / range;
             normalized = Math.max(0.0f, Math.min(1.0f, normalized));
-            // Eased needle position: lerp the displayed fraction toward the true value with a
-            // frame-rate-independent time constant so the needle glides instead of snapping.
+
             final String easeKey = ch.getId();
             final Float prevDisp = this.needleEase.get(easeKey);
             float displayNorm = (prevDisp == null) ? normalized : prevDisp + (normalized - prevDisp) * easeAlpha;
@@ -4068,15 +3939,13 @@ public class StatsDisplayScreen extends Screen
                     ? accentDanger
                     : (normalized < 0.68f ? this.blendColor(accentSafe, accentWarn, normalized / 0.68f) : this.blendColor(accentWarn, accentDanger, (normalized - 0.68f) / 0.32f));
             if (ch.isAlertTriggered()) {
-                // Pulse the danger accent (~1.4 Hz) so a tripped alarm is unmissable.
                 final float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 700.0 * Math.PI);
                 accent = this.blendColor(accentDanger, 0xFFFF7A6A, pulse);
             }
             g.fill(cardX, cardY, cardX + cellW, cardY + cellH, darken(this.GRAPH_BG, 0.82f));
             this.drawGUIBorder(g, cardX, cardY, cellW, cellH, darken(this.BORDER, 0.9f));
             g.fill(cardX + 1, cardY + 1, cardX + cellW - 1, cardY + 4, accent);
-            // Header mini-sparkline (recent history) on wide cards, normalized to the dial scale
-            // with a faint dashed average baseline, so each card carries its own trend diagram.
+
             final boolean showSpark = cellW >= 130 && store.getSampleCount() >= 2 && range > 0.0f;
             final int sparkW = showSpark ? Math.min(cellW / 2 - 12, 70) : 0;
             final int labelMax = showSpark ? Math.max(8, cellW - sparkW - 20) : Math.max(8, cellW - 12);
@@ -4126,7 +3995,6 @@ public class StatsDisplayScreen extends Screen
                 final float yellowFrac;
                 final float redFrac;
                 if (contractBands != null) {
-                    // Per-metric health bands so known stats read green/amber/red consistently.
                     yellowFrac = Math.max(0.0f, Math.min(1.0f, contractBands[0]));
                     redFrac = Math.max(yellowFrac, Math.min(1.0f, contractBands[1]));
                 } else {
@@ -4154,7 +4022,7 @@ public class StatsDisplayScreen extends Screen
                 final int innerY = cy - (int)(Math.sin(tickAngle) * (gaugeR - (t % 2 == 0 ? 9 : 6)));
                 this.drawGaugeLine(g, innerX, innerY, outerX, outerY, this.DIM);
             }
-            // [7]
+
             final float avgVal = store.getAverage();
             final float avgN = Math.max(0.0f, Math.min(1.0f, (avgVal - min) / range));
             final float avgAngle = startAngle - sweep * avgN;
@@ -4194,7 +4062,7 @@ public class StatsDisplayScreen extends Screen
             this.drawGUIBorder(g, cardX + 6, readoutY, cellW - 12, readoutH, accent);
             final String valueText = store.getMetricType().formatValue(latest);
             g.drawCenteredString(this.font, this.truncate(valueText, Math.max(8, cellW - 30)), cx, readoutY + readoutH / 2 - 4, accent);
-            // Smoothed trend arrow (rising / steady / falling) at the readout's left edge.
+
             final float trendRate = store.getAvgRateOfChange(8);
             final float trendDead = Math.max(1.0E-4f, range * 0.004f);
             final String trendArrow = (trendRate > trendDead) ? "\u2191" : ((trendRate < -trendDead) ? "\u2193" : "\u2192");
@@ -4206,7 +4074,7 @@ public class StatsDisplayScreen extends Screen
             }
         }
     }
-    
+
     private void drawArc(GuiGraphics g, int cx, int cy, int radius, float fromDeg, float toDeg, int color, int thickness) {
         final float step = (fromDeg > toDeg) ? -2.0f : 2.0f;
         final int steps = (int)(Math.abs(fromDeg - toDeg) / 2.0f);
@@ -4226,7 +4094,7 @@ public class StatsDisplayScreen extends Screen
         final int y = cy - (int)(Math.sin(rad) * radius);
         g.fill(x - radiusPx, y - radiusPx, x + radiusPx + 1, y + radiusPx + 1, color);
     }
-    
+
     private void drawGaugeLine(GuiGraphics g, int x1, int y1, int x2, int y2, int color) {
         final float dx = (float)(x2 - x1);
         final float dy = (float)(y2 - y1);
@@ -4241,7 +4109,7 @@ public class StatsDisplayScreen extends Screen
             g.fill(x3, y3, x3 + 1, y3 + 1, color);
         }
     }
-    
+
     private String formatCompactGauge(float value) {
         if (Math.abs(value) >= 1000000.0f) {
             return String.format("%.1fM", value / 1000000.0f);
@@ -4257,7 +4125,7 @@ public class StatsDisplayScreen extends Screen
         }
         return String.format("%.2f", value);
     }
-    
+
     private void renderEfficiencyGUI(GuiGraphics g) {
         final EfficiencyScore score = this.panel.getLatestEfficiencyScore();
         final GradeHistory history = this.panel.getGradeHistory();
@@ -4304,6 +4172,15 @@ public class StatsDisplayScreen extends Screen
             }
         }
         g.drawString(this.font, "\u00a7lHealth Breakdown", zoneBX, y + 2, this.ACCENT);
+
+        final String qualifier = score.isWarmingUp()
+                ? String.format("\u00a78warming up %.0f%%", score.warmup() * 100.0f)
+                : (score.isPartial()
+                        ? String.format("\u00a78%.0f%% of model measured", score.observability() * 100.0f)
+                        : "");
+        if (!qualifier.isEmpty()) {
+            g.drawString(this.font, qualifier, zoneBX + this.font.width("Health Breakdown") + 8, y + 2, -8355712);
+        }
         final EfficiencyDimension[] dims = EfficiencyDimension.values();
         final int barStartY = y + 16;
         final int barHeight = 12;
@@ -4312,20 +4189,25 @@ public class StatsDisplayScreen extends Screen
         for (int i = 0; i < dims.length; ++i) {
             final EfficiencyDimension dim = dims[i];
             final float pct = score.getDimensionPercent(dim);
+            final boolean known = score.isKnown(dim);
             final int barY = barStartY + i * barSpacing;
             final String dimLabel = dim.getDisplayName();
             final String weightLabel = String.format("(%.0f%%)", dim.getWeight() * 100.0f);
-            g.drawString(this.font, dimLabel, zoneBX, barY + 1, this.TEXT);
+            g.drawString(this.font, dimLabel, zoneBX, barY + 1, known ? this.TEXT : this.DIM);
             g.drawString(this.font, weightLabel, zoneBX + this.font.width(dimLabel) + 3, barY + 1, this.DIM);
             final int barX = zoneBX + 80;
             g.fill(barX, barY, barX + maxBarW, barY + barHeight, -15066578);
+            this.drawGUIBorder(g, barX, barY, maxBarW, barHeight, -14013884);
+            if (!known) {
+                g.drawString(this.font, "§8no data", barX + 4, barY + 1, -8355712);
+                continue;
+            }
             final int fillW = (int)(maxBarW * pct / 100.0f);
             int barColor = dim.getBarColor();
             if (pct < 30.0f) {
                 barColor = this.blendColor(barColor, -12303292, 0.5f);
             }
             g.fill(barX, barY, barX + fillW, barY + barHeight, barColor);
-            this.drawGUIBorder(g, barX, barY, maxBarW, barHeight, -14013884);
             final String pctText = String.format("%.0f%%", pct);
             g.drawString(this.font, pctText, barX + maxBarW + 4, barY + 1, (pct >= 80.0f) ? -12255352 : ((pct >= 50.0f) ? -13312 : -39356));
         }
@@ -4373,26 +4255,11 @@ public class StatsDisplayScreen extends Screen
             this.effFormulasBtnH = 10;
         }
     }
-    
+
     private String getGradeDescription(String grade) {
-        return switch (grade) {
-            case "A+" -> "Factory singing";
-            case "A" -> "Very healthy";
-            case "A-" -> "Running strong";
-            case "B+" -> "Good load";
-            case "B" -> "Steady";
-            case "B-" -> "Usable";
-            case "C+" -> "Working hard";
-            case "C" -> "Tight margin";
-            case "C-" -> "Shaky";
-            case "D+" -> "Strained";
-            case "D" -> "Near failure";
-            case "D-" -> "Barely holding";
-            case "F" -> "Overstressed";
-            default -> "";
-        };
+        return com.createstats.efficiency.GradeScale.phraseFor(grade);
     }
-    
+
     private int blendColor(int c1, int c2, float t) {
         final int a = (int)((c1 >> 24 & 0xFF) * (1.0f - t) + (c2 >> 24 & 0xFF) * t);
         final int r = (int)((c1 >> 16 & 0xFF) * (1.0f - t) + (c2 >> 16 & 0xFF) * t);
@@ -4400,14 +4267,14 @@ public class StatsDisplayScreen extends Screen
         final int b = (int)((c1 & 0xFF) * (1.0f - t) + (c2 & 0xFF) * t);
         return a << 24 | r << 16 | gr << 8 | b;
     }
-    
+
     private void drawGUIBorder(GuiGraphics g, int x, int y, int w, int h, int color) {
         g.fill(x, y, x + w, y + 1, color);
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y, x + 1, y + h, color);
         g.fill(x + w - 1, y, x + w, y + h, color);
     }
-    
+
     private void renderTopologyGUI(GuiGraphics g) {
         final Object graphObj = this.panel.getCachedNetworkGraph();
         final int x = this.graphLeft;
@@ -4460,8 +4327,7 @@ public class StatsDisplayScreen extends Screen
                         this.drawGaugeLine(g, from[0], from[1], to[0], to[1], edgeColor);
                     }
                 }
-                // Animated flow particles riding the primary kinetic edges (source -> consumer),
-                // so the diagram visibly conveys power direction, not just connectivity.
+
                 final float flowPhase = (System.currentTimeMillis() % 1400L) / 1400.0f;
                 for (TopologyEdge edge : graph.getEdges()) {
                     if (!flowLayout.isPrimaryEdge(edge)) {
@@ -4511,7 +4377,6 @@ public class StatsDisplayScreen extends Screen
                     final int nr = (node.getType().getIconSize() >= 7) ? 4 : 3;
                     g.fill(pos[0] - nr, pos[1] - nr, pos[0] + nr, pos[1] + nr, nColor);
                     if (node.isOverStressed()) {
-                        // Pulsing red ring so the overstressed node draws the eye.
                         final float np = 0.5f + 0.5f * (float)Math.sin(System.currentTimeMillis() / 500.0 * Math.PI);
                         final int ring = ((int)(0x40 + np * 0xA0) << 24) | 0xD9594C;
                         final int rr = nr + 2;
@@ -4562,12 +4427,11 @@ public class StatsDisplayScreen extends Screen
         g.drawCenteredString(this.font, "\u00a77\u2022 Nearby fallback scanning still works without a link", x + w / 2, y + h / 2 + 18, -11184777);
         g.drawCenteredString(this.font, "\u00a77\u2022 Raise Max Nodes if very large factories truncate", x + w / 2, y + h / 2 + 30, -11184777);
     }
-    
+
     private void renderLineChart(GuiGraphics g, float[] data, int color, StatsDisplayPanelBE.DataChannel channel, int mx, int my) {
         final int n = data.length;
         final ChartRange chartRange = this.buildChartRange(data, true);
 
-        // Frame-rate independent range easing so the trace glides to a new scale instead of snapping.
         final String key = channel.getId();
         final long now = System.currentTimeMillis();
         float dt = (this.lineTraceLastMs == 0L) ? 0.016f : (now - this.lineTraceLastMs) / 1000.0f;
@@ -4599,7 +4463,6 @@ public class StatsDisplayScreen extends Screen
             this.drawThresholdLines(g, min, range, channel);
         }
 
-        // Reference values for the baked dashes plus the health-reactive glow tint.
         float lcSum = 0.0f;
         for (int a = 0; a < n; ++a) {
             lcSum += data[a];
@@ -4621,20 +4484,20 @@ public class StatsDisplayScreen extends Screen
             glowColor = (latest >= dangerV) ? 0xD9594C : ((latest >= warnV) ? 0xE3A43B : 0x3FB36D);
         }
 
-        // [8]
+        // baked texture, one blit. per-pixel fill was tens of thousands of calls
+
         final float reveal = Math.min(1.0f, (now - this.lineTraceOpenMs) / 450.0f);
         final ResourceLocation traceTex = this.bakeLineTrace(data, plotW, plotH, min, max,
                 color, glowColor, reveal, avgVal, warnVal, dangerVal);
         if (traceTex != null) {
             g.blit(traceTex, plotX, plotY, 0.0f, 0.0f, plotW, plotH, plotW, plotH);
         }
-        // Live "avg" label (text is not baked into the image).
+
         if (!Float.isNaN(avgVal)) {
             final int avgY = plotY + Math.round((1.0f - (avgVal - min) / range) * (plotH - 1));
             g.drawString(this.font, "avg", plotX + 1, avgY - 9, 0xAAA0C4D4);
         }
-        // Live scan-head pulse ring over the newest sample (kept off the baked texture so the pulse
-        // never forces a rebuild).
+
         if (reveal >= 0.999f && ClientGraphPrefs.signalGlow()) {
             final float headPulse = 0.5f + 0.5f * (float) Math.sin(now / 420.0);
             final int lastX = plotX + plotW - 1;
@@ -4646,7 +4509,6 @@ public class StatsDisplayScreen extends Screen
             g.fill(lastX - 2, lastY - 2, lastX + 3, lastY + 3, (a1 << 24) | glowRgb);
         }
 
-        // Hover pick over the real samples.
         this.hoverDataIndex = -1;
         int closestDist = Integer.MAX_VALUE;
         for (int k = 0; k < n; ++k) {
@@ -4662,7 +4524,6 @@ public class StatsDisplayScreen extends Screen
             }
         }
 
-        // Y-axis labels aligned to the plot rectangle.
         for (int k = 0; k <= 4; ++k) {
             final float v2 = min + range * (1.0f - k / 4.0f);
             final int y3 = plotY + (plotH - 1) * k / 4;
@@ -4674,9 +4535,6 @@ public class StatsDisplayScreen extends Screen
             g.drawString(this.font, zLabel, this.graphLeft + this.graphWidth - this.font.width(zLabel) - 2, this.graphTop + 3, -21965);
         }
 
-        // Instrument corner brackets are baked into the trace texture.
-
-        // Hover crosshair + point on top of the trace.
         if (this.hoverDataIndex >= 0) {
             final int hx = plotX + (int) (this.hoverDataIndex / (float) (n - 1) * (plotW - 1));
             final int hy = plotY + Math.round((1.0f - (Math.max(min, Math.min(max, this.hoverValue)) - min) / range) * (plotH - 1));
@@ -4686,7 +4544,7 @@ public class StatsDisplayScreen extends Screen
             g.fill(hx - 3, hy - 3, hx + 4, hy + 4, color);
         }
     }
-    
+
     private ResourceLocation bakeLineTrace(float[] data, int plotW, int plotH, float min, float max,
             int coreColor, int glowColor, float reveal, float avgVal, float warnVal, float dangerVal) {
         if (plotW < 2 || plotH < 2) {
@@ -4808,7 +4666,7 @@ public class StatsDisplayScreen extends Screen
             prevY = y;
         }
     }
-    
+
     private void renderOverlayBarChart(GuiGraphics g, float[] data, int color) {
         final int n = data.length;
         float min = Float.MAX_VALUE;
@@ -4855,7 +4713,7 @@ public class StatsDisplayScreen extends Screen
             }
         }
     }
-    
+
     private void renderDualYAxis(GuiGraphics g, StatsDisplayPanelBE.DataChannel primary, List<StatsDisplayPanelBE.DataChannel> allChannels) {
         StatsDisplayPanelBE.DataChannel secondary = null;
         final float primaryMax = primary.getStore().getMax();
@@ -4908,7 +4766,7 @@ public class StatsDisplayScreen extends Screen
             g.drawString(this.font, lbl, rightX, y - 4, (pinColor & 0xFFFFFF) | 0xAA000000);
         }
     }
-    
+
     private void drawThresholdLines(GuiGraphics g, float min, float range, StatsDisplayPanelBE.DataChannel channel) {
         if (channel == null) {
             return;
@@ -4952,14 +4810,14 @@ public class StatsDisplayScreen extends Screen
             g.drawString(this.font, label, this.graphLeft + this.graphWidth - 6 - this.font.width(label), y + 3, -10057473);
         }
     }
-    
+
     private float latestValueOr(StatsDisplayPanelBE.DataChannel channel, float fallback) {
         if (channel == null || channel.getStore().getSampleCount() <= 0) {
             return fallback;
         }
         return channel.getStore().getLatestValue();
     }
-    
+
     private float percentOfRange(float value, float min, float max) {
         final float span = max - min;
         if (span <= 0.001f) {
@@ -4967,7 +4825,7 @@ public class StatsDisplayScreen extends Screen
         }
         return Math.max(0.0f, Math.min(100.0f, (value - min) * 100.0f / span));
     }
-    
+
     private void renderBarChart(GuiGraphics g, float[] data, int color, MetricType type) {
         final int n = data.length;
         final ChartRange chartRange = this.buildChartRange(data, true);
@@ -5003,7 +4861,7 @@ public class StatsDisplayScreen extends Screen
                 }
             }
         }
-        // Average + contract health thresholds, consistent with the line chart.
+
         float bcSum = 0.0f;
         for (int a = 0; a < n; ++a) {
             bcSum += data[a];
@@ -5044,14 +4902,13 @@ public class StatsDisplayScreen extends Screen
         final String baseLbl = "Base: " + this.formatCompact(min);
         g.drawString(this.font, baseLbl, this.graphLeft + this.graphWidth - this.font.width(baseLbl) - 2, this.graphTop + this.graphHeight + 2, -12303258);
     }
-    
+
     private void renderGauge(GuiGraphics g, TimeSeriesStore store, int color) {
         final float value = store.getLatestValue();
         final MetricType mtype = store.getMetricType();
         float maxVal;
         final float[] contractRange = com.createstats.display.MetricContract.fixedRange(mtype);
         if (contractRange != null) {
-            // Same canonical full-scale as the dashboard dials, so a stat reads identically here.
             maxVal = contractRange[1];
         }
         else if (mtype == MetricType.HEAT_LEVEL) {
@@ -5074,7 +4931,7 @@ public class StatsDisplayScreen extends Screen
         if (this.singleGaugeOpenMs == 0L) {
             this.singleGaugeOpenMs = sgNow;
         }
-        // Power-on self-test sweep on first display, matching the dashboard tiles.
+
         final float sgIntro = Math.min(1.0f, (sgNow - this.singleGaugeOpenMs) / 900.0f);
         float renderRatio = ratioEased;
         if (sgIntro < 1.0f) {
@@ -5119,7 +4976,7 @@ public class StatsDisplayScreen extends Screen
         this.drawThickLine(g, cx, cy, nx, ny, -1, 2);
         g.fill(cx - 3, cy - 3, cx + 4, cy + 4, -1);
         g.fill(cx - 2, cy - 2, cx + 3, cy + 3, -14540254);
-        // Running-average bug + session-peak tick, matching the dashboard instrumentation.
+
         final float avgFrac = Math.max(0.0f, Math.min(1.0f, store.getAverage() / maxVal));
         final double avgA = startA + avgFrac * span;
         final int avgX = cx + (int)(Math.cos(avgA) * (radius + 4));
@@ -5147,7 +5004,7 @@ public class StatsDisplayScreen extends Screen
             g.drawCenteredString(this.font, lbl, lx, ly - 4, this.DIM);
         }
     }
-    
+
     private void renderNumeric(GuiGraphics g, TimeSeriesStore store, MetricType type) {
         if (store.getSampleCount() == 0) {
             return;
@@ -5199,7 +5056,7 @@ public class StatsDisplayScreen extends Screen
             g.drawCenteredString(font2, s2, n2, -9 / 2, stateColor);
             g.pose().popPose();
         }
-        // Recent-history sparkline strip for context beneath the big readout.
+
         if (store.getSampleCount() >= 2 && this.graphHeight >= 160) {
             final float[] sd = store.getDataWindow(280);
             final int sn = sd.length;
@@ -5252,7 +5109,7 @@ public class StatsDisplayScreen extends Screen
             }
         }
     }
-    
+
     private void renderStatsBar(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels) {
         if (this.selectedTab < 0 || this.selectedTab >= channels.size()) {
             return;
@@ -5273,7 +5130,7 @@ public class StatsDisplayScreen extends Screen
         final int displayed = this.getDisplayedSampleCount(store);
         g.drawString(this.font, "n=" + displayed, sx + spacing * 4, sy, this.DIM);
     }
-    
+
     private void renderTimeAxis(GuiGraphics g, StatsDisplayPanelBE.DataChannel channel) {
         final TimeSeriesStore store = channel.getStore();
         final int totalSamples = store.getSampleCount();
@@ -5291,7 +5148,7 @@ public class StatsDisplayScreen extends Screen
         final String startLabel = this.formatTimeDuration(totalSec);
         g.drawString(this.font, startLabel + " ago", this.graphLeft, y, -12303258);
     }
-    
+
     private String formatTimeDuration(int seconds) {
         if (seconds < 60) {
             return seconds + "s";
@@ -5351,7 +5208,7 @@ public class StatsDisplayScreen extends Screen
         }
         return maxIdx;
     }
-     
+
     private void renderStatsPanel(GuiGraphics g, StatsDisplayPanelBE.DataChannel channel) {
         final TimeSeriesStore store = channel.getStore();
         if (store.getSampleCount() < 2) {
@@ -5399,7 +5256,7 @@ public class StatsDisplayScreen extends Screen
         final String duration = this.formatTimeDuration(this.getDisplayedDurationSeconds(store, windowData.length));
         g.drawString(this.font, "Duration: " + duration, px + pw - this.font.width("Duration: " + duration) - 4, py + 3, -12303258);
     }
-    
+
     private void renderLogPanel(GuiGraphics g, StatsDisplayPanelBE.DataChannel channel) {
         final TimeSeriesStore store = channel.getStore();
         if (store.getSampleCount() == 0) {
@@ -5447,7 +5304,7 @@ public class StatsDisplayScreen extends Screen
             g.fill(px + pw - 4, scrollBarY, px + pw - 1, scrollBarY + scrollBarH, -12303258);
         }
     }
-    
+
     private void exportToClipboard(boolean csvMode) {
         final List<StatsDisplayPanelBE.DataChannel> channels = this.getFilteredChannels();
         if (channels.isEmpty()) {
@@ -5513,13 +5370,13 @@ public class StatsDisplayScreen extends Screen
             this.showExportFeedback("\u00a7c\u2718 Clipboard copy failed: " + e.getMessage(), false);
         }
     }
-    
+
     private void showExportFeedback(String message, boolean success) {
         if (this.minecraft != null && this.minecraft.player != null) {
             this.minecraft.player.displayClientMessage(Component.literal(message), true);
         }
     }
-    
+
     private void renderCapacity(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels, int mx, int my) {
         final List<CapacitySourceInfo> sources = this.buildCapacitySources(channels);
         if (sources.isEmpty()) {
@@ -5527,14 +5384,14 @@ public class StatsDisplayScreen extends Screen
             g.drawCenteredString(this.font, "Connect a Stressometer, Fluid Tank, or Stockpile Switch", this.graphLeft + this.graphWidth / 2, this.graphTop + this.graphHeight / 2 + 4, -12303258);
             return;
         }
-        // Header row
+
         g.drawString(this.font, "System Health", this.graphLeft + 4, this.graphTop + 4, this.ACCENT);
         final String countLabel = sources.size() + (sources.size() == 1 ? " source" : " sources");
         g.drawString(this.font, countLabel, this.graphLeft + this.graphWidth - this.font.width(countLabel) - 4, this.graphTop + 4, this.DIM);
 
         final int listY = this.graphTop + 18;
         final int listH = this.graphHeight - 18;
-        final int expandedExtra = 30; // additional height for sparkline when expanded
+        final int expandedExtra = 30;
         final int baseCardH = Math.min(56, Math.max(26, listH / Math.max(1, sources.size())));
         final int totalContentH = sources.size() * (baseCardH + 2);
         final int maxScroll = Math.max(0, totalContentH - listH);
@@ -5546,7 +5403,6 @@ public class StatsDisplayScreen extends Screen
             final boolean expanded = src.sourceId.equals(this.capacityExpandedSource);
             final int cardH = expanded ? baseCardH + expandedExtra : baseCardH;
 
-            // Skip cards fully outside the visible area
             if (rowY + cardH <= listY) { rowY += cardH + 2; continue; }
             if (rowY >= listY + listH) break;
 
@@ -5554,23 +5410,19 @@ public class StatsDisplayScreen extends Screen
             final int clampedBot = Math.min(rowY + baseCardH, listY + listH);
             if (clampedBot <= clampedTop) { rowY += cardH + 2; continue; }
 
-            // Row background
             if (i % 2 == 0) g.fill(this.graphLeft + 1, clampedTop, this.graphLeft + this.graphWidth - 1, clampedBot, 301989887);
             final boolean hovered = mx >= this.graphLeft && mx <= this.graphLeft + this.graphWidth && my >= rowY && my < rowY + baseCardH;
             if (hovered) g.fill(this.graphLeft + 1, clampedTop, this.graphLeft + this.graphWidth - 1, clampedBot, 587202559);
 
-            // CRIT border highlight
             if (src.pct > 90f) {
                 g.fill(this.graphLeft + 1, clampedTop, this.graphLeft + 3, clampedBot, this.WARN);
             }
 
-            // Type icon + source label
             final String icon = getCapacityTypeIcon(src.sourceTypeRaw);
             g.drawString(this.font, icon, this.graphLeft + 5, rowY + 4, src.pct > 80f ? this.WARN : this.ACCENT);
             final int labelMaxW = this.graphWidth / 3 - 22;
             g.drawString(this.font, this.truncate(src.displayLabel, labelMaxW), this.graphLeft + 20, rowY + 4, this.TEXT);
 
-            // Capacity bar (middle third)
             final int barX2 = this.graphLeft + this.graphWidth / 3;
             final int barW2 = this.graphWidth / 3;
             final int barH2 = Math.max(6, baseCardH / 3);
@@ -5584,7 +5436,6 @@ public class StatsDisplayScreen extends Screen
                 if (usedW2 > 0) g.fill(barX2 + 1, barY2 + 1, barX2 + 1 + usedW2, barY2 + barH2 - 1, barColor);
             }
 
-            // Percentage + badge (right side)
             final int rightX = this.graphLeft + (this.graphWidth * 2 / 3) + barW2 / 3 + 2;
             g.drawString(this.font, String.format("%.0f%%", src.pct), rightX, rowY + 4, barColor);
             final String badge; final int badgeColor;
@@ -5593,7 +5444,6 @@ public class StatsDisplayScreen extends Screen
             else { badge = "OK"; badgeColor = -21965; }
             g.drawString(this.font, "[" + badge + "]", this.graphLeft + this.graphWidth - this.font.width("[" + badge + "]") - 4, rowY + 4, badgeColor);
 
-            // Second line: used/total + ETA
             if (baseCardH >= 24 && rowY + baseCardH - 11 < listY + listH && rowY + baseCardH - 11 >= listY) {
                 final String valLine = this.formatMetricCompact(src.amountType, src.used) + src.usedSuffix
                         + " / " + this.formatMetricCompact(src.amountType, src.total);
@@ -5606,7 +5456,6 @@ public class StatsDisplayScreen extends Screen
                 }
             }
 
-            // Expanded sparkline
             if (expanded && src.pctStore != null && src.pctStore.getSampleCount() >= 2) {
                 final int sparkY = rowY + baseCardH + 2;
                 final int sparkH = expandedExtra - 4;
@@ -5622,7 +5471,6 @@ public class StatsDisplayScreen extends Screen
             rowY += cardH + 2;
         }
 
-        // Scroll indicator
         if (totalContentH > listH) {
             final int sbH = Math.max(8, listH * listH / totalContentH);
             final int sbY = listY + (maxScroll > 0 ? (int)((float)this.capacityScrollOffset / maxScroll * (listH - sbH)) : 0);
@@ -5656,7 +5504,6 @@ public class StatsDisplayScreen extends Screen
         return new ArrayList<>(merged.values());
     }
 
-    // [9]
     private List<CapacitySourceInfo> buildFlowMeterFluidEntries(List<StatsDisplayPanelBE.DataChannel> channels) {
         final LinkedHashMap<String, CapacitySourceInfo> bySource = new LinkedHashMap<>();
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
@@ -5741,7 +5588,7 @@ public class StatsDisplayScreen extends Screen
         final SourceConfig cfg = this.panel.getSourceRegistry().get(sid);
         final String label = cfg != null ? cfg.getObservedDisplayLabel() : sid;
         final String srcType = cfg != null ? cfg.getSourceType() : "";
-        // Stress
+
         for (StatsDisplayPanelBE.DataChannel ch : group) {
             final String id = ch.getId();
             if (id.contains("stress_su")) usedCh = ch;
@@ -5751,7 +5598,7 @@ public class StatsDisplayScreen extends Screen
         if (usedCh == null || totalCh == null) {
             usedCh = null; totalCh = null; pctCh = null;
             amountType = MetricType.FLUID_MB; usedSuffix = " stored";
-            // Fluid and Diesel reserve readouts can share one source position; prefer the rich reserve keys when present.
+
             usedCh = this.findMetricChannel(group, "reserve_fuel_amount", "fuel_amount", "fluid_amount", "oil_remaining_mb");
             totalCh = this.findMetricChannel(group, "reserve_fuel_capacity", "fuel_capacity", "fluid_capacity", "tank_capacity");
             pctCh = this.findMetricChannel(group, "reserve_fuel_fill_pct", "fuel_fill_pct", "fluid_fill_pct", "tank_fill", "fill_pct");
@@ -5759,7 +5606,7 @@ public class StatsDisplayScreen extends Screen
         if (usedCh == null || totalCh == null) {
             usedCh = null; totalCh = null; pctCh = null;
             usedSuffix = " stored";
-            // Stockpile
+
             for (StatsDisplayPanelBE.DataChannel ch : group) {
                 final String id = ch.getId();
                 if (id.contains("stock_level")) usedCh = ch;
@@ -5771,7 +5618,7 @@ public class StatsDisplayScreen extends Screen
         if (usedCh == null || totalCh == null) {
             usedCh = null; totalCh = null; pctCh = null;
             amountType = MetricType.ITEM_COUNT; usedSuffix = " items";
-            // Content Observer with slot_capacity
+
             for (StatsDisplayPanelBE.DataChannel ch : group) {
                 final String id = ch.getId();
                 if (id.contains("total_items")) usedCh = ch;
@@ -5923,7 +5770,7 @@ public class StatsDisplayScreen extends Screen
                 LinearRegression.compute(data, 0, data.length);
         if (coeffs == null) return null;
         final double slopePerSample = coeffs.slope();
-        if (Math.abs(slopePerSample) < 0.003) return null; // flat
+        if (Math.abs(slopePerSample) < 0.003) return null;
         final double slopePerMin = slopePerSample * 60.0;
         if (slopePerMin > 0) {
             final double mins = (100.0 - currentPct) / slopePerMin;
@@ -5951,7 +5798,6 @@ public class StatsDisplayScreen extends Screen
         return "\u25a1";
     }
 
-    
     private SourceConfig getSourceConfigForChannel(String channelId) {
         if (channelId == null) return null;
         final String sid = StatsDisplaySettings.extractSourceId(channelId);
@@ -6045,14 +5891,12 @@ public class StatsDisplayScreen extends Screen
             return;
         }
 
-        // Net total
         float net = 0f;
         for (ProductionEntry e : producing) net += e.rate;
         for (ProductionEntry e : consuming) net += e.rate;
         final int netColor = net > 0.1f ? -12255352 : net < -0.1f ? this.WARN : this.DIM;
         final String netStr = String.format("NET: %+.1f/m", net);
 
-        // Sort button
         final String[] sortNames = { "Rate", "A-Z", "Trend" };
         final String sortBtn = "[" + sortNames[this.productionSortMode % sortNames.length] + "]";
         this.prodSortBtnW = this.font.width(sortBtn) + 4;
@@ -6060,16 +5904,13 @@ public class StatsDisplayScreen extends Screen
         this.prodSortBtnX = this.graphLeft + this.graphWidth - this.prodSortBtnW - 2;
         this.prodSortBtnY = this.graphTop + 2;
 
-        // Header
         g.drawString(this.font, "Throughput Ledger", this.graphLeft + 4, this.graphTop + 4, this.ACCENT);
         g.drawString(this.font, netStr, this.graphLeft + this.graphWidth / 2 - this.font.width(netStr) / 2, this.graphTop + 4, netColor);
         final boolean sortHover = mx >= this.prodSortBtnX && mx <= this.prodSortBtnX + this.prodSortBtnW && my >= this.prodSortBtnY && my <= this.prodSortBtnY + this.prodSortBtnH;
         g.drawString(this.font, sortBtn, this.prodSortBtnX + 2, this.graphTop + 4, sortHover ? this.ACCENT : this.DIM);
 
-        // Build flat display list: section headers + data rows + idle row
-        // Entry: null entry = section header OR idle text; non-null = data row
         final List<ProductionEntry> dispEntries = new ArrayList<>();
-        final List<String> dispLabels = new ArrayList<>(); // null = data row; non-null = header/idle text
+        final List<String> dispLabels = new ArrayList<>();
         final List<Boolean> dispIsHeader = new ArrayList<>();
         if (!producing.isEmpty()) {
             dispEntries.add(null); dispLabels.add("\u25b6 PRODUCING (" + producing.size() + ")"); dispIsHeader.add(true);
@@ -6108,7 +5949,6 @@ public class StatsDisplayScreen extends Screen
             final int rowY2 = tableY + i * rowH;
 
             if (isHeader && label != null) {
-                // Section header or idle row
                 final boolean isIdle = label.startsWith("Idle:");
                 final boolean isConsuming = label.startsWith("\u25bc");
                 final int hdrColor = isIdle ? this.DIM : (isConsuming ? this.WARN : -12255352);
@@ -6120,7 +5960,6 @@ public class StatsDisplayScreen extends Screen
 
             if (entry == null) continue;
 
-            // Data row
             final boolean isConsumeSection = consuming.contains(entry);
             final int rowColor = isConsumeSection ? this.WARN : -12255352;
             final boolean rowHovered = mx >= this.graphLeft && mx <= this.graphLeft + this.graphWidth && my >= rowY2 && my < rowY2 + rowH;
@@ -6165,14 +6004,12 @@ public class StatsDisplayScreen extends Screen
             g.drawString(this.font, trendStr, trendX, rowY2 + 5, trendColor);
         }
 
-        // Scroll bar
         if (dispEntries.size() > visibleRows) {
             final int scrollBarH = Math.max(8, tableH * visibleRows / dispEntries.size());
             final int scrollBarY = tableY + (maxScroll > 0 ? (int)(this.productionScrollOffset / (float)maxScroll * (tableH - scrollBarH)) : 0);
             g.fill(this.graphLeft + this.graphWidth - 3, scrollBarY, this.graphLeft + this.graphWidth - 1, scrollBarY + scrollBarH, -12303258);
         }
 
-        // Tooltip
         if (hoveredEntry != null) {
             final ItemStack tipIcon = this.resolveItemIcon(hoveredEntry.label);
             final String tipRate = String.format("%.2f items/min", hoveredEntry.rate);
@@ -6216,7 +6053,6 @@ public class StatsDisplayScreen extends Screen
         this.prodRowHits.clear();
         this.inventoryStorageHits.clear();
 
-        // Gather and categorise capacity sources (no SU/power on this page)
         final List<CapacitySourceInfo> capSources = this.buildInventoryCapacitySources(channels);
         final List<CapacitySourceInfo> storageSrc = new ArrayList<>();
         final List<CapacitySourceInfo> reserveSrc = new ArrayList<>();
@@ -6229,7 +6065,6 @@ public class StatsDisplayScreen extends Screen
         }
         fluidSrc.addAll(this.buildFlowMeterFluidEntries(channels));
 
-        // Gather flow entries
         final List<ProductionEntry> producing = this.buildProductionEntries(channels);
         final List<ProductionEntry> consuming = this.buildConsumingEntries(channels);
         final java.util.Comparator<ProductionEntry> flowSort = this.inventorySortMode == 0
@@ -6249,7 +6084,6 @@ public class StatsDisplayScreen extends Screen
             return;
         }
 
-        // Sort button
         final String[] sortNames = { "Rate", "A-Z" };
         final String sortBtn = "[" + sortNames[this.inventorySortMode] + "]";
         this.prodSortBtnW = this.font.width(sortBtn) + 4;
@@ -6257,19 +6091,17 @@ public class StatsDisplayScreen extends Screen
         this.prodSortBtnX = this.graphLeft + this.graphWidth - this.prodSortBtnW - 2;
         this.prodSortBtnY = this.graphTop + 2;
 
-        // Title bar
         g.drawString(this.font, "\u2261 Inventory Status", this.graphLeft + 4, this.graphTop + 4, this.ACCENT);
         final boolean sortHover = mx >= this.prodSortBtnX && mx <= this.prodSortBtnX + this.prodSortBtnW
                 && my >= this.prodSortBtnY && my <= this.prodSortBtnY + this.prodSortBtnH;
         g.drawString(this.font, sortBtn, this.prodSortBtnX + 2, this.graphTop + 4, sortHover ? this.ACCENT : this.DIM);
 
-        // Build flat row list: KIND_HEADER=0, KIND_CAP=1, KIND_FLOW=2, KIND_IDLE=3, KIND_ITEM=4
         final int KIND_HEADER = 0, KIND_CAP = 1, KIND_FLOW = 2, KIND_IDLE = 3, KIND_ITEM = 4;
         final List<Integer> rowKind = new ArrayList<>();
         final List<String> rowText = new ArrayList<>();
         final List<CapacitySourceInfo> rowCap = new ArrayList<>();
         final List<ProductionEntry> rowFlow = new ArrayList<>();
-        final List<int[]> rowItem = new ArrayList<>(); // {count} when KIND_ITEM
+        final List<int[]> rowItem = new ArrayList<>();
 
         if (!storageSrc.isEmpty()) {
             rowKind.add(KIND_HEADER); rowText.add("\ud83d\udce6 STORAGE (" + storageSrc.size() + ")"); rowCap.add(null); rowFlow.add(null); rowItem.add(null);
@@ -6475,14 +6307,12 @@ public class StatsDisplayScreen extends Screen
             }
         }
 
-        // Scroll indicator
         if (rowKind.size() > visibleRows) {
             final int scrollBarH = Math.max(8, tableH * visibleRows / rowKind.size());
             final int scrollBarY = tableY + (maxScroll > 0 ? (int)(this.inventoryScrollOffset / (float)maxScroll * (tableH - scrollBarH)) : 0);
             g.fill(this.graphLeft + this.graphWidth - 3, scrollBarY, this.graphLeft + this.graphWidth - 1, scrollBarY + scrollBarH, -12303258);
         }
 
-        // Tooltip for hovered flow rows
         if (hoveredEntry != null) {
             final ItemStack tipIcon = this.resolveItemIcon(hoveredEntry.label);
             final String tipRate = String.format("%.2f items/min", hoveredEntry.rate);
@@ -6893,7 +6723,6 @@ public class StatsDisplayScreen extends Screen
         return rows;
     }
 
-
     private List<ProductionEntry> buildConsumingEntries(List<StatsDisplayPanelBE.DataChannel> channels) {
         final LinkedHashMap<String, ProductionAccumulator> aggregates = new LinkedHashMap<>();
         final long currentTick = this.getGuiRenderTick();
@@ -7060,7 +6889,7 @@ public class StatsDisplayScreen extends Screen
         if (entry == null) return "";
         final String src = entry.sourceType == null ? "" : entry.sourceType;
         final String prefix = "from ";
-        // Try to enrich with observed target label
+
         String observedSuffix = "";
         if (entry.channel != null) {
             final SourceConfig cfg = this.getSourceConfigForChannel(entry.channel.getId());
@@ -7103,7 +6932,7 @@ public class StatsDisplayScreen extends Screen
         final SourceConfig source = this.getSourceConfigForChannel(channel.getId());
         return this.normalizeSourceTypeLabel((source != null) ? source.getSourceType() : null);
     }
-    
+
     private boolean isProductionRateMetric(MetricType type) {
         return type == MetricType.ITEMS_PER_MIN || type == MetricType.ITEMS_PER_SEC || type == MetricType.ITEMS_PER_HR;
     }
@@ -7118,7 +6947,7 @@ public class StatsDisplayScreen extends Screen
             default -> 0.0f;
         };
     }
-    
+
     private float computeTrend(TimeSeriesStore store) {
         final float recentAvg = store.getAverageWindow(store.getSampleCountForSeconds(30));
         final float olderAvg = store.getAverageWindow(store.getSampleCountForSeconds(60));
@@ -7127,7 +6956,7 @@ public class StatsDisplayScreen extends Screen
         }
         return (recentAvg - olderAvg) / Math.abs(olderAvg) * 100.0f;
     }
-    
+
     private void drawAlertThresholdLine(GuiGraphics g, float[] data, StatsDisplayPanelBE.DataChannel channel) {
         if (!channel.isAlertEnabled()) {
             return;
@@ -7167,29 +6996,7 @@ public class StatsDisplayScreen extends Screen
         final String label = "\u26a0 " + this.formatCompact(thresh) + (channel.isAlertAbove() ? " \u2191" : " \u2193");
         g.drawString(this.font, label, this.graphLeft + this.graphWidth - this.font.width(label) - 4, y - 10, alertColor | 0xFF000000);
     }
-    
-    private void renderAlertConfig(GuiGraphics g, StatsDisplayPanelBE.DataChannel channel, int mx, int my) {
-        final int apw = Math.max(135, this.optionPanelWidth);
-        final int apx = this.optionPanelLeft;
-        final int apy = this.graphTop;
-        final int aph = this.graphHeight;
-        g.fill(apx, apy, apx + apw, apy + aph, this.GRAPH_BG);
-        this.border(g, apx, apy, apw, aph, this.BORDER);
-        g.fill(apx + 1, apy + 1, apx + apw - 1, apy + 3, this.WARN);
-        g.drawString(this.font, "\u26a0 Alert Config", apx + 4, apy + 6, this.WARN);
-        final String channelLabel = this.truncate(channel.getLabel(), apw - 40);
-        g.drawString(this.font, channelLabel, apx + apw - this.font.width(channelLabel) - 4, apy + 6, this.TEXT);
-        this.hline(g, apx + 4, apx + apw - 4, apy + 18, this.GRID);
-        g.drawString(this.font, "Threshold:", apx + 4, apy + 21, this.DIM);
-        this.hline(g, apx + 4, apx + apw - 4, apy + 50, this.GRID);
-        g.drawString(this.font, "Trigger:", apx + 4, apy + 53, this.DIM);
-        this.hline(g, apx + 4, apx + apw - 4, apy + 78, this.GRID);
-        this.hline(g, apx + 4, apx + apw - 4, apy + 98, this.GRID);
-        g.drawString(this.font, "Quick Set:", apx + 4, apy + 101, this.DIM);
-        this.hline(g, apx + 4, apx + apw - 4, apy + 126, this.GRID);
-        g.drawString(this.font, "Graph:", apx + 4, apy + 129, this.DIM);
-    }
-    
+
     private void renderRedstoneConfig(GuiGraphics g, StatsDisplayPanelBE.DataChannel channel, int mx, int my) {
         final int rpw = Math.max(135, this.optionPanelWidth);
         final int rpx = this.optionPanelLeft;
@@ -7213,7 +7020,7 @@ public class StatsDisplayScreen extends Screen
         this.hline(g, rpx + 4, rpx + rpw - 4, rpy + 156, this.GRID);
         g.drawString(this.font, "Graph:", rpx + 4, rpy + 159, this.DIM);
     }
-    
+
     private void renderTooltip(GuiGraphics g, int mx, int my) {
         final List<Component> lines = this.buildHoverTooltip();
         if (lines.isEmpty()) {
@@ -7247,40 +7054,7 @@ public class StatsDisplayScreen extends Screen
         lines.add(Component.literal("Sample: " + (this.hoverDataIndex + 1) + "/" + data.length).withStyle(style -> style.withColor(8947848)));
         return lines;
     }
-    
-    private void applyAlertThreshold() {
-        final Float parsed = this.parseEditableFloat(this.alertValueInput);
-        if (parsed == null) {
-            return;
-        }
-        final List<StatsDisplayPanelBE.DataChannel> chs = this.getFilteredChannels();
-        if (this.selectedTab >= 0 && this.selectedTab < chs.size()) {
-            final StatsDisplayPanelBE.DataChannel ch = chs.get(this.selectedTab);
-            ch.setAlertThreshold(parsed);
-            this.sendAlertPacket(ch);
-        }
-    }
-    
-    private void adjustAlertThreshold(boolean up) {
-        final Float parsed = this.parseEditableFloat(this.alertValueInput);
-        final float current = (parsed != null) ? parsed : 0.0f;
-        final float step = Math.max(1.0f, Math.abs(current) * 0.05f);
-        final float newVal = up ? (current + step) : (current - step);
-        this.alertValueInput = String.valueOf(newVal);
-        if (this.alertThresholdInput != null) {
-            this.alertThresholdInput.setValue(this.alertValueInput);
-        }
-        this.applyAlertThreshold();
-    }
-    
-    private void setAlertThresholdQuick(float val) {
-        this.alertValueInput = String.valueOf(val);
-        if (this.alertThresholdInput != null) {
-            this.alertThresholdInput.setValue(this.alertValueInput);
-        }
-        this.applyAlertThreshold();
-    }
-    
+
     private void applyRedstoneThreshold() {
         final Float parsed = this.parseEditableFloat(this.redstoneValueInput);
         if (parsed == null) {
@@ -7289,7 +7063,7 @@ public class StatsDisplayScreen extends Screen
         this.panel.setRedstoneThreshold(parsed);
         this.sendRedstonePacket();
     }
-    
+
     private void adjustRedstoneThreshold(boolean up) {
         final Float parsed = this.parseEditableFloat(this.redstoneValueInput);
         final float current = (parsed != null) ? parsed : 0.0f;
@@ -7308,15 +7082,15 @@ public class StatsDisplayScreen extends Screen
         }
         return Float.parseFloat(text);
     }
-    
+
     private void sendAlertPacket(StatsDisplayPanelBE.DataChannel ch) {
         PacketDistributor.sendToServer(ConfigSyncPacket.alertConfig(this.panel.getBlockPos(), ch.getId(), ch.getAlertThreshold(), ch.isAlertAbove(), ch.isAlertEnabled()));
     }
-    
+
     private void sendRedstonePacket() {
         PacketDistributor.sendToServer(ConfigSyncPacket.redstoneConfig(this.panel.getBlockPos(), this.panel.getRedstoneChannelId(), this.panel.getRedstoneThreshold(), this.panel.isRedstoneAbove(), this.panel.isRedstoneEnabled(), this.panel.getRedstoneMode()));
     }
-    
+
     private void openSourceRename(String sourceId, SourceConfig config, int x, int y) {
         if (this.sourceRenameInput != null) {
             this.removeWidget(this.sourceRenameInput);
@@ -7333,7 +7107,7 @@ public class StatsDisplayScreen extends Screen
         this.sourceRenameInput.setFocused(true);
         this.addRenderableWidget(this.sourceRenameInput);
     }
-    
+
     private void applySourceRename() {
         if (!this.sourceRenameOpen || this.renamingSourceId == null) {
             return;
@@ -7394,7 +7168,7 @@ public class StatsDisplayScreen extends Screen
         }
         return this.panel.getVisibleChannels();
     }
-    
+
     private List<StatsDisplayPanelBE.DataChannel> getFilteredChannels() {
         return this.getAllFilteredChannels();
     }
@@ -7483,7 +7257,59 @@ public class StatsDisplayScreen extends Screen
     }
 
     private boolean isNormalSourcePage() {
-        return !this.isHomePage() && !this.isVehicleSettingsPage() && !this.isFlightDeckPage() && !this.isGuidancePage() && !this.isTrainPage() && !this.isFactoryPage() && !this.isInventoryStatusPage() && !this.isFactoryStatusPage();
+        return !this.isHomePage() && !this.isVehicleSettingsPage() && !this.isFlightDeckPage() && !this.isGuidancePage() && !this.isTrainPage() && !this.isFactoryPage() && !this.isInventoryStatusPage() && !this.isFactoryStatusPage() && !this.isPowerPage();
+    }
+
+    private boolean hasPowerPage() {
+        return com.createstats.client.statspower.StatsPowerPage.available(this.panel);
+    }
+
+    private boolean isPowerPage() {
+        return this.selectedSource == SOURCE_PAGE_POWER && this.hasPowerPage();
+    }
+
+    private void selectPowerPage() {
+        final boolean changed = this.selectedSource != SOURCE_PAGE_POWER;
+        this.selectedSource = SOURCE_PAGE_POWER;
+        this.powerPage.normalise(this.panel);
+        this.resetPageScopedSelection();
+        this.ensureGuiViewTypeValid();
+        this.rememberCurrentPageSelection();
+        if (changed) {
+            this.rebuildWidgets();
+        }
+    }
+
+    // world tick modulo a big period, raw game time loses float precision
+    private void renderPowerPage(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        g.fill(this.graphLeft, this.graphTop, this.graphLeft + this.graphWidth,
+                this.graphTop + this.graphHeight, com.createstats.gui.pdu.PduTheme.BG_DEEP);
+        final float phase = (float) (this.getGuiRenderTick() % 20000L) + partialTick;
+        this.powerPage.render(g, this.font, this.panel,
+                this.graphLeft + 5, this.graphTop + 5,
+                Math.max(40, this.graphWidth - 10), Math.max(40, this.graphHeight - 10),
+                mouseX, mouseY, phase, partialTick);
+    }
+
+    private int getPowerNavDotColor() {
+        boolean any = false;
+        boolean active = false;
+        for (final SourceConfig config : this.panel.getSourceRegistry().values()) {
+            if (config == null) {
+                continue;
+            }
+            final String family = CustomScreenSourceFamilyCatalog
+                    .familyForSourceType(config.getSourceType()).getFamilyId();
+            if (!"energy.pdu".equals(family) && !"energy.battery_controller".equals(family)
+                    && !"fluid.flow_meter".equals(family)) {
+                continue;
+            }
+            any = true;
+            if (config.isActive()) {
+                active = true;
+            }
+        }
+        return active ? -16724890 : (any ? this.WARN : -10066330);
     }
 
     private void rememberCurrentPageSelection() {
@@ -7513,6 +7339,10 @@ public class StatsDisplayScreen extends Screen
         }
         if (this.selectedSource == SOURCE_PAGE_FACTORY_STATUS) {
             lastOpenedPageKey = REMEMBERED_FACTORY_STATUS_PAGE;
+            return;
+        }
+        if (this.selectedSource == SOURCE_PAGE_POWER) {
+            lastOpenedPageKey = REMEMBERED_POWER_PAGE;
             return;
         }
         if (this.selectedSource >= 0 && this.selectedSource < this.sourceIds.size()) {
@@ -7556,6 +7386,10 @@ public class StatsDisplayScreen extends Screen
             this.selectedSource = SOURCE_PAGE_FACTORY_STATUS;
             return;
         }
+        if (REMEMBERED_POWER_PAGE.equals(lastOpenedPageKey) && this.hasPowerPage()) {
+            this.selectedSource = SOURCE_PAGE_POWER;
+            return;
+        }
         if (!REMEMBERED_HOME_PAGE.equals(lastOpenedPageKey)) {
             int rememberedIndex = this.sourceIds.indexOf(lastOpenedPageKey);
             if (rememberedIndex >= 0) {
@@ -7570,10 +7404,6 @@ public class StatsDisplayScreen extends Screen
         return this.isNormalSourcePage() && !this.isBattleTacticalV2Page();
     }
 
-    /**
-     * @return the BattleScreenLink backing the current page only when it is a Battle
-     * Bridge source displayed in V2 (tactical) mode; otherwise {@code null}.
-     */
     private com.createstats.blockentity.StatsDisplayPanelBE.BattleScreenLink getCurrentBattleTacticalV2Link() {
         final String sourceId = this.getCurrentSourcePageId();
         if (sourceId == null || sourceId.isEmpty()) return null;
@@ -7595,24 +7425,19 @@ public class StatsDisplayScreen extends Screen
         return link;
     }
 
-    /**
-     * @return true when the active page is a Battle Bridge V2 tactical console overview.
-     * On such pages the generic chart/stats controls are hidden and the 2D/3D switch is shown.
-     */
     private boolean isBattleTacticalV2Page() {
         return this.selectedTab == -1
                 && this.panel.getSettings().getDisplayMode() == StatsDisplaySettings.DisplayMode.SPECIALIZED
                 && this.getCurrentBattleTacticalV2Link() != null;
     }
 
-    /** [10] */
     private void renderBattleViewToggle(GuiGraphics g, int mouseX, int mouseY) {
         this.battleViewToggleVisible = false;
         if (!this.isBattleTacticalV2Page()) {
             return;
         }
         final boolean is2D = com.createstats.client.battle.BattleTacticalV2Viewport3D.isForce2D(this.panel.getBlockPos());
-        // [11]
+
         final int bw = 30;
         final int bh = 14;
         final int rightInset = is2D ? 6 : (4 + 16 + 3 + 16 + 6);
@@ -7664,10 +7489,6 @@ public class StatsDisplayScreen extends Screen
         }
         this.selectedTab = channelIndex;
         this.pinnedChannels.remove(this.selectedTab);
-        if (this.alertConfigOpen) {
-            this.applyAlertThreshold();
-            this.alertValueInput = "";
-        }
         if (this.redstoneConfigOpen) {
             this.applyRedstoneThreshold();
             this.redstoneValueInput = "";
@@ -7685,7 +7506,7 @@ public class StatsDisplayScreen extends Screen
     }
 
     private int getVisibleSourceTabCount() {
-        return 1 + 1 + 1 + this.sourceIds.size() + (this.hasVehicleSettingsPage() ? 1 : 0) + (this.hasFlightDeckPage() ? 1 : 0) + (this.hasGuidancePage() ? 1 : 0) + (this.hasTrainSourcePage() ? 1 : 0) + 1;
+        return 1 + 1 + 1 + this.sourceIds.size() + (this.hasVehicleSettingsPage() ? 1 : 0) + (this.hasFlightDeckPage() ? 1 : 0) + (this.hasGuidancePage() ? 1 : 0) + (this.hasTrainSourcePage() ? 1 : 0) + (this.hasPowerPage() ? 1 : 0) + 1;
     }
 
     private void selectHomePage() {
@@ -7814,6 +7635,9 @@ public class StatsDisplayScreen extends Screen
         if (this.selectedSource == SOURCE_PAGE_FACTORY_STATUS) {
             return this.resetPageScopedSelection();
         }
+        if (this.hasPowerPage() && this.selectedSource == SOURCE_PAGE_POWER) {
+            return this.resetPageScopedSelection();
+        }
         if (this.selectedSource >= 0 && this.selectedSource < this.sourceIds.size()) {
             changed |= this.sanitizeChannelSelection(this.getFilteredChannels());
             this.ensureGuiViewTypeValid();
@@ -7826,7 +7650,11 @@ public class StatsDisplayScreen extends Screen
             this.ensureGuiViewTypeValid();
             return changed;
         }
-        if (this.selectedSource != SOURCE_PAGE_HOME && this.selectedSource != SOURCE_PAGE_VEHICLE_SETTINGS && this.selectedSource != SOURCE_PAGE_FLIGHT_DECK && this.selectedSource != SOURCE_PAGE_GUIDANCE && this.selectedSource != SOURCE_PAGE_TRAIN && this.selectedSource != SOURCE_PAGE_FACTORY && this.selectedSource != SOURCE_PAGE_INVENTORY_STATUS && this.selectedSource != SOURCE_PAGE_FACTORY_STATUS) {
+        if (this.selectedSource != SOURCE_PAGE_HOME && this.selectedSource != SOURCE_PAGE_VEHICLE_SETTINGS && this.selectedSource != SOURCE_PAGE_FLIGHT_DECK && this.selectedSource != SOURCE_PAGE_GUIDANCE && this.selectedSource != SOURCE_PAGE_TRAIN && this.selectedSource != SOURCE_PAGE_FACTORY && this.selectedSource != SOURCE_PAGE_INVENTORY_STATUS && this.selectedSource != SOURCE_PAGE_FACTORY_STATUS && this.selectedSource != SOURCE_PAGE_POWER) {
+            this.selectedSource = SOURCE_PAGE_HOME;
+            changed = true;
+        }
+        if (!this.hasPowerPage() && this.selectedSource == SOURCE_PAGE_POWER) {
             this.selectedSource = SOURCE_PAGE_HOME;
             changed = true;
         }
@@ -8104,7 +7932,7 @@ public class StatsDisplayScreen extends Screen
             case RICH -> "Rich";
         };
     }
-    
+
     private void normalizeHomeSelection(LinkedHashMap<String, SourceConfig> registry) {
         final List<String> types = this.getHomeSourceTypes(registry);
         if (types.isEmpty()) {
@@ -8156,7 +7984,7 @@ public class StatsDisplayScreen extends Screen
             this.homeFocusedSourceId = filteredSources.isEmpty() ? "" : filteredSources.get(0).getKey();
         }
     }
-    
+
     private String normalizeSourceTypeLabel(String sourceType) {
         final String trimmed = (sourceType != null) ? sourceType.trim() : "";
         return trimmed.isEmpty() ? "Misc" : trimmed;
@@ -8325,7 +8153,7 @@ public class StatsDisplayScreen extends Screen
         }
         return false;
     }
-    
+
     private List<String> getHomeSourceTypes(LinkedHashMap<String, SourceConfig> registry) {
         final ArrayList<String> types = new ArrayList<String>();
         for (Map.Entry<String, SourceConfig> entry : registry.entrySet()) {
@@ -8340,7 +8168,7 @@ public class StatsDisplayScreen extends Screen
         }
         return types;
     }
-    
+
     private LinkedHashMap<String, Integer> getHomeSourceTypeCounts(LinkedHashMap<String, SourceConfig> registry) {
         final LinkedHashMap<String, Integer> counts = new LinkedHashMap<String, Integer>();
         for (Map.Entry<String, SourceConfig> entry : registry.entrySet()) {
@@ -8353,7 +8181,7 @@ public class StatsDisplayScreen extends Screen
         }
         return counts;
     }
-    
+
     private List<Map.Entry<String, SourceConfig>> getHomeFilteredSources(LinkedHashMap<String, SourceConfig> registry) {
         final ArrayList<Map.Entry<String, SourceConfig>> sources = new ArrayList<Map.Entry<String, SourceConfig>>();
         for (Map.Entry<String, SourceConfig> entry : registry.entrySet()) {
@@ -8543,7 +8371,7 @@ public class StatsDisplayScreen extends Screen
         }
         return MetricType.GENERIC;
     }
-    
+
     private List<StatsDisplayPanelBE.DataChannel> getHomeSourceChannels(String sourceId, boolean includeHidden) {
         return this.getRenderableChannelsForSource(sourceId, includeHidden);
     }
@@ -8552,7 +8380,6 @@ public class StatsDisplayScreen extends Screen
         return config != null && (config.isActive() || !this.getHomeSourceChannels(sourceId, true).isEmpty());
     }
 
-    /** [12] */
     private boolean shouldShowSourceInSpecializedPanel(String sourceId, SourceConfig config) {
         if (config == null) {
             return false;
@@ -8584,11 +8411,11 @@ public class StatsDisplayScreen extends Screen
     private boolean isGuidanceSource(SourceConfig config) {
         return config != null && SpecializedPanelRenderer.isAeroSourceType(this.normalizeSourceTypeLabel(config.getSourceType()));
     }
-    
+
     private boolean isHomeSourceSelected(String sourceId) {
         return !this.getHomeSourceChannels(sourceId, false).isEmpty();
     }
-    
+
     private int countHomeSelectedSources(List<Map.Entry<String, SourceConfig>> sources) {
         int count = 0;
         for (Map.Entry<String, SourceConfig> entry : sources) {
@@ -8598,7 +8425,7 @@ public class StatsDisplayScreen extends Screen
         }
         return count;
     }
-    
+
     private List<Map.Entry<String, SourceConfig>> getHomeSelectedSources(LinkedHashMap<String, SourceConfig> registry) {
         final ArrayList<Map.Entry<String, SourceConfig>> selected = new ArrayList<Map.Entry<String, SourceConfig>>();
         for (Map.Entry<String, SourceConfig> entry : registry.entrySet()) {
@@ -8608,11 +8435,11 @@ public class StatsDisplayScreen extends Screen
         }
         return selected;
     }
-    
+
     private int getHomeSelectedChannelCount() {
         return this.panel.getVisibleChannels().size();
     }
-    
+
     private HomeOutputMode getHomeOutputMode() {
         if (this.panel.getSettings().getGraphType() == StatsDisplaySettings.GraphType.ANALOG_GAUGE) {
             return HomeOutputMode.ANALOG;
@@ -8626,7 +8453,7 @@ public class StatsDisplayScreen extends Screen
                     : (this.panel.getSettings().isAerolineDirectorEnabled() ? HomeOutputMode.AEROLINE : HomeOutputMode.SPECIALIZED);
         };
     }
-    
+
     private void setHomeOutputMode(HomeOutputMode mode) {
         final StatsDisplaySettings settings = this.panel.getSettings();
         settings.setAeroFlightDeckEnabled(mode == HomeOutputMode.AERO);
@@ -8841,7 +8668,7 @@ public class StatsDisplayScreen extends Screen
             this.rebuildWidgets();
         }
     }
-    
+
     private void setHomeSourceSelection(String sourceId, boolean selected) {
         if (sourceId == null || sourceId.isEmpty()) {
             return;
@@ -8874,11 +8701,11 @@ public class StatsDisplayScreen extends Screen
         this.applyPanelSettingsChange();
         this.rebuildWidgets();
     }
-    
+
     private void toggleHomeSourceSelection(String sourceId) {
         this.setHomeSourceSelection(sourceId, !this.isHomeSourceSelected(sourceId));
     }
-    
+
     private void setHomePrimarySource(String sourceId) {
         if (sourceId == null || sourceId.isEmpty()) {
             return;
@@ -8898,20 +8725,20 @@ public class StatsDisplayScreen extends Screen
         this.applyPanelSettingsChange();
         this.rebuildWidgets();
     }
-    
+
     private void clearHomePrimarySource() {
         this.panel.getSettings().setPreferredSourceId("");
         this.applyPanelSettingsChange();
         this.rebuildWidgets();
     }
-    
+
     private void setHomeChannelVisible(String channelId, boolean visible) {
         final boolean hidden = this.panel.getSettings().isChannelHidden(channelId);
         if (visible == hidden) {
             this.panel.getSettings().toggleChannelVisibility(channelId);
         }
     }
-    
+
     private void toggleHomeChannelSelection(String channelId) {
         if (channelId == null || channelId.isEmpty()) {
             return;
@@ -8929,7 +8756,7 @@ public class StatsDisplayScreen extends Screen
         this.applyPanelSettingsChange();
         this.rebuildWidgets();
     }
-    
+
     private void soloHomeChannel(String channelId) {
         if (channelId == null || channelId.isEmpty()) {
             return;
@@ -8949,7 +8776,7 @@ public class StatsDisplayScreen extends Screen
         this.applyPanelSettingsChange();
         this.rebuildWidgets();
     }
-    
+
     private void setHomeDashboardMainChannel(String channelId) {
         if (channelId == null || channelId.isEmpty()) {
             return;
@@ -8959,7 +8786,7 @@ public class StatsDisplayScreen extends Screen
         this.applyPanelSettingsChange();
         this.rebuildWidgets();
     }
-    
+
     private String extractSourceIdFromChannel(String channelId) {
         if (channelId == null || channelId.isEmpty() || !channelId.startsWith("src_")) {
             return "";
@@ -8975,7 +8802,7 @@ public class StatsDisplayScreen extends Screen
         }
         return rest;
     }
-    
+
     private boolean homeCycleSupported() {
         final int selectedChannels = this.getHomeSelectedChannelCount();
         final int selectedSources = this.countHomeSelectedSources(this.getHomeFilteredSources(this.panel.getSourceRegistry()));
@@ -8985,21 +8812,21 @@ public class StatsDisplayScreen extends Screen
             default -> false;
         };
     }
-    
+
     private boolean homeAutoScaleSupported() {
         return this.getHomeOutputMode() == HomeOutputMode.SINGLE || this.getHomeOutputMode() == HomeOutputMode.AUTO_DASHBOARD;
     }
-    
+
     private boolean homePredictionSupported() {
         final HomeOutputMode mode = this.getHomeOutputMode();
         return (mode == HomeOutputMode.SINGLE || mode == HomeOutputMode.AUTO_DASHBOARD) && this.panel.getSettings().getGraphType() == StatsDisplaySettings.GraphType.LINE_CHART;
     }
-    
+
     private boolean homeUsesInstrumentAppearance() {
         final HomeOutputMode mode = this.getHomeOutputMode();
         return mode == HomeOutputMode.SPECIALIZED || mode == HomeOutputMode.AERO || mode == HomeOutputMode.AEROLINE || mode == HomeOutputMode.ANALOG;
     }
-    
+
     private String homeCycleStatusLabel() {
         if (this.homeCycleSupported()) {
             return this.cycleSpeedButtonLabel();
@@ -9014,7 +8841,7 @@ public class StatsDisplayScreen extends Screen
             case ANALOG -> "\u21bb Cycle: analog uses one channel";
         };
     }
-    
+
     private String homeGraphTypeLabel(StatsDisplaySettings.GraphType type) {
         return switch (type) {
             case LINE_CHART -> "Line";
@@ -9031,7 +8858,7 @@ public class StatsDisplayScreen extends Screen
             case FACTORY_STATUS -> "Factory";
         };
     }
-    
+
     private void addHomeClickTarget(HomeClickAction action, int x, int y, int w, int h, int clipTop, int clipBottom, String value, HomeOutputMode outputMode, StatsDisplaySettings.GraphType graphType) {
         final int top = Math.max(y, clipTop);
         final int bottom = Math.min(y + h, clipBottom);
@@ -9040,7 +8867,7 @@ public class StatsDisplayScreen extends Screen
         }
         this.homeClickTargets.add(new HomeClickTarget(action, x, top, w, bottom - top, value, outputMode, graphType));
     }
-    
+
     private void renderHomeButton(GuiGraphics g, int x, int y, int w, int h, String label, boolean enabled, boolean selected, int mouseX, int mouseY, int clipTop, int clipBottom, HomeClickAction action, String value, HomeOutputMode outputMode, StatsDisplaySettings.GraphType graphType) {
         if (y + h <= clipTop || y >= clipBottom) {
             return;
@@ -9055,7 +8882,7 @@ public class StatsDisplayScreen extends Screen
             this.addHomeClickTarget(action, x, y, w, h, clipTop, clipBottom, value, outputMode, graphType);
         }
     }
-    
+
     private void renderHomeSectionTitle(GuiGraphics g, int x, int y, int w, String title, String subtitle, int clipTop, int clipBottom) {
         if (y + 12 > clipTop && y < clipBottom) {
             g.drawString(this.font, title, x, y, this.ACCENT);
@@ -9122,7 +8949,7 @@ public class StatsDisplayScreen extends Screen
         }
         return label;
     }
-    
+
     private void renderHomePaneScrollbar(GuiGraphics g, int x, int y, int h, int visibleHeight, int contentHeight, int scrollOffset) {
         if (contentHeight <= visibleHeight || visibleHeight <= 0) {
             return;
@@ -9761,7 +9588,7 @@ public class StatsDisplayScreen extends Screen
         }
         return System.currentTimeMillis() / 50L;
     }
-    
+
     private void drawThickLine(GuiGraphics g, int x1, int y1, int x2, int y2, int color, int thick) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
@@ -9786,11 +9613,11 @@ public class StatsDisplayScreen extends Screen
             y1 += sy;
         }
     }
-    
+
     private void drawArc(GuiGraphics g, int cx, int cy, int innerR, int outerR, double start, double span, int segs, int color) {
         this.drawSmoothArc(g, cx, cy, innerR, outerR, start, span, segs, color);
     }
-    
+
     private void drawSmoothArc(GuiGraphics g, int cx, int cy, int innerR, int outerR, double start, double span, int segs, int color) {
         segs = Math.max(1, segs);
         final int thickness = outerR - innerR;
@@ -9810,30 +9637,30 @@ public class StatsDisplayScreen extends Screen
             g.fill(minX, minY, maxX, maxY, color);
         }
     }
-    
+
     private void drawArcSeg(GuiGraphics g, int cx, int cy, int innerR, int outerR, double a1, double a2, int color) {
         this.drawSmoothArc(g, cx, cy, innerR, outerR, a1, a2 - a1, 1, color);
     }
-    
+
     private void border(GuiGraphics g, int x, int y, int w, int h, int color) {
         g.fill(x, y, x + w, y + 1, color);
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y, x + 1, y + h, color);
         g.fill(x + w - 1, y, x + w, y + h, color);
     }
-    
+
     private void hline(GuiGraphics g, int x1, int x2, int y, int color) {
         g.fill(Math.min(x1, x2), y, Math.max(x1, x2), y + 1, color);
     }
-    
+
     private void vline(GuiGraphics g, int x, int y1, int y2, int color) {
         g.fill(x, Math.min(y1, y2), x + 1, Math.max(y1, y2), color);
     }
-    
+
     private int clampY(int y) {
         return Math.max(this.graphTop + 1, Math.min(this.graphTop + this.graphHeight - 2, y));
     }
-    
+
     private static float niceNumber(float value) {
         if (value <= 0.0f) {
             return 1.0f;
@@ -9855,7 +9682,7 @@ public class StatsDisplayScreen extends Screen
         }
         return nice * (float)Math.pow(10.0, exp);
     }
-    
+
     private String truncate(String s, int maxPixels) {
         if (this.font.width(s) <= maxPixels) {
             return s;
@@ -9865,7 +9692,7 @@ public class StatsDisplayScreen extends Screen
         }
         return s + "..";
     }
-    
+
     private StatsDisplayPanelBE.DataChannel findChannelBySuffix(String suffix) {
         for (Map.Entry<String, StatsDisplayPanelBE.DataChannel> entry : this.panel.getAllChannels().entrySet()) {
             if (entry.getKey().endsWith(suffix)) {
@@ -9886,7 +9713,7 @@ public class StatsDisplayScreen extends Screen
         }
         return this.findChannelBySuffix(metricId);
     }
-    
+
     private String formatCompact(float val) {
         if (Math.abs(val) >= 1000000.0f) {
             return String.format("%.1fM", val / 1000000.0f);
@@ -10840,8 +10667,6 @@ public class StatsDisplayScreen extends Screen
         return false;
     }
 
-    // factory Controls page
-
     private boolean isFactoryPage() {
         return this.selectedSource == SOURCE_PAGE_FACTORY;
     }
@@ -11162,7 +10987,6 @@ public class StatsDisplayScreen extends Screen
 
         g.drawString(this.font, "\u2699 Factory Controls", contentX, areaY + 4, this.ACCENT);
 
-        // Unified list on the left
         final int listW = Math.min(Math.max(140, contentW / 3), 200);
         final int listTop = areaY + 18;
         final int listH = areaH - 24;
@@ -11171,7 +10995,6 @@ public class StatsDisplayScreen extends Screen
         final int visibleRows = Math.max(1, listH / rowH);
         this.normalizeFactorySelection(safetyLinks, flywheelLinks, transLinks, balancerLinks, miniDisplayLinks, freightEntries, visibleRows);
 
-        // Calculate total rows: section headers + items
         final boolean hasSafety = !safetyLinks.isEmpty();
         final boolean hasFlywheels = !flywheelLinks.isEmpty();
         final boolean hasTrans = !transLinks.isEmpty();
@@ -11181,10 +11004,8 @@ public class StatsDisplayScreen extends Screen
         g.fill(contentX, listTop, contentX + listW, listTop + listH, -15198184);
         this.drawGUIBorder(g, contentX, listTop, listW, listH, -13417370);
 
-        // Render list entries with section headers
         int drawY = listTop - this.factoryClutchScroll * rowH;
 
-        // Safety Clutches section
         if (hasSafety) {
             if (drawY >= listTop - rowH && drawY < listTop + listH) {
                 g.drawString(this.font, "\u26A0 Safety Clutches", contentX + 4, Math.max(listTop + 2, drawY + 2), this.ACCENT);
@@ -11211,7 +11032,6 @@ public class StatsDisplayScreen extends Screen
             }
         }
 
-        // Kinetic Flywheel section
         if (hasFlywheels) {
             if (drawY >= listTop - rowH && drawY < listTop + listH) {
                 g.drawString(this.font, "\uD83D\uDD4B Flywheel Banks", contentX + 4, Math.max(listTop + 2, drawY + 2), this.ACCENT);
@@ -11236,7 +11056,6 @@ public class StatsDisplayScreen extends Screen
             }
         }
 
-        // Auto Variable section
         if (hasTrans) {
             if (drawY >= listTop - rowH && drawY < listTop + listH) {
                 g.drawString(this.font, "\u2699 Auto Variable", contentX + 4, Math.max(listTop + 2, drawY + 2), this.ACCENT);
@@ -11352,7 +11171,6 @@ public class StatsDisplayScreen extends Screen
             }
         }
 
-        // Detail panel on the right
         final int detailGap = 10;
         final int detailX = contentX + listW + detailGap;
         final int detailW = contentW - listW - detailGap;
@@ -11364,7 +11182,6 @@ public class StatsDisplayScreen extends Screen
         g.fill(detailX, detailTop, detailX + detailW, detailTop + detailH, -15198184);
         this.drawGUIBorder(g, detailX, detailTop, detailW, detailH, -13417370);
 
-        // Determine which type is selected based on ID prefix
         if (this.factorySelectedClutchId.startsWith("flywheel_")) {
             this.renderKineticFlywheelDetail(g, mouseX, mouseY, detailX, detailTop, detailW, detailH, flywheelLinks);
         } else if (this.factorySelectedClutchId.startsWith("trans_")) {
@@ -11451,24 +11268,36 @@ public class StatsDisplayScreen extends Screen
         if (link.isHalted()) {
             return this.WARN;
         }
+        if (link.isParked()) {
+            return -11163905;
+        }
+        if (link.isDepleted()) {
+            return -22221;
+        }
         if (link.getModeIndex() == 2) {
-            return -11215531; // discharging - green
+            return -11215531;
         }
         if (link.getModeIndex() == 1) {
-            return -11163905; // charging - blue
+            return -11163905;
         }
         if (!link.getSettings().isDischargeArmed()) {
             return this.DIM;
         }
         if (link.isLowReserve()) {
-            return -22221; // low reserve - amber
+            return -22221;
         }
-        return this.DIM; // idle - gray
+        return this.DIM;
     }
 
     private String getFlywheelStatusLabel(StatsDisplayPanelBE.KineticFlywheelLink link) {
         if (link.isHalted()) {
             return "Halted";
+        }
+        if (link.isParked()) {
+            return "Parked";
+        }
+        if (link.isDepleted()) {
+            return "Spent";
         }
         if (link.getModeIndex() == 2) {
             return "Discharging";
@@ -11505,6 +11334,8 @@ public class StatsDisplayScreen extends Screen
         final int tier = (liveFlywheel != null) ? liveFlywheel.getTier() : selectedLink.getTier();
         final int flywheelCount = (liveFlywheel != null) ? liveFlywheel.getFlywheelCount() : selectedLink.getFlywheelCount();
         final boolean halted = (liveFlywheel != null) ? liveFlywheel.isOverstressHalted() : selectedLink.isHalted();
+
+        final boolean held = halted || ((liveFlywheel != null) ? liveFlywheel.isParked() : selectedLink.isParked());
         final float reArmSeconds = (liveFlywheel != null) ? liveFlywheel.getReArmSeconds() : 0.0f;
 
         final int dPad = 8;
@@ -11518,7 +11349,6 @@ public class StatsDisplayScreen extends Screen
         final int statusColor = this.getFlywheelStatusColor(selectedLink);
         g.drawString(this.font, "Status: " + statusText, dInnerX, detailTop + 34, statusColor);
 
-        // Charge bar with low-reserve marker
         final int barY = detailTop + 48;
         final int barH = 8;
         g.fill(dInnerX, barY, dInnerX + dInnerW, barY + barH, -15329770);
@@ -11536,14 +11366,19 @@ public class StatsDisplayScreen extends Screen
         g.drawString(this.font, this.truncate(String.format("Stored: %.0f RPM  |  Output: %.0f SU", storedRpm, outputSU), dInnerW), dInnerX, barY + barH + 16, this.DIM);
         final String sustainText = sustainSeconds >= 999.0f ? "\u221E" : String.format("%.0fs", sustainSeconds);
         g.drawString(this.font, this.truncate(String.format("Sustain: %s  |  Tier %d (%d flywheels)", sustainText, tier + 1, flywheelCount), dInnerW), dInnerX, barY + barH + 28, this.DIM);
+        final boolean parked = (liveFlywheel != null) ? liveFlywheel.isParked() : selectedLink.isParked();
+        final boolean spent = (liveFlywheel != null) ? liveFlywheel.isDepleted() : selectedLink.isDepleted();
         g.drawString(this.font, this.truncate(halted
                 ? (reArmSeconds > 0.0f
                         ? String.format("Overstressed - RE-ARM in %.1fs (-%.0f%%)", reArmSeconds, KineticFlywheelBE.getReArmCostPercent())
                         : "Network overstressed - holding reserve until it recovers")
+                : parked
+                ? "Parked by hand - neither charging nor discharging until released"
+                : spent
+                ? String.format("Spent - recharges to %.0f%% before it will carry the network again", KineticFlywheelBE.getRecoveryPercent())
                 : (settings.isDischargeArmed() ? "Armed: backs up the network when it goes idle" : "Disarmed: charges and holds, never discharges"), dInnerW),
                 dInnerX, barY + barH + 40, this.DIM);
 
-        // Buttons
         int btnY = barY + barH + 58;
         final int btnW = Math.min(dInnerW, 200);
         final int btnX = dInnerX + (dInnerW - btnW) / 2;
@@ -11552,7 +11387,7 @@ public class StatsDisplayScreen extends Screen
                 true, settings.isDischargeArmed(), mouseX, mouseY, FactoryClickAction.TOGGLE_FLYWHEEL_ARMED, selectedLink.getId());
         btnY += 20;
         final int halfW = (btnW - 4) / 2;
-        if (halted) {
+        if (held) {
             this.renderFactoryButton(g, btnX, btnY, halfW, 16, "Release", true, false, mouseX, mouseY, FactoryClickAction.FLYWHEEL_RELEASE, selectedLink.getId());
         } else {
             this.renderFactoryButton(g, btnX, btnY, halfW, 16, "Force Park", true, false, mouseX, mouseY, FactoryClickAction.FLYWHEEL_FORCE_PARK, selectedLink.getId());
@@ -11594,7 +11429,6 @@ public class StatsDisplayScreen extends Screen
         final int statusColor = this.getTransmissionStatusColor(settings, alarm, networkRunning, currentMod);
         g.drawString(this.font, "Status: " + statusText, dInnerX, detailTop + 34, statusColor);
 
-        // Modifier bar
         final int barY = detailTop + 48;
         final int barH = 8;
         final float ratioScale = Math.max(1.0f, Math.max(currentMod, targetMod));
@@ -11602,23 +11436,21 @@ public class StatsDisplayScreen extends Screen
         this.drawGUIBorder(g, dInnerX, barY, dInnerW, barH, -13417370);
         final int fillW = (int)(Math.min(1.0f, currentMod / ratioScale) * (dInnerW - 2));
         final int modBarColor = alarm == AutoTransmissionClutchBE.AlarmState.VERY_CONCERNING ? this.WARN :
-                (alarm == AutoTransmissionClutchBE.AlarmState.CONCERNING ? -256 : this.ACCENT); // yellow for concerning
+                (alarm == AutoTransmissionClutchBE.AlarmState.CONCERNING ? -256 : this.ACCENT);
         if (fillW > 0) {
             g.fill(dInnerX + 1, barY + 1, dInnerX + 1 + fillW, barY + barH - 1, modBarColor);
         }
-        // Target marker
+
         final int targetX = dInnerX + 1 + (int)(Math.min(1.0f, targetMod / ratioScale) * (dInnerW - 2));
         g.fill(targetX, barY, targetX + 1, barY + barH, this.TEXT);
 
         g.drawString(this.font, String.format("Modifier: %.0f%%", currentMod * 100.0f), dInnerX, barY + barH + 3, this.DIM);
         g.drawString(this.font, String.format("Target: %.0f%%", targetMod * 100.0f), dInnerX + dInnerW / 2, barY + barH + 3, this.DIM);
 
-        // Speed & stress info
         final float sourceSpeed = (liveTrans != null) ? liveTrans.getSourceSpeed() : (currentMod != 0.0f ? transmittedSpeed / currentMod : 0.0f);
         g.drawString(this.font, this.truncate(String.format("Source: %.0f RPM  Output: %.0f RPM", sourceSpeed, transmittedSpeed), dInnerW), dInnerX, barY + barH + 16, this.DIM);
         g.drawString(this.font, this.truncate(String.format("Stress: %.1f%%  (%.0f / %.0f SU)", stressPercent, stressSU, capacitySU), dInnerW), dInnerX, barY + barH + 28, this.DIM);
 
-        // Limit info
         final String rangeDesc;
         if (settings.getLimitMode() == AutoTransmissionClutchSettings.LimitMode.SU) {
             rangeDesc = String.format("Range: %.0f - %.0f SU", settings.getLowerBound(), settings.getUpperBound());
@@ -11627,7 +11459,6 @@ public class StatsDisplayScreen extends Screen
         }
         g.drawString(this.font, this.truncate(rangeDesc + "  |  Min RPM: " + String.format("%.0f", settings.getMinimumRPM()) + "  |  Max RPM: " + String.format("%.0f", settings.getMaximumRPM()), dInnerW), dInnerX, barY + barH + 40, this.DIM);
 
-        // Buttons
         int btnY = barY + barH + 58;
         final int btnW = Math.min(dInnerW, 200);
         final int btnX = dInnerX + (dInnerW - btnW) / 2;
@@ -12055,10 +11886,6 @@ public class StatsDisplayScreen extends Screen
         if (selectedEntry == null) {
             return;
         }
-        if ("Manifest".equalsIgnoreCase(selectedEntry.getDisplayName())) {
-            this.renderManifestEgg(g, detailX, detailTop, detailW, detailH);
-            return;
-        }
         final int dPad = 8;
         final int dInnerX = detailX + dPad;
         final int dInnerW = detailW - dPad * 2;
@@ -12148,40 +11975,6 @@ public class StatsDisplayScreen extends Screen
             Math.max(2, Math.min(4, Math.max(3, (detailH - 140) / 5))), previewTitle, previewCargoView);
         int remainingRows = Math.max(2, (detailTop + detailH - drawY - 8) / 16);
         this.renderDeliveryBoardSummary(g, mouseX, mouseY, dInnerX, detailX + detailW - dPad, dInnerW, drawY, remainingRows, deliveryBoard);
-    }
-
-    private void renderManifestEgg(GuiGraphics g, int detailX, int detailTop, int detailW, int detailH) {
-        g.fill(detailX, detailTop, detailX + detailW, detailTop + detailH, 0xFF0C0C14);
-        final int[] barColors = { 0xFF3CE05A, 0xFFB45CFF, 0xFFFF6FB5, 0xFF4FA8FF, 0xFFFF5A5A, 0xFFFFE04F };
-        final float t = net.minecraft.Util.getMillis() / 1000f;
-        final int margin = 16;
-        final int bandTop = detailTop + 44;
-        final int bandBottom = detailTop + detailH - 40;
-        final int bandH = Math.max(20, bandBottom - bandTop);
-        final int n = barColors.length;
-        final int gap = 8;
-        final int usableW = detailW - margin * 2;
-        final int barW = Math.max(4, (usableW - gap * (n - 1)) / n);
-        final int totalW = barW * n + gap * (n - 1);
-        int x = detailX + (detailW - totalW) / 2;
-        for (int i = 0; i < n; ++i) {
-            final float wave = 0.5f + 0.5f * (float) Math.sin(t * (2.2f + i * 0.35f) + i);
-            final float frac = 0.35f + 0.65f * wave;
-            final int h = Math.max(3, Math.min(bandH, Math.round(bandH * frac)));
-            final int barBottom = bandBottom;
-            final int barTopY = barBottom - h;
-            g.fill(x, barTopY, x + barW, barBottom, barColors[i]);
-            x += barW + gap;
-        }
-        final int cx = detailX + detailW / 2;
-        final float ct = 0.5f + 0.5f * (float) Math.sin(t * 1.6f);
-        final int titleColor = 0xFF000000 | (lerpChannel(0xFF, 0xB4, ct) << 16) | (lerpChannel(0x6F, 0x5C, ct) << 8) | lerpChannel(0xB5, 0xFF, ct);
-        g.drawCenteredString(this.font, "Manifest yaaa", cx, detailTop + 18, titleColor);
-        g.drawCenteredString(this.font, "Six Girls. One Motion.", cx, detailTop + detailH - 24, this.DIM);
-    }
-
-    private static int lerpChannel(int a, int b, float t) {
-        return Math.round(a + (b - a) * t) & 0xFF;
     }
 
     private String getFactoryFreightClipboardLabel(FactoryFreightEntry entry) {
@@ -12779,7 +12572,7 @@ public class StatsDisplayScreen extends Screen
             return this.WARN;
         }
         if (alarm == AutoTransmissionClutchBE.AlarmState.CONCERNING) {
-            return -256; // yellow
+            return -256;
         }
         if (!networkRunning) {
             return this.ACCENT;
@@ -12982,8 +12775,7 @@ public class StatsDisplayScreen extends Screen
             return null;
         }
         final AutoTransmissionClutchBE trans = this.getLoadedAutoTransmission(link.getSourcePos());
-        // LIVE displayed-source settings (loaded BE if present, else the cached link copy), NOT a
-        // snapshot: the click handlers mutate this IN PLACE for instant optimistic feedback, then send.
+
         return (trans != null) ? trans.getSettings() : link.getSettings();
     }
 
@@ -13028,8 +12820,7 @@ public class StatsDisplayScreen extends Screen
             return null;
         }
         final LoadBalancerBE balancer = this.getLoadedLoadBalancer(link.getSourcePos());
-        // LIVE displayed-source settings (loaded BE if present, else the cached link copy), NOT a
-        // snapshot: the click handlers mutate this IN PLACE for instant optimistic feedback, then send.
+
         return (balancer != null) ? balancer.getSettings() : link.getSettings();
     }
 
@@ -13074,8 +12865,7 @@ public class StatsDisplayScreen extends Screen
             return null;
         }
         final MiniDisplayBE miniDisplay = this.getLoadedMiniDisplay(link.getSourcePos());
-        // LIVE displayed-source settings (loaded BE if present, else the cached link copy), NOT a
-        // snapshot: the click handlers mutate this IN PLACE for instant optimistic feedback, then send.
+
         return (miniDisplay != null) ? miniDisplay.getSettings() : link.getSettings();
     }
 
@@ -13116,8 +12906,7 @@ public class StatsDisplayScreen extends Screen
             return null;
         }
         final KineticFlywheelBE flywheel = this.getLoadedKineticFlywheel(link.getSourcePos());
-        // LIVE displayed-source settings (loaded BE if present, else the cached link copy), NOT a
-        // snapshot: the click handlers mutate this IN PLACE for instant optimistic feedback, then send.
+
         return (flywheel != null) ? flywheel.getSettings() : link.getSettings();
     }
 
@@ -13160,8 +12949,7 @@ public class StatsDisplayScreen extends Screen
             return null;
         }
         final SafetyClutchBE clutch = this.getLoadedSafetyClutch(link.getSourcePos());
-        // LIVE displayed-source settings (loaded BE if present, else the cached link copy), NOT a
-        // snapshot: the click handlers mutate this IN PLACE for instant optimistic feedback, then send.
+
         return (clutch != null) ? clutch.getSettings() : link.getSettings();
     }
 
@@ -13251,13 +13039,11 @@ public class StatsDisplayScreen extends Screen
         return false;
     }
 
-    /** [13] */
     private boolean tryRenderBattleTacticalV2Viewport3D(GuiGraphics g, float partialTick) {
         final String sourceId = this.getCurrentSourcePageId();
         if (sourceId == null || sourceId.isEmpty()) return false;
         if (this.getCurrentBattleTacticalV2Link() == null) return false;
-        // Client view preference: when the user has switched this panel to the flat 2D
-        // console, decline so the standard 2D specialized render path takes over.
+
         if (com.createstats.client.battle.BattleTacticalV2Viewport3D.isForce2D(this.panel.getBlockPos())) {
             return false;
         }
@@ -13267,10 +13053,6 @@ public class StatsDisplayScreen extends Screen
                 this.panel, sourceId, this.getGuiRenderTick(), partialTick);
     }
 
-    /**
-     * Phase B1 diagnostic, always-on overlay (top-left of graph rect) reporting why
-     * the V2 viewport dispatch did or did not fire. Remove once Phase B is verified.
-     */
     private void renderV2DispatchDiagnostic(GuiGraphics g) {
         final String sourceId = this.getCurrentSourcePageId();
         final SourceConfig config = (sourceId == null || sourceId.isEmpty())
@@ -13767,7 +13549,7 @@ public class StatsDisplayScreen extends Screen
         }
         return false;
     }
-    
+
     private boolean isWithinHomePreview(double mx, double my, int x, int y, int w, int h) {
         if (w <= 0 || h <= 0) {
             return false;
@@ -13778,7 +13560,7 @@ public class StatsDisplayScreen extends Screen
         final int bottom = Math.min(y + h, clipBottom);
         return bottom > top && mx >= x && mx < x + w && my >= top && my < bottom;
     }
-    
+
     private boolean handleHomeTrainPreviewClick(double mx, double my, TrainMapData visibleData) {
         if (visibleData == null || visibleData.isEmpty() || !this.isWithinHomePreview(mx, my, this.homeTrainPreviewX, this.homeTrainPreviewY, this.homeTrainPreviewW, this.homeTrainPreviewH)) {
             return false;
@@ -13801,7 +13583,7 @@ public class StatsDisplayScreen extends Screen
         this.openTrainPageSelection(train.id, train.currentStationId != null ? train.currentStationId : this.findTrainDashboardStationByName(visibleData, train.currentStationName));
         return true;
     }
-    
+
     private boolean handleHomeStationPreviewClick(double mx, double my, TrainMapData visibleData) {
         if (visibleData == null || visibleData.isEmpty() || !this.isWithinHomePreview(mx, my, this.homeStationPreviewX, this.homeStationPreviewY, this.homeStationPreviewW, this.homeStationPreviewH)) {
             return false;
@@ -13824,7 +13606,7 @@ public class StatsDisplayScreen extends Screen
         this.openTrainPageSelection(null, station.id);
         return true;
     }
-    
+
     private boolean handleHomeTrainPreviewScroll(double mx, double my, double delta, TrainMapData visibleData) {
         if (delta == 0.0 || visibleData == null || visibleData.isEmpty() || !this.isWithinHomePreview(mx, my, this.homeTrainPreviewX, this.homeTrainPreviewY, this.homeTrainPreviewW, this.homeTrainPreviewH)) {
             return false;
@@ -13838,7 +13620,7 @@ public class StatsDisplayScreen extends Screen
         this.homeTrainPreviewScroll = Math.max(0, Math.min(this.homeTrainPreviewScroll + previewStep, maxScroll));
         return true;
     }
-    
+
     private boolean handleHomeStationPreviewScroll(double mx, double my, double delta, TrainMapData visibleData) {
         if (delta == 0.0 || visibleData == null || visibleData.isEmpty() || !this.isWithinHomePreview(mx, my, this.homeStationPreviewX, this.homeStationPreviewY, this.homeStationPreviewW, this.homeStationPreviewH)) {
             return false;
@@ -13883,7 +13665,7 @@ public class StatsDisplayScreen extends Screen
         }
         return false;
     }
-    
+
     private String formatYAxis(float val, float range) {
         if (range < 0.01f) {
             return String.format("%.4f", val);
@@ -13924,7 +13706,7 @@ public class StatsDisplayScreen extends Screen
             return String.format("%.0fk", val / 1000.0f);
         }
     }
-    
+
     private static int brighten(int c, float f) {
         final int a = c >> 24 & 0xFF;
         final int r = Math.min(255, (int)((c >> 16 & 0xFF) * f));
@@ -13932,7 +13714,7 @@ public class StatsDisplayScreen extends Screen
         final int b = Math.min(255, (int)((c & 0xFF) * f));
         return a << 24 | r << 16 | gg << 8 | b;
     }
-    
+
     private static int darken(int c, float f) {
         return brighten(c, f);
     }
@@ -13940,7 +13722,7 @@ public class StatsDisplayScreen extends Screen
     private static int opaque(int c) {
         return 0xFF000000 | (c & 0x00FFFFFF);
     }
-    
+
     private static int lerpColor(int c1, int c2, float t) {
         t = Math.max(0.0f, Math.min(1.0f, t));
         final int a = (int)((c1 >> 24 & 0xFF) * (1.0f - t) + (c2 >> 24 & 0xFF) * t);
@@ -13949,7 +13731,7 @@ public class StatsDisplayScreen extends Screen
         final int b = (int)((c1 & 0xFF) * (1.0f - t) + (c2 & 0xFF) * t);
         return a << 24 | r << 16 | gg << 8 | b;
     }
-    
+
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (this.annotationInputOpen) {
             if (keyCode == 257) {
@@ -13974,13 +13756,6 @@ public class StatsDisplayScreen extends Screen
                     return true;
                 }
                 return this.sourceRenameInput.keyPressed(keyCode, scanCode, modifiers);
-            }
-            else if (this.alertThresholdInput != null && this.alertThresholdInput.isFocused()) {
-                if (keyCode == 257) {
-                    this.applyAlertThreshold();
-                    return true;
-                }
-                return this.alertThresholdInput.keyPressed(keyCode, scanCode, modifiers);
             }
             else if (this.redstoneThresholdInput != null && this.redstoneThresholdInput.isFocused()) {
                 if (keyCode == 257) {
@@ -14009,13 +13784,6 @@ public class StatsDisplayScreen extends Screen
                 this.applySourceRename();
                 return true;
             }
-            if (this.alertConfigOpen) {
-                this.applyAlertThreshold();
-                this.alertConfigOpen = false;
-                this.alertValueInput = "";
-                this.rebuildWidgets();
-                return true;
-            }
             if (this.redstoneConfigOpen) {
                 this.applyRedstoneThreshold();
                 this.redstoneConfigOpen = false;
@@ -14030,16 +13798,13 @@ public class StatsDisplayScreen extends Screen
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
-    
+
     public boolean charTyped(char c, int modifiers) {
         if (this.annotationLabelInput != null && this.annotationLabelInput.isFocused()) {
             return this.annotationLabelInput.charTyped(c, modifiers);
         }
         if (this.sourceRenameInput != null && this.sourceRenameInput.isFocused()) {
             return this.sourceRenameInput.charTyped(c, modifiers);
-        }
-        if (this.alertThresholdInput != null && this.alertThresholdInput.isFocused()) {
-            return this.alertThresholdInput.charTyped(c, modifiers);
         }
         if (this.redstoneThresholdInput != null && this.redstoneThresholdInput.isFocused()) {
             return this.redstoneThresholdInput.charTyped(c, modifiers);
@@ -14052,11 +13817,11 @@ public class StatsDisplayScreen extends Screen
         }
         return super.charTyped(c, modifiers);
     }
-    
+
     public boolean isPauseScreen() {
         return false;
     }
-    
+
     private void handleAnnotationClick(double mx, double my) {
         final List<StatsDisplayPanelBE.DataChannel> channels = this.getFilteredChannels();
         if (channels.isEmpty()) {
@@ -14102,7 +13867,7 @@ public class StatsDisplayScreen extends Screen
         this.lastAnnotationClickId = nearAnno.getId();
         this.lastAnnotationClickTime = now;
     }
-    
+
     private void openAnnotationInput(int clickX, int clickY, long tick) {
         this.pendingAnnotationTick = tick;
         this.annotationInputX = clickX;
@@ -14115,7 +13880,7 @@ public class StatsDisplayScreen extends Screen
         this.editingAnnotationId = null;
         this.rebuildWidgets();
     }
-    
+
     private void confirmAnnotation() {
         if (this.annotationLabelInput == null) {
             return;
@@ -14149,7 +13914,7 @@ public class StatsDisplayScreen extends Screen
         this.editingAnnotationId = null;
         this.rebuildWidgets();
     }
-    
+
     private Annotation findAnnotationAtPixel(int pixelX) {
         final List<StatsDisplayPanelBE.DataChannel> channels = this.getFilteredChannels();
         if (channels.isEmpty()) {
@@ -14183,7 +13948,7 @@ public class StatsDisplayScreen extends Screen
         }
         return null;
     }
-    
+
     private void renderAnnotationsGUI(GuiGraphics g, List<StatsDisplayPanelBE.DataChannel> channels, int mouseX, int mouseY) {
         final AnnotationManager mgr = this.panel.getAnnotationManager();
         if (mgr.size() == 0 && !this.annotateMode) {
@@ -14287,7 +14052,7 @@ public class StatsDisplayScreen extends Screen
             }
         }
     }
-    
+
     private void renderAnnotationTooltip(GuiGraphics g, Annotation a, int mouseX, int mouseY, long windowStartTick, long windowEndTick) {
         final List<Component> lines = new ArrayList<Component>();
         lines.add(Component.literal("\ud83d\udccc " + a.getLabel()).withStyle(style -> style.withColor(a.getColor() & 0xFFFFFF)));
@@ -14314,7 +14079,7 @@ public class StatsDisplayScreen extends Screen
         lines.add(Component.literal("Right-click to delete").withStyle(style -> style.withColor(6710886).withItalic(Boolean.valueOf(true))));
         g.renderTooltip(this.font, (List)lines, (Optional)Optional.empty(), mouseX, mouseY);
     }
-    
+
     static {
         TIME_SCALES = new int[] { 15, 30, 60, 120, 300, 600, 1800, 0 };
         TIME_SCALE_LABELS = new String[] { "15s", "30s", "1m", "2m", "5m", "10m", "30m", "All" };
@@ -14402,7 +14167,7 @@ public class StatsDisplayScreen extends Screen
             return new InventoryStableEntry(this.label, this.amount, this.hasAmount, sourceType);
         }
     }
-    
+
     private static class ProductionEntry
     {
         final StatsDisplayPanelBE.DataChannel channel;
@@ -14411,7 +14176,7 @@ public class StatsDisplayScreen extends Screen
         final float trend;
         final String sourceType;
         final int contributorCount;
-        
+
         ProductionEntry(StatsDisplayPanelBE.DataChannel channel, String label, float rate, float trend, String sourceType, int contributorCount) {
             this.channel = channel;
             this.label = label;
@@ -14470,12 +14235,12 @@ public class StatsDisplayScreen extends Screen
         private float primaryRate;
         private final LinkedHashSet<String> sourceTypes;
         private int contributorCount;
-        
+
         ProductionAccumulator(String label) {
             this.label = label;
             this.sourceTypes = new LinkedHashSet<String>();
         }
-        
+
         void add(StatsDisplayPanelBE.DataChannel channel, float rate, float trend, String sourceType) {
             this.totalRate += rate;
             final float weight = Math.max(rate, 0.1f);
@@ -14490,7 +14255,7 @@ public class StatsDisplayScreen extends Screen
             }
             ++this.contributorCount;
         }
-        
+
         ProductionEntry toEntry() {
             final String sourceType = this.sourceTypes.isEmpty() ? "" : ((this.sourceTypes.size() == 1) ? this.sourceTypes.iterator().next() : "Mixed");
             final float trend = (this.trendWeight > 0.0f) ? (this.weightedTrend / this.trendWeight) : 0.0f;

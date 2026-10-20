@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PurePursuitTest {
-
     private static final double LD = 10.0;
     private static final double R = 4.0;
     private static final double DZ = 3.0;
@@ -37,13 +35,11 @@ class PurePursuitTest {
 
     @Test
     void sharpButUnder90ErrorSaturatesToFullLock() {
-        // 85 deg at a short lookahead: 2 sin(85) R / Ld = 2 * 0.996 * 4 / 6 = 1.33 -> clamped to 1.
         assertEquals(1.0, PurePursuit.steer(85.0, 6.0, R, DZ), 1e-9);
     }
 
     @Test
     void abeamOrBehindTargetCommandsFullLockTowardIt() {
-        // The raw sine law would shrink here (sin(120) < sin(90)); the controller must instead lock over.
         assertEquals(1.0, PurePursuit.steer(120.0, LD, R, DZ), 1e-9);
         assertEquals(-1.0, PurePursuit.steer(-160.0, LD, R, DZ), 1e-9);
         assertEquals(1.0, PurePursuit.steer(90.0, LD, R, DZ), 1e-9, "exactly abeam locks over");

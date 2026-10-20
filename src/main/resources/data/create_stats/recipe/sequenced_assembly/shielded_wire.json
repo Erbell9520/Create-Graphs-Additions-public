@@ -1,0 +1,69 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create_stats:insulated_wire"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "chance": 95.0,
+      "id": "create_stats:shielded_wire"
+    },
+    {
+      "chance": 5.0,
+      "id": "create_stats:insulated_wire"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_stats:incomplete_shielded_wire"
+        },
+        {
+          "tag": "c:plates/gold"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_stats:incomplete_shielded_wire"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_stats:incomplete_shielded_wire"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_stats:incomplete_shielded_wire"
+        }
+      ]
+    },
+    {
+      "type": "create:filling",
+      "ingredients": [
+        {
+          "item": "create_stats:incomplete_shielded_wire"
+        },
+        {
+          "type": "neoforge:single",
+          "amount": 50,
+          "fluid": "create_stats:insulating_resin"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_stats:incomplete_shielded_wire"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_stats:incomplete_shielded_wire"
+  }
+}

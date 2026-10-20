@@ -11,9 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/** [1] */
 public class VccMk2DisplayTarget extends DisplayTarget {
-
     @Override
     public void acceptText(int line, List<MutableComponent> text, DisplayLinkContext context) {
         VccMk2BlockEntity vcc = resolve(context);
@@ -61,7 +59,6 @@ public class VccMk2DisplayTarget extends DisplayTarget {
     }
 
     public void reset(DisplayLinkContext context) {
-        // [2]
     }
 
     @Nullable

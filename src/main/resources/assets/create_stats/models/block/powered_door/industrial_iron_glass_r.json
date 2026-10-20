@@ -1,0 +1,77 @@
+{
+  "__generator": "gen_powered_door.py",
+  "textures": {
+    "glass": "create_stats:block/powered_door/industrial_iron_glass",
+    "particle": "create_stats:block/powered_door/industrial_iron_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        9,
+        20,
+        1
+      ],
+      "to": [
+        12,
+        23,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            9,
+            7,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            9,
+            9,
+            12,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            1,
+            9,
+            3,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            1,
+            9,
+            3,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            9,
+            1,
+            12,
+            3
+          ],
+          "texture": "#glass"
+        },
+        "down": {
+          "uv": [
+            9,
+            1,
+            12,
+            3
+          ],
+          "texture": "#glass"
+        }
+      }
+    }
+  ]
+}

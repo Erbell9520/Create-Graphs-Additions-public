@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:machines/induction_range",
+  "display": {
+    "icon": {
+      "id": "create_stats:arc_furnace"
+    },
+    "title": {
+      "translate": "advancement.create_stats.machines.arc_furnace.title",
+      "fallback": "Priced Like Fire"
+    },
+    "description": {
+      "translate": "advancement.create_stats.machines.arc_furnace.description",
+      "fallback": "Place an Electric Arc Furnace. Everything costs a fortune now, starting with the power bill."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "furnace": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:arc_furnace"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "furnace"
+    ]
+  ]
+}

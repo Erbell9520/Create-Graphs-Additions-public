@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:transport/mk4",
+  "display": {
+    "icon": {
+      "id": "create_stats:cine_camera"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.cine_camera.title",
+      "fallback": "Welcome to Yeşilçam"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.cine_camera.description",
+      "fallback": "Get a Cine Camera. Every scene now needs a slap, a rainy window and a sad violin."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "camera": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:cine_camera"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "camera"
+    ]
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:power/meter",
+  "display": {
+    "icon": {
+      "id": "create_stats:power_distribution_unit"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.distribution.title",
+      "fallback": "A Sibling's Share"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.distribution.description",
+      "fallback": "Place a Power Distribution Unit. Fair shares for everyone. The little brother still complains."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "pdu": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:power_distribution_unit"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "pdu"
+    ]
+  ]
+}

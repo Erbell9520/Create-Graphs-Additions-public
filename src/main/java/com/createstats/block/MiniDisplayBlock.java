@@ -45,7 +45,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class MiniDisplayBlock extends HorizontalDirectionalBlock implements EntityBlock {
-
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     public static final EnumProperty<Segment> SEGMENT = EnumProperty.create("segment", Segment.class);

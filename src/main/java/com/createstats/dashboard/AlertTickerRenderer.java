@@ -18,7 +18,7 @@ public final class AlertTickerRenderer
 {
     private AlertTickerRenderer() {
     }
-    
+
     public static void render(NativeImage image, DashboardZone zone, StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels, DisplayTheme theme) {
         if (!(boolean)ModConfiguration.COMMON.dashboardTickerEnabled.get()) {
             return;
@@ -56,7 +56,7 @@ public final class AlertTickerRenderer
             }
         }
     }
-    
+
     static String buildTickerText(StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels) {
         final List<String> messages = new ArrayList<String>();
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
@@ -73,7 +73,7 @@ public final class AlertTickerRenderer
         }
         return messages.isEmpty() ? "All systems nominal" : String.join("  ···  ", messages);
     }
-    
+
     private static int getTickerColor(StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels, DisplayTheme theme) {
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
             if (ch.isAlertTriggered()) {

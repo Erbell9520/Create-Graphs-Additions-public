@@ -26,7 +26,6 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class ControlClutchRenderer extends KineticBlockEntityRenderer<ControlClutchBE> {
-
     private static final float GAUGE_SCALE = 0.75f;
     private static final float NEEDLE_PIVOT_X = 8.0f / 16.0f;
     private static final float NEEDLE_PIVOT_Z = 8.0f / 16.0f;
@@ -107,7 +106,9 @@ public class ControlClutchRenderer extends KineticBlockEntityRenderer<ControlClu
         float renderTime = AnimationTickHolder.getRenderTime(be.getLevel());
         Matrix4f pose = ms.last().pose();
         Matrix3f normal = ms.last().normal();
-        VertexConsumer housing = buffer.getBuffer(RenderType.entityTranslucent(WHITE_TEX));
+        // live, or the first housing quad anyone adds crashes. see Buffers
+
+        VertexConsumer housing = Buffers.live(buffer, RenderType.entityTranslucent(WHITE_TEX));
         VertexConsumer lamp = buffer.getBuffer(RenderType.entityTranslucentEmissive(WHITE_TEX));
         Axis axis = ((IRotate) be.getBlockState().getBlock()).getRotationAxis(be.getBlockState());
         IndicatorStyle style = getIndicatorStyle(be, renderTime);
@@ -166,7 +167,6 @@ public class ControlClutchRenderer extends KineticBlockEntityRenderer<ControlClu
                 float beacon = Mth.clamp(0.22f + heartbeat * 0.9f + pairingBoost * 0.8f, 0.0f, 1.0f);
                 return buildStyle(RUN_COLORS, brightness, FULL_BRIGHT, beacon, FULL_BRIGHT);
             }
-
         }
 
         float cycle = frac(renderTime / 20.0f + phaseOffset);

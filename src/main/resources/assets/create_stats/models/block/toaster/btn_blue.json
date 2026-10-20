@@ -1,0 +1,139 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "btn_blue": "create_stats:block/toaster_btn_blue",
+    "graphite": "create_stats:block/toaster_graphite",
+    "particle": "create_stats:block/toaster_btn_blue"
+  },
+  "elements": [
+    {
+      "__comment": "cap",
+      "from": [
+        -0.72,
+        -0.72,
+        -0.4
+      ],
+      "to": [
+        0.72,
+        0.72,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#btn_blue"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#btn_blue"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#btn_blue"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#btn_blue"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#btn_blue"
+        }
+      }
+    },
+    {
+      "__comment": "skirt",
+      "from": [
+        -0.85,
+        -0.85,
+        -0.22
+      ],
+      "to": [
+        0.85,
+        0.85,
+        -0.02
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#graphite"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#graphite"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#graphite"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#graphite"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#graphite"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#graphite"
+        }
+      }
+    }
+  ]
+}

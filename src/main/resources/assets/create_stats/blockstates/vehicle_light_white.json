@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "create_stats:block/vehicle_light_white"
+    },
+    "facing=down": {
+      "model": "create_stats:block/vehicle_light_white",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "create_stats:block/vehicle_light_white",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/vehicle_light_white",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/vehicle_light_white",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "create_stats:block/vehicle_light_white",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

@@ -9,58 +9,49 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/**
- * Client to server action for the VCC Mk II console.
- * <ul>
- *   <li>{@link #SET_PROFILE} (value = profile ordinal)</li>
- *   <li>{@link #TOGGLE_ARM}</li>
- *   <li>{@link #TOGGLE_MODE} (manual / auto)</li>
- * </ul>
- */
 public record VccMk2ActionPacket(int containerId, int action, int value) implements CustomPacketPayload {
-
     public static final int SET_PROFILE = 0;
     public static final int TOGGLE_ARM = 1;
     public static final int TOGGLE_MODE = 2;
     public static final int TOGGLE_SLOT = 3;
     public static final int BIND_ALL = 4;
     public static final int CLEAR_ALL = 5;
-    /** value packs the engine row and role: {@code (row << 4) | roleOrdinal}; toggles that role bit. */
+
     public static final int SET_ROLE = 6;
     public static final int AUTO_ASSIGN = 7;
     public static final int NOSE_ROTATE = 8;
     public static final int TOGGLE_STAB = 9;
-    /** value = frequencySlot * 64 + inventoryIndex. */
+
     public static final int FREQ_ASSIGN = 10;
-    /** value = frequencySlot. */
+
     public static final int FREQ_RETURN = 11;
-    /** value = cardSlot * 64 + inventoryIndex (manual card placement). */
+
     public static final int PLACE_CARD = 12;
-    /** value = engine row (toggles that row between kinetic and redstone output). */
+
     public static final int SET_ENGINE_TYPE = 13;
-    /** value = (axis << 12) | round((demand + 1) * 1000); a cockpit set-and-hold axis demand. */
+
     public static final int SET_AXIS = 14;
-    /** value = gear ordinal (0=Park, 1=Reverse, 2=Neutral, 3=Drive). */
+
     public static final int SET_GEAR = 15;
-    /** value = steer mode ordinal (0=Front, 1=All-Wheel, 2=Crab). */
+
     public static final int SET_STEER_MODE = 16;
-    /** value = drive mode ordinal (0=RWD, 1=FWD, 2=4x4). */
+
     public static final int SET_DRIVE_MODE = 17;
-    /** value = 1/0 mid-axle drive on/off. */
+
     public static final int SET_MID_AXLE = 18;
-    /** value = diff mode ordinal (0=Open, 1=Rear, 2=Full). */
+
     public static final int SET_DIFF = 19;
-    /** value = 1/0 steering invert on/off. */
+
     public static final int SET_STEER_INVERT = 20;
-    /** value = (auxIndex << 1) | on; a cockpit aux toggle (lights etc.). */
+
     public static final int SET_AUX = 21;
-    /** value = 1/0 handbrake on/off. */
+
     public static final int SET_HANDBRAKE = 22;
-    /** value = which * 64 + inventoryIndex; place an item into a lights frequency slot. */
+
     public static final int LIGHTS_FREQ_ASSIGN = 23;
-    /** value = which (0/1); return a lights frequency item. */
+
     public static final int LIGHTS_FREQ_RETURN = 24;
-    /** value = sensor slot (0=gimbal,1=altitude,2=velocity,3=nav table); clear its manual bind. */
+
     public static final int SENSOR_CLEAR = 25;
 
     public static final Type<VccMk2ActionPacket> TYPE =

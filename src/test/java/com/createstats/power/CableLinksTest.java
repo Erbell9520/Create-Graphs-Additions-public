@@ -13,17 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class CableLinksTest {
-
-    /** A world of explicit solid blocks, explicit cable faces, and a colour per cable position. */
     private static final class World implements CableLinks.View, CableRoute.SurfaceView {
         private final Set<BlockPos> solid = new HashSet<>();
         private final Set<Long> faces = new HashSet<>();
         private final Set<BlockPos> devices = new HashSet<>();
         private final java.util.Map<BlockPos, Integer> colours = new java.util.HashMap<>();
 
-        /** Paints one position. Everything placed without one is on the same default circuit. */
         World colour(BlockPos pos, int colour) {
             colours.put(pos, colour);
             return this;
@@ -102,13 +98,12 @@ class CableLinksTest {
         return CableLinks.of(world, from.pos(), from.face(), towards);
     }
 
-    /** The direction from one step to the next, for the move that produced it. */
     private static Direction moveDirection(CableRoute.Step from, CableRoute.Step to) {
         for (Direction d : Direction.values()) {
             if (d.getAxis() == from.face().getAxis()) {
                 continue;
             }
-            // Flat and concave both leave along d; a convex wrap lands on pos + d + face.
+
             if (to.equals(new CableRoute.Step(from.pos().relative(d), from.face()))
                     || to.equals(new CableRoute.Step(from.pos(), d))
                     || to.equals(new CableRoute.Step(from.pos().relative(d).relative(from.face()),
@@ -118,8 +113,6 @@ class CableLinksTest {
         }
         throw new AssertionError("no direction produced " + to + " from " + from);
     }
-
-    // the four kinds
 
     @Test
     void runsCarryOnFlatAlongTheSameSurface() {
@@ -132,7 +125,6 @@ class CableLinksTest {
 
     @Test
     void runsTurnConcaveOntoAnotherFaceOfTheSameBlock() {
-        // Floor, with a wall to the north: the run climbs it without changing block position.
         final World world = new World().slab(0, 0, 0, 0, 0, 2).solid(0, 1, 0)
                 .cable(step(0, 1, 1, Direction.DOWN))
                 .cable(step(0, 1, 1, Direction.NORTH));
@@ -144,7 +136,6 @@ class CableLinksTest {
 
     @Test
     void runsWrapConvexAroundTheEdgeOfTheirSupport() {
-        // Floor that stops at z = 0: the run folds over the edge and down the north face.
         final World world = new World().solid(0, 0, 0)
                 .cable(step(0, 1, 0, Direction.DOWN))
                 .cable(step(0, 0, -1, Direction.SOUTH));
@@ -162,11 +153,47 @@ class CableLinksTest {
         assertEquals(CableLinks.Link.DEVICE, link(world, step(0, 1, 0, Direction.DOWN), Direction.EAST));
     }
 
-    // what must not join
+    @Test
+    void runsFoldOverAnEdgeIntoAMachineOnTheFarSide() {
+        final World world = new World().slab(0, 0, 0, 4, 0, 4)
+                .cable(step(0, 1, 0, Direction.DOWN))
+                .device(0, 0, -1);
+        assertEquals(CableLinks.Link.DEVICE_WRAP,
+                link(world, step(0, 1, 0, Direction.DOWN), Direction.NORTH));
+    }
+
+    @Test
+    void aMachineInLineBeatsOneAroundTheEdge() {
+        final World world = new World().slab(0, 0, 0, 4, 0, 4)
+                .cable(step(0, 1, 0, Direction.DOWN))
+                .device(0, 1, -1)
+                .device(0, 0, -1);
+        assertEquals(CableLinks.Link.DEVICE,
+                link(world, step(0, 1, 0, Direction.DOWN), Direction.NORTH));
+    }
+
+    @Test
+    void cableAroundTheEdgeStillBeatsAMachineThere() {
+        final World world = new World().slab(0, 0, 0, 4, 0, 4)
+                .cable(step(0, 1, 0, Direction.DOWN))
+                .cable(step(0, 0, -1, Direction.SOUTH))
+                .device(0, 0, -1);
+        assertEquals(CableLinks.Link.CONVEX,
+                link(world, step(0, 1, 0, Direction.DOWN), Direction.NORTH));
+    }
+
+    @Test
+    void aFilledCornerBlocksTheFold() {
+        final World world = new World().slab(0, 0, 0, 4, 0, 4)
+                .cable(step(0, 1, 0, Direction.DOWN))
+                .solid(0, 1, -1)
+                .device(0, 0, -1);
+        assertEquals(CableLinks.Link.NONE,
+                link(world, step(0, 1, 0, Direction.DOWN), Direction.NORTH));
+    }
 
     @Test
     void parallelRunsDoNotSproutRungs() {
-        // [2]
         final World world = new World().slab(0, 0, 0, 4, 0, 4)
                 .cable(step(0, 1, 0, Direction.DOWN))
                 .cable(step(0, 1, 1, Direction.UP));
@@ -189,13 +216,8 @@ class CableLinksTest {
         }
     }
 
-    // the property that keeps runs unbroken
-
-    /** [3] */
     @Test
     void everyRouterMoveJoinsBothWays() {
-        // A shape with all three move kinds in it: a floor, a wall rising off it for concave turns,
-        // and an outside edge at the far end for convex wraps.
         final World world = new World().slab(0, 0, 0, 3, 0, 3).slab(0, 1, 0, 3, 2, 0);
 
         int checked = 0;
@@ -220,10 +242,8 @@ class CableLinksTest {
         assertTrue(checked > 30, "expected a decent spread of moves, got " + checked);
     }
 
-    /** [4] */
     @Test
     void theGridFloodReachesEveryBlockTheRouterLays() {
-        // A floor that stops at x = 2, so a run heading east has to fold around the edge.
         final World world = new World().slab(0, 0, 0, 2, 0, 2);
         final CableRoute.Step from = step(0, 1, 0, Direction.DOWN);
         final CableRoute.Step to = step(3, 0, 0, Direction.WEST);
@@ -262,7 +282,6 @@ class CableLinksTest {
         }
     }
 
-    /** Exactly one side of any corner draws the corner, or it is either doubled or notched. */
     @Test
     void exactlyOneSideOfACornerOwnsIt() {
         for (Direction a : Direction.values()) {
@@ -276,10 +295,8 @@ class CableLinksTest {
         }
     }
 
-    /** The convex pair is (my face, their face), and the two blocks must pick the same owner. */
     @Test
     void bothHalvesOfAConvexWrapAgreeOnTheOwner() {
-        // Floor cable at (0,1,0) face DOWN wrapping north onto (0,0,-1) face SOUTH.
         final List<Direction> mine = List.of(Direction.DOWN, Direction.SOUTH);
         final List<Direction> towards = List.of(Direction.NORTH, Direction.UP);
         final boolean firstOwns = CableLinks.ownsCorner(mine.get(0), towards.get(0).getOpposite());
@@ -295,11 +312,9 @@ class CableLinksTest {
         final CableRoute.Step b = new CableRoute.Step(new BlockPos(2, 1, 1), Direction.DOWN);
         w.cable(a).cable(b);
 
-        // Same colour: an ordinary flat join, seen from both sides.
         assertEquals(CableLinks.Link.FLAT, CableLinks.of(w, a.pos(), Direction.DOWN, Direction.EAST));
         assertEquals(CableLinks.Link.FLAT, CableLinks.of(w, b.pos(), Direction.DOWN, Direction.WEST));
 
-        // [5]
         w.colour(b.pos(), 5);
         assertEquals(CableLinks.Link.NONE, CableLinks.of(w, a.pos(), Direction.DOWN, Direction.EAST));
         assertEquals(CableLinks.Link.NONE, CableLinks.of(w, b.pos(), Direction.DOWN, Direction.WEST));
@@ -310,7 +325,6 @@ class CableLinksTest {
     @Test
     @DisplayName("colour splits a convex wrap too, not just the flat case")
     void colourAppliesToWraps() {
-        // [6]
         final World w = new World().slab(0, 0, 0, 2, 2, 0);
         final CableRoute.Step onFace = new CableRoute.Step(new BlockPos(1, 2, 1), Direction.NORTH);
         final CableRoute.Step overTop = new CableRoute.Step(new BlockPos(1, 3, 0), Direction.DOWN);
@@ -330,7 +344,7 @@ class CableLinksTest {
         for (int x = 1; x <= 4; x++) {
             w.cable(new CableRoute.Step(new BlockPos(x, 1, 1), Direction.DOWN));
         }
-        // A second circuit alongside, touching along its whole length.
+
         for (int x = 1; x <= 4; x++) {
             final BlockPos at = new BlockPos(x, 1, 2);
             w.cable(new CableRoute.Step(at, Direction.DOWN));

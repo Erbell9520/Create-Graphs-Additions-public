@@ -1,0 +1,148 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "tap_spring": "create_stats:block/water_cooler_tap_spring",
+    "chrome": "create_stats:block/water_cooler_chrome",
+    "particle": "create_stats:block/water_cooler_tap_spring"
+  },
+  "elements": [
+    {
+      "__comment": "face",
+      "from": [
+        -0.95,
+        -1.7,
+        -0.3
+      ],
+      "to": [
+        0.95,
+        -0.05,
+        0.02
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#tap_spring"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#tap_spring"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#tap_spring"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#tap_spring"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#tap_spring"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#tap_spring"
+        }
+      }
+    },
+    {
+      "__comment": "rib",
+      "from": [
+        -0.72,
+        -1.42,
+        -0.44
+      ],
+      "to": [
+        0.72,
+        -1.12,
+        -0.26
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        }
+      }
+    }
+  ]
+}

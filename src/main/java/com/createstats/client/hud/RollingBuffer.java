@@ -1,9 +1,5 @@
 package com.createstats.client.hud;
 
-/**
- * Fixed-capacity ring buffer of float samples for HUD sparkline rendering.
- * Lives client-side only; never serialised.
- */
 public final class RollingBuffer {
     private final float[] data;
     private int head;

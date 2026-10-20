@@ -1,0 +1,26 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "create_stats:bus_duct"
+    },
+    "R": {
+      "item": "create_stats:refined_copper_sheet"
+    },
+    "P": {
+      "item": "create_stats:porcelain_insulator"
+    }
+  },
+  "pattern": [
+    "PRP",
+    "DDD",
+    " R "
+  ],
+  "result": {
+    "count": 3,
+    "id": "create_stats:busbar_trunk"
+  },
+  "show_notification": false
+}

@@ -1,5 +1,4 @@
 {
-  "__comment": "Static assembly of the Stage Light MK II for the inventory/item icon (brass/gold/cream). Mirrors the redesigned in-world silhouette: wide yoke ring, thick outboard arms, the big barrel and the raised gold bezel + lens (fins omitted at icon scale, as before).",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

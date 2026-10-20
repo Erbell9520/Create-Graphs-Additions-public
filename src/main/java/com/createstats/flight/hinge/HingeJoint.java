@@ -4,9 +4,7 @@ import java.util.UUID;
 import net.minecraft.nbt.CompoundTag;
 import org.joml.Vector3d;
 
-/** [1] */
 public final class HingeJoint {
-
     public final UUID jointId;
     public final UUID subAId;
     public final UUID subBId;
@@ -15,7 +13,6 @@ public final class HingeJoint {
     public final Vector3d axisLocalA;
     public final Vector3d axisLocalB;
 
-    /** Live Sable constraint handle; null until created / after teardown. */
     public transient Object handle;
 
     public HingeJoint(UUID jointId, UUID subAId, UUID subBId,

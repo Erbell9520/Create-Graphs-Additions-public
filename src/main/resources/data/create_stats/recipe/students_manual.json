@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "BMB",
+    " P "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "M": {
+      "item": "minecraft:book"
+    }
+  },
+  "result": {
+    "id": "create_stats:students_manual",
+    "count": 1
+  }
+}

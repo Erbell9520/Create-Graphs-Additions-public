@@ -1,84 +1,150 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "casing": "create:block/brass_casing",
-    "dark": "minecraft:block/deepslate_tiles",
-    "side": "create_stats:block/production_detector_side",
-    "lens": "create_stats:block/production_detector_head_front_on",
-    "led": "create_stats:block/fcc_screen_standby",
-    "particle": "#side"
+    "flag": "create_stats:block/battle/marker_flag",
+    "lens": "create_stats:block/battle/marker_lens",
+    "plate": "create_stats:block/battle/marker_plate",
+    "particle": "create_stats:block/battle/marker_plate"
   },
   "elements": [
     {
-      "from": [2, 2, 0],
-      "to": [14, 14, 2],
+      "__comment": "plate",
+      "from": [3, 3, 0],
+      "to": [13, 13, 1.5],
       "faces": {
-        "north": { "texture": "#casing" },
-        "south": { "texture": "#side" },
-        "east": { "texture": "#casing" },
-        "west": { "texture": "#casing" },
-        "up": { "texture": "#casing" },
-        "down": { "texture": "#casing" }
+        "north": {
+          "uv": [3, 3, 13, 13],
+          "texture": "#plate",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [14.5, 3, 16, 13],
+          "texture": "#plate"
+        },
+        "south": {
+          "uv": [3, 3, 13, 13],
+          "texture": "#plate"
+        },
+        "west": {
+          "uv": [0, 3, 1.5, 13],
+          "texture": "#plate"
+        },
+        "up": {
+          "uv": [3, 0, 13, 1.5],
+          "texture": "#plate"
+        },
+        "down": {
+          "uv": [3, 14.5, 13, 16],
+          "texture": "#plate"
+        }
       }
     },
     {
-      "from": [3.5, 3.5, 2],
-      "to": [12.5, 12.5, 7.5],
+      "__comment": "lens housing, the lens is its face at x 7..9",
+      "from": [6, 6, 1.5],
+      "to": [10, 10, 3],
       "faces": {
-        "north": { "texture": "#dark" },
-        "south": { "texture": "#lens", "uv": [0, 0, 16, 16] },
-        "east": { "texture": "#side" },
-        "west": { "texture": "#side" },
-        "up": { "texture": "#casing" },
-        "down": { "texture": "#casing" }
+        "east": {
+          "uv": [13, 6, 14.5, 10],
+          "texture": "#lens"
+        },
+        "south": {
+          "uv": [6, 6, 10, 10],
+          "texture": "#lens"
+        },
+        "west": {
+          "uv": [1.5, 6, 3, 10],
+          "texture": "#lens"
+        },
+        "up": {
+          "uv": [6, 1.5, 10, 3],
+          "texture": "#lens"
+        },
+        "down": {
+          "uv": [6, 13, 10, 14.5],
+          "texture": "#lens"
+        }
       }
     },
     {
-      "from": [5, 5, 7.2],
-      "to": [11, 11, 9],
+      "__comment": "staff foot",
+      "from": [11.75, 11.75, 1.5],
+      "to": [12.75, 12.75, 1.9],
       "faces": {
-        "north": { "texture": "#dark" },
-        "south": { "texture": "#lens", "uv": [3, 3, 13, 13] },
-        "east": { "texture": "#casing" },
-        "west": { "texture": "#casing" },
-        "up": { "texture": "#casing" },
-        "down": { "texture": "#casing" }
+        "east": {
+          "uv": [14.1, 3.25, 14.5, 4.25],
+          "texture": "#lens"
+        },
+        "south": {
+          "uv": [11.75, 3.25, 12.75, 4.25],
+          "texture": "#lens"
+        },
+        "west": {
+          "uv": [1.5, 3.25, 1.9, 4.25],
+          "texture": "#lens"
+        },
+        "up": {
+          "uv": [11.75, 1.5, 12.75, 1.9],
+          "texture": "#lens"
+        },
+        "down": {
+          "uv": [11.75, 14.1, 12.75, 14.5],
+          "texture": "#lens"
+        }
       }
     },
     {
-      "from": [4, 11.5, 6.8],
-      "to": [12, 13, 8.8],
+      "__comment": "staff",
+      "from": [12, 12, 1.5],
+      "to": [12.5, 12.5, 5.5],
       "faces": {
-        "north": { "texture": "#casing" },
-        "south": { "texture": "#led", "uv": [0, 0, 16, 4] },
-        "east": { "texture": "#casing" },
-        "west": { "texture": "#casing" },
-        "up": { "texture": "#casing" },
-        "down": { "texture": "#casing" }
+        "east": {
+          "uv": [1, 0, 5, 0.5],
+          "texture": "#flag"
+        },
+        "south": {
+          "uv": [0, 1, 0.5, 1.5],
+          "texture": "#flag"
+        },
+        "west": {
+          "uv": [1, 0, 5, 0.5],
+          "texture": "#flag"
+        },
+        "up": {
+          "uv": [0, 1, 0.5, 5],
+          "texture": "#flag"
+        },
+        "down": {
+          "uv": [0, 1, 0.5, 5],
+          "texture": "#flag"
+        }
       }
     },
     {
-      "from": [0.5, 5, 1],
-      "to": [2, 11, 5.5],
+      "__comment": "pennant",
+      "from": [12.15, 10.5, 3],
+      "to": [12.35, 12, 5.5],
       "faces": {
-        "north": { "texture": "#casing" },
-        "south": { "texture": "#casing" },
-        "east": { "texture": "#side" },
-        "west": { "texture": "#casing" },
-        "up": { "texture": "#casing" },
-        "down": { "texture": "#casing" }
-      }
-    },
-    {
-      "from": [14, 5, 1],
-      "to": [15.5, 11, 5.5],
-      "faces": {
-        "north": { "texture": "#casing" },
-        "south": { "texture": "#casing" },
-        "east": { "texture": "#casing" },
-        "west": { "texture": "#side" },
-        "up": { "texture": "#casing" },
-        "down": { "texture": "#casing" }
+        "north": {
+          "uv": [2, 7, 2.2, 8.5],
+          "texture": "#flag"
+        },
+        "east": {
+          "uv": [2, 7, 4.5, 8.5],
+          "texture": "#flag"
+        },
+        "south": {
+          "uv": [2, 7, 2.2, 8.5],
+          "texture": "#flag"
+        },
+        "west": {
+          "uv": [2, 7, 4.5, 8.5],
+          "texture": "#flag"
+        },
+        "down": {
+          "uv": [2, 7, 2.2, 9.5],
+          "texture": "#flag"
+        }
       }
     }
   ]

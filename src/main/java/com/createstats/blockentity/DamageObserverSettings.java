@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class DamageObserverSettings {
-
     private String observerName;
     private WatchMode watchMode;
     private ObserverCategory category;

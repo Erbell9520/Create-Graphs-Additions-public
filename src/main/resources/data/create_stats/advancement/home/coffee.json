@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:home/lamp",
+  "display": {
+    "icon": {
+      "id": "create_stats:coffee_machine"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.coffee.title",
+      "fallback": "Remembered for Forty Years"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.coffee.description",
+      "fallback": "Place a Coffee Machine. One cup is remembered for forty years."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "coffee": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:coffee_machine"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "coffee"
+    ]
+  ]
+}

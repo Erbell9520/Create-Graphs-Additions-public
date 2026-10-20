@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** [1] */
 @Mixin(GuiGraphics.class)
 public abstract class GuiGraphicsScissorMixin {
     @Redirect(

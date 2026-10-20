@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:root",
+  "display": {
+    "icon": {
+      "id": "create_stats:induction_range"
+    },
+    "title": {
+      "translate": "advancement.create_stats.machines.induction_range.title",
+      "fallback": "Did You Turn Off the Stove?"
+    },
+    "description": {
+      "translate": "advancement.create_stats.machines.induction_range.description",
+      "fallback": "Place an Induction Range. Mum will call in an hour to ask if you turned it off."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "range": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:induction_range"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "range"
+    ]
+  ]
+}

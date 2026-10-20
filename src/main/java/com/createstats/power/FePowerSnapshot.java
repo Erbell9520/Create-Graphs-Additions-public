@@ -1,8 +1,9 @@
 package com.createstats.power;
 
-/** [1] */
+// common config isn't synced, so the client trusts this snapshot and nothing else
 public record FePowerSnapshot(
-        boolean modeEnabled,
+
+        boolean powerRequired,
         boolean powered,
         boolean burstStarved,
         int energy,
@@ -17,8 +18,6 @@ public record FePowerSnapshot(
         FePriority priority,
         boolean shed,
         FeLock lock) {
-
-    /** Clamps every field into a sane range, so a malformed or hostile packet cannot poison a GUI. */
     public FePowerSnapshot {
         capacity = Math.max(0, capacity);
         energy = Math.max(0, Math.min(energy, capacity));
@@ -33,20 +32,15 @@ public record FePowerSnapshot(
         lock = lock == null ? FeLock.NONE : lock;
     }
 
-    /** Buffer fill in percent, 0..100. */
     public float fillPct() {
         return capacity <= 0 ? 0.0f : Math.max(0.0f, Math.min(100.0f, energy * 100.0f / capacity));
     }
 
-    /**
-     * The tuning half of this snapshot, viewed as {@link FeConsumer.Settings}, so a client-side
-     * consumer can answer {@code settings()} queries from server truth instead of local config.
-     */
     public FeConsumer.Settings asSettings() {
         return new FeConsumer.Settings() {
             @Override
             public boolean enabled() {
-                return modeEnabled;
+                return powerRequired;
             }
 
             @Override
@@ -71,26 +65,22 @@ public record FePowerSnapshot(
 
             @Override
             public int rebootThresholdPct() {
-                // Explicitly overridden rather than inheriting the interface default, which would
-                // read this client's own unsynced COMMON config instead of the server's.
                 return rebootThresholdPct;
             }
         };
     }
 
-    /** [2] */
     public int syncSignature() {
-        return signature(modeEnabled, powered, burstStarved, fillPct(),
+        return signature(powerRequired, powered, burstStarved, fillPct(),
                 measuredDrain, measuredInput, loadMultiplier, capacity, activeDrain,
                 priority.ordinal(), shed, lock.ordinal());
     }
 
-    /** [3] */
-    public static int signature(boolean modeEnabled, boolean powered, boolean burstStarved,
+    public static int signature(boolean powerRequired, boolean powered, boolean burstStarved,
                                 float fillPct, int measuredDrain, int measuredInput,
                                 float loadMultiplier, int capacity, int activeDrain,
                                 int priorityOrdinal, boolean shed, int lockOrdinal) {
-        int h = modeEnabled ? 1 : 0;
+        int h = powerRequired ? 1 : 0;
         h = h * 31 + (powered ? 1 : 0);
         h = h * 31 + (burstStarved ? 1 : 0);
         h = h * 31 + Math.round(fillPct / 2.0f);

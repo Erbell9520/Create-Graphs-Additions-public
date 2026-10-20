@@ -12,9 +12,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.Nullable;
 
-/** [1] */
 public final class InventoryLookupHelper {
-
     private InventoryLookupHelper() {
     }
 

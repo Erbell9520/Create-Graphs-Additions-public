@@ -10,9 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduLegPlanTest {
-
     private static final int CEILING = 24_576;
     private static final int LEGS = PduStuds.COUNT;
 
@@ -46,7 +44,7 @@ class PduLegPlanTest {
     @DisplayName("a leg over its rating sheds for capacity, which generation cannot fix")
     void anOverloadedLegShedsForCapacity() {
         final List<PduLegPlan.Device> devices = new ArrayList<>();
-        // Six devices at 5,000 on one leg: 30,000 offered against a 24,576 conductor.
+
         for (int i = 0; i < 6; i++) {
             devices.add(dev(i, 0, FePriority.DEFAULT, 5_000));
         }
@@ -67,9 +65,9 @@ class PduLegPlanTest {
     void legsAreIndependent() {
         final List<PduLegPlan.Device> devices = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
-            devices.add(dev(i, 0, FePriority.DEFAULT, 5_000));       // leg 0 overloaded
+            devices.add(dev(i, 0, FePriority.DEFAULT, 5_000));
         }
-        devices.add(dev(90, 5, FePriority.DEFAULT, 5_000));          // leg 5 barely used
+        devices.add(dev(90, 5, FePriority.DEFAULT, 5_000));
         final PduLegPlan.Screened s = PduLegPlan.screen(devices, allOpen());
         assertTrue(s.isAtCapacity(0));
         assertFalse(s.isAtCapacity(5), "a saturated leg 0 must not implicate leg 5");
@@ -80,16 +78,15 @@ class PduLegPlanTest {
     @DisplayName("capacity is judged inside a leg, so tier only competes against the same leg")
     void tierCompetesWithinALegNotAcross() {
         final List<PduLegPlan.Device> devices = List.of(
-                // Leg 0 is full of Optional machines and stays full: they are not competing with
-                // anything on another leg, because a conductor does not care how important the load is.
+
                 dev(1, 0, FePriority.OPTIONAL, 20_000),
                 dev(2, 0, FePriority.CRITICAL, 20_000),
                 dev(3, 1, FePriority.OPTIONAL, 100));
         final PduLegPlan.Screened s = PduLegPlan.screen(devices, allOpen());
-        // Critical sorts first inside leg 0 and takes the capacity; Optional there does not fit.
+
         assertTrue(s.survivors().stream().anyMatch(d -> d.key() == 2));
         assertEquals(PduReason.OVER_CAPACITY, s.blocked().get(1L));
-        // The Optional device on leg 1 is untouched, because it never competed with leg 0 at all.
+
         assertTrue(s.survivors().stream().anyMatch(d -> d.key() == 3));
     }
 
@@ -116,7 +113,7 @@ class PduLegPlanTest {
                 new PduLegPlan.Device(1, 0, FePriority.DEFAULT.ordinal(), 20_000, FeLock.FORCE_ON),
                 new PduLegPlan.Device(2, 0, FePriority.DEFAULT.ordinal(), 20_000, FeLock.FORCE_ON));
         final PduLegPlan.Screened s = PduLegPlan.screen(devices, allOpen());
-        // [2]
+
         assertEquals(1, s.survivors().size());
         assertEquals(PduReason.OVER_CAPACITY, s.blocked().get(2L));
     }
@@ -138,7 +135,7 @@ class PduLegPlanTest {
     void screeningIsReproducible() {
         final List<PduLegPlan.Device> devices = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
-            devices.add(dev(i, 0, FePriority.DEFAULT, 5_000));   // all identical: the tiebreak decides
+            devices.add(dev(i, 0, FePriority.DEFAULT, 5_000));
         }
         final PduLegPlan.Screened first = PduLegPlan.screen(devices, allOpen());
         for (int tick = 0; tick < 50; tick++) {
@@ -161,8 +158,6 @@ class PduLegPlanTest {
     @Test
     @DisplayName("what survives the screen is what the supply controller then judges")
     void survivorsFeedTheControllerUntouched() {
-        // The integration this class exists for: everything impossible is gone before supply is
-        // costed, so the budget is never reserved for a machine its own wire could not carry.
         final List<PduLegPlan.Device> devices = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
             devices.add(dev(i, 0, FePriority.DEFAULT, 5_000));

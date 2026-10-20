@@ -20,7 +20,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 @OnlyIn(Dist.CLIENT)
 public class MiniDisplayRenderer implements BlockEntityRenderer<MiniDisplayBE> {
-
     private static final float FACE_EPSILON = 1.0f / 512.0f;
 
     public MiniDisplayRenderer(BlockEntityRendererProvider.Context context) {

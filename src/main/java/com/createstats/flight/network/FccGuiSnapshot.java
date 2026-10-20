@@ -28,19 +28,18 @@ public record FccGuiSnapshot(
     int resolvedRowMask,
     int duplicateRowMask,
     String lastWarning,
-    // Sensor effective positions (null = not found / not bound).
+
     @Nullable BlockPos effectiveGimbalPos,
     @Nullable BlockPos effectiveAltitudePos,
     @Nullable BlockPos effectiveVelocityPos,
     @Nullable BlockPos effectiveNavPos,
-    /** Bitmask: bit N set iff SensorRequirement.values()[N] has a manual (NBT-persisted) binding. */
+
     int manualSensorMask,
-    // Legacy calibration sweep state ordinal. The calibration feature was removed; the server always
-    // reports 0 (idle) now. Retained for snapshot layout stability.
+
     int calStateOrdinal,
     int calProgressPercent,
     int calCurrentProp,
-    /** Human-readable result summary (populated when DONE or ABORTED; empty otherwise). */
+
     String calResultSummary,
     int readinessFlags,
     int calibrationGainCount,
@@ -84,14 +83,13 @@ public record FccGuiSnapshot(
     double airshipAutoEffectiveSpeedCap,
     String airshipAutoReachabilityReason,
     float pathfinderLookaheadScale,
-    /** FE Dependent Mode: false only while the mode is on and the FCC buffer ran dry. */
+
     boolean fePowered,
-    /** FE Dependent Mode buffer fill, 0..100. Reads 100 while the mode is off. */
+
     float feBufferPct
 ) {
     private static final int MAX_SNAPSHOT_TEXT = 2048;
     private static final int MAX_ROUTE_PREVIEW_POINTS = 96;
-
 
     public FccGuiSnapshot {
         overviewLines = List.copyOf(overviewLines == null ? List.of() : overviewLines);
@@ -352,5 +350,4 @@ public record FccGuiSnapshot(
         }
         return positions;
     }
-
 }

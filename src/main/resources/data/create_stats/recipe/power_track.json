@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "TIT",
+    "TST",
+    "TIT"
+  ],
+  "key": {
+    "T": {
+      "item": "create:track"
+    },
+    "I": {
+      "item": "create_stats:porcelain_insulator"
+    },
+    "S": {
+      "tag": "c:plates/iron"
+    }
+  },
+  "result": {
+    "id": "create_stats:power_track",
+    "count": 6
+  },
+  "show_notification": true
+}

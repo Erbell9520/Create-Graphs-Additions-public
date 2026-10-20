@@ -16,21 +16,21 @@ public class RequestCogDataPacket implements CustomPacketPayload
 {
     public static final CustomPacketPayload.Type<RequestCogDataPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "request_cog_data"));
     public static final StreamCodec<FriendlyByteBuf, RequestCogDataPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), RequestCogDataPacket::new);
-    
+
     public RequestCogDataPacket() {
     }
-    
+
     public RequestCogDataPacket(FriendlyByteBuf buf) {
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(RequestCogDataPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();

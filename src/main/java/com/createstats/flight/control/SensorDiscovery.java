@@ -13,30 +13,24 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
-/** [1] */
 public final class SensorDiscovery {
-
     public static final int SCAN_PERIOD_TICKS = 20;
     public static final int SCAN_CHUNK_RADIUS = 8;
     public static final int MISS_THRESHOLD    = 3;
 
     private final FlightControlComputerBE fcc;
 
-    /** Auto-discovered (closest) sensor positions in the FCC's sub-level. Never persisted. */
     @Nullable private BlockPos autoGimbal;
     @Nullable private BlockPos autoAltitude;
     @Nullable private BlockPos autoVelocity;
     @Nullable private BlockPos autoNavTable;
 
-    /** Per-requirement consecutive miss counts for hysteresis. */
     private final EnumMap<SensorRequirement, Integer> missCount = new EnumMap<>(SensorRequirement.class);
 
-    /** Currently validated availability set. Mutated on every scan tick. */
     private final EnumSet<SensorRequirement> validated = EnumSet.noneOf(SensorRequirement.class);
 
     private long lastScanTick = Long.MIN_VALUE;
-    /** Number of scans completed. Used by {@link #isWarmedUp()} to suppress mode-fallback
-     *  before hysteresis has had a chance to seed itself on freshly-loaded FCCs. */
+
     private int scansCompleted = 0;
 
     public SensorDiscovery(FlightControlComputerBE fcc) {
@@ -44,7 +38,6 @@ public final class SensorDiscovery {
         for (SensorRequirement r : SensorRequirement.values()) missCount.put(r, MISS_THRESHOLD);
     }
 
-    /** Cadenced re-scan. Cheap; no-op if not yet due. */
     public void maybeScan(long gameTime) {
         if (gameTime - lastScanTick < SCAN_PERIOD_TICKS && lastScanTick != Long.MIN_VALUE) return;
         lastScanTick = gameTime;
@@ -53,7 +46,8 @@ public final class SensorDiscovery {
         BlockPos center = fcc.getBlockPos();
         boolean sableActive = isSableActive();
 
-        // [2]
+        // manual binding masks auto
+
         boolean needGimbal   = !sableActive && fcc.getGimbalPos()         == null;
         boolean needAltitude = !sableActive && fcc.getAltitudeSensorPos() == null;
         boolean needVelocity = !sableActive && fcc.getVelocitySensorPos() == null;
@@ -84,7 +78,6 @@ public final class SensorDiscovery {
                     }
                 }
             } catch (RuntimeException | LinkageError ex) {
-                // Defensive: never let chunk iteration glitch break the FCC.
             }
         }
 
@@ -93,7 +86,6 @@ public final class SensorDiscovery {
         autoVelocity = needVelocity ? vT.best() : null;
         autoNavTable = needNavTable ? nT.best() : null;
 
-        // [3]
         revalidateByPredicate(SensorRequirement.GIMBAL,    effectiveGimbalPos(),   SableBridge::matchesGimbalSensor,   sableActive);
         revalidateByPredicate(SensorRequirement.ALTITUDE,  effectiveAltitudePos(), SableBridge::matchesAltitudeSensor, sableActive);
         revalidateByPredicate(SensorRequirement.VELOCITY,  effectiveVelocityPos(), SableBridge::matchesVelocitySensor, sableActive);
@@ -111,13 +103,11 @@ public final class SensorDiscovery {
         }
     }
 
-    /** [4] */
     public void forceScanNow() {
         lastScanTick = Long.MIN_VALUE;
         for (SensorRequirement r : SensorRequirement.values()) missCount.put(r, MISS_THRESHOLD - 1);
     }
 
-    /** Closest-block tracker with deterministic tie-break by BlockPos.asLong(). */
     private static final class ClosestTracker {
         private final BlockPos center;
         @Nullable private BlockPos best;
@@ -139,7 +129,6 @@ public final class SensorDiscovery {
 
     private void revalidateByPredicate(SensorRequirement req, @Nullable BlockPos pos,
                                         Predicate<BlockEntity> matcher, boolean sableValidated) {
-        // [5]
         boolean ok = sableValidated;
         if (!ok && pos != null) {
             Level level = fcc.getLevel();
@@ -160,7 +149,6 @@ public final class SensorDiscovery {
 
     @Nullable
     private static BlockPos closestOfClass(Level level, BlockPos center, @Nullable Class<?> cls) {
-        // [6]
         if (cls == null) return null;
         List<BlockPos> hits = SableBridge.findBlocksOfType(level, center, cls, SCAN_CHUNK_RADIUS);
         if (hits.isEmpty()) return null;
@@ -169,11 +157,9 @@ public final class SensorDiscovery {
         return t.best();
     }
 
-    // effective position resolution: manual override beats auto
-
     @Nullable
     public BlockPos effectiveGimbalPos() {
-        BlockPos m = fcc.getGimbalPos();         // manual / persisted
+        BlockPos m = fcc.getGimbalPos();
         return m != null ? m : autoGimbal;
     }
 
@@ -195,7 +181,6 @@ public final class SensorDiscovery {
         return m != null ? m : autoNavTable;
     }
 
-    /** True iff the sensor has been seen for {@code MISS_THRESHOLD-1} or fewer consecutive failed scans. */
     public boolean isAvailable(SensorRequirement req) {
         return validated.contains(req);
     }
@@ -205,18 +190,15 @@ public final class SensorDiscovery {
     public boolean hasVelocity()  { return validated.contains(SensorRequirement.VELOCITY); }
     public boolean hasNavTable()  { return validated.contains(SensorRequirement.NAV_TABLE); }
 
-    // Whether each sensor position was set manually (vs auto-discovered).
     public boolean isGimbalManual()   { return fcc.getGimbalPos()         != null; }
     public boolean isAltitudeManual() { return fcc.getAltitudeSensorPos() != null; }
     public boolean isVelocityManual() { return fcc.getVelocitySensorPos() != null; }
     public boolean isNavTableManual() { return fcc.getNavTablePos()       != null; }
 
-    /** Read-only set of currently-validated requirements (defensive copy). */
     public EnumSet<SensorRequirement> validatedSet() {
         return EnumSet.copyOf(validated.isEmpty() ? EnumSet.noneOf(SensorRequirement.class) : validated);
     }
 
-    /** [7] */
     public boolean isWarmedUp() {
         return scansCompleted >= MISS_THRESHOLD + 1;
     }

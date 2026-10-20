@@ -1812,7 +1812,7 @@ public class CustomScreenStudioScreen extends Screen {
         final int availableW = Math.max(1, this.width - MARGIN * 2);
         this.leftW = Math.max(160, Math.min(246, this.width / 5));
         this.inspectorW = Math.max(176, Math.min(256, this.width / 5));
-        // 180 = minimum usable stage width, 28 = combined inner gutters between left rail/stage/inspector (14 + 14).
+        // 180 min stage + 28 gutters
         int overflow = this.leftW + this.inspectorW + 180 + 28 - availableW;
         if (overflow > 0) {
             final int leftReduction = Math.min(overflow, this.leftW - 142);
@@ -1832,7 +1832,8 @@ public class CustomScreenStudioScreen extends Screen {
         final GridShape shape = GridShape.forVariant(this.activeVariant);
         this.gridCols = shape.columns;
         this.gridRows = shape.rows;
-        // [1]
+        // 12 floor, 10 was unreadable
+
         this.cellSize = Math.max(12, Math.min((this.stageW - GRID_PAD * 2) / this.gridCols, (this.stageH - 32 - GRID_PAD * 2) / this.gridRows));
         final int gridWidth = this.gridCols * this.cellSize;
         final int gridHeight = this.gridRows * this.cellSize;

@@ -73,7 +73,7 @@ public final class DrivabilityScanner {
                 if ((hazards & HazardFlags.LAVA) != 0) {
                     passability[index] = Passability.BLOCKED;
                 } else if ((hazards & HazardFlags.LIQUID) != 0) {
-                    // Water is treated as impassable, scanner reports it as 0 % / blocked
+                    // water = blocked
                     passability[index] = Passability.BLOCKED;
                 } else if (clearance >= REQUIRED_CLEARANCE) {
                     passability[index] = Passability.PASSABLE;
@@ -122,15 +122,14 @@ public final class DrivabilityScanner {
     }
 
     private static int[] fetchBorderHeights(ServerLevel level, int chunkX, int chunkZ, int minY, int maxY) {
-        // 4 × CHUNK_SIZE entries: west[0..15], east[16..31], north[32..47], south[48..63]
         int[] border = new int[CHUNK_SIZE * 4];
         int worldX0 = chunkX << 4;
         int worldZ0 = chunkZ << 4;
         for (int i = 0; i < CHUNK_SIZE; i++) {
-            border[i]                  = fetchBorderHeight(level, worldX0 - 1,           worldZ0 + i, minY, maxY); // west
-            border[CHUNK_SIZE + i]     = fetchBorderHeight(level, worldX0 + CHUNK_SIZE,  worldZ0 + i, minY, maxY); // east
-            border[CHUNK_SIZE * 2 + i] = fetchBorderHeight(level, worldX0 + i, worldZ0 - 1,           minY, maxY); // north
-            border[CHUNK_SIZE * 3 + i] = fetchBorderHeight(level, worldX0 + i, worldZ0 + CHUNK_SIZE,  minY, maxY); // south
+            border[i]                  = fetchBorderHeight(level, worldX0 - 1,           worldZ0 + i, minY, maxY);
+            border[CHUNK_SIZE + i]     = fetchBorderHeight(level, worldX0 + CHUNK_SIZE,  worldZ0 + i, minY, maxY);
+            border[CHUNK_SIZE * 2 + i] = fetchBorderHeight(level, worldX0 + i, worldZ0 - 1,           minY, maxY);
+            border[CHUNK_SIZE * 3 + i] = fetchBorderHeight(level, worldX0 + i, worldZ0 + CHUNK_SIZE,  minY, maxY);
         }
         return border;
     }
@@ -168,13 +167,13 @@ public final class DrivabilityScanner {
         int current = supportY[index(localX, localZ)];
         int maxDelta = 0;
         if (localX > 0)              maxDelta = Math.max(maxDelta, delta(current, supportY[index(localX - 1, localZ)]));
-        else                         maxDelta = Math.max(maxDelta, delta(current, border[localZ]));                    // west
+        else                         maxDelta = Math.max(maxDelta, delta(current, border[localZ]));
         if (localX < CHUNK_SIZE - 1) maxDelta = Math.max(maxDelta, delta(current, supportY[index(localX + 1, localZ)]));
-        else                         maxDelta = Math.max(maxDelta, delta(current, border[CHUNK_SIZE + localZ]));       // east
+        else                         maxDelta = Math.max(maxDelta, delta(current, border[CHUNK_SIZE + localZ]));
         if (localZ > 0)              maxDelta = Math.max(maxDelta, delta(current, supportY[index(localX, localZ - 1)]));
-        else                         maxDelta = Math.max(maxDelta, delta(current, border[CHUNK_SIZE * 2 + localX]));   // north
+        else                         maxDelta = Math.max(maxDelta, delta(current, border[CHUNK_SIZE * 2 + localX]));
         if (localZ < CHUNK_SIZE - 1) maxDelta = Math.max(maxDelta, delta(current, supportY[index(localX, localZ + 1)]));
-        else                         maxDelta = Math.max(maxDelta, delta(current, border[CHUNK_SIZE * 3 + localX]));   // south
+        else                         maxDelta = Math.max(maxDelta, delta(current, border[CHUNK_SIZE * 3 + localX]));
         return maxDelta;
     }
 

@@ -1,20 +1,27 @@
 package com.createstats.blockentity;
 
 import com.createstats.block.SafetyClutchBlock;
+import com.createstats.block.SplitShaftValueBoxTransform;
 import com.simibubi.create.content.kinetics.RotationPropagator;
 import com.simibubi.create.content.kinetics.base.IRotate.StressImpact;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings;
 import net.createmod.catnip.theme.Color;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.ticks.TickPriority;
 
-public class SafetyClutchBE extends SplitShaftBlockEntity {
+import java.util.List;
 
+public class SafetyClutchBE extends SplitShaftBlockEntity {
     private static final int CHECK_INTERVAL = 2;
     private static final int TRIP_COOLDOWN_TICKS = 40;
     private static final int AUTO_RESET_RETRY_TICKS = 100;
@@ -40,9 +47,62 @@ public class SafetyClutchBE extends SplitShaftBlockEntity {
     public float prevDialState;
     public int dialColor;
 
+    private static final BehaviourType<SettingsValueBox> TRIP_BOX = new BehaviourType<>();
+    private static final BehaviourType<SettingsValueBox> GAP_BOX = new BehaviourType<>();
+
+    private static final int ROW_LATCH = 0;
+    private static final int ROW_AUTO_RESET = 1;
+    private static final int ROW_BYPASS = 2;
+
     public SafetyClutchBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         this.settings = new SafetyClutchSettings();
+    }
+
+    // value boxes replace the screen. trip box: threshold on columns, behaviour on rows
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+        behaviours.add(new SettingsValueBox(
+                Component.translatableWithFallback("create_stats.safety_clutch.box.trip", "Trip Threshold"),
+                this, new SplitShaftValueBoxTransform(SplitShaftValueBoxTransform.Slot.SAFETY_TRIP),
+                TRIP_BOX, 1, "SafetyClutchTrip", 100, 10,
+                List.of(Component.translatable("create_stats.safety_clutch.mode.latch"),
+                        Component.translatable("create_stats.safety_clutch.mode.auto_reset"),
+                        Component.translatableWithFallback("create_stats.safety_clutch.mode.bypass", "Bypass")),
+                () -> new ValueSettings(!settings.isEnabled() ? ROW_BYPASS
+                        : settings.getMode() == SafetyClutchSettings.ClutchMode.LATCH ? ROW_LATCH : ROW_AUTO_RESET,
+                        Math.round(settings.getThreshold())),
+                (player, v) -> editSettings(s -> {
+                    s.setEnabled(v.row() != ROW_BYPASS);
+                    if (v.row() != ROW_BYPASS) {
+                        s.setMode(v.row() == ROW_LATCH
+                                ? SafetyClutchSettings.ClutchMode.LATCH
+                                : SafetyClutchSettings.ClutchMode.AUTO_RESET);
+                    }
+                    s.setThreshold(v.value());
+                }),
+                v -> v.row() == ROW_BYPASS
+                        ? Component.translatableWithFallback("create_stats.safety_clutch.mode.bypass", "Bypass")
+                        : Component.literal(Math.max(5, v.value()) + "%"),
+                () -> settings == null ? "" : !settings.isEnabled()
+                        ? Component.translatableWithFallback("create_stats.safety_clutch.mode.bypass", "Bypass").getString()
+                        : Math.round(settings.getThreshold()) + "%"));
+        behaviours.add(new SettingsValueBox(
+                Component.translatableWithFallback("create_stats.safety_clutch.box.gap", "Re-arm Gap"),
+                this, new SplitShaftValueBoxTransform(SplitShaftValueBoxTransform.Slot.SAFETY_GAP),
+                GAP_BOX, 2, "SafetyClutchGap", 20, 5,
+                List.of(Component.translatableWithFallback("create_stats.safety_clutch.box.gap_row", "Below trip")),
+                () -> new ValueSettings(0, Math.round(settings.getHysteresis())),
+                (player, v) -> editSettings(s -> s.setHysteresis(v.value())),
+                v -> Component.literal("-" + v.value() + "%"),
+                () -> settings == null ? "" : "-" + Math.round(settings.getHysteresis()) + "%"));
+    }
+
+    private void editSettings(java.util.function.Consumer<SafetyClutchSettings> edit) {
+        SafetyClutchSettings next = SafetyClutchSettings.load(settings.save());
+        edit.accept(next);
+        setSettings(next);
     }
 
     @Override
@@ -94,7 +154,9 @@ public class SafetyClutchBE extends SplitShaftBlockEntity {
         }
 
         if (tripped) {
-            if (settings.getMode() == SafetyClutchSettings.ClutchMode.AUTO_RESET) {
+            if (settings.getMode() == SafetyClutchSettings.ClutchMode.AUTO_RESET
+                    && !lastOverstressed
+                    && lastStressPercent < settings.getRearmBelow()) {
                 resetClutch();
                 refreshNetworkSnapshot();
             }
@@ -381,6 +443,41 @@ public class SafetyClutchBE extends SplitShaftBlockEntity {
         } else {
             dialColor = 0xFF0000;
         }
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        tooltip.add(Component.literal("    ").append(Component.translatable("block.create_stats.safety_clutch")
+                .withStyle(ChatFormatting.GRAY)));
+        Component state = !settings.isEnabled()
+                ? Component.translatable("gui.create_stats.safety_clutch.status.disabled")
+                : tripped ? Component.translatable("gui.create_stats.safety_clutch.status.tripped")
+                : !isNetworkRunning() ? Component.translatable("gui.create_stats.safety_clutch.status.idle")
+                : Component.translatable("gui.create_stats.safety_clutch.status.armed");
+        tooltip.add(Component.literal("    ").append(state));
+        tooltip.add(Component.literal("    ").append(Component.translatable("create_stats.safety_clutch.display.live",
+                String.format("%.1f", lastStressPercent), String.format("%.0f", settings.getThreshold()))));
+        Component reason = !settings.isEnabled()
+                ? Component.translatable("create_stats.safety_clutch.display.reason.disabled")
+                : tripped
+                ? settings.getMode() == SafetyClutchSettings.ClutchMode.AUTO_RESET
+                    ? Component.translatable("create_stats.safety_clutch.display.reason.retrying",
+                        String.format("%.1f", getAutoResetRetrySeconds()))
+                    : Component.translatable("create_stats.safety_clutch.display.reason.manual")
+                : isNetworkRunning()
+                ? Component.translatable("create_stats.safety_clutch.display.reason.armed")
+                : Component.translatable("create_stats.safety_clutch.display.reason.waiting");
+        tooltip.add(Component.literal("    ").append(reason.copy().withStyle(ChatFormatting.DARK_GRAY)));
+        if (isPlayerSneaking) {
+            tooltip.add(Component.literal("    ").append(Component.translatable("create_stats.safety_clutch.display.su",
+                    String.format("%.0f", lastStressSU), String.format("%.0f", lastCapacitySU))));
+            tooltip.add(Component.literal("    ").append(Component.translatable("create_stats.safety_clutch.display.mode",
+                    settings.getMode().getDisplayName(),
+                    Component.translatable(isNetworkRunning()
+                            ? "create_stats.safety_clutch.display.network.live"
+                            : "create_stats.safety_clutch.display.network.idle"))));
+        }
+        return true;
     }
 
     @Override

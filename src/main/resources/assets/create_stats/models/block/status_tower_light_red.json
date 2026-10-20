@@ -1,6 +1,0 @@
-{
-  "parent": "create_stats:block/status_tower_light_off",
-  "textures": {
-    "lamp": "create_stats:block/status_tower_light_red_on"
-  }
-}

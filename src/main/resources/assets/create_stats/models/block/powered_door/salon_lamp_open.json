@@ -1,0 +1,145 @@
+{
+  "__generator": "gen_powered_door.py",
+  "textures": {
+    "lamp_open": "create_stats:block/powered_door/salon_lamp_open",
+    "particle": "create_stats:block/powered_door/salon_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        30,
+        -0.06
+      ],
+      "to": [
+        11,
+        32,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        30,
+        4
+      ],
+      "to": [
+        11,
+        32,
+        4.06
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lamp_open"
+        }
+      }
+    }
+  ]
+}

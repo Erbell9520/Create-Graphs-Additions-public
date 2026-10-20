@@ -33,7 +33,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class StatsRecorderBE extends BlockEntity implements RangeAttachment {
-
     private static final String TAG_SOURCE_MODE = "SourceMode";
     private static final String TAG_SOURCE_LABEL = "SourceLabel";
     private static final String TAG_SOURCE_TYPE = "SourceType";

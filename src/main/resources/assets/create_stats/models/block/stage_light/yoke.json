@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light YOKE (pans about the vertical centre), rendered by the BER. FACING=up reference.",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

@@ -1,0 +1,122 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "clamp": "create_stats:block/arc_clamp",
+    "clamp_top": "create_stats:block/arc_clamp_top",
+    "electrode": "create_stats:block/arc_electrode",
+    "particle": "create_stats:block/arc_body"
+  },
+  "elements": [
+    {
+      "from": [
+        -1.5,
+        0,
+        -1.5
+      ],
+      "to": [
+        1.5,
+        7.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            1,
+            10,
+            8
+          ],
+          "texture": "#electrode"
+        },
+        "south": {
+          "uv": [
+            6,
+            1,
+            10,
+            8
+          ],
+          "texture": "#electrode"
+        },
+        "east": {
+          "uv": [
+            6,
+            1,
+            10,
+            8
+          ],
+          "texture": "#electrode"
+        },
+        "west": {
+          "uv": [
+            6,
+            1,
+            10,
+            8
+          ],
+          "texture": "#electrode"
+        }
+      },
+      "__comment": "graphite column"
+    },
+    {
+      "from": [
+        -1.7,
+        7.5,
+        -1.7
+      ],
+      "to": [
+        1.7,
+        8.9,
+        1.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#clamp_top"
+        }
+      },
+      "__comment": "clamp head"
+    }
+  ]
+}

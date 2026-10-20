@@ -1,0 +1,149 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "shell": "create_stats:block/bta_g1_shell",
+    "alu": "create_stats:block/bta_g1_alu",
+    "brass": "create_stats:block/bta_g1_brass",
+    "leather": "create_stats:block/bta_g1_leather",
+    "desk": "create_stats:block/bta_g1_desk",
+    "cluster": "create_stats:block/bta_g1_cluster",
+    "front": "create_stats:block/bta_g1_front",
+    "side": "create_stats:block/bta_g1_side",
+    "rear": "create_stats:block/bta_g1_rear",
+    "visor": "create_stats:block/bta_g1_visor",
+    "flank": "create_stats:block/bta_g1_flank",
+    "back": "create_stats:block/bta_g1_back",
+    "enamel_red": "create_stats:block/bta_g1_enamel_red",
+    "enamel_black": "create_stats:block/bta_g1_enamel_black",
+    "needle": "create_stats:block/bta_g1_needle",
+    "lit": "create_stats:block/bta_g1_lit",
+    "glass": "create_stats:block/bta_g1_glass",
+    "wheel_flat": "create_stats:block/bta_g1_wheel_flat",
+    "particle": "create_stats:block/bta_g1_shell"
+  },
+  "elements": [
+    {
+      "name": "throttle_shaft",
+      "from": [
+        7.5,
+        8,
+        7.5
+      ],
+      "to": [
+        8.5,
+        11.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu"
+        },
+        "south": {
+          "texture": "#alu"
+        },
+        "east": {
+          "texture": "#alu"
+        },
+        "west": {
+          "texture": "#alu"
+        },
+        "up": {
+          "texture": "#alu"
+        }
+      }
+    },
+    {
+      "name": "throttle_neck",
+      "from": [
+        7.5,
+        11.5,
+        7.5
+      ],
+      "to": [
+        8.5,
+        12,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass"
+        },
+        "south": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "throttle_knob",
+      "from": [
+        7,
+        12,
+        7
+      ],
+      "to": [
+        9,
+        13,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass"
+        },
+        "south": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#brass"
+        },
+        "down": {
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "throttle_crown",
+      "from": [
+        7.5,
+        13,
+        7.5
+      ],
+      "to": [
+        8.5,
+        13.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#enamel_black"
+        },
+        "south": {
+          "texture": "#enamel_black"
+        },
+        "east": {
+          "texture": "#enamel_black"
+        },
+        "west": {
+          "texture": "#enamel_black"
+        },
+        "up": {
+          "texture": "#enamel_black"
+        }
+      }
+    }
+  ]
+}

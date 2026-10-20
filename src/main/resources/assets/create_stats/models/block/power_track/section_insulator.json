@@ -1,0 +1,598 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_stats:block/power_track/sign",
+    "concrete": "create_stats:block/power_track/concrete",
+    "steel": "create_stats:block/power_track/steel",
+    "sign": "create_stats:block/power_track/sign",
+    "lens": "create_stats:block/power_track/lens_off",
+    "iron": "create_stats:block/power_track/iron"
+  },
+  "elements": [
+    {
+      "name": "foot",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        1.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            14.5,
+            11.0,
+            16.0
+          ],
+          "texture": "#concrete"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            14.5,
+            11.0,
+            16.0
+          ],
+          "texture": "#concrete"
+        },
+        "east": {
+          "uv": [
+            5.0,
+            14.5,
+            11.0,
+            16.0
+          ],
+          "texture": "#concrete"
+        },
+        "west": {
+          "uv": [
+            5.0,
+            14.5,
+            11.0,
+            16.0
+          ],
+          "texture": "#concrete"
+        },
+        "up": {
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ],
+          "texture": "#concrete"
+        },
+        "down": {
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ],
+          "texture": "#concrete"
+        }
+      }
+    },
+    {
+      "name": "flange",
+      "from": [
+        6.25,
+        1.5,
+        6.25
+      ],
+      "to": [
+        9.75,
+        1.75,
+        9.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.25,
+            14.25,
+            9.75,
+            14.5
+          ],
+          "texture": "#iron"
+        },
+        "south": {
+          "uv": [
+            6.25,
+            14.25,
+            9.75,
+            14.5
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            6.25,
+            14.25,
+            9.75,
+            14.5
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            6.25,
+            14.25,
+            9.75,
+            14.5
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            6.25,
+            6.25,
+            9.75,
+            9.75
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            6.25,
+            6.25,
+            9.75,
+            9.75
+          ],
+          "texture": "#iron"
+        }
+      }
+    },
+    {
+      "name": "post",
+      "from": [
+        7.3,
+        1.75,
+        7.3
+      ],
+      "to": [
+        8.7,
+        9.25,
+        8.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.0,
+            0.0,
+            12.0,
+            8.0
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            10.0,
+            0.0,
+            12.0,
+            8.0
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            10.0,
+            0.0,
+            12.0,
+            8.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            10.0,
+            0.0,
+            12.0,
+            8.0
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            5.0,
+            14.0,
+            7.0,
+            16.0
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "board",
+      "from": [
+        2,
+        9.25,
+        7.4
+      ],
+      "to": [
+        14,
+        14,
+        8.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            5.0,
+            16.0,
+            11.0
+          ],
+          "texture": "#sign"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            5.0,
+            16.0,
+            11.0
+          ],
+          "texture": "#sign"
+        },
+        "east": {
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            13.0,
+            12.0,
+            14.0
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            13.0,
+            12.0,
+            14.0
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "bar",
+      "from": [
+        2,
+        14,
+        7.6
+      ],
+      "to": [
+        14,
+        14.5,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            13.0,
+            12.0,
+            14.0
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            13.0,
+            12.0,
+            14.0
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            9.0,
+            14.0,
+            10.0,
+            15.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            9.0,
+            14.0,
+            10.0,
+            15.0
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            13.0,
+            12.0,
+            14.0
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "lamp0_lens",
+      "from": [
+        2.6,
+        14.5,
+        6.85
+      ],
+      "to": [
+        5.4,
+        16.5,
+        9.15
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.6,
+            7.0,
+            9.4,
+            9.0
+          ],
+          "texture": "#lens"
+        },
+        "south": {
+          "uv": [
+            6.6,
+            7.0,
+            9.4,
+            9.0
+          ],
+          "texture": "#lens"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            14.0,
+            2.0,
+            16.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            14.0,
+            2.0,
+            16.0
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            2.0,
+            14.0,
+            5.0,
+            16.0
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "lamp0_visor",
+      "from": [
+        2.4,
+        16.5,
+        6.45
+      ],
+      "to": [
+        5.6,
+        16.85,
+        9.55
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            10.0,
+            8.0,
+            13.0,
+            11.0
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            10.0,
+            8.0,
+            13.0,
+            11.0
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "lamp1_lens",
+      "from": [
+        10.6,
+        14.5,
+        6.85
+      ],
+      "to": [
+        13.4,
+        16.5,
+        9.15
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.6,
+            7.0,
+            9.4,
+            9.0
+          ],
+          "texture": "#lens"
+        },
+        "south": {
+          "uv": [
+            6.6,
+            7.0,
+            9.4,
+            9.0
+          ],
+          "texture": "#lens"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            14.0,
+            2.0,
+            16.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            14.0,
+            2.0,
+            16.0
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            2.0,
+            14.0,
+            5.0,
+            16.0
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "lamp1_visor",
+      "from": [
+        10.4,
+        16.5,
+        6.45
+      ],
+      "to": [
+        13.6,
+        16.85,
+        9.55
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            10.0,
+            11.0,
+            13.0,
+            11.5
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            10.0,
+            8.0,
+            13.0,
+            11.0
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            10.0,
+            8.0,
+            13.0,
+            11.0
+          ],
+          "texture": "#steel"
+        }
+      }
+    }
+  ]
+}

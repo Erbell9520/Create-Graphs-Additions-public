@@ -13,9 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-/** [1] */
+// wires/cables are conduit, collapse them into edges
 public final class PduDiagram {
-
     private final List<int[]> hitBoxes = new ArrayList<>();
     private final List<BlockPos> hitPositions = new ArrayList<>();
 
@@ -40,7 +39,6 @@ public final class PduDiagram {
             meaningful[i] = k == Kind.PDU || k == Kind.SWITCH || k == Kind.DEVICE;
         }
 
-        // [2]
         final int[] logicalParent = new int[n];
         final boolean[] thick = new boolean[n];
         final int[] depth = new int[n];
@@ -52,8 +50,8 @@ public final class PduDiagram {
             int p = nodes.get(i).parentIndex();
             boolean tray = false;
             while (p >= 0 && !meaningful[p]) {
-                // [3]
-                if (nodes.get(p).kindEnum() == Kind.TRAY || nodes.get(p).kindEnum() == Kind.DUCT) {
+                final Kind heavy = nodes.get(p).kindEnum();
+                if (heavy == Kind.TRAY || heavy == Kind.DUCT || heavy == Kind.TRUNK) {
                     tray = true;
                 }
                 p = nodes.get(p).parentIndex();
@@ -134,7 +132,6 @@ public final class PduDiagram {
             x = cx - w / 2;
             y = cy - h / 2;
             if (node.open()) {
-                // A lifted lever with a gap: the break drawn honestly.
                 g.fill(cx - 6, cy, cx - 2, cy + 2, colour);
                 g.fill(cx + 2, cy, cx + 6, cy + 2, colour);
                 g.fill(cx - 3, cy - 5, cx - 1, cy + 1, colour);
@@ -160,7 +157,15 @@ public final class PduDiagram {
         hitPositions.add(node.pos());
     }
 
-    /** The device (or switch) under the cursor, for a click or a tooltip. */
+    public Map<BlockPos, PduRect> nodeRects() {
+        final Map<BlockPos, PduRect> out = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < hitBoxes.size(); i++) {
+            final int[] b = hitBoxes.get(i);
+            out.put(hitPositions.get(i), new PduRect(b[0], b[1], b[2] - b[0], b[3] - b[1]));
+        }
+        return out;
+    }
+
     public BlockPos nodeAt(double mx, double my) {
         for (int i = 0; i < hitBoxes.size(); i++) {
             final int[] b = hitBoxes.get(i);
@@ -172,7 +177,7 @@ public final class PduDiagram {
     }
 
     private static boolean isShed(BranchDevice d) {
-        return d != null && d.shed();
+        return d != null && d.isDark();
     }
 
     private static int deviceColour(BranchDevice d) {
@@ -181,7 +186,10 @@ public final class PduDiagram {
         }
         return switch (PduTableModel.Status.of(d)) {
             case OFF -> PduTheme.TEXT_FAINT;
-            case HOLDING, SHED -> PduTheme.WARN;
+
+            case HOLDING, SHED, BREAKER -> PduTheme.WARN;
+
+            case STORAGE -> PduTheme.INFO;
             case RUNNING -> d.lock() == FeLock.FORCE_ON ? PduTheme.INFO : PduTheme.OK;
         };
     }

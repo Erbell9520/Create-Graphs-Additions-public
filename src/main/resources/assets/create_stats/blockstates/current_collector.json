@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=z": {
+      "model": "create_stats:block/power_track/current_collector"
+    },
+    "axis=x": {
+      "model": "create_stats:block/power_track/current_collector",
+      "y": 90
+    }
+  }
+}

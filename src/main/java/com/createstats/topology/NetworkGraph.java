@@ -29,15 +29,15 @@ public class NetworkGraph
     private final Set<BlockPos> unloadedBoundary;
     private final boolean truncated;
     public static final NetworkGraph EMPTY;
-    
+
     public NetworkGraph(Map<BlockPos, TopologyNode> nodes, List<TopologyEdge> edges, long networkId, long discoveredAtTick) {
         this(nodes, edges, networkId, discoveredAtTick, Collections.emptySet(), false);
     }
-    
+
     public NetworkGraph(Map<BlockPos, TopologyNode> nodes, List<TopologyEdge> edges, long networkId, long discoveredAtTick, Set<BlockPos> unloadedBoundary) {
         this(nodes, edges, networkId, discoveredAtTick, unloadedBoundary, false);
     }
-    
+
     public NetworkGraph(Map<BlockPos, TopologyNode> nodes, List<TopologyEdge> edges, long networkId, long discoveredAtTick, Set<BlockPos> unloadedBoundary, boolean truncated) {
         this.nodes = Collections.unmodifiableMap((Map<? extends BlockPos, ? extends TopologyNode>)new LinkedHashMap<BlockPos, TopologyNode>(nodes));
         this.edges = Collections.unmodifiableList((List<? extends TopologyEdge>)new ArrayList<TopologyEdge>(edges));
@@ -70,7 +70,7 @@ public class NetworkGraph
         this.explicitSourceCount = explicitSources;
         this.contentHash = computeHash(nodes, edges);
     }
-    
+
     private static int computeHash(Map<BlockPos, TopologyNode> nodes, List<TopologyEdge> edges) {
         int h = nodes.size() * 31;
         h = h * 31 + edges.size();
@@ -87,27 +87,27 @@ public class NetworkGraph
         }
         return h;
     }
-    
+
     public Map<BlockPos, TopologyNode> getNodes() {
         return this.nodes;
     }
-    
+
     public List<TopologyEdge> getEdges() {
         return this.edges;
     }
-    
+
     public long getNetworkId() {
         return this.networkId;
     }
-    
+
     public float getTotalStress() {
         return this.totalStress;
     }
-    
+
     public float getTotalCapacity() {
         return this.totalCapacity;
     }
-    
+
     public boolean isOverStressed() {
         return this.isOverStressed;
     }
@@ -123,27 +123,27 @@ public class NetworkGraph
     public boolean hasMeasuredCapacity() {
         return this.totalCapacity > 0.01f;
     }
-    
+
     public long getDiscoveredAtTick() {
         return this.discoveredAtTick;
     }
-    
+
     public int getContentHash() {
         return this.contentHash;
     }
-    
+
     public Set<BlockPos> getUnloadedBoundary() {
         return this.unloadedBoundary;
     }
-    
+
     public boolean isTruncated() {
         return this.truncated;
     }
-    
+
     public boolean isEmpty() {
         return this.nodes.isEmpty();
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         tag.putLong("NetworkId", this.networkId);
@@ -168,7 +168,7 @@ public class NetworkGraph
         tag.putBoolean("Truncated", this.truncated);
         return tag;
     }
-    
+
     public static NetworkGraph load(CompoundTag tag) {
         final long networkId = tag.getLong("NetworkId");
         final long discoveredAtTick = tag.getLong("DiscoveredAtTick");
@@ -190,7 +190,7 @@ public class NetworkGraph
         }
         return new NetworkGraph(nodes, edges, networkId, discoveredAtTick, boundary, tag.getBoolean("Truncated"));
     }
-    
+
     static {
         EMPTY = new NetworkGraph(Collections.emptyMap(), Collections.emptyList(), 0L, 0L);
     }

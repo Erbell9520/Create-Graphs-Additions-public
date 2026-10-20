@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:power/cable_bore",
+  "display": {
+    "icon": {
+      "id": "create_stats:porcelain_insulator"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.porcelain.title",
+      "fallback": "Straight Into the Dowry Chest"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.porcelain.description",
+      "fallback": "Fire a Porcelain Insulator. Mum is already putting it in the dowry chest."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "insulator": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:porcelain_insulator"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "insulator"
+    ]
+  ]
+}

@@ -1,6 +1,6 @@
 package com.createstats.flight.block;
 
-import com.createstats.CreateStats;
+import com.createstats.DebugLogging;
 import com.createstats.flight.blockentity.RpmGovernorBE;
 import com.createstats.registry.ModBlockEntities;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
@@ -17,9 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 
-/** [1] */
 public class RpmGovernorBlock extends DirectionalKineticBlock implements IBE<RpmGovernorBE> {
-
     public static final EnumProperty<VisualState> VISUAL_STATE = EnumProperty.create("visual_state", VisualState.class);
 
     public RpmGovernorBlock(Properties properties) {
@@ -33,7 +31,7 @@ public class RpmGovernorBlock extends DirectionalKineticBlock implements IBE<Rpm
         super.createBlockStateDefinition(builder);
     }
 
-    /** [2] */
+    // opposite face connects only. create calls a conflicting source overstress anyway
     @Override
     public boolean hasShaftTowards(LevelReader level, BlockPos pos, BlockState state, Direction face) {
         Direction facing = state.getValue(FACING);
@@ -56,10 +54,9 @@ public class RpmGovernorBlock extends DirectionalKineticBlock implements IBE<Rpm
         if (!level.isClientSide() && !state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof RpmGovernorBE rg) {
-                CreateStats.LOGGER.error("[RPMGov] BLOCK REMOVED pos={} command={} applied={} speed={} source={} hasNetwork={} newBlock={} moving={}",
+                DebugLogging.rpmGovernorInfo("[RPMGov] block removed pos={} command={} applied={} speed={} source={} hasNetwork={} newBlock={} moving={}",
                         pos, rg.getCommandedRpm(), rg.getAppliedRpm(), rg.getSpeed(),
-                        rg.hasSource(), rg.hasNetwork(), newState.getBlock(), isMoving,
-                        new Exception("RPM governor removal trace"));
+                        rg.hasSource(), rg.hasNetwork(), newState.getBlock(), isMoving);
             }
         }
         super.onRemove(state, level, pos, newState, isMoving);
@@ -75,7 +72,6 @@ public class RpmGovernorBlock extends DirectionalKineticBlock implements IBE<Rpm
         return ModBlockEntities.RPM_GOVERNOR.get();
     }
 
-    /** Cosmetic blockstate prop driven by {@link RpmGovernorBE}. */
     public enum VisualState implements StringRepresentable {
         IDLE("idle"),
         ACTIVE("active");

@@ -1,12 +1,9 @@
 package com.createstats.power;
 
-/** [1] */
 public final class FeStackFill {
-
     private FeStackFill() {
     }
 
-    /** [2] */
     public static int fillBottomUp(int[] energies, int[] capacities, int amount) {
         if (amount <= 0) {
             return 0;
@@ -24,7 +21,6 @@ public final class FeStackFill {
         return amount - remaining;
     }
 
-    /** Convenience for a stack whose blocks all hold the same amount. */
     public static int fillBottomUp(int[] energies, int perBlockCapacity, int amount) {
         final int[] capacities = new int[energies.length];
         java.util.Arrays.fill(capacities, perBlockCapacity);
@@ -35,10 +31,6 @@ public final class FeStackFill {
         return index < capacities.length ? Math.max(0, capacities[index]) : 0;
     }
 
-    /**
-     * Removes up to {@code amount} FE from the stack, highest block first. Returns how much was
-     * actually removed, which is less than {@code amount} only when the stack ran out.
-     */
     public static int drainTopDown(int[] energies, int amount) {
         if (amount <= 0) {
             return 0;

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/bulk_washer"
+    },
+    "facing=east": {
+      "model": "create_stats:block/bulk_washer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/bulk_washer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/bulk_washer",
+      "y": 270
+    }
+  }
+}

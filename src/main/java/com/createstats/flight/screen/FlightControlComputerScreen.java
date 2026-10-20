@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class FlightControlComputerScreen extends AbstractContainerScreen<FlightControlComputerMenu> {
-
     private static final int W = 920;
     private static final int H = 520;
 
@@ -124,8 +123,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             "Levitation Up", "Levitation Down", "Bay Open Toggle", "Bomb Drop Hold"
     };
 
-    // One canonical player-facing name per view, used identically in the main panel
-    // header and the sub-nav pills (they used to disagree for 9 of 11 views).
     private enum WorkView {
         TEMPLATE("Starter"),
         DEVICES("Hardware"),
@@ -340,13 +337,10 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             }
     }
 
-    // Instance defaults; init() overrides these via applyInitialStation based on whether the FCC
-    // is configured yet (fresh -> Setup/Starter, configured -> Operate/Helm) and the last-used view.
     private WorkStation activeStation = WorkStation.SETUP;
     private WorkView activeView = WorkView.TEMPLATE;
     private boolean stationInitialized;
-    // Remembered per client session so a configured FCC reopens where the player last was.
-    // A fresh/unconfigured FCC always forces Setup/Starter regardless (see applyInitialStation).
+
     @Nullable private static WorkStation lastStation;
     @Nullable private static WorkView lastView;
     private final List<AbstractWidget> viewWidgets = new ArrayList<>();
@@ -364,9 +358,9 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
     private int selectedRouteIndex;
     private int selectedEmanuelIndex;
     private int selectedEmanuelRowHint = -1;
-    // E-Manuel override system: per-binding control via fuse switches
-    private boolean[] emanuelOverrideActive = new boolean[0];     // track which bindings are overridden
-    private int[] emanuelRpmCommands = new int[0];               // RPM command per overridden binding
+
+    private boolean[] emanuelOverrideActive = new boolean[0];
+    private int[] emanuelRpmCommands = new int[0];
     private int emanuelSliderRpmMax = 256;
     private int controlScrollStart;
     private int controlGroupScrollStart;
@@ -377,9 +371,9 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
     private long warningLatchUntilMs;
     private String lastNoticeSeen = "";
     private long noticeSetAtMs;
-    /** Snapshot rebuild deferred while the player is typing in an edit box or dragging a slider. */
+
     private boolean pendingViewRebuild;
-    // [1]
+
     private long helmFrameNanos;
     private float helmWheelDisplay;
     private final float[] helmWheelVel = new float[1];
@@ -424,7 +418,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         rebuildViewWidgets();
     }
 
-    // [2]
     private void applyInitialStation(FccGuiSnapshot snapshot) {
         if (stationInitialized) return;
         stationInitialized = true;
@@ -463,7 +456,8 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         lastWorkbenchSignature = signature;
         if (workbenchChanged || modeChanged || calChanged || availChanged) {
             if (isWorkbenchEditFocused() || isSliderDragActive()) {
-                // [3]
+                // never rebuild under someone typing or dragging. queued, not lost
+
                 pendingViewRebuild = true;
             } else {
                 rebuildViewWidgets();
@@ -472,12 +466,11 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
     }
 
     public void onTelemetry(FccTelemetryPacket packet) {
-        // Ensure override state arrays are properly sized for this binding count
         int bindingCount = packet.propBoundCount();
         if (emanuelOverrideActive.length != bindingCount) {
             boolean[] newOverrideActive = new boolean[bindingCount];
             int[] newRpmCommands = new int[bindingCount];
-            // Copy existing state if shrinking
+
             if (emanuelOverrideActive.length > 0) {
                 System.arraycopy(emanuelOverrideActive, 0, newOverrideActive, 0, Math.min(emanuelOverrideActive.length, bindingCount));
                 System.arraycopy(emanuelRpmCommands, 0, newRpmCommands, 0, Math.min(emanuelRpmCommands.length, bindingCount));
@@ -495,15 +488,12 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                 || (controlNameBox != null && controlNameBox.isFocused());
     }
 
-    /** [4] */
+    // slider drag -> snapshot -> rebuild -> slider recreated mid drag. every 0.02 units. don't
     private boolean isSliderDragActive() {
         return isDragging() && getFocused() instanceof net.minecraft.client.gui.components.AbstractSliderButton;
     }
 
-    /**
-     * Warning shown instead of the normal selection notice when a name edit box holds typed but
-     * unapplied text that the imminent row-change rebuild would otherwise silently discard.
-     */
+    // warn before a row change eats typed text
     @Nullable
     private String pendingUnsavedEditNotice(FccGuiSnapshot snapshot) {
         if (deviceNameBox != null && deviceNameBox.isFocused()) {
@@ -735,11 +725,9 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
     }
 
     private void initEmanuelWidgets(FccGuiSnapshot snapshot) {
-        // Emergency kill switch button (top-right of E-Manuel detail panel)
         int emergencyBtnX = leftPos + MAIN_X + MAIN_W - 120;
         int emergencyBtnY = topPos + MAIN_Y + 38;
         addViewWidget(Button.builder(Component.literal("Emergency Kill"), button -> {
-            // Disable all overrides
             for (int i = 0; i < emanuelOverrideActive.length; i++) {
                 emanuelOverrideActive[i] = false;
                 emanuelRpmCommands[i] = 0;
@@ -773,7 +761,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
 
     private void initShipWidgets(FccGuiSnapshot snapshot) {
         int inspectorX = leftPos + INSPECT_X + 10;
-        // Buttons placed below the dashboard content block (which renders from INSPECT_Y+30 down ~160px)
+
         int inspectorY = topPos + INSPECT_Y + 196;
         boolean vehicleEnabled = canUseVehicleControls(snapshot);
         addViewWidget(Button.builder(Component.literal(snapshot.mode() == FlightMode.OFF ? "Arm Output" : "Disarm Output"), button -> sendWorkbenchArmToggle())
@@ -835,7 +823,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         OperateProfileState profile = resolveOperateProfile(snapshot);
         boolean airshipMode = profile.profile() == OperateProfile.AIRSHIP && !canUseVehicleControls(snapshot);
 
-        // 4-chip mode selector row
         AutoDriveMode current = autoDriveMode(snapshot);
         AutoDriveMode[] modes = AutoDriveMode.values();
         int chipGap = 2;
@@ -855,27 +842,22 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             addViewWidget(chip);
         }
 
-        // Arm / Disarm
         addViewWidget(Button.builder(Component.literal(snapshot.mode() == FlightMode.OFF ? "Arm Output" : "Disarm Output"),
             button -> sendWorkbenchArmToggle()).bounds(x, y + 22, totalW, 16).build());
 
-        // Nav Table speed slider (only meaningful when Nav Table mode is possible)
         NavTableSpeedSlider speedSlider = new NavTableSpeedSlider(x, y + 44, totalW, 16, this, snapshot.navTableMaxSpeed());
         speedSlider.active = autoDriveModeAvailable(snapshot, AutoDriveMode.NAV_TABLE);
         addViewWidget(speedSlider);
 
-        // Pathfinder tracking smoothness slider
         PathfinderSmoothnessSlider smoothSlider = new PathfinderSmoothnessSlider(x, y + 66, totalW, 16, this, snapshot.pathfinderLookaheadScale());
         smoothSlider.active = !airshipMode && autoDriveModeAvailable(snapshot, AutoDriveMode.PATHFINDER);
         addViewWidget(smoothSlider);
 
-        // Evade radius
         Button evadeRadius = Button.builder(Component.literal(evadeRadiusButtonLabel(snapshot)), button -> sendCycleEvadeRadius())
             .bounds(x, y + 88, totalW, 16).build();
         evadeRadius.active = !airshipMode && findEvadeRadiusControl(snapshot) != null;
         addViewWidget(evadeRadius);
 
-        // Pathfinder systems
         Button pathfinder = Button.builder(Component.literal(pathfinderSystemsButtonLabel(snapshot)), button -> sendTogglePathfinderSystems())
             .bounds(x, y + 110, totalW, 16).build();
         pathfinder.active = !airshipMode && snapshot.pathfinderComputerPos() != null;
@@ -896,7 +878,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         reverse.active = findAutoReverseControl(snapshot) != null;
         addViewWidget(reverse);
 
-        // Center steering
         Button center = Button.builder(Component.literal("Center Steering"), button -> sendCenterShipControls())
             .bounds(x, y + 198, totalW, 16).build();
         center.active = canUseVehicleControls(snapshot) || airshipDiagramDeviceCount(snapshot) > 0;
@@ -951,7 +932,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         renderInspector(graphics, mouseX, mouseY);
         renderEmanuelAlertBanner(graphics);
         renderStatusPanel(graphics);
-        // [5]
+
         if (!effectiveWarning(snapshotOrEmpty()).isEmpty()) {
             com.createstats.client.hud.HudEffects.warningRimFlash(graphics, x, y, W, H, true, WARN);
         }
@@ -965,8 +946,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         graphics.drawString(font, "Flight Control Computer", x + 28, y, TEXT, false);
         boolean armed = snapshot.mode() != FlightMode.OFF;
         String state = armed ? "ARMED" : "DISARMED";
-        // Armed state breathes slowly (wall clock) so a live craft is distinguishable from a
-        // static label at a glance.
+
         int armedColor = armed
             ? withAlpha(OK_GREEN, 200 + (int) (55 * com.createstats.client.hud.HudAnim.pulse(System.currentTimeMillis(), 1600L)))
             : DIM;
@@ -1005,7 +985,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         if (live) {
             graphics.fill(x, y, x + 7, y + 7, OK_GREEN);
         } else {
-            // Hollow square is a non-color cue so a missing sensor reads without relying on red vs green.
             border(graphics, x, y, 7, 7, BAD);
         }
         List<Component> lines = new ArrayList<>();
@@ -1031,8 +1010,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         tooltipHotspots.add(new TooltipHotspot(x, y, w, h, List.of(lines)));
     }
 
-    // Rendered on top after all widgets and slot tooltips. Iterates in reverse so the most recently
-    // registered (visually top-most) hotspot under the cursor wins.
     private void renderHotspotTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         for (int i = tooltipHotspots.size() - 1; i >= 0; i--) {
             TooltipHotspot h = tooltipHotspots.get(i);
@@ -1227,15 +1204,15 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             boolean selected = index == selectedEmanuelIndex;
             boolean hover = mouseX >= x && mouseX < x + listW && mouseY >= rowY && mouseY < rowY + ROW_H;
             boolean gyro = isGyroBinding(telemetry, index);
-            // Fuse/override switch (left edge, 16x16)
+
             boolean overrideActive = index < emanuelOverrideActive.length && emanuelOverrideActive[index];
             int fuseX = x + 8;
             int fuseY = rowY + 5;
-            int fuseColor = overrideActive ? 0xFFEE0000 : 0xFF555555; // red if active, grey if inactive
+            int fuseColor = overrideActive ? 0xFFEE0000 : 0xFF555555;
             graphics.fill(fuseX, fuseY, fuseX + 16, fuseY + 16, fuseColor);
             border(graphics, fuseX, fuseY, 16, 16, overrideActive ? 0xFFFF5555 : 0xFF999999);
             if (overrideActive) {
-                graphics.drawCenteredString(font, "!", fuseX + 8, fuseY + 4, 0xFFFFFFFF); // fuse "blown" indicator
+                graphics.drawCenteredString(font, "!", fuseX + 8, fuseY + 4, 0xFFFFFFFF);
             }
 
             renderListRowBase(graphics, x + 22, rowY, listW - 22, ROW_H, selected, hover, gyro ? ACCENT : CYAN);
@@ -1245,8 +1222,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             graphics.drawString(font, "R" + Math.max(1, row), x + 32, rowY + 6, selected ? TEXT : DIM, false);
             graphics.drawString(font, rowType, x + 62, rowY + 6, gyro ? ACCENT : CYAN, false);
             graphics.drawString(font, rpm + " rpm", x + listW - 50, rowY + 6, selected ? TEXT : DIM, false);
-            // Live signed RPM spark bar under the readout so the row list reads like a bank of
-            // gauges instead of static text.
+
             int sparkX = x + listW - 50;
             int sparkW = 40;
             int sparkY = rowY + 17;
@@ -1279,7 +1255,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         boolean wheelMountRow = isWheelMountRow(snapshot, selectedRow);
 
         int cardW = (detailW - 8) / 2;
-        // Check if this row has override active
+
         boolean overrideActive = i < emanuelOverrideActive.length && emanuelOverrideActive[i];
         int overrideRpm = i < emanuelRpmCommands.length ? emanuelRpmCommands[i] : 0;
 
@@ -1323,7 +1299,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         graphics.drawString(font, font.plainSubstrByWidth(detail, width - 150), x + 124, y + 6, ready ? OK_GREEN : DIM, false);
     }
 
-    // [6]
     private void renderReadinessPanel(GuiGraphics graphics, int x, int y, FccGuiSnapshot snapshot) {
         int flags = snapshot.readinessFlags();
         graphics.drawString(font, Component.translatable("gui.create_stats.fcc.readiness"), x, y, ACCENT, false);
@@ -1348,8 +1323,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         graphics.drawString(font, Component.translatable("gui.create_stats.fcc.ready.gains", snapshot.calibrationGainCount()), x, rowY, DIM, false);
     }
 
-    // Returns the next row Y. ok = filled square + green; a severe issue = red, a soft issue = amber.
-    // The filled-vs-hollow square is a non-color cue for colorblind readability.
     private int drawReadinessRow(GuiGraphics graphics, int x, int y, Component text, boolean ok, boolean severe) {
         int color = ok ? OK_GREEN : severe ? BAD : WARN;
         if (ok) {
@@ -1705,8 +1678,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
 
         boolean armed = snapshot.mode() != FlightMode.OFF;
         renderBoardArmedChip(graphics, x + width - 46, y + 6, armed, pulse);
-        // Per-wheel LIVE telemetry (vehiclePreview merges the 5 Hz wheel arrays); index-aligned
-        // with OtomobilZone.values().
+
         VehiclePreview livePreview = vehiclePreview(snapshot);
         for (int i = 0; i < OtomobilZone.values().length; i++) {
             OtomobilZone zone = OtomobilZone.values()[i];
@@ -2084,7 +2056,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             if (flowing) {
                 drawWireFlow(graphics, wireStartX, wireStartY, nodeX, nodeY + nodeH / 2, Math.abs(deflection));
             }
-            // Live contribution of this route right now (deflection oriented by scale/invert).
+
             float liveSigned = deflection;
             if (route.scale() < 0.0) liveSigned = -liveSigned;
             if (route.invert()) liveSigned = -liveSigned;
@@ -2095,7 +2067,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         renderListScrollbar(graphics, x + width - 7, firstY, 6, rows * 40 - 8, routes.size(), start, CONTROL_ROUTE_ROWS, ACCENT);
     }
 
-    /** [7] */
     private void drawWireFlow(GuiGraphics graphics, int startX, int startY, int endX, int endY, float intensity) {
         int midX = startX + Math.max(18, (endX - startX) / 2);
         int len1 = Math.abs(midX - startX);
@@ -2137,7 +2108,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         graphics.fill(x, y, x + width, y + height, selected ? CARD_ACTIVE : hover ? CARD_HOVER : CARD_BG);
         border(graphics, x, y, width, height, selected ? ACCENT : hover ? color : SOFT_BORDER);
         graphics.fill(x, y, x + 4, y + height, color);
-        // Live contribution readout: what this route is sending RIGHT NOW (NaN = idle/disarmed).
+
         String label = font.plainSubstrByWidth(route.targetLabel(), width - 18);
         if (!Float.isNaN(liveSigned)) {
             String livePct = String.format(java.util.Locale.ROOT, "%+.0f%%", liveSigned * 100.0f);
@@ -2238,11 +2209,10 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         FccGuiControlEntry thrust = shipControls.thrust();
         FccGuiControlEntry yaw = shipControls.yaw();
 
-        // Content origin and dimensions
         int x = leftPos + MAIN_X + 18;
         int y = topPos + MAIN_Y + 38;
-        int width = MAIN_W - 36;   // 462
-        int height = MAIN_H - 72;  // 264
+        int width = MAIN_W - 36;
+        int height = MAIN_H - 72;
         boolean vehicleEnabled = canUseVehicleControls(snapshot);
         float pulse = (float) ((Math.sin(System.currentTimeMillis() / 180.0) + 1.0) * 0.5);
         OperateProfileState profileState = resolveOperateProfile(snapshot);
@@ -2255,7 +2225,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             return;
         }
 
-        // Background + header bar
         graphics.fill(x, y, x + width, y + height, 0xFF0A1219);
         border(graphics, x, y, width, height, vehicleEnabled ? CYAN : SOFT_BORDER);
         graphics.fill(x + 1, y + 1, x + width - 1, y + 20, 0xFF0F1D28);
@@ -2265,7 +2234,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         String lock = vehicleEnabled ? "OTOMOBIL ACTIVE" : "DIAGRAM LOCKED";
         graphics.drawString(font, lock, x + width - font.width(lock) - 10, y + 6, vehicleEnabled ? OK_GREEN : WARN, false);
 
-        // ── LEFT PANEL: steering wheel + throttle ──────────────────
         int leftPanelW = 175;
         int divX = x + leftPanelW;
         graphics.fill(divX, y + 22, divX + 1, y + height - 2, SOFT_BORDER);
@@ -2286,15 +2254,13 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         drawShipThrottle(graphics, throttleX, throttleY, 42, SHIP_THROTTLE_H, thrust, helmThrottleDisplay, pulse);
         renderSelfDrivePanel(graphics, snapshot, telemetry, x + 8, y + 184, leftPanelW - 16, 74, true);
 
-        // ── RIGHT PANEL: mode buttons (top) + wheel cards (bottom) ─
-        int rX = divX + 8;                  // right panel left edge
-        int rW = width - leftPanelW - 10;   // right panel width (~277)
+        int rX = divX + 8;
+        int rW = width - leftPanelW - 10;
         int btnH = 18;
         int btnGap = 4;
 
-        // drive mode row (row 0)
         int row0Y = y + 26;
-        int btnW4 = (rW - btnGap * 3) / 4;  // ~65px each
+        int btnW4 = (rW - btnGap * 3) / 4;
         FccGuiControlEntry drive4x4     = findControl(snapshot, "Drive Mode 4x4 Switch");
         FccGuiControlEntry drive2x4Front = findControl(snapshot, "Drive Mode 2x4 Front Switch");
         FccGuiControlEntry drive2x4Rear  = findControl(snapshot, "Drive Mode 2x4 Rear Switch");
@@ -2304,7 +2270,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         drawVehicleModeButton(graphics, rX + (btnW4 + btnGap) * 2,  row0Y, btnW4, btnH, "2x4 RWD", drive2x4Rear, vehicleEnabled, mouseX, mouseY, CYAN);
         drawVehicleModeButton(graphics, rX + (btnW4 + btnGap) * 3,  row0Y, btnW4, btnH, "Mid Axle",midAxle,      vehicleEnabled, mouseX, mouseY, OK_GREEN);
 
-        // steer mode row (row 1)
         int row1Y = row0Y + btnH + btnGap;
         FccGuiControlEntry steerFront = findControl(snapshot, "Steer Mode Front Switch");
         FccGuiControlEntry steerAll   = findControl(snapshot, "Steer Mode All-Wheel Switch");
@@ -2312,7 +2277,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         drawVehicleModeButton(graphics, rX,                         row1Y, btnW4, btnH, "Front",   steerFront, vehicleEnabled, mouseX, mouseY, WARN);
         drawVehicleModeButton(graphics, rX + (btnW4 + btnGap),      row1Y, btnW4, btnH, "4WS",     steerAll,   vehicleEnabled, mouseX, mouseY, WARN);
         drawVehicleModeButton(graphics, rX + (btnW4 + btnGap) * 2,  row1Y, btnW4, btnH, "Crab",    steerCrab,  vehicleEnabled, mouseX, mouseY, WARN);
-        // LIVE mode badge in 4th slot of steer row
+
         int liveBadgeX = rX + (btnW4 + btnGap) * 3;
         int liveBadgeColor = preview.runtimeResolved() ? OK_GREEN : WARN;
         graphics.fill(liveBadgeX, row1Y, liveBadgeX + btnW4, row1Y + btnH, preview.runtimeResolved() ? 0xFF0D2218 : 0xFF221510);
@@ -2326,7 +2291,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                     : "Inferred from switches (arm the FCC for the live mode): " + preview.resolvedModeLabel())
                 .withStyle(preview.runtimeResolved() ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
 
-        // diff lock row (row 2)
         int row2Y = row1Y + btnH + btnGap;
         int btnWHalf = (rW - btnGap) / 2;
         FccGuiControlEntry diffRear = findControl(snapshot, "Diff Lock Rear Switch");
@@ -2334,7 +2298,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         drawVehicleModeButton(graphics, rX,                 row2Y, btnWHalf, btnH, "Diff Rear Lock", diffRear, vehicleEnabled, mouseX, mouseY, ACCENT);
         drawVehicleModeButton(graphics, rX + btnWHalf + btnGap, row2Y, btnWHalf, btnH, "Diff Full Lock", diffFull, vehicleEnabled, mouseX, mouseY, BAD);
 
-        // wheel status cards (below mode buttons)
         int cardsTopY = row2Y + btnH + 6;
         int cardAvailH = height - (cardsTopY - y) - 4;
         int cardH = (cardAvailH - 2 * 6) / 3;
@@ -2415,8 +2378,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         String stateText = !ready ? "NEEDS SETUP" : !armed ? "READY" : "AIRBORNE";
         graphics.drawString(font, stateText, x + width - font.width(stateText) - 10, y + 6, ready && armed ? OK_GREEN : ready ? CYAN : WARN, false);
 
-        // Arm/disarm transition flash: a brief bright border pulse marks the exact moment the
-        // craft went live or safe, so the state change is felt, not just read.
         if (helmArmedInit && armed != helmArmedSeen) {
             helmArmedChangeMs = System.currentTimeMillis();
         }
@@ -2429,14 +2390,12 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                 border(graphics, x, y, width, height, withAlpha(armed ? OK_GREEN : WARN, flashAlpha));
             }
         }
-        // Active warnings flash the helm rim (same shared effect as the in-flight HUDs).
+
         String helmWarning = snapshot.lastWarning();
         if (helmWarning != null && !helmWarning.isEmpty()) {
             com.createstats.client.hud.HudEffects.warningRimFlash(graphics, x, y, width, height, true, WARN);
         }
 
-        // Air-flow trace is a live-state cue, not decoration: it only moves while the craft is
-        // armed (props able to spin), and holds a faint static line when safe.
         for (int i = 0; i < 8; i++) {
             int flowX = x + 24 + i * 34;
             int flowY = armed
@@ -2462,15 +2421,13 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         int cardX = divX + 12;
         int cardW = width - 314;
         renderAirshipStatusCard(graphics, cardX, y + 34, cardW, 44, "Profile", state.manual() ? "Manual override" : "Auto detected", state.reason(), CYAN);
-        // Live instrument cluster (replaces the old text-only Sensors and Governors cards; the
-        // sensor state lives on as the LED row, the V/H thrust sums as the footer line).
+
         renderHelmFlightData(graphics, snapshot, telemetry, cardX, y + 86, cardW, 100);
         graphics.drawString(font, "Zone Switches", x + 16, y + 174, ACCENT, false);
         graphics.drawString(font, countDiagramSwitchControls(snapshot) + "/" + DiagramZone.values().length, x + width - 46, y + 174, countDiagramSwitchControls(snapshot) > 0 ? OK_GREEN : WARN, false);
         renderShipOverheadSwitches(graphics, snapshot, x, y + 156, width, mouseX, mouseY, pulse);
     }
 
-    /** [8] */
     private void renderHelmFlightData(GuiGraphics graphics, FccGuiSnapshot snapshot,
                                       @Nullable FccTelemetryPacket telemetry, int x, int y, int width, int height) {
         boolean live = telemetry != null;
@@ -2927,7 +2884,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         return "G " + (gimbal ? "OK" : "--") + "  V " + (velocity ? "OK" : "--") + "  T " + (targetReady ? "OK" : "--");
     }
 
-    /** Per-view frame delta for the helm instrument springs. */
     private float helmFrameDt() {
         long now = System.nanoTime();
         float dt = helmFrameNanos == 0L ? 1.0f / 60.0f
@@ -2952,8 +2908,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
 
     private void drawShipThrottle(GuiGraphics graphics, int x, int y, int width, int height,
                                   @Nullable FccGuiControlEntry control, double displaySigned, float pulse) {
-        // displaySigned is the spring-smoothed lever position supplied by the caller, so the
-        // lever glides between values instead of snapping.
         double signed = Math.max(-1.0, Math.min(1.0, displaySigned));
         int trackTop = y + 10;
         int trackBottom = y + height - 10;
@@ -3266,13 +3220,11 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                     return;
                 }
 
-                // ── Status header ──────────────────────────────────────
                 String statusStr = vehicleEnabled ? (armed ? "ARMED" : "Ready") : "Disabled";
                 int statusColor = vehicleEnabled ? (armed ? OK_GREEN : CYAN) : WARN;
                 graphics.drawString(font, statusStr, x, y, statusColor, false);
                 graphics.drawString(font, "OTOMOBIL", x + innerW - font.width("OTOMOBIL"), y, MUTED, false);
 
-                // ── Steering mode badge ────────────────────────────────
                 FccGuiControlEntry steerFrontC = findControl(snapshot, "Steer Mode Front Switch");
                 FccGuiControlEntry steerAllC   = findControl(snapshot, "Steer Mode All-Wheel Switch");
                 FccGuiControlEntry steerCrabC  = findControl(snapshot, "Steer Mode Crab Switch");
@@ -3284,7 +3236,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                 border(graphics, x, y + 14, innerW, 12, withAlpha(steerColor, 160));
                 graphics.drawCenteredString(font, "STEER \u25b8 " + steerLabel, x + innerW / 2, y + 17, steerColor);
 
-                // ── Drive mode badge ───────────────────────────────────
                 FccGuiControlEntry drive4x4C      = findControl(snapshot, "Drive Mode 4x4 Switch");
                 FccGuiControlEntry drive2x4FrontC = findControl(snapshot, "Drive Mode 2x4 Front Switch");
                 FccGuiControlEntry drive2x4RearC  = findControl(snapshot, "Drive Mode 2x4 Rear Switch");
@@ -3299,7 +3250,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                 border(graphics, x, y + 29, innerW, 12, withAlpha(driveColor, 130));
                 graphics.drawCenteredString(font, "DRIVE \u25b8 " + driveLabel + midLabel, x + innerW / 2, y + 32, driveColor);
 
-                // ── Throttle bar ───────────────────────────────────────
                 graphics.drawString(font, "THROTTLE", x, y + 45, MUTED, false);
                 double thrustFrac = controlSignedFraction(thrust);
                 int barW = innerW - 2;
@@ -3317,7 +3267,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                 String thrustPct = thrust == null ? "--" : String.format(java.util.Locale.ROOT, "%+.0f%%", thrustFrac * 100);
                 graphics.drawCenteredString(font, thrustPct, x + innerW / 2, y + 57, thrust == null ? MUTED : TEXT);
 
-                // ── Steering bar ───────────────────────────────────────
                 graphics.drawString(font, "STEERING", x, y + 70, MUTED, false);
                 double yawFrac = controlSignedFraction(yaw);
                 graphics.fill(x, y + 80, x + innerW, y + 90, 0xFF0A1520);
@@ -3330,17 +3279,15 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                     graphics.fill(Math.max(x + 1, centerBarX - fillW), y + 81, centerBarX, y + 89, ACCENT);
                 }
                 graphics.fill(centerBarX, y + 81, centerBarX + 1, y + 89, MUTED);
-                // cursor pip
+
                 int cursorX = centerBarX + (int)(yawFrac * (barW / 2));
                 int cpx = Math.max(x + 1, Math.min(x + innerW - 3, cursorX));
                 graphics.fill(cpx, y + 81, cpx + 2, y + 89, TEXT);
                 String yawPct = yaw == null ? "--" : String.format(java.util.Locale.ROOT, "%+.0f%%", yawFrac * 100);
                 graphics.drawCenteredString(font, yawPct, x + innerW / 2, y + 81, yaw == null ? MUTED : TEXT);
 
-                // ── Separator ──────────────────────────────────────────
                 graphics.fill(x, y + 95, x + innerW, y + 96, SOFT_BORDER);
 
-                // ── Live telemetry values ──────────────────────────────
                 String thrustVal = thrust == null ? "No throttle control" : "Thrust  " + String.format(java.util.Locale.ROOT, "%+.2f", thrustFrac);
                 String yawVal    = yaw   == null ? "No steering control" : "Steer   " + String.format(java.util.Locale.ROOT, "%+.2f", yawFrac);
                 graphics.drawString(font, thrustVal, x, y + 100, thrust == null ? MUTED : ACCENT, false);
@@ -3358,7 +3305,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
                 int flipColor  = flip != null && controlFraction(flip) >= 0.5 ? WARN : DIM;
                 graphics.drawString(font, flipStr, x, y + 136, flipColor, false);
 
-                // ── Bottom separator before action buttons ─────────────
                 graphics.fill(x, y + 150, x + innerW, y + 151, SOFT_BORDER);
                 FccTelemetryPacket telemetry = FccClientState.telemetryFor(menu.containerId);
                 boolean autoEnabled = isAutoDriveEnabled(snapshot);
@@ -3983,7 +3929,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         int listRows = 8;
         int listY = y + 22;
 
-        // Check for fuse switch clicks (left edge, 16x16 each row)
         int start = visibleStartIndex(selectedEmanuelIndex, count, listRows);
         int rows = Math.min(listRows, count - start);
         for (int visible = 0; visible < rows; visible++) {
@@ -3992,11 +3937,10 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             int fuseX = x + 8;
             int fuseY = rowY + 5;
             if (inside(mouseX, mouseY, fuseX, fuseY, 16, 16)) {
-                // Toggle override for this binding
                 if (index < emanuelOverrideActive.length) {
                     emanuelOverrideActive[index] = !emanuelOverrideActive[index];
                     if (!emanuelOverrideActive[index]) {
-                        emanuelRpmCommands[index] = 0; // reset RPM when disabling
+                        emanuelRpmCommands[index] = 0;
                     }
                     sendOverrideCommand();
                     selectedEmanuelIndex = index;
@@ -4006,7 +3950,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             }
         }
 
-        // Check for row selection (in list body, not fuse)
         for (int visible = 0; visible < rows; visible++) {
             int index = start + visible;
             int rowY = listY + visible * (ROW_H + ROW_GAP);
@@ -4017,7 +3960,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             }
         }
 
-        // Check for RPM slider interaction (detail panel)
         if (selectedEmanuelIndex < count && selectedEmanuelIndex < emanuelOverrideActive.length && emanuelOverrideActive[selectedEmanuelIndex]) {
             int detailX = x + listW + 14;
             int detailW = MAIN_W - 42 - listW;
@@ -4027,7 +3969,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             int sliderTrackW = detailW - 138;
             int sliderTrackHeight = 10;
             if (inside(mouseX, mouseY, sliderTrackX, sliderTrackY - 2, sliderTrackW, sliderTrackHeight + 4)) {
-                // Adjust slider based on mouse X
                 int relativeX = (int)(mouseX - sliderTrackX);
                 int newRpm = (int)((relativeX / (float)(sliderTrackW - 10)) * emanuelSliderRpmMax);
                 newRpm = Math.max(0, Math.min(emanuelSliderRpmMax, newRpm));
@@ -4196,7 +4137,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         FccGuiControlEntry yaw = shipControls.yaw();
         FccGuiControlEntry trim = shipControls.trim();
 
-        // steering wheel (left panel)
         int wheelCx = x + 65;
         int wheelCy = y + 108;
         if (yaw != null && distanceSq(mouseX, mouseY, wheelCx, wheelCy) <= 46 * 46) {
@@ -4206,7 +4146,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             return true;
         }
 
-        // throttle slider (left panel)
         int throttleX = x + 122;
         int throttleY = y + 30;
         if (thrust != null && mouseX >= throttleX && mouseX < throttleX + 42 && mouseY >= throttleY && mouseY < throttleY + SHIP_THROTTLE_H) {
@@ -4229,8 +4168,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             return profileState.hybrid() && !profileState.manual();
         }
 
-        // mode buttons (right panel)
-        // Coordinates must match renderShipView exactly
         int leftPanelW = 175;
         int rX = x + leftPanelW + 8;
         int rW = width - leftPanelW - 10;
@@ -4253,16 +4190,15 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
             FccGuiControlEntry diffRear      = findControl(snapshot, "Diff Lock Rear Switch");
             FccGuiControlEntry diffFull      = findControl(snapshot, "Diff Lock Full Switch");
 
-            // Drive row
             if (inside(mouseX, mouseY, rX,                        row0Y, btnW4, btnH)) { sendSetExclusiveVehicleMode(drive4x4, drive2x4Front, drive2x4Rear); return true; }
             if (inside(mouseX, mouseY, rX + (btnW4 + btnGap),     row0Y, btnW4, btnH)) { sendSetExclusiveVehicleMode(drive2x4Front, drive4x4, drive2x4Rear); return true; }
             if (inside(mouseX, mouseY, rX + (btnW4 + btnGap) * 2, row0Y, btnW4, btnH)) { sendSetExclusiveVehicleMode(drive2x4Rear, drive4x4, drive2x4Front); return true; }
             if (inside(mouseX, mouseY, rX + (btnW4 + btnGap) * 3, row0Y, btnW4, btnH)) { sendToggleControl(midAxle); return true; }
-            // Steer row
+
             if (inside(mouseX, mouseY, rX,                        row1Y, btnW4, btnH)) { sendSetExclusiveVehicleMode(steerFront, steerAll, steerCrab); return true; }
             if (inside(mouseX, mouseY, rX + (btnW4 + btnGap),     row1Y, btnW4, btnH)) { sendSetExclusiveVehicleMode(steerAll, steerFront, steerCrab); return true; }
             if (inside(mouseX, mouseY, rX + (btnW4 + btnGap) * 2, row1Y, btnW4, btnH)) { sendSetExclusiveVehicleMode(steerCrab, steerFront, steerAll); return true; }
-            // Diff row
+
             if (inside(mouseX, mouseY, rX,                  row2Y, btnWHalf, btnH)) { sendSetExclusiveVehicleMode(diffRear, diffFull); return true; }
             if (inside(mouseX, mouseY, rX + btnWHalf + btnGap, row2Y, btnWHalf, btnH)) { sendSetExclusiveVehicleMode(diffFull, diffRear); return true; }
         }
@@ -5071,7 +5007,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
     private record VehicleModeRuntime(VehicleSteerModePreview mode, String label, boolean fromRuntime) {}
 
     private VehicleModeRuntime resolveVehicleModeRuntime(FccGuiSnapshot snapshot) {
-        // [9]
         FccTelemetryPacket telemetry = FccClientState.telemetryFor(menu.containerId);
         if (telemetry != null && snapshot.mode() != FlightMode.OFF) {
             int ord = telemetry.vehicleSteerModeOrdinal();
@@ -5117,8 +5052,7 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         };
         int strength = Math.max(0, Math.min(15, (int) Math.round(Math.abs(steerSigned) * 15.0)));
         if (strength == 0) return 0;
-        // Both wheels on same axle use same signal direction (server-side logic matches).
-        // Positive return = R> (turn right), Negative = L< (turn left).
+
         return steerSigned > 0.0 ? strength : -strength;
     }
 
@@ -5419,7 +5353,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         return null;
     }
 
-    /** [10] */
     private float diagramZoneSignedActivity(FccGuiSnapshot snapshot, DiagramZone zone) {
         double sum = 0.0;
         for (FccGuiRouteEntry route : snapshot.routeEntries()) {
@@ -5438,7 +5371,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         return (float) Math.max(-1.0, Math.min(1.0, sum));
     }
 
-    /** [11] */
     private void renderZoneActivity(GuiGraphics graphics, int x, int y, int zoneW, int zoneH,
                                     float activity, boolean armed, float pulse) {
         if (Math.abs(activity) < 0.02f) return;
@@ -5455,7 +5387,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         }
     }
 
-    /** Small LIVE / SAFE chip on the layout boards so it is obvious why zones do or do not glow. */
     private void renderBoardArmedChip(GuiGraphics graphics, int x, int y, boolean armed, float pulse) {
         int w = 40;
         graphics.fill(x, y, x + w, y + 12, 0xCC0D141C);
@@ -5943,13 +5874,13 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         updateNoticeTimer();
-        // Run a rebuild that was deferred while an edit box was focused or a slider was mid-drag.
+
         if (pendingViewRebuild && !isWorkbenchEditFocused() && !isSliderDragActive()) {
             rebuildViewWidgets();
         }
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+
         super.render(graphics, mouseX, mouseY, partialTick);
-        // FE Dependent Mode side panel (self-gating: draws nothing while the mode is off).
+
         com.createstats.power.client.FeStatusWidget.draw(graphics, font, leftPos + imageWidth + 6, topPos + 6, 110,
                 menu.getController() == null ? null : menu.getController().feConsumer());
         if (helpOpen) renderHelpOverlay(graphics);
@@ -5957,7 +5888,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         if (!helpOpen) renderHotspotTooltip(graphics, mouseX, mouseY);
     }
 
-    // [12]
     private void updateNoticeTimer() {
         if (!notice.equals(lastNoticeSeen)) {
             lastNoticeSeen = notice;
@@ -6336,7 +6266,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
     }
 
     private void renderEmanuelAlertBanner(GuiGraphics graphics) {
-        // Show alert if any E-Manuel overrides are active
         java.util.List<Integer> activeRows = new java.util.ArrayList<>();
         for (int i = 0; i < emanuelOverrideActive.length; i++) {
             if (emanuelOverrideActive[i]) {
@@ -6345,8 +6274,6 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         }
         if (activeRows.isEmpty()) return;
 
-        // Build alert text like "! MANUAL OVERRIDE ACTIVE: R1, R3, R7". Uses U+26A0 without the
-        // emoji variation selector, which Minecraft's font cannot render.
         StringBuilder text = new StringBuilder("⚠ MANUAL OVERRIDE ACTIVE: ");
         for (int i = 0; i < activeRows.size(); i++) {
             if (i > 0) text.append(", ");
@@ -6354,12 +6281,11 @@ public class FlightControlComputerScreen extends AbstractContainerScreen<FlightC
         }
 
         int x = leftPos + DECK_X;
-        int y = topPos + STATUS_Y - 22; // Just above status panel
-        int w = DECK_W + STATUS_W + 4; // Span across both panels
+        int y = topPos + STATUS_Y - 22;
+        int w = DECK_W + STATUS_W + 4;
         int h = 18;
 
-        // Yellow alert background
-        graphics.fill(x, y, x + w, y + h, 0xFF332200); // dark yellow
+        graphics.fill(x, y, x + w, y + h, 0xFF332200);
         border(graphics, x, y, w, h, WARN);
         graphics.drawString(font, font.plainSubstrByWidth(text.toString(), w - 14), x + 8, y + 4, WARN, false);
     }

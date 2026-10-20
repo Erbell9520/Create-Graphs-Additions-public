@@ -13,7 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.network.chat.Component;
 import com.createstats.blockentity.HolographicProjectorBE;
-import com.createstats.item.StatsConfiguratorItem;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.BlockHitResult;
@@ -45,22 +44,25 @@ public class HolographicProjectorBlock extends HorizontalDirectionalBlock implem
 {
     public static final DirectionProperty FACING;
     public static final BooleanProperty ACTIVE;
-    private static final VoxelShape SHAPE;
-    
+
+    private static final VoxelShape SHAPE_EW;
+
+    private static final VoxelShape SHAPE_NS;
+
     public HolographicProjectorBlock(BlockBehaviour.Properties properties) {
         super(properties);
         this.registerDefaultState(((this.stateDefinition.any()).setValue(HolographicProjectorBlock.FACING, Direction.NORTH)).setValue(HolographicProjectorBlock.ACTIVE, false));
     }
-    
+
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return simpleCodec(HolographicProjectorBlock::new);
     }
-    
+
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(new Property[] { HolographicProjectorBlock.FACING, HolographicProjectorBlock.ACTIVE });
     }
-    
+
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return (this.defaultBlockState().setValue(HolographicProjectorBlock.FACING, context.getHorizontalDirection().getOpposite())).setValue(HolographicProjectorBlock.ACTIVE, false);
     }
@@ -75,28 +77,27 @@ public class HolographicProjectorBlock extends HorizontalDirectionalBlock implem
             }
         }
     }
-    
+
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
-        return HolographicProjectorBlock.SHAPE;
+        return state.getValue(HolographicProjectorBlock.FACING).getAxis() == Direction.Axis.X
+                ? HolographicProjectorBlock.SHAPE_NS
+                : HolographicProjectorBlock.SHAPE_EW;
     }
-    
+
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         final BlockPos below = pos.below();
         return level.getBlockState(below).isFaceSturdy((BlockGetter)level, below, Direction.UP);
     }
-    
+
     public BlockState updateShape(BlockState state, Direction dir, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         if (dir == Direction.DOWN && !this.canSurvive(state, (LevelReader)level, pos)) {
             return Blocks.AIR.defaultBlockState();
         }
         return super.updateShape(state, dir, neighborState, level, pos, neighborPos);
     }
-    
+
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.getItem() instanceof StatsConfiguratorItem) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
         final BlockEntity clickedBE = level.getBlockEntity(pos);
         if (clickedBE instanceof HolographicProjectorBE projector) {
             ItemInteractionResult antennaResult = AntennaAttachmentHelper.handleUse(stack, level, player, hand, projector);
@@ -104,41 +105,43 @@ public class HolographicProjectorBlock extends HorizontalDirectionalBlock implem
                 return antennaResult;
             }
         }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    // sneak cycles the hologram style. the old action bar status said nothing the card doesn't
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                               BlockHitResult hit) {
+        final BlockEntity be = level.getBlockEntity(pos);
+        if (!(be instanceof HolographicProjectorBE projector)) {
+            return InteractionResult.PASS;
+        }
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
-                final BlockEntity be = clickedBE;
-                if (be instanceof HolographicProjectorBE projector) {
-                    projector.getHologramSettings().cycleDisplayMode();
-                    projector.setChanged();
-                    level.sendBlockUpdated(pos, state, state, 3);
-                    player.displayClientMessage(Component.translatable("message.create_stats.holographic.style", projector.getHologramSettings().getDisplayMode().getDisplayName()), true);
-                }
+                projector.getHologramSettings().cycleDisplayMode();
+                projector.setChanged();
+                level.sendBlockUpdated(pos, state, state, 3);
+                player.displayClientMessage(Component.translatable("message.create_stats.holographic.style",
+                        projector.getHologramSettings().getDisplayMode().getDisplayName()), true);
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.sidedSuccess(level.isClientSide());
         }
-        if (!level.isClientSide()) {
-            final BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof HolographicProjectorBE projector) {
-                final String mode = projector.getHologramSettings().getDisplayMode().getDisplayName();
-                final int channels = projector.getAllChannels().size();
-                final boolean hasData = projector.hasData();
-                final String status = hasData ? ("§b\u2726 Hologram §7| §fStyle: " + mode + " §7| §f" + channels + " channel(s)") : "§b\u2726 Hologram §7| §cNo data §7, connect a Display Link";
-                player.displayClientMessage(Component.literal(status), true);
-            }
+        if (level.isClientSide()) {
+            com.createstats.util.ClientScreenAccess.openProjectorSettings(projector);
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
-    
+
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip,
                 "block.create_stats.holographic_projector");
     }
-    
+
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new HolographicProjectorBE((BlockEntityType<?>)ModBlockEntities.HOLOGRAPHIC_PROJECTOR.get(), pos, state);
     }
-    
+
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) {
@@ -147,7 +150,7 @@ public class HolographicProjectorBlock extends HorizontalDirectionalBlock implem
         if (type != ModBlockEntities.HOLOGRAPHIC_PROJECTOR.get()) return null;
         return (lvl, pos, st, be) -> ((HolographicProjectorBE) be).tick();
     }
-    
+
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
         if (!state.is(newState.getBlock())) {
             final BlockEntity be = level.getBlockEntity(pos);
@@ -157,11 +160,11 @@ public class HolographicProjectorBlock extends HorizontalDirectionalBlock implem
         }
         super.onRemove(state, level, pos, newState, moving);
     }
-    
+
     public boolean isSignalSource(BlockState state) {
         return true;
     }
-    
+
     public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction dir) {
         final BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof HolographicProjectorBE p) {
@@ -169,15 +172,15 @@ public class HolographicProjectorBlock extends HorizontalDirectionalBlock implem
         }
         return 0;
     }
-    
+
     public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction dir) {
-        // [1]
         return 0;
     }
-    
+
     static {
         FACING = HorizontalDirectionalBlock.FACING;
         ACTIVE = BooleanProperty.create("active");
-        SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 12.0, 16.0);
+        SHAPE_EW = Block.box(0.0, 0.0, 7.0, 16.0, 2.0, 9.0);
+        SHAPE_NS = Block.box(7.0, 0.0, 0.0, 9.0, 2.0, 16.0);
     }
 }

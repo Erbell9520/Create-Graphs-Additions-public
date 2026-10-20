@@ -8,13 +8,31 @@
     "PortableFluidInterfaceMixin",
     "ClickToLinkBlockItemMixin",
     "DisplayLinkBlockEntityMixin",
-    "WheelMountBlockEntityMixin"
+    "WheelMountBlockEntityMixin",
+    "WheelMountBrakeMixin",
+    "WheelMountYawMixin",
+    "RapierReadPoseGuardMixin",
+    "SableParkedVetoMixin",
+    "GirderBlockMixin",
+    "ContraptionUpdateTagsAccessor",
+    "PhantomAccessor",
+    "ServerLevelStormCoilMixin",
+    "LightningBoltStormCoilMixin"
   ],
   "client": [
     "DisplayLinkScreenMixin",
     "ScreenLocalGuiScaleMixin",
     "MouseHandlerLocalGuiScaleMixin",
-    "GuiGraphicsScissorMixin"
+    "GuiGraphicsScissorMixin",
+    "CreativeModeInventoryScreenAccessor",
+    "CreativeCatalogTitleMixin",
+    "GoggleOverlayRendererMixin",
+    "BlockLightEngineMixin",
+    "LevelLightEngineAccessor",
+    "ClientPacketListenerLightMixin",
+    "ClientHandshakeKeyCaptureMixin",
+    "LevelRendererCullAccessor",
+    "LevelRendererCullEventsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

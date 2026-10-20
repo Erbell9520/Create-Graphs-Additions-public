@@ -5,29 +5,20 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * One machine hanging off a piece of wiring, as a node the grid can serve.
- *
- * a machine needs a node of its own because wiring used to reach machines through
- * {@code attachedStorage()}, which returns <b>one</b> handler per node - so cable crossing a
- * machine and passing a lamp powered whichever it happened to look at first, and the other just
- * never got served. not a rule a player can see or predict, just reads as "cable works sometimes".
- *
- * instead of teaching every node to return a list and rewriting the solve around that, the flood
- * emits one of these per machine it touches. solver's untouched - it just sees an ordinary node
- * whose attached storage happens to be that machine.
- *
- * no buffer of its own, deliberately - capacity and stored energy are zero. this is a service
- * point, not a piece of wire. if it reported the machine's buffer, the pooled solve would count
- * that buffer once as grid storage and again as a sink to fill, and energy would appear from
- * nowhere.
- *
- * @param machine  where the machine is, which is also this node's identity, so two runs touching the
- *                 same machine cannot serve it twice in one tick
- * @param storage  the machine's handler
- * @param rate     the carrying wire's throughput, since that is what actually limits delivery
- */
-public record FeAttachment(BlockPos machine, IEnergyStorage storage, int rate) implements FeGridMember {
+// one node per machine. one handler per cable meant the lamp OR the machine got served, never both
+public record FeAttachment(BlockPos machine, IEnergyStorage storage, int rate, @Nullable FeGridNode rateOf)
+        implements FeGridMember {
+    public FeAttachment(BlockPos machine, IEnergyStorage storage, int rate) {
+        this(machine, storage, rate, null);
+    }
+
+    public static FeAttachment station(BlockPos machine, IEnergyStorage storage, FeGridNode station) {
+        return new FeAttachment(machine, storage, FeGridSolver.NO_CEILING, station);
+    }
+
+    public FeAttachment over(IEnergyStorage wrapped, int cap) {
+        return new FeAttachment(machine, wrapped, cap, rateOf);
+    }
 
     @Override
     public long nodeKey() {
@@ -41,7 +32,6 @@ public record FeAttachment(BlockPos machine, IEnergyStorage storage, int rate) i
 
     @Override
     public void setStoredEnergy(int amount) {
-        // Nothing to store: the machine's own buffer is behind attachedStorage().
     }
 
     @Override
@@ -51,7 +41,7 @@ public record FeAttachment(BlockPos machine, IEnergyStorage storage, int rate) i
 
     @Override
     public int transferRate() {
-        return rate;
+        return rateOf == null ? rate : Math.min(rate, Math.max(0, rateOf.transferRate()));
     }
 
     @Override
@@ -60,7 +50,6 @@ public record FeAttachment(BlockPos machine, IEnergyStorage storage, int rate) i
         return storage;
     }
 
-    /** [1] */
     @Override
     public boolean isGone(Level owner) {
         return false;
@@ -68,11 +57,9 @@ public record FeAttachment(BlockPos machine, IEnergyStorage storage, int rate) i
 
     @Override
     public void setLastFlow(int flow) {
-        // Nothing to show: the goggle readout belongs to the wire, not to this bookkeeping node.
     }
 
     @Override
     public void invalidateNetwork() {
-        // A transient attachment owns no network; it is rebuilt from scratch on every flood.
     }
 }

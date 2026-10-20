@@ -1,0 +1,424 @@
+{
+ "credit": "gen_staff_redesign.py, sample jacob",
+ "textures": {
+  "atlas": "create_stats:item/surveyor_staff/jacob/atlas",
+  "reel_face": "create_stats:item/surveyor_staff/jacob/reel_face",
+  "particle": "create_stats:item/surveyor_staff/jacob/atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    5.2,
+    18.8,
+    7.5
+   ],
+   "to": [
+    6.7,
+    19.8,
+    8.5
+   ],
+   "name": "reel arm",
+   "faces": {
+    "north": {
+     "uv": [
+      3.375,
+      4.0,
+      3.625,
+      4.125
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      3.75,
+      4.0,
+      4.0,
+      4.125
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      5.0,
+      4.5,
+      5.125,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      5.25,
+      4.5,
+      5.375,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      4.125,
+      4.0,
+      4.375,
+      4.125
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      4.5,
+      4.0,
+      4.75,
+      4.125
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    3.2,
+    16.3,
+    6.0
+   ],
+   "to": [
+    5.2,
+    22.3,
+    10.0
+   ],
+   "name": "reel case",
+   "faces": {
+    "north": {
+     "uv": [
+      8.5,
+      0.0,
+      8.75,
+      0.75
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      8.875,
+      0.0,
+      9.125,
+      0.75
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      1.0,
+      0.0,
+      5.0,
+      6.0
+     ],
+     "texture": "#reel_face"
+    },
+    "west": {
+     "uv": [
+      1.0,
+      0.0,
+      5.0,
+      6.0
+     ],
+     "texture": "#reel_face"
+    },
+    "up": {
+     "uv": [
+      13.75,
+      0.0,
+      14.0,
+      0.5
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      14.125,
+      0.0,
+      14.375,
+      0.5
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    3.2,
+    17.3,
+    5.0
+   ],
+   "to": [
+    5.2,
+    21.3,
+    6.0
+   ],
+   "name": "reel case",
+   "faces": {
+    "north": {
+     "uv": [
+      14.5,
+      0.0,
+      14.75,
+      0.5
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      14.875,
+      0.0,
+      15.125,
+      0.5
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      5.0,
+      1.0,
+      6.0,
+      5.0
+     ],
+     "texture": "#reel_face"
+    },
+    "west": {
+     "uv": [
+      0.0,
+      1.0,
+      1.0,
+      5.0
+     ],
+     "texture": "#reel_face"
+    },
+    "up": {
+     "uv": [
+      4.875,
+      4.0,
+      5.125,
+      4.125
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      5.25,
+      4.0,
+      5.5,
+      4.125
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    3.2,
+    17.3,
+    10.0
+   ],
+   "to": [
+    5.2,
+    21.3,
+    11.0
+   ],
+   "name": "reel case",
+   "faces": {
+    "north": {
+     "uv": [
+      15.25,
+      0.0,
+      15.5,
+      0.5
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      15.625,
+      0.0,
+      15.875,
+      0.5
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      0.0,
+      1.0,
+      1.0,
+      5.0
+     ],
+     "texture": "#reel_face"
+    },
+    "west": {
+     "uv": [
+      5.0,
+      1.0,
+      6.0,
+      5.0
+     ],
+     "texture": "#reel_face"
+    },
+    "up": {
+     "uv": [
+      5.625,
+      4.0,
+      5.875,
+      4.125
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      6.0,
+      4.0,
+      6.25,
+      4.125
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    3.7,
+    15.6,
+    7.4
+   ],
+   "to": [
+    4.7,
+    16.3,
+    8.6
+   ],
+   "name": "nozzle",
+   "faces": {
+    "north": {
+     "uv": [
+      5.5,
+      4.5,
+      5.625,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      5.75,
+      4.5,
+      5.875,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      6.0,
+      4.5,
+      6.125,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      6.25,
+      4.5,
+      6.375,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      6.5,
+      4.5,
+      6.625,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      6.75,
+      4.5,
+      6.875,
+      4.625
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    2.9,
+    18.3,
+    7.0
+   ],
+   "to": [
+    3.2,
+    20.3,
+    9.0
+   ],
+   "name": "hub boss",
+   "faces": {
+    "north": {
+     "uv": [
+      10.625,
+      2.625,
+      10.75,
+      2.875
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      10.875,
+      2.625,
+      11.0,
+      2.875
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      7.875,
+      2.625,
+      8.125,
+      2.875
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      8.25,
+      2.625,
+      8.5,
+      2.875
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      11.125,
+      2.625,
+      11.25,
+      2.875
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      11.375,
+      2.625,
+      11.5,
+      2.875
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

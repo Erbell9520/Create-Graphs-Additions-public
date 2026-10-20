@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import com.simibubi.create.content.trains.entity.Train;
+import com.simibubi.create.content.trains.station.GlobalStation;
 import com.simibubi.create.content.trains.schedule.ScheduleRuntime;
 import com.simibubi.create.content.trains.schedule.condition.ScheduleWaitCondition;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,13 +19,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class FreightManifestLogic {
-
     public static final int MAX_LINES = 32;
 
-    private static final String ARRIVAL_SNAPSHOT_KEY = "create_stats_manifest_arrival";
-    private static final String LAST_SNAPSHOT_KEY = "create_stats_manifest_last";
-    private static final String TO_STATION_KEY = "create_stats_manifest_to_station";
-    private static final String TO_TRAIN_KEY = "create_stats_manifest_to_train";
     private static final String ARRIVAL_ORDERS_KEY = "create_stats_manifest_arrival_orders";
 
     private FreightManifestLogic() {
@@ -72,32 +68,119 @@ public final class FreightManifestLogic {
         return duplicates;
     }
 
-    public static FreightManifestEvaluationResult evaluate(FreightManifest manifest, Train train, CompoundTag context,
-                                                           FreightManifestSavedData savedData, UUID stationId, long currentTick) {
-        if (manifest == null || manifest.isEmpty()) {
+    // the station owns the accounting. create throws the condition's tag away the moment it returns true
+    public static FreightManifestEvaluationResult evaluateStation(FreightManifestSavedData savedData, UUID stationId,
+                                                                  @Nullable Train train, long currentTick,
+                                                                  @Nullable CompoundTag context) {
+        FreightManifestStationState stationState = savedData.getStationState(stationId);
+        if (stationState == null) {
             return FreightManifestEvaluationResult.complete();
+        }
+
+        if (stationState.retireCompletedOnceOrders()) {
+            savedData.setDirty();
+        }
+        FreightManifest manifest = stationState.peekManifest();
+        DeliveryOrderBoard persistentBoard = stationState.getMutablePersistentOrders();
+
+        if (train != null) {
+            GlobalStation dockedAt = train.getCurrentStation();
+            if (dockedAt == null || !stationId.equals(dockedAt.getId())) {
+                train = null;
+            }
+        }
+
+        if (train == null) {
+            boolean changed = stationState.endVisit(currentTick);
+            if (changed) {
+                ManifestUnloadTracker.endVisit(stationId);
+            }
+            if (stationState.claimAllocationTick(currentTick)) {
+                changed |= refreshPersistentCycles(manifest, persistentBoard, currentTick, stationState, false);
+            }
+            if (changed) {
+                savedData.setDirty();
+            }
+            return manifest.isEmpty() ? FreightManifestEvaluationResult.complete()
+                : FreightManifestEvaluationResult.waiting("No train currently present at this station.");
         }
         if (train.carriages.isEmpty()) {
             return FreightManifestEvaluationResult.waiting("Train has no cargo carriages.");
         }
 
-        ProgressCapture progressCapture = captureProgress(train, context, true);
-        DeliveryOrderBoard arrivalBoard = loadArrivalBoard(context);
-        FreightManifestStationState stationState = savedData.getOrCreateStationState(stationId);
-        DeliveryOrderBoard persistentBoard = stationState.getMutablePersistentOrders();
-        boolean persistentChanged = refreshPersistentCycles(manifest, persistentBoard, currentTick, stationState);
-        AllocationResult allocation = allocateStepDeltas(manifest, arrivalBoard, persistentBoard,
-            progressCapture.stepToStation(), progressCapture.stepToTrain(), currentTick, stationState);
+        DeliveryOrderBoard arrivalBoard = stationState.getMutableVisitOrders();
 
-        if (allocation.arrivalChanged()) {
+        if (stationState.claimAllocationTick(currentTick)) {
+            String trainName = train.name != null ? train.name.getString() : "Train";
+            boolean changed = stationState.beginVisit(train.id, trainName, currentTick);
+
+            arrivalBoard = stationState.getMutableVisitOrders();
+            changed |= refreshPersistentCycles(manifest, persistentBoard, currentTick, stationState, true);
+
+            TrainCargoSnapshot currentSnapshot = TrainCargoSnapshot.capture(train);
+            if (!stationState.isVisitSnapshotTaken()) {
+                stationState.setVisitLastSnapshot(currentSnapshot);
+                changed = true;
+            } else {
+                TrainCargoSnapshot stepToStation = new TrainCargoSnapshot();
+                TrainCargoSnapshot stepToTrain = new TrainCargoSnapshot();
+                applyStepDelta(stationState.getVisitLastSnapshot(), currentSnapshot, stepToStation, stepToTrain);
+                stationState.setVisitLastSnapshot(currentSnapshot);
+                stationState.recordVisitMovement(stepToStation, stepToTrain);
+
+                AllocationResult allocation = allocateStepDeltas(manifest, arrivalBoard, persistentBoard,
+                    stepToStation, stepToTrain, currentTick, stationState);
+                changed |= allocation.arrivalChanged() || allocation.persistentChanged();
+                stationState.setLastUnaccounted(
+                    describeUnaccountedCargo(manifest, allocation.remainingToStation(), allocation.remainingToTrain()));
+            }
+
+            changed |= stationState.retireCompletedOnceOrders();
+
+            changed |= stationState.recordVisitOrders(arrivalBoard, train.id, trainName, currentTick);
+            if (changed) {
+                savedData.setDirty();
+            }
+        }
+
+        if (context != null) {
             saveArrivalBoard(context, arrivalBoard);
         }
-        if (persistentChanged || allocation.persistentChanged()) {
+
+        return evaluateCompletion(manifest, arrivalBoard, persistentBoard, stationState.getLastUnaccounted());
+    }
+
+    public static void sweepDepartedVisits(net.minecraft.server.level.ServerLevel level) {
+        FreightManifestSavedData savedData = FreightManifestSavedData.peek(level);
+        if (savedData == null) {
+            return;
+        }
+        List<UUID> openVisits = savedData.getStationsWithOpenVisit();
+        if (openVisits.isEmpty()) {
+            return;
+        }
+        Set<UUID> docked = new HashSet<>();
+        for (Train train : com.simibubi.create.Create.RAILWAYS.sided(level).trains.values()) {
+            GlobalStation station = train.getCurrentStation();
+            if (station != null && station.getId() != null) {
+                docked.add(station.getId());
+            }
+        }
+        long currentTick = level.getGameTime();
+        boolean changed = false;
+        for (UUID stationId : openVisits) {
+            if (docked.contains(stationId)) {
+                continue;
+            }
+            FreightManifestStationState stationState = savedData.getStationState(stationId);
+            if (stationState != null && stationState.endVisit(currentTick)) {
+                ManifestUnloadTracker.endVisit(stationId);
+                changed = true;
+            }
+        }
+        if (changed) {
             savedData.setDirty();
         }
-
-        return evaluateCompletion(manifest, arrivalBoard, persistentBoard,
-            allocation.remainingToStation(), allocation.remainingToTrain());
     }
 
     public static FreightManifestEvaluationResult previewEvaluation(FreightManifest manifest, FreightStationCargoView cargoView) {
@@ -120,6 +203,11 @@ public final class FreightManifestLogic {
 
     public static boolean refreshPersistentCycles(FreightManifest manifest, DeliveryOrderBoard persistentBoard, long currentTick,
                                                   @Nullable FreightManifestStationState stationState) {
+        return refreshPersistentCycles(manifest, persistentBoard, currentTick, stationState, false);
+    }
+
+    public static boolean refreshPersistentCycles(FreightManifest manifest, DeliveryOrderBoard persistentBoard, long currentTick,
+                                                  @Nullable FreightManifestStationState stationState, boolean trainDocked) {
         boolean changed = false;
         for (FreightManifestLine line : manifest.getLines()) {
             if (!line.getResetMode().isPersistent()) {
@@ -128,7 +216,7 @@ public final class FreightManifestLogic {
             }
             DeliveryOrderLineState state = persistentBoard.getOrCreate(line.getLineId(), currentTick);
             state.reconcileTarget(line.getAmount(), currentTick);
-            if (shouldResetPersistentLine(line, state, currentTick)) {
+            if (!trainDocked && shouldResetPersistentLine(line, state, currentTick)) {
                 boolean hadActivity = state.hasProgress() || state.isDismissed() || state.getLastCompletionTick() >= 0L;
                 state.reset(currentTick);
                 if (hadActivity && stationState != null) {
@@ -144,10 +232,13 @@ public final class FreightManifestLogic {
     public static DeliveryOrderBoardView buildDeliveryOrderBoardView(FreightManifest manifest, DeliveryOrderBoard persistentBoard,
                                                                      @Nullable DeliveryOrderBoard arrivalBoard,
                                                                      FreightStationCargoView cargoView, long currentTick,
-                                                                     boolean arrivalTrackingActive,
+                                                                     boolean arrivalTrackingActive, boolean arrivalHistoric,
                                                                      List<DeliveryOrderHistoryEntry> historyEntries) {
         if (manifest == null || manifest.isEmpty()) {
-            return new DeliveryOrderBoardView(false, false, "", "No delivery orders configured.", currentTick, 0, 0, 0, List.of(), historyEntries);
+            boolean present = cargoView != null && cargoView.isTrainPresent();
+            return new DeliveryOrderBoardView(present, arrivalTrackingActive,
+                present ? cargoView.getTrainName() : "", "No active delivery orders.", currentTick,
+                0, 0, 0, List.of(), historyEntries);
         }
 
         List<DeliveryOrderLineView> lines = new ArrayList<>();
@@ -157,7 +248,9 @@ public final class FreightManifestLogic {
             DeliveryOrderLineState state = getStateForLine(line, arrivalBoard, persistentBoard, currentTick, false);
             int deliveredAmount = state == null ? 0 : Math.min(state.getDeliveredAmount(), Math.max(0, line.getAmount()));
             boolean complete = deliveredAmount >= line.getAmount() && line.getAmount() > 0;
-            boolean dismissedThisCycle = complete && state != null && state.isDismissed();
+
+            boolean dismissedThisCycle = state != null && DeliveryOrderLifecyclePolicy.isArchived(
+                line.getResetMode(), complete, state.isDismissed());
             if (complete) {
                 completed++;
             }
@@ -168,8 +261,9 @@ public final class FreightManifestLogic {
             FreightManifestResourceKey key = line.getResourceKey();
             int freightAmount = key == null || cargoView == null ? 0 : cargoView.getFreightTotals().getAmount(key);
             long ticksUntilReset = getTicksUntilReset(line, state, currentTick);
+            boolean lineHistoric = arrivalHistoric && !line.getResetMode().isPersistent();
             String statusText = buildLineStatus(line, state, complete, dismissedThisCycle,
-                cargoView != null && cargoView.isTrainPresent(), arrivalTrackingActive, currentTick);
+                cargoView != null && cargoView.isTrainPresent(), arrivalTrackingActive, lineHistoric, currentTick);
             lines.add(new DeliveryOrderLineView(line.getLineId(), line.getCargoKind(), line.getOperation(), line.getResetMode(),
                 line.getResetIntervalValue(), line.getDisplayStack(), line.getDisplayName(), line.getAmount(), deliveredAmount,
                 freightAmount, dismissedThisCycle, ticksUntilReset, statusText));
@@ -182,27 +276,20 @@ public final class FreightManifestLogic {
             lines.size(), completed, dismissed, lines, historyEntries);
     }
 
-    public static void initializeProgress(Train train, CompoundTag context) {
-        if (context.contains(ARRIVAL_SNAPSHOT_KEY)) {
-            if (!context.contains(ARRIVAL_ORDERS_KEY)) {
-                saveArrivalBoard(context, new DeliveryOrderBoard());
-            }
-            return;
-        }
-        TrainCargoSnapshot snapshot = TrainCargoSnapshot.capture(train);
-        context.put(ARRIVAL_SNAPSHOT_KEY, snapshot.save());
-        context.put(LAST_SNAPSHOT_KEY, snapshot.save());
-        context.put(TO_STATION_KEY, new TrainCargoSnapshot().save());
-        context.put(TO_TRAIN_KEY, new TrainCargoSnapshot().save());
-        saveArrivalBoard(context, new DeliveryOrderBoard());
+    public static FreightTransferProgress captureVisitProgress(@Nullable FreightManifestStationState stationState, Train train) {
+        return captureVisitProgress(stationState, train, Long.MIN_VALUE);
     }
 
-    public static FreightTransferProgress previewProgress(Train train) {
-        CompoundTag context = findActiveManifestContext(train.runtime);
-        if (context == null) {
+    public static FreightTransferProgress captureVisitProgress(@Nullable FreightManifestStationState stationState,
+                                                               Train train, long currentTick) {
+        if (stationState == null || !stationState.isVisitActive(train.id)) {
             return FreightTransferProgress.empty(TrainCargoSnapshot.capture(train));
         }
-        return captureProgress(train, context, false).progress();
+        TrainCargoSnapshot current = stationState.isVisitSnapshotTaken()
+            && stationState.getVisitLastSeenTick() == currentTick
+                ? stationState.getVisitLastSnapshot()
+                : TrainCargoSnapshot.capture(train);
+        return new FreightTransferProgress(current, stationState.getVisitMovedToStation(), stationState.getVisitMovedToTrain());
     }
 
     public static DeliveryOrderBoard loadArrivalBoard(CompoundTag context) {
@@ -228,9 +315,16 @@ public final class FreightManifestLogic {
                     yield false;
                 }
                 state.markComplete(line.getAmount(), currentTick);
+                if (DeliveryOrderLifecyclePolicy.archivesOnCompletion(line.getResetMode())) {
+                    state.setDismissed(true);
+                }
                 yield true;
             }
             case TOGGLE_DISMISSED -> {
+                if (DeliveryOrderLifecyclePolicy.archivesOnCompletion(line.getResetMode())
+                        && state.isComplete(line.getAmount())) {
+                    yield false;
+                }
                 if (!state.isComplete(line.getAmount()) && !state.isDismissed()) {
                     yield false;
                 }
@@ -249,7 +343,9 @@ public final class FreightManifestLogic {
                 yield true;
             }
             case SHOW_HIDDEN -> {
-                if (!state.isDismissed()) {
+                if (!state.isDismissed()
+                        || (DeliveryOrderLifecyclePolicy.archivesOnCompletion(line.getResetMode())
+                            && state.isComplete(line.getAmount()))) {
                     yield false;
                 }
                 state.setDismissed(false);
@@ -336,38 +432,47 @@ public final class FreightManifestLogic {
         return FreightManifestEvaluationResult.complete();
     }
 
+    // stray cargo is reported but never holds a train
     private static FreightManifestEvaluationResult evaluateCompletion(FreightManifest manifest, DeliveryOrderBoard arrivalBoard,
-                                                                     DeliveryOrderBoard persistentBoard,
-                                                                     TrainCargoSnapshot remainingToStation,
-                                                                     TrainCargoSnapshot remainingToTrain) {
+                                                                     DeliveryOrderBoard persistentBoard, String unaccountedNote) {
+        List<String> outstanding = new ArrayList<>();
+        for (FreightManifestLine line : manifest.getLines()) {
+            DeliveryOrderLineState state = getStateForLine(line, arrivalBoard, persistentBoard, 0L, false);
+            if (state == null || !state.isComplete(line.getAmount())) {
+                outstanding.add(buildWaitingMessage(line, state));
+            }
+        }
+        if (outstanding.isEmpty()) {
+            return FreightManifestEvaluationResult.complete();
+        }
+        String waiting = outstanding.size() == 1
+            ? outstanding.get(0)
+            : outstanding.get(0) + " (+" + (outstanding.size() - 1) + " more)";
+        return FreightManifestEvaluationResult.waiting(
+            unaccountedNote == null || unaccountedNote.isEmpty() ? waiting : waiting + " | " + unaccountedNote);
+    }
+
+    private static String describeUnaccountedCargo(FreightManifest manifest, TrainCargoSnapshot remainingToStation,
+                                                   TrainCargoSnapshot remainingToTrain) {
         Set<FreightManifestResourceKey> configuredUnloads = buildConfiguredKeys(manifest, ManifestOperation.UNLOAD);
         Set<FreightManifestResourceKey> configuredLoads = buildConfiguredKeys(manifest, ManifestOperation.LOAD);
         for (Map.Entry<FreightManifestResourceKey, Integer> entry : remainingToStation.getAmounts().entrySet()) {
             if (entry.getValue() > 0) {
-                if (configuredUnloads.contains(entry.getKey())) {
-                    return FreightManifestEvaluationResult.waiting("Unloaded too much "
-                        + formatAmount(entry.getKey().getCargoKind(), entry.getValue()) + " " + describeResource(entry.getKey()));
-                }
-                return FreightManifestEvaluationResult.waiting("Unexpected unload to station: " + describeResource(entry.getKey()));
+                String amount = formatAmount(entry.getKey().getCargoKind(), entry.getValue());
+                return configuredUnloads.contains(entry.getKey())
+                    ? "unaccounted unload of " + amount + " " + describeResource(entry.getKey())
+                    : "unexpected unload of " + amount + " " + describeResource(entry.getKey());
             }
         }
         for (Map.Entry<FreightManifestResourceKey, Integer> entry : remainingToTrain.getAmounts().entrySet()) {
             if (entry.getValue() > 0) {
-                if (configuredLoads.contains(entry.getKey())) {
-                    return FreightManifestEvaluationResult.waiting("Loaded too much "
-                        + formatAmount(entry.getKey().getCargoKind(), entry.getValue()) + " " + describeResource(entry.getKey()));
-                }
-                return FreightManifestEvaluationResult.waiting("Unexpected load from station: " + describeResource(entry.getKey()));
+                String amount = formatAmount(entry.getKey().getCargoKind(), entry.getValue());
+                return configuredLoads.contains(entry.getKey())
+                    ? "unaccounted load of " + amount + " " + describeResource(entry.getKey())
+                    : "unexpected load of " + amount + " " + describeResource(entry.getKey());
             }
         }
-
-        for (FreightManifestLine line : manifest.getLines()) {
-            DeliveryOrderLineState state = getStateForLine(line, arrivalBoard, persistentBoard, 0L, false);
-            if (state == null || !state.isComplete(line.getAmount())) {
-                return FreightManifestEvaluationResult.waiting(buildWaitingMessage(line, state));
-            }
-        }
-        return FreightManifestEvaluationResult.complete();
+        return "";
     }
 
     private static String buildWaitingMessage(FreightManifestLine line, @Nullable DeliveryOrderLineState state) {
@@ -411,14 +516,18 @@ public final class FreightManifestLogic {
     }
 
     private static String buildLineStatus(FreightManifestLine line, @Nullable DeliveryOrderLineState state, boolean complete,
-                                          boolean dismissed, boolean trainPresent, boolean arrivalTrackingActive, long currentTick) {
+                                          boolean dismissed, boolean trainPresent, boolean arrivalTrackingActive,
+                                          boolean historic, long currentTick) {
         if (!line.hasSelection() || line.getAmount() <= 0) {
             return "Line needs setup";
         }
         if (complete) {
+            if (historic) {
+                return dismissed ? "Delivered last visit (dismissed)" : "Delivered last visit";
+            }
             return switch (line.getResetMode()) {
                 case EVERY_ARRIVAL -> dismissed ? "Complete for this arrival (dismissed)" : "Complete for this arrival";
-                case ONCE -> dismissed ? "Satisfied once (dismissed)" : "Satisfied once";
+                case ONCE -> dismissed ? "Fulfilled (dismissed)" : "Fulfilled - one-shot order";
                 case MINECRAFT_DAY -> dismissed ? "Complete until next day (dismissed)" : "Complete until next day";
                 case EVERY_X_MINUTES, EVERY_X_HOURS -> dismissed
                     ? "Complete until refresh (dismissed)"
@@ -427,10 +536,17 @@ public final class FreightManifestLogic {
         }
         int delivered = state == null ? 0 : Math.min(state.getDeliveredAmount(), Math.max(0, line.getAmount()));
         if (delivered > 0) {
-            return "In progress: " + formatAmount(line.getCargoKind(), delivered) + " / " + formatAmount(line.getCargoKind(), line.getAmount());
+            String figures = formatAmount(line.getCargoKind(), delivered) + " / " + formatAmount(line.getCargoKind(), line.getAmount());
+            return historic ? "Last visit: " + figures + " - short" : "In progress: " + figures;
         }
-        if (line.getResetMode() == DeliveryOrderResetMode.EVERY_ARRIVAL && !arrivalTrackingActive) {
-            return trainPresent ? "Waiting for Cargo Manifest Met to track this arrival" : "Waiting for next arrival";
+
+        if (trainPresent && !arrivalTrackingActive) {
+            return line.getOperation() == ManifestOperation.UNLOAD
+                ? "Unloading - add Cargo Manifest Met to hold the train"
+                : "Loading - add Cargo Manifest Met to hold the train";
+        }
+        if (line.getResetMode() == DeliveryOrderResetMode.EVERY_ARRIVAL) {
+            return "Waiting for next arrival";
         }
         long ticksUntilReset = getTicksUntilReset(line, state, currentTick);
         if (ticksUntilReset > 0L && line.getResetMode().isPersistent()) {
@@ -449,7 +565,7 @@ public final class FreightManifestLogic {
             summary += " | " + dismissedOrders + " dismissed";
         }
         if (cargoView != null && cargoView.isTrainPresent()) {
-            summary += arrivalTrackingActive ? " | tracking current arrival" : " | live train present";
+            summary += arrivalTrackingActive ? " | train held for manifest" : " | train present, not held";
         }
         return summary;
     }
@@ -483,7 +599,6 @@ public final class FreightManifestLogic {
             if (state == null || state.isComplete(line.getAmount())) {
                 continue;
             }
-            boolean wasComplete = state.isComplete(line.getAmount());
             TrainCargoSnapshot source = line.getOperation() == ManifestOperation.UNLOAD ? remainingToStation : remainingToTrain;
             int available = source.getAmount(key);
             if (available <= 0) {
@@ -500,38 +615,18 @@ public final class FreightManifestLogic {
             } else {
                 arrivalChanged = true;
             }
-            if (!wasComplete && state.isComplete(line.getAmount()) && stationState != null) {
-                stationState.addHistory(DeliveryOrderHistoryType.COMPLETED, currentTick, "Completed", describeLine(line));
+            if (state.isComplete(line.getAmount()) && stationState != null) {
+                boolean oneShot = DeliveryOrderLifecyclePolicy.archivesOnCompletion(line.getResetMode());
+                if (oneShot) {
+                    state.setDismissed(true);
+                }
+                String train = stationState.getVisitTrainName();
+                String detail = describeLine(line) + (train.isEmpty() ? "" : " | " + train);
+                stationState.addHistory(DeliveryOrderHistoryType.COMPLETED, currentTick,
+                    oneShot ? "One-shot Archived" : "Completed", detail);
             }
         }
         return new AllocationResult(remainingToStation, remainingToTrain, arrivalChanged, persistentChanged);
-    }
-
-    private static ProgressCapture captureProgress(Train train, CompoundTag context, boolean persist) {
-        TrainCargoSnapshot currentSnapshot = TrainCargoSnapshot.capture(train);
-        if (!context.contains(ARRIVAL_SNAPSHOT_KEY)) {
-            if (persist) {
-                initializeProgress(train, context);
-            }
-            return new ProgressCapture(FreightTransferProgress.empty(currentSnapshot), new TrainCargoSnapshot(), new TrainCargoSnapshot());
-        }
-
-        TrainCargoSnapshot lastSnapshot = context.contains(LAST_SNAPSHOT_KEY)
-            ? TrainCargoSnapshot.load(context.getCompound(LAST_SNAPSHOT_KEY))
-            : TrainCargoSnapshot.load(context.getCompound(ARRIVAL_SNAPSHOT_KEY));
-        TrainCargoSnapshot movedToStation = TrainCargoSnapshot.load(context.getCompound(TO_STATION_KEY));
-        TrainCargoSnapshot movedToTrain = TrainCargoSnapshot.load(context.getCompound(TO_TRAIN_KEY));
-        TrainCargoSnapshot stepToStation = new TrainCargoSnapshot();
-        TrainCargoSnapshot stepToTrain = new TrainCargoSnapshot();
-        applyStepDelta(lastSnapshot, currentSnapshot, movedToStation, movedToTrain, stepToStation, stepToTrain);
-
-        if (persist) {
-            context.put(LAST_SNAPSHOT_KEY, currentSnapshot.save());
-            context.put(TO_STATION_KEY, movedToStation.save());
-            context.put(TO_TRAIN_KEY, movedToTrain.save());
-        }
-
-        return new ProgressCapture(new FreightTransferProgress(currentSnapshot, movedToStation, movedToTrain), stepToStation, stepToTrain);
     }
 
     private static Map<FreightManifestResourceKey, Integer> buildExpectedAmounts(FreightManifest manifest, ManifestOperation operation) {
@@ -559,7 +654,6 @@ public final class FreightManifestLogic {
     }
 
     private static void applyStepDelta(TrainCargoSnapshot previousSnapshot, TrainCargoSnapshot currentSnapshot,
-                                       TrainCargoSnapshot movedToStation, TrainCargoSnapshot movedToTrain,
                                        TrainCargoSnapshot stepToStation, TrainCargoSnapshot stepToTrain) {
         Set<FreightManifestResourceKey> keys = new HashSet<>();
         keys.addAll(previousSnapshot.getAmounts().keySet());
@@ -567,10 +661,8 @@ public final class FreightManifestLogic {
         for (FreightManifestResourceKey key : keys) {
             int delta = currentSnapshot.getAmount(key) - previousSnapshot.getAmount(key);
             if (delta > 0) {
-                movedToTrain.addAmount(key, delta);
                 stepToTrain.addAmount(key, delta);
             } else if (delta < 0) {
-                movedToStation.addAmount(key, -delta);
                 stepToStation.addAmount(key, -delta);
             }
         }
@@ -585,12 +677,15 @@ public final class FreightManifestLogic {
             return null;
         }
         var groups = runtime.getSchedule().entries.get(runtime.currentEntry).conditions;
-        int limit = Math.min(groups.size(), runtime.conditionContext.size());
+        int limit = Math.min(groups.size(), Math.min(runtime.conditionContext.size(), runtime.conditionProgress.size()));
         for (int groupIndex = 0; groupIndex < limit; groupIndex++) {
-            for (ScheduleWaitCondition condition : groups.get(groupIndex)) {
-                if (condition instanceof CargoManifestMetCondition) {
-                    return runtime.conditionContext.get(groupIndex);
-                }
+            List<ScheduleWaitCondition> group = groups.get(groupIndex);
+            Integer progress = runtime.conditionProgress.get(groupIndex);
+            if (progress == null || progress < 0 || progress >= group.size()) {
+                continue;
+            }
+            if (group.get(progress) instanceof CargoManifestMetCondition) {
+                return runtime.conditionContext.get(groupIndex);
             }
         }
         return null;
@@ -627,10 +722,6 @@ public final class FreightManifestLogic {
             case ONCE -> "once";
             case EVERY_ARRIVAL -> "arrival";
         };
-    }
-
-    private record ProgressCapture(FreightTransferProgress progress, TrainCargoSnapshot stepToStation,
-                                   TrainCargoSnapshot stepToTrain) {
     }
 
     private record AllocationResult(TrainCargoSnapshot remainingToStation, TrainCargoSnapshot remainingToTrain,

@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class MiniDisplayBE extends BlockEntity implements IAutoDataReceiver {
-
     private static final long LINK_TIMEOUT_TICKS = 60L;
     private static final long LINK_HOLD_TICKS = 100L;
     private static final float EPSILON = 0.01f;
@@ -404,8 +403,7 @@ public class MiniDisplayBE extends BlockEntity implements IAutoDataReceiver {
         return switch (this.activeSourceKind) {
             case ITEM_STORAGE -> "Fill " + String.format("%.1f%%", this.activeFillPercent) + " | " + String.format("%.0f", this.activeTotalItems) + " items";
             case FLUID_STORAGE, BOILER -> "Fill " + String.format("%.1f%%", this.activeFillPercent) + " | " + MetricType.FLUID_MB.formatValue(this.activeFluidAmount);
-            // A grid reports the same energy_fill_pct and energy_stored aliases, so it reads out
-            // exactly like any other energy source here.
+
             case ENERGY_STORAGE, POWER_GRID -> "Energy " + String.format("%.1f%%", this.activeFillPercent) + " | " + MetricType.ENERGY_FE.formatValue(this.activeFluidAmount);
             case KINETIC_STRESS -> "Stress " + String.format("%.1f%%", this.activeStressPercent) + " | "
                     + InstrumentRenderPrimitives.formatCompact(this.activeStressUsed) + " / "
@@ -1085,7 +1083,6 @@ public class MiniDisplayBE extends BlockEntity implements IAutoDataReceiver {
                               boolean firstDetailPresent, String firstDetailLabel, float firstDetailValue,
                               boolean secondDetailPresent, String secondDetailLabel, float secondDetailValue,
                               boolean hasRenderableData) {
-
         private static Evaluation empty(DisplayState displayState, InstrumentSourceHelper.SourceKind sourceKind,
                                         @Nullable BlockPos sourcePos, String sourceType) {
             return new Evaluation(displayState, sourceKind, sourcePos, sourceType,

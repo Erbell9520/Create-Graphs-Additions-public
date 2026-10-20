@@ -57,13 +57,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.world.item.Item;
 import javax.annotation.Nullable;
 
-/**
- * Dispatch Board block, wall-only, expandable multiblock.
- * Each placed block is either a controller or a member.
- * All freight data, packet resolution, and GUI opening delegate to the controller.
- */
 public class DispatchBoardBlock extends HorizontalDirectionalBlock implements EntityBlock {
-
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape WALL_NORTH = Block.box(0, 0, 11, 16, 16, 16);
     private static final VoxelShape WALL_SOUTH = Block.box(0, 0, 0, 16, 16, 5);
@@ -94,14 +88,14 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction clickedFace = context.getClickedFace();
-        // Wall-only: require a horizontal face click with a solid wall behind it
+
         if (clickedFace.getAxis().isHorizontal()) {
             BlockState wallState = this.defaultBlockState().setValue(FACING, clickedFace);
             if (wallState.canSurvive(context.getLevel(), context.getClickedPos())) {
                 return wallState;
             }
         }
-        // As a fallback, try the opposite of the player's horizontal direction (still wall-mounted)
+
         Direction playerFacing = context.getHorizontalDirection().getOpposite();
         BlockState fallback = this.defaultBlockState().setValue(FACING, playerFacing);
         return fallback.canSurvive(context.getLevel(), context.getClickedPos()) ? fallback : null;
@@ -121,7 +115,6 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        // Wall-only: needs a sturdy face behind the board
         BlockPos supportPos = pos.relative(state.getValue(FACING).getOpposite());
         return level.getBlockState(supportPos).isFaceSturdy(level, supportPos, state.getValue(FACING));
     }
@@ -156,7 +149,6 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        // Resolve to the controller for all interactions
         DispatchBoardBE controller = clickedBoard.getControllerBE();
         ItemInteractionResult antennaResult = AntennaAttachmentHelper.handleUse(stack, level, player, hand, controller);
         if (antennaResult != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
@@ -203,10 +195,12 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
         }
 
         controller.refreshSummary();
+        controller.refreshRosterForScreenIfStale();
         boolean canEdit = canEdit(serverPlayer, link);
-        // Always send the controller position so the client screen targets the controller
+
         PacketDistributor.sendToPlayer(serverPlayer,
-            new OpenDispatchBoardPacket(controller.getBlockPos(), link, controller.getManifest(), controller.getCargoView(), controller.getDeliveryBoard(), canEdit));
+            new OpenDispatchBoardPacket(controller.getBlockPos(), link, controller.getManifest(),
+                controller.getCargoView(), controller.getDeliveryBoard(), controller.getStationRoster(), canEdit));
         return ItemInteractionResult.CONSUME;
     }
 
@@ -232,10 +226,12 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
         }
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof DispatchBoardBE dispatchBoard) {
-            dispatchBoard.setStationLink(FreightManifestClipboardItem.getStationLink(stack));
+            FreightStationLink placedLink = FreightManifestClipboardItem.getStationLink(stack);
+            if (placedLink.isLinked()) {
+                dispatchBoard.setStationLink(placedLink);
+            }
         }
 
-        // Auto-fill gaps in a line (like StatsDisplayPanelBlock)
         if (!(placer instanceof Player player)) return;
         if (player.isShiftKeyDown()) return;
 
@@ -262,7 +258,6 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
             }
         }
         if (connected.size() < 2) {
-            // Still trigger formation for this single block
             if (be instanceof DispatchBoardBE db) db.detectAndFormMultiblock();
             return;
         }
@@ -280,7 +275,7 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
             minV = Math.min(minV, v);
             maxV = Math.max(maxV, v);
         }
-        // Only auto-fill if connected blocks form a line (1D)
+
         if (minH != maxH && minV != maxV) {
             if (be instanceof DispatchBoardBE db) db.detectAndFormMultiblock();
             return;
@@ -317,7 +312,7 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
             for (BlockPos fillPos : toFill) {
                 if (placed >= available) break;
                 if (!level.getBlockState(fillPos).canBeReplaced()) continue;
-                // Validate wall support
+
                 BlockState newState = this.defaultBlockState().setValue(FACING, facing);
                 if (!newState.canSurvive(level, fillPos)) continue;
                 level.setBlock(fillPos, newState, 3);
@@ -338,7 +333,6 @@ public class DispatchBoardBlock extends HorizontalDirectionalBlock implements En
             }
         }
 
-        // Trigger multiblock formation
         if (be instanceof DispatchBoardBE db) {
             db.detectAndFormMultiblock();
         }

@@ -1,0 +1,213 @@
+{
+  "__generator": "gen_powered_door.py",
+  "textures": {
+    "glass": "create_stats:block/powered_door/copper_glass",
+    "particle": "create_stats:block/powered_door/copper_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        21,
+        1
+      ],
+      "to": [
+        8,
+        25,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            7,
+            12,
+            11
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            4,
+            7,
+            8,
+            11
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            1,
+            7,
+            3,
+            11
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            1,
+            7,
+            3,
+            11
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            4,
+            1,
+            8,
+            3
+          ],
+          "texture": "#glass"
+        },
+        "down": {
+          "uv": [
+            4,
+            1,
+            8,
+            3
+          ],
+          "texture": "#glass"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        20,
+        1
+      ],
+      "to": [
+        8,
+        21,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            11,
+            11,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            5,
+            11,
+            8,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            1,
+            11,
+            3,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            1,
+            11,
+            3,
+            12
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            5,
+            1,
+            8,
+            3
+          ],
+          "texture": "#glass"
+        },
+        "down": {
+          "uv": [
+            5,
+            1,
+            8,
+            3
+          ],
+          "texture": "#glass"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        25,
+        1
+      ],
+      "to": [
+        8,
+        26,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            6,
+            11,
+            7
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            5,
+            6,
+            8,
+            7
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            1,
+            6,
+            3,
+            7
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            1,
+            6,
+            3,
+            7
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            5,
+            1,
+            8,
+            3
+          ],
+          "texture": "#glass"
+        },
+        "down": {
+          "uv": [
+            5,
+            1,
+            8,
+            3
+          ],
+          "texture": "#glass"
+        }
+      }
+    }
+  ]
+}

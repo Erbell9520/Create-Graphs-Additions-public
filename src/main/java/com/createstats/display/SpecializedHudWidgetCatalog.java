@@ -61,15 +61,15 @@ public final class SpecializedHudWidgetCatalog {
                     def(StressometerHudState.Part.BOILER_ENGINES, "Engines / Whistles", "engines", "engines", "whistles")
             );
             case "factory.production" -> List.of(
-                    // Primary key "throughput" uses label-substring match to find "Throughput • {item}" channels
+
                     def(StressometerHudState.Part.PRODUCTION_RATE, "Throughput", "throughput", "throughput", "total_seen"),
                     def(StressometerHudState.Part.PRODUCTION_TOTAL, "Total Seen", "total_seen", "total_seen"),
                     def(StressometerHudState.Part.PRODUCTION_CONTENT, "Content View", "total_items", "total_items", "unique_types")
             );
             case "factory.panel" -> List.of(
-                    // Primary key "stock" uses label-substring match to find "{item} Stock" channels
+
                     def(StressometerHudState.Part.FACTORY_STOCK, "Factory Stock", "stock", "stock", "target"),
-                    // Primary key "target" uses label-substring match to find "{item} Target" channels
+
                     def(StressometerHudState.Part.FACTORY_SHORTFALL, "Shortfall / Target", "target", "target", "promised", "stock")
             );
             case "logistics.train" -> List.of(

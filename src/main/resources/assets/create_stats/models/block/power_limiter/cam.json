@@ -1,0 +1,441 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "tones": "create_stats:block/power_limiter_tones",
+    "particle": "create_stats:block/power_limiter_tones"
+  },
+  "elements": [
+    {
+      "__comment": "grip_0",
+      "from": [
+        7.192,
+        14.1,
+        7.55
+      ],
+      "to": [
+        8.808,
+        14.8,
+        11.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "south": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "east": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "west": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            2.5,
+            1.5,
+            3.5
+          ],
+          "texture": "#tones"
+        }
+      }
+    },
+    {
+      "__comment": "grip_1",
+      "from": [
+        6.05,
+        14.1,
+        8.692
+      ],
+      "to": [
+        9.95,
+        14.775,
+        10.308
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "south": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "east": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "west": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            2.5,
+            1.5,
+            3.5
+          ],
+          "texture": "#tones"
+        }
+      },
+      "rotation": {
+        "angle": -45.0,
+        "axis": "y",
+        "origin": [
+          8.0,
+          8.0,
+          9.5
+        ]
+      }
+    },
+    {
+      "__comment": "grip_2",
+      "from": [
+        6.05,
+        14.1,
+        8.692
+      ],
+      "to": [
+        9.95,
+        14.75,
+        10.308
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "south": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "east": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "west": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            2.5,
+            1.5,
+            3.5
+          ],
+          "texture": "#tones"
+        }
+      }
+    },
+    {
+      "__comment": "grip_3",
+      "from": [
+        7.192,
+        14.1,
+        7.55
+      ],
+      "to": [
+        8.808,
+        14.725,
+        11.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "south": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "east": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "west": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            0.5,
+            11.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            2.5,
+            1.5,
+            3.5
+          ],
+          "texture": "#tones"
+        }
+      },
+      "rotation": {
+        "angle": -45.0,
+        "axis": "y",
+        "origin": [
+          8.0,
+          8.0,
+          9.5
+        ]
+      }
+    },
+    {
+      "__comment": "blade",
+      "from": [
+        7.38,
+        14.8,
+        7.85
+      ],
+      "to": [
+        8.62,
+        15.4,
+        10.85
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "south": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "east": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "west": {
+          "uv": [
+            12.5,
+            0.5,
+            13.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "up": {
+          "uv": [
+            14.5,
+            0.5,
+            15.5,
+            1.5
+          ],
+          "texture": "#tones"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            2.5,
+            1.5,
+            3.5
+          ],
+          "texture": "#tones"
+        }
+      }
+    },
+    {
+      "__comment": "blade_nose",
+      "from": [
+        7.38,
+        14.8,
+        6.95
+      ],
+      "to": [
+        8.62,
+        15.25,
+        7.85
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ],
+          "texture": "#tones"
+        },
+        "south": {
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ],
+          "texture": "#tones"
+        },
+        "east": {
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ],
+          "texture": "#tones"
+        },
+        "west": {
+          "uv": [
+            6.5,
+            2.5,
+            7.5,
+            3.5
+          ],
+          "texture": "#tones"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            2.5,
+            5.5,
+            3.5
+          ],
+          "texture": "#tones"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            2.5,
+            1.5,
+            3.5
+          ],
+          "texture": "#tones"
+        }
+      }
+    }
+  ]
+}

@@ -8,20 +8,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** [1] */
+// fifteen rows reading "Induction Range" is a wall
 public final class PduDeviceIds {
-
-    /** [2] */
     public static final int PRUNE_ABOVE = 1024;
 
-    /** Two digits is what fits a row without crowding it; beyond that the number just grows. */
     public static final int DISPLAY_DIGITS = 2;
 
     private final Map<BlockPos, Integer> assigned = new HashMap<>();
-    /** The name each position was numbered under, so a block replaced by a different one renumbers. */
+
     private final Map<BlockPos, String> namedAs = new HashMap<>();
 
-    /** Drops every assignment. For a PDU that has been broken and replaced. */
     public void clear() {
         assigned.clear();
         namedAs.clear();
@@ -31,25 +27,16 @@ public final class PduDeviceIds {
         return assigned.size();
     }
 
-    /** The number this position holds, or 0 if it has never been given one. */
     public int peek(BlockPos pos) {
         return assigned.getOrDefault(pos, 0);
     }
 
-    /**
-     * The number for this device, assigning one if it has none.
-     *
-     * @param pos     where the device is
-     * @param name    its display name, which scopes the numbering
-     * @param present every position on the branch right now, so a number in use is not handed out twice
-     * @return a number from 1 up
-     */
     public int idFor(BlockPos pos, String name, Map<BlockPos, String> present) {
         final Integer existing = assigned.get(pos);
         if (existing != null && name.equals(namedAs.get(pos))) {
             return existing;
         }
-        // [3]
+
         final Set<Integer> taken = new HashSet<>();
         for (Map.Entry<BlockPos, Integer> entry : assigned.entrySet()) {
             if (entry.getKey().equals(pos)) {
@@ -71,13 +58,11 @@ public final class PduDeviceIds {
         return candidate;
     }
 
-    /** Forgets every position not in the given set. Only called once the table has grown too large. */
     public void prune(Set<BlockPos> keep) {
         assigned.keySet().retainAll(keep);
         namedAs.keySet().retainAll(keep);
     }
 
-    /** [4] */
     public void assignAll(Map<BlockPos, String> present) {
         final List<BlockPos> pending = new java.util.ArrayList<>();
         for (Map.Entry<BlockPos, String> entry : present.entrySet()) {
@@ -103,7 +88,6 @@ public final class PduDeviceIds {
         }
     }
 
-    /** [5] */
     public static String label(String name, int id, boolean unique) {
         if (id <= 0 || unique) {
             return name;

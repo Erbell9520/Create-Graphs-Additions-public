@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:machines/safety_clutch",
+  "display": {
+    "icon": {
+      "id": "create_stats:auto_transmission_clutch"
+    },
+    "title": {
+      "translate": "advancement.create_stats.machines.auto_clutch.title",
+      "fallback": "Automatic Licence"
+    },
+    "description": {
+      "translate": "advancement.create_stats.machines.auto_clutch.description",
+      "fallback": "Place an Auto Variable Clutch. Your uncle says that licence does not count."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "auto": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:auto_transmission_clutch"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "auto"
+    ]
+  ]
+}

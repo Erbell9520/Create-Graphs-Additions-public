@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class MiniDisplayDisplaySource extends DisplaySource implements StatsLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         final BlockEntity be = context.getSourceBlockEntity();

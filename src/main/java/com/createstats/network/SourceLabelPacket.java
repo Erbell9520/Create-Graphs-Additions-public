@@ -16,33 +16,33 @@ public class SourceLabelPacket implements CustomPacketPayload
     private final BlockPos panelPos;
     private final String sourceId;
     private final String newLabel;
-    
+
     public static final CustomPacketPayload.Type<SourceLabelPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "source_label"));
     public static final StreamCodec<FriendlyByteBuf, SourceLabelPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), SourceLabelPacket::new);
-    
+
     public SourceLabelPacket(BlockPos panelPos, String sourceId, String newLabel) {
         this.panelPos = panelPos;
         this.sourceId = sourceId;
         this.newLabel = newLabel;
     }
-    
+
     public SourceLabelPacket(FriendlyByteBuf buf) {
         this.panelPos = buf.readBlockPos();
         this.sourceId = buf.readUtf(256);
         this.newLabel = buf.readUtf(256);
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.panelPos);
         buf.writeUtf(this.sourceId, 256);
         buf.writeUtf(this.newLabel, 256);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(SourceLabelPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();
@@ -50,6 +50,12 @@ public class SourceLabelPacket implements CustomPacketPayload
                 return;
             }
             else {
+                // range check or anyone can rename any panel and load the chunk doing it
+
+                if (player.distanceToSqr(packet.panelPos.getX() + 0.5, packet.panelPos.getY() + 0.5,
+                        packet.panelPos.getZ() + 0.5) > 64.0 * 64.0) {
+                    return;
+                }
                 final BlockEntity be = player.level().getBlockEntity(packet.panelPos);
                 if (be instanceof StatsDisplayPanelBE panel) {
                     final SourceConfig config = panel.getSourceRegistry().get(packet.sourceId);

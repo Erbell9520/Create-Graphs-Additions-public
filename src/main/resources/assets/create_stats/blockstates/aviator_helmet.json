@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/aviator_helmet_placed"
+    },
+    "facing=east": {
+      "model": "create_stats:block/aviator_helmet_placed",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/aviator_helmet_placed",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/aviator_helmet_placed",
+      "y": 270
+    }
+  }
+}

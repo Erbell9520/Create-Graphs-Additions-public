@@ -1,0 +1,237 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "rubber": "create_stats:block/seismic_scanner/rubber",
+    "steel": "create_stats:block/seismic_scanner/steel",
+    "steel_dark": "create_stats:block/seismic_scanner/steel_dark",
+    "particle": "create_stats:block/seismic_scanner/frame"
+  },
+  "elements": [
+    {
+      "__comment": "lever_boss",
+      "from": [
+        15.4,
+        5.75,
+        7.444
+      ],
+      "to": [
+        15.85,
+        6.75,
+        8.444
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            15.4,
+            7.444,
+            15.85,
+            8.444
+          ],
+          "texture": "#steel_dark"
+        },
+        "down": {
+          "uv": [
+            15.4,
+            7.556,
+            15.85,
+            8.556
+          ],
+          "texture": "#steel_dark"
+        },
+        "north": {
+          "uv": [
+            0.15,
+            9.25,
+            0.6,
+            10.25
+          ],
+          "texture": "#steel_dark"
+        },
+        "south": {
+          "uv": [
+            15.4,
+            9.25,
+            15.85,
+            10.25
+          ],
+          "texture": "#steel_dark"
+        },
+        "east": {
+          "uv": [
+            7.556,
+            9.25,
+            8.556,
+            10.25
+          ],
+          "texture": "#steel_dark"
+        },
+        "west": {
+          "uv": [
+            7.444,
+            9.25,
+            8.444,
+            10.25
+          ],
+          "texture": "#steel_dark"
+        }
+      }
+    },
+    {
+      "__comment": "lever_arm",
+      "from": [
+        15.2,
+        6.25,
+        7.694
+      ],
+      "to": [
+        15.7,
+        13.0,
+        8.194
+      ],
+      "rotation": {
+        "origin": [
+          15.45,
+          6.25,
+          7.944
+        ],
+        "axis": "x",
+        "angle": -22.5
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            15.2,
+            7.694,
+            15.7,
+            8.194
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            15.2,
+            7.806,
+            15.7,
+            8.306
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0.3,
+            3.0,
+            0.8,
+            9.75
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            15.2,
+            3.0,
+            15.7,
+            9.75
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            7.806,
+            3.0,
+            8.306,
+            9.75
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            7.694,
+            3.0,
+            8.194,
+            9.75
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "__comment": "lever_grip",
+      "from": [
+        14.9,
+        12.6,
+        7.394
+      ],
+      "to": [
+        16.0,
+        13.7,
+        8.494
+      ],
+      "rotation": {
+        "origin": [
+          15.45,
+          6.25,
+          7.944
+        ],
+        "axis": "x",
+        "angle": -22.5
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            14.9,
+            7.394,
+            16.0,
+            8.494
+          ],
+          "texture": "#rubber"
+        },
+        "down": {
+          "uv": [
+            14.9,
+            7.506,
+            16.0,
+            8.606
+          ],
+          "texture": "#rubber"
+        },
+        "north": {
+          "uv": [
+            0.0,
+            2.3,
+            1.1,
+            3.4
+          ],
+          "texture": "#rubber"
+        },
+        "south": {
+          "uv": [
+            14.9,
+            2.3,
+            16.0,
+            3.4
+          ],
+          "texture": "#rubber"
+        },
+        "east": {
+          "uv": [
+            7.506,
+            2.3,
+            8.606,
+            3.4
+          ],
+          "texture": "#rubber"
+        },
+        "west": {
+          "uv": [
+            7.394,
+            2.3,
+            8.494,
+            3.4
+          ],
+          "texture": "#rubber"
+        }
+      }
+    }
+  ]
+}

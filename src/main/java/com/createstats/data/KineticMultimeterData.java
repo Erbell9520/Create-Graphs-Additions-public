@@ -5,9 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
-/** [1] */
 public final class KineticMultimeterData {
-
     private static final String KEY = "KMReading";
 
     public static final byte ROLE_NONE = 0;
@@ -21,7 +19,6 @@ public final class KineticMultimeterData {
 
     public record Reading(long time, float rpm, float stressUsed, float stressCap, byte role,
                           String blockId, byte state) {
-
         public static Reading empty() {
             return new Reading(0L, 0f, 0f, 0f, ROLE_NONE, "", STATE_NONET);
         }

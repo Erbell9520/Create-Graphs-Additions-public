@@ -21,7 +21,6 @@ import org.joml.Matrix4f;
 
 @OnlyIn(Dist.CLIENT)
 public class FactoryLogicControllerRenderer implements BlockEntityRenderer<FactoryLogicControllerBE> {
-
     private static final float PX = 1.0f / 16.0f;
     private static final float FACE_EPSILON = 1.0f / 512.0f;
     private static final float SCREEN_LEFT_PX = 3.15f;

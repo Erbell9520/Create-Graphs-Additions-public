@@ -1,0 +1,1325 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "horn_collar": "create_stats:block/pa_horn_collar",
+    "horn_driver": "create_stats:block/pa_horn_driver",
+    "horn_flare": "create_stats:block/pa_horn_flare",
+    "horn_mouth": "create_stats:block/pa_horn_mouth",
+    "horn_rim": "create_stats:block/pa_horn_rim",
+    "mount_back": "create_stats:block/pa_mount_back",
+    "mount_steel": "create_stats:block/pa_mount_steel"
+  },
+  "elements": [
+    {
+      "__comment": "backplate",
+      "from": [
+        4.5,
+        0.0,
+        4.5
+      ],
+      "to": [
+        11.5,
+        1.0,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            15.0,
+            11.5,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "south": {
+          "uv": [
+            4.5,
+            15.0,
+            11.5,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            15.0,
+            11.5,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            15.0,
+            11.5,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ],
+          "texture": "#mount_back"
+        },
+        "down": {
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ],
+          "texture": "#mount_back"
+        }
+      }
+    },
+    {
+      "__comment": "yoke foot",
+      "from": [
+        6.2,
+        1.0,
+        6.2
+      ],
+      "to": [
+        9.8,
+        2.0,
+        9.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.2,
+            14.0,
+            9.8,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            6.2,
+            14.0,
+            9.8,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            6.2,
+            14.0,
+            9.8,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            6.2,
+            14.0,
+            9.8,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            6.2,
+            6.2,
+            9.8,
+            9.8
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            6.2,
+            6.2,
+            9.8,
+            9.8
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "yoke arm left",
+      "from": [
+        4.4,
+        1.6,
+        6.8
+      ],
+      "to": [
+        5.6,
+        5.2,
+        9.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.4,
+            10.8,
+            5.6,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            4.4,
+            10.8,
+            5.6,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            6.8,
+            10.8,
+            9.2,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            6.8,
+            10.8,
+            9.2,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            4.4,
+            6.8,
+            5.6,
+            9.2
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            4.4,
+            6.8,
+            5.6,
+            9.2
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "yoke arm right",
+      "from": [
+        10.4,
+        1.6,
+        6.8
+      ],
+      "to": [
+        11.6,
+        5.2,
+        9.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.4,
+            10.8,
+            11.6,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            10.4,
+            10.8,
+            11.6,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            6.8,
+            10.8,
+            9.2,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            6.8,
+            10.8,
+            9.2,
+            14.4
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            10.4,
+            6.8,
+            11.6,
+            9.2
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            10.4,
+            6.8,
+            11.6,
+            9.2
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "yoke pin",
+      "from": [
+        4.4,
+        3.8,
+        7.5
+      ],
+      "to": [
+        11.6,
+        4.6,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.4,
+            11.4,
+            11.6,
+            12.2
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            4.4,
+            11.4,
+            11.6,
+            12.2
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            7.5,
+            11.4,
+            8.5,
+            12.2
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            7.5,
+            11.4,
+            8.5,
+            12.2
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            4.4,
+            7.5,
+            11.6,
+            8.5
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            4.4,
+            7.5,
+            11.6,
+            8.5
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "terminal boss",
+      "from": [
+        6.6,
+        1.0,
+        4.6
+      ],
+      "to": [
+        9.4,
+        2.8,
+        6.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.6,
+            13.2,
+            9.4,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            6.6,
+            13.2,
+            9.4,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            4.6,
+            13.2,
+            6.2,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            4.6,
+            13.2,
+            6.2,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            6.6,
+            4.6,
+            9.4,
+            6.2
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            6.6,
+            4.6,
+            9.4,
+            6.2
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "driver a",
+      "from": [
+        5.7,
+        2.0,
+        6.6
+      ],
+      "to": [
+        10.3,
+        5.4,
+        9.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.7,
+            10.6,
+            10.3,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "south": {
+          "uv": [
+            5.7,
+            10.6,
+            10.3,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "east": {
+          "uv": [
+            6.6,
+            10.6,
+            9.4,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "west": {
+          "uv": [
+            6.6,
+            10.6,
+            9.4,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "up": {
+          "uv": [
+            5.7,
+            6.6,
+            10.3,
+            9.4
+          ],
+          "texture": "#horn_driver"
+        },
+        "down": {
+          "uv": [
+            5.7,
+            6.6,
+            10.3,
+            9.4
+          ],
+          "texture": "#horn_driver"
+        }
+      }
+    },
+    {
+      "__comment": "driver b",
+      "from": [
+        6.6,
+        2.0,
+        5.7
+      ],
+      "to": [
+        9.4,
+        5.4,
+        10.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.6,
+            10.6,
+            9.4,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "south": {
+          "uv": [
+            6.6,
+            10.6,
+            9.4,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "east": {
+          "uv": [
+            5.7,
+            10.6,
+            10.3,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "west": {
+          "uv": [
+            5.7,
+            10.6,
+            10.3,
+            14.0
+          ],
+          "texture": "#horn_driver"
+        },
+        "up": {
+          "uv": [
+            6.6,
+            5.7,
+            9.4,
+            10.3
+          ],
+          "texture": "#horn_driver"
+        },
+        "down": {
+          "uv": [
+            6.6,
+            5.7,
+            9.4,
+            10.3
+          ],
+          "texture": "#horn_driver"
+        }
+      }
+    },
+    {
+      "__comment": "collar a",
+      "from": [
+        5.4,
+        5.4,
+        6.3
+      ],
+      "to": [
+        10.6,
+        6.4,
+        9.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.4,
+            9.6,
+            10.6,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "south": {
+          "uv": [
+            5.4,
+            9.6,
+            10.6,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "east": {
+          "uv": [
+            6.3,
+            9.6,
+            9.7,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "west": {
+          "uv": [
+            6.3,
+            9.6,
+            9.7,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "up": {
+          "uv": [
+            5.4,
+            6.3,
+            10.6,
+            9.7
+          ],
+          "texture": "#horn_collar"
+        },
+        "down": {
+          "uv": [
+            5.4,
+            6.3,
+            10.6,
+            9.7
+          ],
+          "texture": "#horn_collar"
+        }
+      }
+    },
+    {
+      "__comment": "collar b",
+      "from": [
+        6.3,
+        5.4,
+        5.4
+      ],
+      "to": [
+        9.7,
+        6.4,
+        10.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.3,
+            9.6,
+            9.7,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "south": {
+          "uv": [
+            6.3,
+            9.6,
+            9.7,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "east": {
+          "uv": [
+            5.4,
+            9.6,
+            10.6,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "west": {
+          "uv": [
+            5.4,
+            9.6,
+            10.6,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "up": {
+          "uv": [
+            6.3,
+            5.4,
+            9.7,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        },
+        "down": {
+          "uv": [
+            6.3,
+            5.4,
+            9.7,
+            10.6
+          ],
+          "texture": "#horn_collar"
+        }
+      }
+    },
+    {
+      "__comment": "flare 0 a",
+      "from": [
+        4.7,
+        6.4,
+        6.5
+      ],
+      "to": [
+        11.3,
+        9.4,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.7,
+            6.6,
+            11.3,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            4.7,
+            6.6,
+            11.3,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            6.5,
+            6.6,
+            9.5,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            6.5,
+            6.6,
+            9.5,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            4.7,
+            6.5,
+            11.3,
+            9.5
+          ],
+          "texture": "#horn_flare"
+        },
+        "down": {
+          "uv": [
+            4.7,
+            6.5,
+            11.3,
+            9.5
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "flare 0 b",
+      "from": [
+        6.5,
+        6.4,
+        4.7
+      ],
+      "to": [
+        9.5,
+        9.4,
+        11.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            6.6,
+            9.5,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            6.5,
+            6.6,
+            9.5,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            4.7,
+            6.6,
+            11.3,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            4.7,
+            6.6,
+            11.3,
+            9.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            4.7,
+            9.5,
+            11.3
+          ],
+          "texture": "#horn_flare"
+        },
+        "down": {
+          "uv": [
+            6.5,
+            4.7,
+            9.5,
+            11.3
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "flare 1 a",
+      "from": [
+        2.8,
+        9.4,
+        4.6
+      ],
+      "to": [
+        13.2,
+        11.0,
+        11.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.8,
+            5.0,
+            13.2,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            2.8,
+            5.0,
+            13.2,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            4.6,
+            5.0,
+            11.4,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            4.6,
+            5.0,
+            11.4,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            2.8,
+            4.6,
+            13.2,
+            11.4
+          ],
+          "texture": "#horn_flare"
+        },
+        "down": {
+          "uv": [
+            2.8,
+            4.6,
+            13.2,
+            11.4
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "flare 1 b",
+      "from": [
+        4.6,
+        9.4,
+        2.8
+      ],
+      "to": [
+        11.4,
+        11.0,
+        13.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.6,
+            5.0,
+            11.4,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            4.6,
+            5.0,
+            11.4,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            2.8,
+            5.0,
+            13.2,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            2.8,
+            5.0,
+            13.2,
+            6.6
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            4.6,
+            2.8,
+            11.4,
+            13.2
+          ],
+          "texture": "#horn_flare"
+        },
+        "down": {
+          "uv": [
+            4.6,
+            2.8,
+            11.4,
+            13.2
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "mouth plate",
+      "from": [
+        3.9,
+        11.0,
+        3.9
+      ],
+      "to": [
+        12.1,
+        11.4,
+        12.1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.9,
+            4.6,
+            12.1,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            3.9,
+            4.6,
+            12.1,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            3.9,
+            4.6,
+            12.1,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            3.9,
+            4.6,
+            12.1,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            3.9,
+            3.9,
+            12.1,
+            12.1
+          ],
+          "texture": "#horn_mouth"
+        },
+        "down": {
+          "uv": [
+            3.9,
+            3.9,
+            12.1,
+            12.1
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "rim north",
+      "from": [
+        3.2,
+        11.0,
+        2.0
+      ],
+      "to": [
+        12.8,
+        13.6,
+        4.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_mouth"
+        },
+        "east": {
+          "uv": [
+            2.0,
+            2.4,
+            4.2,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            2.0,
+            2.4,
+            4.2,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            3.2,
+            2.0,
+            12.8,
+            4.2
+          ],
+          "texture": "#horn_rim"
+        },
+        "down": {
+          "uv": [
+            3.2,
+            2.0,
+            12.8,
+            4.2
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "rim south",
+      "from": [
+        3.2,
+        11.0,
+        11.8
+      ],
+      "to": [
+        12.8,
+        13.6,
+        14.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_mouth"
+        },
+        "south": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            11.8,
+            2.4,
+            14.0,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            11.8,
+            2.4,
+            14.0,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            3.2,
+            11.8,
+            12.8,
+            14.0
+          ],
+          "texture": "#horn_rim"
+        },
+        "down": {
+          "uv": [
+            3.2,
+            11.8,
+            12.8,
+            14.0
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "rim west",
+      "from": [
+        2.0,
+        11.0,
+        3.2
+      ],
+      "to": [
+        4.2,
+        13.6,
+        12.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.0,
+            2.4,
+            4.2,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            2.0,
+            2.4,
+            4.2,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_mouth"
+        },
+        "west": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "up": {
+          "uv": [
+            2.0,
+            3.2,
+            4.2,
+            12.8
+          ],
+          "texture": "#horn_rim"
+        },
+        "down": {
+          "uv": [
+            2.0,
+            3.2,
+            4.2,
+            12.8
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    },
+    {
+      "__comment": "rim east",
+      "from": [
+        11.8,
+        11.0,
+        3.2
+      ],
+      "to": [
+        14.0,
+        13.6,
+        12.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.8,
+            2.4,
+            14.0,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "south": {
+          "uv": [
+            11.8,
+            2.4,
+            14.0,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "east": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_flare"
+        },
+        "west": {
+          "uv": [
+            3.2,
+            2.4,
+            12.8,
+            5.0
+          ],
+          "texture": "#horn_mouth"
+        },
+        "up": {
+          "uv": [
+            11.8,
+            3.2,
+            14.0,
+            12.8
+          ],
+          "texture": "#horn_rim"
+        },
+        "down": {
+          "uv": [
+            11.8,
+            3.2,
+            14.0,
+            12.8
+          ],
+          "texture": "#horn_flare"
+        }
+      }
+    }
+  ]
+}

@@ -8,6 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import org.jetbrains.annotations.Nullable;
 
 public final class AntennaLinkHelper {
@@ -25,6 +28,21 @@ public final class AntennaLinkHelper {
             return attachment.getAntennaTier();
         }
         return AntennaTier.NONE;
+    }
+
+    public static AntennaTier getAttachedTier(@Nullable Level level, @Nullable BlockPos pos) {
+        if (level == null || pos == null) {
+            return AntennaTier.NONE;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity == null) {
+            BlockState state = level.getBlockState(pos);
+            if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                    && state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
+                blockEntity = level.getBlockEntity(pos.below());
+            }
+        }
+        return getAttachedTier(blockEntity);
     }
 
     public static boolean canUseDisplayLinkAntenna(Level linkLevel, BlockPos linkPos, BlockPos targetPos,
@@ -51,7 +69,8 @@ public final class AntennaLinkHelper {
                         ? true
                         : previewTier.isCrossDimensional() && AntennaRange.isOverworldNetherPair(linkDimension, targetDimension);
             }
-            // [1]
+            // same reach test as the server or the preview lies. no tier yet = assume TRT
+
             AntennaTier effectiveTier = previewTier == null ? AntennaTier.TRT : previewTier;
             boolean isNether = Level.NETHER.location().equals(linkDimension);
             return AntennaRange.withinRangeSq(linkPos.distSqr(targetPos), baseRange, effectiveTier, isNether);
@@ -64,7 +83,7 @@ public final class AntennaLinkHelper {
             return false;
         }
         boolean targetLoaded = AntennaRange.isChunkLoaded(targetLevel, targetPos);
-        AntennaTier tier = targetLoaded ? getAttachedTier(targetLevel.getBlockEntity(targetPos)) : cachedTier;
+        AntennaTier tier = targetLoaded ? getAttachedTier(targetLevel, targetPos) : cachedTier;
         if (tier == null) {
             return false;
         }

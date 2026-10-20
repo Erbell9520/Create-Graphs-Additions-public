@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "fan_blade": "create_stats:block/arc_fan_blade",
+    "particle": "create_stats:block/arc_body"
+  },
+  "elements": [
+    {
+      "from": [
+        -0.22,
+        0.55,
+        -0.5
+      ],
+      "to": [
+        0.23,
+        2.2,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#fan_blade"
+        },
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#fan_blade"
+        },
+        "east": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#fan_blade"
+        },
+        "west": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#fan_blade"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#fan_blade"
+        },
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#fan_blade"
+        }
+      },
+      "__comment": "blade"
+    }
+  ]
+}

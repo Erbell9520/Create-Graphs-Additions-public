@@ -1,0 +1,908 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "mug_ceramic": "create_stats:block/coffee_mug_ceramic",
+    "porcelain": "create_stats:block/coffee_porcelain",
+    "brew": "create_stats:block/water_cooler_drink_spring",
+    "particle": "create_stats:block/coffee_mug_ceramic"
+  },
+  "elements": [
+    {
+      "__comment": "floor",
+      "from": [
+        2.0300000000000002,
+        2.9000000000000004,
+        3.5
+      ],
+      "to": [
+        11.030000000000001,
+        4.1000000000000005,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9,
+            9
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9,
+            9
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "wall_n",
+      "from": [
+        2.0300000000000002,
+        4.1000000000000005,
+        3.5
+      ],
+      "to": [
+        11.030000000000001,
+        12.049999999999999,
+        4.550000000000001
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            9,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "wall_s",
+      "from": [
+        2.0300000000000002,
+        4.1000000000000005,
+        11.45
+      ],
+      "to": [
+        11.030000000000001,
+        12.049999999999999,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            9,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "wall_w",
+      "from": [
+        2.0300000000000002,
+        4.1000000000000005,
+        4.550000000000001
+      ],
+      "to": [
+        3.0800000000000005,
+        12.049999999999999,
+        11.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "wall_e",
+      "from": [
+        9.98,
+        4.1000000000000005,
+        4.550000000000001
+      ],
+      "to": [
+        11.030000000000001,
+        12.049999999999999,
+        11.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "rim_n",
+      "from": [
+        1.9699999999999998,
+        12.049999999999999,
+        3.4399999999999995
+      ],
+      "to": [
+        11.09,
+        13.1,
+        4.61
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        }
+      }
+    },
+    {
+      "__comment": "rim_s",
+      "from": [
+        1.9699999999999998,
+        12.049999999999999,
+        11.39
+      ],
+      "to": [
+        11.09,
+        13.1,
+        12.56
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#porcelain"
+        }
+      }
+    },
+    {
+      "__comment": "rim_w",
+      "from": [
+        1.9699999999999998,
+        12.049999999999999,
+        4.61
+      ],
+      "to": [
+        3.1400000000000006,
+        13.1,
+        11.39
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#porcelain"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#porcelain"
+        }
+      }
+    },
+    {
+      "__comment": "rim_e",
+      "from": [
+        9.92,
+        12.049999999999999,
+        4.61
+      ],
+      "to": [
+        11.09,
+        13.1,
+        11.39
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            7,
+            1
+          ],
+          "texture": "#porcelain"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#porcelain"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "texture": "#porcelain"
+        }
+      }
+    },
+    {
+      "__comment": "handle_low",
+      "from": [
+        10.879999999999999,
+        5.6000000000000005,
+        6.95
+      ],
+      "to": [
+        12.98,
+        6.950000000000001,
+        9.05
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "handle_high",
+      "from": [
+        10.879999999999999,
+        9.950000000000001,
+        6.95
+      ],
+      "to": [
+        12.98,
+        11.299999999999999,
+        9.05
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "handle_back",
+      "from": [
+        12.98,
+        5.6000000000000005,
+        6.95
+      ],
+      "to": [
+        14.030000000000001,
+        11.299999999999999,
+        9.05
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            6
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            6
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#mug_ceramic"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#mug_ceramic"
+        }
+      }
+    },
+    {
+      "__comment": "brew",
+      "from": [
+        3.1100000000000003,
+        4.16,
+        4.58
+      ],
+      "to": [
+        9.95,
+        11.450000000000001,
+        11.42
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brew"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brew"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brew"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brew"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brew"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ],
+          "texture": "#brew"
+        }
+      }
+    }
+  ]
+}

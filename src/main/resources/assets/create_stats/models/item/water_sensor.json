@@ -1,0 +1,604 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_stats:block/water_sensor_shell",
+    "shell": "create_stats:block/water_sensor_shell",
+    "face": "create_stats:block/water_sensor_face",
+    "probe": "create_stats:block/sensor_probe"
+  },
+  "elements": [
+    {
+      "name": "head",
+      "from": [
+        5.0,
+        8.5,
+        6.7
+      ],
+      "to": [
+        11.0,
+        13.5,
+        8.6
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            2.5,
+            11.0,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            2.5,
+            11.0,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            6.7,
+            2.5,
+            8.6,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            6.7,
+            2.5,
+            8.6,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            6.7,
+            11.0,
+            8.6
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            6.7,
+            11.0,
+            8.6
+          ]
+        }
+      }
+    },
+    {
+      "name": "collar",
+      "from": [
+        4.5,
+        9.5,
+        6.7
+      ],
+      "to": [
+        11.5,
+        11.0,
+        8.9
+      ],
+      "faces": {
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            4.5,
+            5.0,
+            11.5,
+            6.5
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            6.7,
+            5.0,
+            8.9,
+            6.5
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            6.7,
+            5.0,
+            8.9,
+            6.5
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            4.5,
+            6.7,
+            11.5,
+            8.9
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            4.5,
+            6.7,
+            11.5,
+            8.9
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap",
+      "from": [
+        5.5,
+        13.5,
+        6.9
+      ],
+      "to": [
+        10.5,
+        14.5,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            1.5,
+            10.5,
+            2.5
+          ]
+        },
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            1.5,
+            10.5,
+            2.5
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            6.9,
+            1.5,
+            8.4,
+            2.5
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            6.9,
+            1.5,
+            8.4,
+            2.5
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            6.9,
+            10.5,
+            8.4
+          ]
+        }
+      }
+    },
+    {
+      "name": "bezel",
+      "from": [
+        5.5,
+        9.0,
+        8.6
+      ],
+      "to": [
+        10.5,
+        13.0,
+        9.3
+      ],
+      "faces": {
+        "south": {
+          "texture": "#face",
+          "uv": [
+            5.5,
+            3.0,
+            10.5,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            8.6,
+            3.0,
+            9.3,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            8.6,
+            3.0,
+            9.3,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            8.6,
+            10.5,
+            9.3
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            8.6,
+            10.5,
+            9.3
+          ]
+        }
+      }
+    },
+    {
+      "name": "yoke",
+      "from": [
+        6.5,
+        7.0,
+        7.0
+      ],
+      "to": [
+        9.5,
+        8.5,
+        8.3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            6.5,
+            7.5,
+            9.5,
+            9.0
+          ]
+        },
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            6.5,
+            7.5,
+            9.5,
+            9.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            7.0,
+            7.5,
+            8.3,
+            9.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            7.0,
+            7.5,
+            8.3,
+            9.0
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            6.5,
+            7.0,
+            9.5,
+            8.3
+          ]
+        }
+      }
+    },
+    {
+      "name": "bead",
+      "from": [
+        6.0,
+        6.0,
+        7.05
+      ],
+      "to": [
+        10.0,
+        7.0,
+        8.35
+      ],
+      "faces": {
+        "north": {
+          "texture": "#probe",
+          "uv": [
+            6.0,
+            9.0,
+            10.0,
+            10.0
+          ]
+        },
+        "south": {
+          "texture": "#probe",
+          "uv": [
+            6.0,
+            9.0,
+            10.0,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#probe",
+          "uv": [
+            7.05,
+            9.0,
+            8.35,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#probe",
+          "uv": [
+            7.05,
+            9.0,
+            8.35,
+            10.0
+          ]
+        },
+        "down": {
+          "texture": "#probe",
+          "uv": [
+            6.0,
+            7.05,
+            10.0,
+            8.35
+          ]
+        }
+      }
+    },
+    {
+      "name": "prong_l",
+      "from": [
+        6.5,
+        1.2,
+        7.3
+      ],
+      "to": [
+        7.5,
+        6.0,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#probe",
+          "uv": [
+            6.5,
+            10.0,
+            7.5,
+            14.8
+          ]
+        },
+        "south": {
+          "texture": "#probe",
+          "uv": [
+            6.5,
+            10.0,
+            7.5,
+            14.8
+          ]
+        },
+        "east": {
+          "texture": "#probe",
+          "uv": [
+            7.3,
+            10.0,
+            8.4,
+            14.8
+          ]
+        },
+        "west": {
+          "texture": "#probe",
+          "uv": [
+            7.3,
+            10.0,
+            8.4,
+            14.8
+          ]
+        },
+        "down": {
+          "texture": "#probe",
+          "uv": [
+            6.5,
+            7.3,
+            7.5,
+            8.4
+          ]
+        }
+      }
+    },
+    {
+      "name": "prong_r",
+      "from": [
+        8.5,
+        1.2,
+        7.3
+      ],
+      "to": [
+        9.5,
+        6.0,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#probe",
+          "uv": [
+            8.5,
+            10.0,
+            9.5,
+            14.8
+          ]
+        },
+        "south": {
+          "texture": "#probe",
+          "uv": [
+            8.5,
+            10.0,
+            9.5,
+            14.8
+          ]
+        },
+        "east": {
+          "texture": "#probe",
+          "uv": [
+            7.3,
+            10.0,
+            8.4,
+            14.8
+          ]
+        },
+        "west": {
+          "texture": "#probe",
+          "uv": [
+            7.3,
+            10.0,
+            8.4,
+            14.8
+          ]
+        },
+        "down": {
+          "texture": "#probe",
+          "uv": [
+            8.5,
+            7.3,
+            9.5,
+            8.4
+          ]
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.45
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        13,
+        7
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

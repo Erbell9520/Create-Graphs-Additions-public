@@ -8,8 +8,19 @@
       }
     ]
   },
+  "power_track_arc": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.power_track_arc",
+    "sounds": [
+      {
+        "name": "create_stats:power_track_arc",
+        "stream": false
+      }
+    ]
+  },
   "flywheel_loop": {
     "category": "block",
+    "subtitle": "subtitles.create_stats.flywheel_hum",
     "sounds": [
       {
         "name": "create_stats:flywheel_loop",
@@ -19,6 +30,7 @@
   },
   "flywheel_overstress": {
     "category": "block",
+    "subtitle": "subtitles.create_stats.flywheel_trip",
     "sounds": [
       {
         "name": "create_stats:flywheel_overstress",
@@ -28,11 +40,1300 @@
   },
   "flywheel_charged": {
     "category": "block",
+    "subtitle": "subtitles.create_stats.flywheel_charged",
     "sounds": [
       {
         "name": "create_stats:flywheel_charged",
         "stream": false
       }
     ]
-  }
+  },
+  "pa_voice.attention": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/attention",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.caution": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/caution",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.warning": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/warning",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.alert": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/alert",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.all_clear": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/all_clear",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.unit": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/unit",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.and": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/and",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.at": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/at",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.is": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/is",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.of": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/of",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.others": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/others",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.outstanding": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/outstanding",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.nominal": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/nominal",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.report": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/report",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.end_of_report": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/end_of_report",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.no_faults": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/no_faults",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.hundred": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/hundred",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.thousand": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/thousand",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.million": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/million",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.billion": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/billion",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.point": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/point",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.negative": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/negative",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.percent": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/percent",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.rpm": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/rpm",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.stress_units": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/stress_units",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.fe": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/fe",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.fe_per_tick": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/fe_per_tick",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.millibuckets": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/millibuckets",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.per_minute": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/per_minute",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.items": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/items",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.degrees": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/degrees",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.seconds": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/seconds",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.minutes": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/minutes",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.capacity": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/capacity",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.stress": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/stress",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.speed": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/speed",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.fill": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/fill",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.flow": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/flow",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.charge": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/charge",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.demand": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/demand",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.shortfall": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/shortfall",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.endurance": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/endurance",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.throughput": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/throughput",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.temperature": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/temperature",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.level": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/level",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.stock": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/stock",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.stress_network": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/stress_network",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.power_grid": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/power_grid",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.battery_bank": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/battery_bank",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.fluid_tank": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/fluid_tank",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.item_store": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/item_store",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.boiler": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/boiler",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.panel": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/panel",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.alarm": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/alarm",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.train": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/train",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.station": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/station",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.machine": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/machine",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.normal": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/normal",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.high": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/high",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.low": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/low",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.empty": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/empty",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.full": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/full",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.rising": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/rising",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.falling": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/falling",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.steady": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/steady",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.overstressed": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/overstressed",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.offline": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/offline",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.restored": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/restored",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.stopped": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/stopped",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.delayed": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/delayed",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.critical": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/critical",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.zero": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/zero",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.one": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/one",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.two": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/two",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.three": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/three",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.four": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/four",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.five": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/five",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.six": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/six",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.seven": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/seven",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.eight": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/eight",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.nine": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/nine",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.ten": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/ten",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.eleven": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/eleven",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.twelve": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/twelve",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.thirteen": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/thirteen",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.fourteen": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/fourteen",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.fifteen": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/fifteen",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.sixteen": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/sixteen",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.seventeen": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/seventeen",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.eighteen": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/eighteen",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.nineteen": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/nineteen",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.twenty": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/twenty",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.thirty": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/thirty",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.forty": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/forty",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.fifty": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/fifty",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.sixty": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/sixty",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.seventy": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/seventy",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.eighty": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/eighty",
+        "stream": false
+      }
+    ]
+  },
+  "pa_voice.ninety": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.pa_voice",
+    "sounds": [
+      {
+        "name": "create_stats:pa/ninety",
+        "stream": false
+      }
+    ]
+  },
+  "air_fryer_fan": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.air_fryer_fan",
+    "sounds": [
+      {
+        "name": "create_stats:air_fryer_fan",
+        "stream": false
+      }
+    ]
+  },
+  "air_fryer_ding": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.air_fryer_ding",
+    "sounds": [
+      {
+        "name": "create_stats:air_fryer_ding",
+        "stream": false
+      }
+    ]
+  },
+  "door.servo_loop": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.servo_loop",
+    "sounds": [
+      {
+        "name": "create_stats:door/servo_loop",
+        "stream": false
+      }
+    ]
+  },
+  "door.drum_loop": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.drum_loop",
+    "sounds": [
+      {
+        "name": "create_stats:door/drum_loop",
+        "stream": false
+      }
+    ]
+  },
+  "door.latch": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.latch",
+    "sounds": [
+      {
+        "name": "create_stats:door/latch",
+        "stream": false
+      }
+    ]
+  },
+  "door.seat": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.seat",
+    "sounds": [
+      {
+        "name": "create_stats:door/seat",
+        "stream": false
+      }
+    ]
+  },
+  "door.hinge_sweep": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.hinge_sweep",
+    "sounds": [
+      {
+        "name": "create_stats:door/hinge_sweep",
+        "stream": false
+      }
+    ]
+  },
+  "door.seal_hiss": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.seal_hiss",
+    "sounds": [
+      {
+        "name": "create_stats:door/seal_hiss",
+        "stream": false
+      }
+    ]
+  },
+  "door.knuckle": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.knuckle",
+    "sounds": [
+      {
+        "name": "create_stats:door/knuckle",
+        "stream": false
+      }
+    ]
+  },
+  "door.floor_bar": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.floor_bar",
+    "sounds": [
+      {
+        "name": "create_stats:door/floor_bar",
+        "stream": false
+      }
+    ]
+  },
+  "door.refuse": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.refuse",
+    "sounds": [
+      {
+        "name": "create_stats:door/refuse",
+        "stream": false
+      }
+    ]
+  },
+  "door.stall": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.stall",
+    "sounds": [
+      {
+        "name": "create_stats:door/stall",
+        "stream": false
+      }
+    ]
+  },
+  "door.config": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.powered_door.config",
+    "sounds": [
+      {
+        "name": "create_stats:door/config",
+        "stream": false
+      }
+    ]
+  },
+  "starter_capacitor_hum": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.starter_capacitor_hum",
+    "sounds": [
+      {
+        "name": "create_stats:starter_capacitor_hum",
+        "stream": false
+      }
+    ]
+  },
+  "starter_capacitor_clunk": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.starter_capacitor_clunk",
+    "sounds": [
+      {
+        "name": "create_stats:starter_capacitor_clunk",
+        "stream": false
+      }
+    ]
+  },
+  "starter_capacitor_crack": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.starter_capacitor_crack",
+    "sounds": [
+      {
+        "name": "create_stats:starter_capacitor_crack",
+        "stream": false
+      }
+    ]
+  },
+  "starter_capacitor_whine": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.starter_capacitor_whine",
+    "sounds": [
+      {
+        "name": "create_stats:starter_capacitor_whine",
+        "stream": false
+      }
+    ]
+  },
+  "starter_capacitor_release": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.starter_capacitor_release",
+    "sounds": [
+      {
+        "name": "create_stats:starter_capacitor_release",
+        "stream": false
+      }
+    ]
+  },
+  "dimmer_dial_tick": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.dimmer_dial_tick",
+    "sounds": [
+      {
+        "name": "create_stats:dimmer_dial_tick",
+        "stream": false
+      }
+    ]
+  },
+  "dimmer_dial_stop": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.dimmer_dial_stop",
+    "sounds": [
+      {
+        "name": "create_stats:dimmer_dial_stop",
+        "stream": false
+      }
+    ]
+  },
+  "dimmer_dial_push": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.dimmer_dial_push",
+    "sounds": [
+      {
+        "name": "create_stats:dimmer_dial_push",
+        "stream": false
+      }
+    ]
+  },
+  "dimmer_puck_tick": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.dimmer_puck_tick",
+    "sounds": [
+      {
+        "name": "create_stats:dimmer_puck_tick",
+        "stream": false
+      }
+    ]
+  },
+  "dimmer_puck_stop": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.dimmer_puck_stop",
+    "sounds": [
+      {
+        "name": "create_stats:dimmer_puck_stop",
+        "stream": false
+      }
+    ]
+  },
+  "dimmer_puck_push": {
+    "category": "block",
+    "subtitle": "subtitles.create_stats.dimmer_puck_push",
+    "sounds": [
+      {
+        "name": "create_stats:dimmer_puck_push",
+        "stream": false
+      }
+    ]
+  },
+  "time_switch_pin_in": {"category": "block", "subtitle": "subtitles.create_stats.time_switch_pin_in", "sounds": [{"name": "create_stats:time_switch_pin_in", "stream": false}]},
+  "time_switch_pin_out": {"category": "block", "subtitle": "subtitles.create_stats.time_switch_pin_out", "sounds": [{"name": "create_stats:time_switch_pin_out", "stream": false}]},
+  "time_switch_detent": {"category": "block", "subtitle": "subtitles.create_stats.time_switch_detent", "sounds": [{"name": "create_stats:time_switch_detent", "stream": false}]},
+  "time_switch_contact": {"category": "block", "subtitle": "subtitles.create_stats.time_switch_contact", "sounds": [{"name": "create_stats:time_switch_contact", "stream": false}]},
+  "time_switch_sweep": {"category": "block", "subtitle": "subtitles.create_stats.time_switch_sweep", "sounds": [{"name": "create_stats:time_switch_sweep", "stream": false}]},
+  "contactor_pull_in": {"category": "block", "subtitle": "subtitles.create_stats.contactor_pull_in", "sounds": [{"name": "create_stats:contactor_pull_in", "stream": false}]},
+  "contactor_drop_out": {"category": "block", "subtitle": "subtitles.create_stats.contactor_drop_out", "sounds": [{"name": "create_stats:contactor_drop_out", "stream": false}]},
+  "contactor_hum": {"category": "block", "subtitle": "subtitles.create_stats.contactor_hum", "sounds": [{"name": "create_stats:contactor_hum", "stream": false, "attenuation_distance": 8}]},
+  "seismic_winch": {"category": "block", "subtitle": "subtitles.create_stats.seismic_winch", "sounds": [{"name": "create_stats:seismic_winch", "stream": false, "attenuation_distance": 16}]},
+  "seismic_ratchet": {"category": "block", "subtitle": "subtitles.create_stats.seismic_ratchet", "sounds": [{"name": "create_stats:seismic_ratchet", "stream": false, "attenuation_distance": 14}]},
+  "seismic_pawl": {"category": "block", "subtitle": "subtitles.create_stats.seismic_pawl", "sounds": [{"name": "create_stats:seismic_pawl", "stream": false}]},
+  "seismic_lever": {"category": "block", "subtitle": "subtitles.create_stats.seismic_lever", "sounds": [{"name": "create_stats:seismic_lever", "stream": false}]},
+  "seismic_fall_1": {"category": "block", "subtitle": "subtitles.create_stats.seismic_fall", "sounds": [{"name": "create_stats:seismic_fall_1", "stream": false}]},
+  "seismic_fall_2": {"category": "block", "subtitle": "subtitles.create_stats.seismic_fall", "sounds": [{"name": "create_stats:seismic_fall_2", "stream": false}]},
+  "seismic_fall_3": {"category": "block", "subtitle": "subtitles.create_stats.seismic_fall", "sounds": [{"name": "create_stats:seismic_fall_3", "stream": false}]},
+  "seismic_fall_4": {"category": "block", "subtitle": "subtitles.create_stats.seismic_fall", "sounds": [{"name": "create_stats:seismic_fall_4", "stream": false}]},
+  "seismic_fall_5": {"category": "block", "subtitle": "subtitles.create_stats.seismic_fall", "sounds": [{"name": "create_stats:seismic_fall_5", "stream": false}]},
+  "seismic_fall_6": {"category": "block", "subtitle": "subtitles.create_stats.seismic_fall", "sounds": [{"name": "create_stats:seismic_fall_6", "stream": false}]},
+  "seismic_fall_7": {"category": "block", "subtitle": "subtitles.create_stats.seismic_fall", "sounds": [{"name": "create_stats:seismic_fall_7", "stream": false}]},
+  "seismic_thud": {"category": "block", "subtitle": "subtitles.create_stats.seismic_thud", "sounds": [{"name": "create_stats:seismic_thud", "stream": false}]},
+  "seismic_rumble": {"category": "block", "subtitle": "subtitles.create_stats.seismic_rumble", "sounds": [{"name": "create_stats:seismic_rumble", "stream": false, "attenuation_distance": 32}]},
+  "seismic_pen": {"category": "block", "subtitle": "subtitles.create_stats.seismic_pen", "sounds": [{"name": "create_stats:seismic_pen", "stream": false, "attenuation_distance": 10}]},
+  "tuner_sweep": {"category": "block", "subtitle": "subtitles.create_stats.tuner_sweep", "sounds": [{"name": "create_stats:tuner_sweep", "stream": false}]},
+  "tuner_detent": {"category": "block", "subtitle": "subtitles.create_stats.tuner_detent", "sounds": [{"name": "create_stats:tuner_detent", "stream": false}]},
+  "mob_repeller_engage": {"category": "block", "subtitle": "subtitles.create_stats.mob_repeller_engage", "sounds": [{"name": "create_stats:mob_repeller_engage", "stream": false}]},
+  "mob_repeller_power_up": {"category": "block", "subtitle": "subtitles.create_stats.mob_repeller_power_up", "sounds": [{"name": "create_stats:mob_repeller_power_up", "stream": false}]},
+  "mob_repeller_power_down": {"category": "block", "subtitle": "subtitles.create_stats.mob_repeller_power_down", "sounds": [{"name": "create_stats:mob_repeller_power_down", "stream": false}]},
+  "vacuum_hum": {"category": "block", "subtitle": "subtitles.create_stats.vacuum_hum", "sounds": [{"name": "create_stats:vacuum_hum", "stream": false}]},
+  "vacuum_hose_take": {"category": "block", "subtitle": "subtitles.create_stats.vacuum_hose_take", "sounds": [{"name": "create_stats:vacuum_hose_take", "stream": false}]},
+  "vacuum_hose_return": {"category": "block", "subtitle": "subtitles.create_stats.vacuum_hose_return", "sounds": [{"name": "create_stats:vacuum_hose_return", "stream": false}]},
+  "vacuum_flap": {"category": "block", "subtitle": "subtitles.create_stats.vacuum_flap", "sounds": [{"name": "create_stats:vacuum_flap", "stream": false}]},
+  "vacuum_servo": {"category": "block", "subtitle": "subtitles.create_stats.vacuum_servo", "sounds": [{"name": "create_stats:vacuum_servo", "stream": false}]},
+  "vacuum_gulp": {"category": "block", "subtitle": "subtitles.create_stats.vacuum_gulp", "sounds": [{"name": "create_stats:vacuum_gulp", "stream": false}]},
+  "driver_helmet_visor_open": {"category": "player", "subtitle": "subtitles.create_stats.driver_helmet_visor_open", "sounds": [{"name": "create_stats:driver_helmet_visor_open", "stream": false}]},
+  "driver_helmet_visor_close": {"category": "player", "subtitle": "subtitles.create_stats.driver_helmet_visor_close", "sounds": [{"name": "create_stats:driver_helmet_visor_close", "stream": false}]},
+  "driver_helmet_night_vision_on": {"category": "player", "subtitle": "subtitles.create_stats.driver_helmet_night_vision_on", "sounds": [{"name": "create_stats:driver_helmet_night_vision_on", "stream": false}]},
+  "driver_helmet_night_vision_off": {"category": "player", "subtitle": "subtitles.create_stats.driver_helmet_night_vision_off", "sounds": [{"name": "create_stats:driver_helmet_night_vision_off", "stream": false}]},
+  "driver_helmet_theme": {"category": "player", "subtitle": "subtitles.create_stats.driver_helmet_theme", "sounds": [{"name": "create_stats:driver_helmet_theme", "stream": false}]},
+  "aviator_goggles_down": {"category": "player", "subtitle": "subtitles.create_stats.aviator_goggles_down", "sounds": [{"name": "create_stats:aviator_goggles_down", "stream": false}]},
+  "aviator_goggles_up": {"category": "player", "subtitle": "subtitles.create_stats.aviator_goggles_up", "sounds": [{"name": "create_stats:aviator_goggles_up", "stream": false}]},
+  "aviator_helmet_tone": {"category": "player", "subtitle": "subtitles.create_stats.aviator_helmet_tone", "sounds": [{"name": "create_stats:aviator_helmet_tone", "stream": false}]},
+  "surveyor_staff_stake": {"category": "player", "subtitle": "subtitles.create_stats.surveyor_staff_stake", "sounds": [{"name": "create_stats:surveyor_staff_stake", "stream": false}]},
+  "surveyor_staff_chalk": {"category": "player", "subtitle": "subtitles.create_stats.surveyor_staff_chalk", "sounds": [{"name": "create_stats:surveyor_staff_chalk", "stream": false}]},
+  "surveyor_staff_loop": {"category": "player", "subtitle": "subtitles.create_stats.surveyor_staff_loop", "sounds": [{"name": "create_stats:surveyor_staff_loop", "stream": false}]},
+  "surveyor_staff_delete": {"category": "player", "subtitle": "subtitles.create_stats.surveyor_staff_delete", "sounds": [{"name": "create_stats:surveyor_staff_delete", "stream": false}]},
+  "surveyor_staff_mode": {"category": "player", "subtitle": "subtitles.create_stats.surveyor_staff_mode", "sounds": [{"name": "create_stats:surveyor_staff_mode", "stream": false}]},
+  "surveyor_staff_link": {"category": "player", "subtitle": "subtitles.create_stats.surveyor_staff_link", "sounds": [{"name": "create_stats:surveyor_staff_link", "stream": false}]},
+  "surveyor_record_start": {"category": "blocks", "subtitle": "subtitles.create_stats.surveyor_record_start", "sounds": [{"name": "create_stats:surveyor_record_start", "stream": false}]},
+  "surveyor_record_stop": {"category": "blocks", "subtitle": "subtitles.create_stats.surveyor_record_stop", "sounds": [{"name": "create_stats:surveyor_record_stop", "stream": false}]},
+  "storm_coil_zap": {"category": "block", "subtitle": "subtitles.create_stats.storm_coil_zap", "sounds": [{"name": "create_stats:storm_coil_zap", "stream": false, "attenuation_distance": 32}]},
+  "storm_coil_hum": {"category": "block", "subtitle": "subtitles.create_stats.storm_coil_hum", "sounds": [{"name": "create_stats:storm_coil_hum", "stream": false, "attenuation_distance": 10}]},
+  "storm_coil_bank": {"category": "block", "subtitle": "subtitles.create_stats.storm_coil_bank", "sounds": [{"name": "minecraft:block/respawn_anchor/charge1", "stream": false, "attenuation_distance": 48}, {"name": "minecraft:block/respawn_anchor/charge2", "stream": false, "attenuation_distance": 48}, {"name": "minecraft:block/respawn_anchor/charge3", "stream": false, "attenuation_distance": 48}]},
+  "storm_coil_charge": {"category": "block", "subtitle": "subtitles.create_stats.storm_coil_charge", "sounds": [{"name": "create_stats:storm_coil_charge", "stream": false, "attenuation_distance": 32}]},
+  "storm_coil_run": {"category": "block", "subtitle": "subtitles.create_stats.storm_coil_run", "sounds": [{"name": "create_stats:storm_coil_run", "stream": false, "attenuation_distance": 24}]},
+  "spark_crown_hum": {"category": "block", "subtitle": "subtitles.create_stats.spark_crown_hum", "sounds": [{"name": "create_stats:spark_crown_hum", "stream": false, "attenuation_distance": 12}]},
+  "spark_crown_latch": {"category": "block", "subtitle": "subtitles.create_stats.spark_crown_latch", "sounds": [{"name": "create_stats:spark_crown_latch", "stream": false, "attenuation_distance": 16}]},
+  "spark_crown_unlatch": {"category": "block", "subtitle": "subtitles.create_stats.spark_crown_unlatch", "sounds": [{"name": "create_stats:spark_crown_unlatch", "stream": false, "attenuation_distance": 16}]},
+  "spark_crown_land": {"category": "block", "subtitle": "subtitles.create_stats.spark_crown_land", "sounds": [{"name": "minecraft:block/trial_spawner/close_shutter", "stream": false, "attenuation_distance": 16}]}
 }

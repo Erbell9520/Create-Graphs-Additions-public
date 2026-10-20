@@ -14,13 +14,11 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import javax.annotation.Nullable;
 
-/** [1] */
 public record FccSensorBindPacket(
     int containerId,
     @Nullable SensorRequirement sensor,
     @Nullable BlockPos pos
 ) implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<FccSensorBindPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "fcc_sensor_bind"));
 
@@ -52,7 +50,6 @@ public record FccSensorBindPacket(
             SensorRequirement req = pkt.sensor;
             BlockPos pos = pkt.pos;
 
-            // Rescan-only: req and pos both null.
             if (req == null) {
                 var sensors = fcc.sensors();
                 if (sensors != null) {
@@ -63,7 +60,6 @@ public record FccSensorBindPacket(
                 return;
             }
 
-            // Validate pos (if provided): level must be loaded.
             if (pos != null && (sp.level() == null || !sp.level().isLoaded(pos))) return;
 
             switch (req) {

@@ -35,7 +35,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class StatsHandheldScreen extends Screen {
-
     private static final int PANEL_WIDTH = 200;
     private static final int PANEL_HEIGHT = 318;
     private static final int SCREEN_INSET_X = 12;

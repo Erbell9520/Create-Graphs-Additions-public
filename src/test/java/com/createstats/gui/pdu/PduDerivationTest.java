@@ -10,10 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The working shown on the Flow tab. */
 class PduDerivationTest {
-
-    /** A healthy rig: 15 ranges on HIGH plus 3 lamps, buffer near full. */
     private static PduDerivation.Inputs healthy() {
         return new PduDerivation.Inputs(PduMode.AUTO, true, 3843, 0, 8192, 8192, 3843, 3843,
                 18, 0, 508157, 512000, 0.15f, true, false);
@@ -67,7 +64,6 @@ class PduDerivationTest {
     @Test
     @DisplayName("the reserve's share of the budget is broken out, since it is not synced on its own")
     void reserveContributionIsRecovered() {
-        // Budget 8,192 against generation 3,843, so 4,349 of it is the buffer paying.
         final PduDerivation.Row row = find(PduDerivation.derive(healthy()), "from the reserve");
         assertEquals("4,349 FE/t", row.value());
     }
@@ -103,7 +99,6 @@ class PduDerivationTest {
     @Test
     @DisplayName("shed demand is the difference between wanted and admitted, never negative")
     void shedDemandCannotGoNegative() {
-        // servedDemand above demand is possible for a tick, since one is an EMA and the other is not.
         final PduDerivation.Inputs odd = new PduDerivation.Inputs(PduMode.AUTO, true, 4000, 4000, 8192,
                 4000, 100, 900, 3, 1, 200000, 512000, 0.15f, true, false);
         assertEquals("0 FE/t", find(PduDerivation.derive(odd), "shed (").value());
@@ -119,10 +114,47 @@ class PduDerivationTest {
     }
 
     @Test
+    @DisplayName("the panel's own upkeep is a named term, not a silent gap between supply and demand")
+    void upkeepIsNamedInTheWorking() {
+        final PduDerivation.Inputs in = new PduDerivation.Inputs(PduMode.AUTO, true, 3843, 3843, 8192,
+                3792, 3792, 3792, 18, 0, 508157, 512000, 0.15f, false, false, null, 0, 51);
+        final PduDerivation.Row row = find(PduDerivation.derive(in), "running this panel");
+        assertEquals("-51 FE/t", row.value());
+    }
+
+    @Test
+    @DisplayName("a panel that costs nothing to run does not print a zero term about it")
+    void aFreePanelSaysNothing() {
+        assertFalse(joined(PduDerivation.derive(healthy())).contains("running this panel"));
+    }
+
+    @Test
     @DisplayName("an empty branch is not reported as a supply failure")
     void emptyBranchIsNotBlamedOnSupply() {
         final PduDerivation.Inputs empty = new PduDerivation.Inputs(PduMode.AUTO, true, 3843, 0, 8192,
                 8192, 0, 0, 0, 0, 508157, 512000, 0.15f, true, false);
         assertTrue(joined(PduDerivation.derive(empty)).contains("No devices on the branch"));
+    }
+
+    @Test
+    void fitGivesUpNotesOneKindAtATimeRatherThanAllAtOnce() {
+        final List<PduDerivation.Row> rows = List.of(
+                new PduDerivation.Row(PduDerivation.Kind.HEADING, "Upstream", "", ""),
+                new PduDerivation.Row(PduDerivation.Kind.INPUT, "Taking in", "10 FE/t", "on the bosses"),
+                new PduDerivation.Row(PduDerivation.Kind.TERM, "of which reserve", "4 FE/t", "the band"),
+                new PduDerivation.Row(PduDerivation.Kind.VERDICT, "All well.", "", "nothing to do"));
+
+        assertEquals(rows, PduDerivation.fit(rows, PduDerivation.lineCount(rows)));
+
+        final List<PduDerivation.Row> lean =
+                PduDerivation.fit(rows, PduDerivation.lineCount(rows) - 1);
+        assertEquals("on the bosses", lean.get(1).note(), "an input keeps its note at this rung");
+        assertEquals("", lean.get(2).note(), "the term's note is the first thing given up");
+        assertEquals("nothing to do", lean.get(3).note(), "a verdict never gives up its advice");
+
+        final List<PduDerivation.Row> terse = PduDerivation.fit(rows, 1);
+        assertEquals("", terse.get(1).note());
+        assertEquals("", terse.get(2).note());
+        assertEquals("nothing to do", terse.get(3).note(), "still never the verdict");
     }
 }

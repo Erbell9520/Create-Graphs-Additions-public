@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    { "id": "#c:crops/melon", "required": false },
+    "minecraft:melon",
+    "minecraft:moss_block"
+  ]
+}

@@ -39,17 +39,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/** [1] */
 public class FlightControlComputerBlock extends HorizontalDirectionalBlock implements EntityBlock {
-
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
-    /** Drives the block-model variant; synced server→client on mode change. */
     public static final EnumProperty<VisualState> VISUAL_STATE =
             EnumProperty.create("visual_state", VisualState.class);
 
-    // The FCC reuses the factory_logic_controller model, so it shares that block's authored
-    // per-facing collision/outline shape instead of defaulting to a full cube.
     private static final VoxelShape SHAPE_NORTH = Shapes.or(
             Block.box(0.0, 0.0, 0.0, 16.0, 3.0, 16.0),
             Block.box(0.0, 3.0, 0.0, 16.0, 5.0, 6.0),
@@ -138,12 +133,11 @@ public class FlightControlComputerBlock extends HorizontalDirectionalBlock imple
         return ItemInteractionResult.CONSUME;
     }
 
-    // Per-player cooldown so reopening the FCC does not spam the physics-missing warning.
     private static final java.util.Map<java.util.UUID, Long> PHYSICS_WARN_COOLDOWN = new java.util.concurrent.ConcurrentHashMap<>();
     private static final long PHYSICS_WARN_COOLDOWN_MS = 60_000L;
 
-    // The FCC degrades silently (server-log only) when Aeronautics/Sable is absent. Mirror the Hinge
-    // tool's up-front chat warning so the player understands why physics-dependent features do nothing.
+    // warn in chat when sable is missing, otherwise it silently does nothing
+
     private static void warnIfPhysicsMissing(ServerPlayer player) {
         if (SableBridge.isAvailable()) return;
         long now = System.currentTimeMillis();
@@ -187,16 +181,13 @@ public class FlightControlComputerBlock extends HorizontalDirectionalBlock imple
                 "block.create_stats.flight_control_computer");
     }
 
-    // visual state enum
-
     public enum VisualState implements StringRepresentable {
-        /** FCC powered off or not yet placed in a contraption. */
         OFF("off"),
-        /** FCC on, no active flight mode (STANDBY). */
+
         STANDBY("standby"),
-        /** FCC actively controlling a flight mode. */
+
         ACTIVE("active"),
-        /** Warning: sensor lost, failsafe active, or gimbal not validated. */
+
         WARNING("warning");
 
         private final String name;

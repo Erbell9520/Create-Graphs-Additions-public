@@ -13,23 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Tiny client-side persistence for cross-session OTOMOBIL HUD stats. Stored as
- * pretty JSON at {@code <gameDir>/config/create_stats/otomobil_stats.json}.
- * Loaded lazily on first access; saved at most once per {@link #SAVE_THROTTLE_NANOS}
- * via {@link #saveThrottled()} plus a forced flush on JVM shutdown.
- *
- * <p>Schema:
- * <pre>{@code
- * { "totalTripM": 0.0, "totalDriveTimeSec": 0.0, "topSpeedAllTimeMps": 0.0 }
- * }</pre>
- */
 @OnlyIn(Dist.CLIENT)
 public final class OtomobilPersistedStats {
-
     private static final String CONFIG_DIR = "create_stats";
     private static final String FILE_NAME  = "otomobil_stats.json";
-    private static final long SAVE_THROTTLE_NANOS = 5_000_000_000L; // 5 s
+    private static final long SAVE_THROTTLE_NANOS = 5_000_000_000L;
 
     private static boolean loaded = false;
     private static long lastSaveNanos = 0L;
@@ -54,7 +42,6 @@ public final class OtomobilPersistedStats {
             if (obj.has("totalDriveTimeSec"))  totalDriveTimeSec  = obj.get("totalDriveTimeSec").getAsDouble();
             if (obj.has("topSpeedAllTimeMps")) topSpeedAllTimeMps = obj.get("topSpeedAllTimeMps").getAsFloat();
         } catch (Exception ignored) {
-            // Corrupt file → treat as zero; next save will overwrite cleanly.
         }
     }
 
@@ -114,7 +101,6 @@ public final class OtomobilPersistedStats {
         }
     }
 
-    /** Save no more than once per {@link #SAVE_THROTTLE_NANOS}; cheap to call every frame. */
     public static void saveThrottled() {
         if (!dirty) return;
         long now = System.nanoTime();
@@ -135,7 +121,6 @@ public final class OtomobilPersistedStats {
             w.write(obj.toString());
             dirty = false;
         } catch (IOException ignored) {
-            // Best-effort; will retry on next saveThrottled() call.
         }
     }
 }

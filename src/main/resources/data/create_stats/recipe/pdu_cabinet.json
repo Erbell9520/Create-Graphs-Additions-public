@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create_stats:power_distribution_unit"
+    },
+    {
+      "item": "create:brass_casing"
+    },
+    {
+      "item": "create:brass_casing"
+    },
+    {
+      "item": "minecraft:glass_pane"
+    }
+  ],
+  "result": {
+    "id": "create_stats:pdu_cabinet",
+    "count": 1
+  }
+}

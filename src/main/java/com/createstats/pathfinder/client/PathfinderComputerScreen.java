@@ -82,7 +82,7 @@ public class PathfinderComputerScreen extends AbstractContainerScreen<Pathfinder
         this.renderTransparentBackground(graphics);
         this.renderConsole(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
-        // FE Dependent Mode side panel (self-gating: draws nothing while the mode is off).
+
         com.createstats.power.client.FeStatusWidget.draw(graphics, font, leftPos + imageWidth + 6, topPos + 6, 110,
                 this.menu.getComputer() == null ? null : this.menu.getComputer().feConsumer());
         this.renderTooltip(graphics, mouseX, mouseY);

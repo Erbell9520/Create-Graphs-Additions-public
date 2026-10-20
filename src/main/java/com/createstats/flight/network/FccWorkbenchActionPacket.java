@@ -20,7 +20,6 @@ public record FccWorkbenchActionPacket(
         @Nullable UUID secondaryId,
         String text
 ) implements CustomPacketPayload {
-
     public enum Action {
         RENAME_DEVICE,
         CREATE_GROUP,
@@ -77,14 +76,15 @@ public record FccWorkbenchActionPacket(
         return TYPE;
     }
 
-    // [1]
+    // flood guard, only trips on a runaway client
+
     private static final java.util.Map<java.util.UUID, long[]> ACTION_RATE = new java.util.concurrent.ConcurrentHashMap<>();
     private static final int ACTION_BURST = 120;
     private static final long ACTION_WINDOW_MS = 1000L;
 
     private static boolean rateLimited(ServerPlayer player) {
         long now = System.currentTimeMillis();
-        // state[0] = window start ms, state[1] = tokens remaining. Runs on the server thread only.
+
         long[] state = ACTION_RATE.computeIfAbsent(player.getUUID(), k -> new long[]{now, ACTION_BURST});
         if (now - state[0] >= ACTION_WINDOW_MS) {
             state[0] = now;

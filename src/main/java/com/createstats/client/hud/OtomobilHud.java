@@ -16,11 +16,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Locale;
 
-/** [1] */
 @OnlyIn(Dist.CLIENT)
 public final class OtomobilHud {
-
-    // Palette (alpha-leading ARGB).
     private static final int COL_FRAME       = 0xFFB8FFE8;
     private static final int COL_FRAME_DIM   = 0xC07FE2C8;
     private static final int COL_TEXT        = 0xFFE8FFF4;
@@ -36,7 +33,6 @@ public final class OtomobilHud {
     private static final int COL_PANEL_BG2   = 0x60050810;
     private static final int COL_TICK_DIM    = 0x60B8FFE8;
 
-    // animated smoothing state (single helmet per client)
     private static long lastFrameNanos = 0L;
     private static float smoothedSpeedMps = 0.0f;
     private static float smoothedCommandedRpm = 0.0f;
@@ -46,29 +42,25 @@ public final class OtomobilHud {
     private static float smoothedTotalFuel = 0.0f;
     private static float fuelBarPctSmoothed = 0.0f;
     private static float warningPulse = 0.0f;
-    private static int gearDirection = 0; // -1 reverse, 0 idle, 1 forward
+    private static int gearDirection = 0;
     private static long gearChangeTimeNanos = 0L;
     private static float gearChangeAnim = 0.0f;
-    private static double tripDistanceM = 0.0; // accumulated metres travelled this session
+    private static double tripDistanceM = 0.0;
     private static float fuelShimmerPhase = 0.0f;
 
-    // Session stats (reset on game launch; "all-time" counterparts persist in
-    // {@link OtomobilPersistedStats} via dedicated save calls).
     private static float topSpeedSessionMps = 0.0f;
-    private static double avgSpeedSumMxS = 0.0; // ∫ |speed| · dt
-    private static double avgSpeedWindowSec = 0.0; // ∫ dt while moving
-    private static double driveTimeSessionSec = 0.0; // ∫ dt while |speed| > MOVING_EPS
-    private static long topSpeedBrokenNanos = 0L; // last time we beat the all-time record
+    private static double avgSpeedSumMxS = 0.0;
+    private static double avgSpeedWindowSec = 0.0;
+    private static double driveTimeSessionSec = 0.0;
+    private static long topSpeedBrokenNanos = 0L;
     private static float topSpeedBumpAnim = 0.0f;
-    private static double pendingTotalTripFlushM = 0.0; // staged delta → OtomobilPersistedStats
+    private static double pendingTotalTripFlushM = 0.0;
     private static double pendingTotalDriveFlushSec = 0.0;
-    // G-force / acceleration smoothing state. Derivatives are noisy at 60 Hz so we
-    // expSmooth over a short window. {@code prevForwardMps} / {@code prevLateralMps}
-    // hold last frame's velocity components in the craft frame.
+
     private static float prevForwardMps = 0.0f;
     private static float prevLateralMps = 0.0f;
-    private static float smoothedForwardAccelG = 0.0f; // signed (+accel / -brake)
-    private static float smoothedLateralAccelG = 0.0f; // signed (+right / -left)
+    private static float smoothedForwardAccelG = 0.0f;
+    private static float smoothedLateralAccelG = 0.0f;
     private static final float MOVING_EPS_MPS = 0.10f;
 
     private OtomobilHud() {
@@ -81,14 +73,11 @@ public final class OtomobilHud {
                               float viewHeading, float craftHeading,
                               float velX, float velY, float velZ,
                               DeltaTracker deltaTracker) {
-
-        // Frame timing for smoothing.
         long now = System.nanoTime();
         float dtSec = lastFrameNanos == 0L ? 1.0f / 60.0f
             : Math.min(0.25f, (now - lastFrameNanos) / 1_000_000_000.0f);
         lastFrameNanos = now;
 
-        // pull live values from telemetry
         int[] commanded = telemetry != null ? telemetry.vehicleWheelRpm() : new int[6];
         int[] actual    = telemetry != null ? telemetry.actualWheelRpm()  : new int[6];
         int[] steer     = telemetry != null ? telemetry.vehicleWheelSteer() : new int[6];
@@ -98,9 +87,8 @@ public final class OtomobilHud {
         int maxAbsCmd    = maxAbs(commanded);
         int maxAbsAct    = maxAbs(actual);
 
-        // [2]
         float groundMps = Math.max(0.0f, smoothedSpeedMps);
-        // Heuristic wheel: r ≈ 0.5 m → 60/(2π·0.5) ≈ 19.1 RPM per m/s.
+
         float rpmPerMps = 19.1f;
         float[] wheelLoss = new float[6];
         for (int i = 0; i < 6; i++) {
@@ -109,24 +97,23 @@ public final class OtomobilHud {
             float absA = Math.abs(a);
             float absC = Math.abs(c);
             float expected = groundMps * rpmPerMps;
-            // Wheelspin: actual significantly faster than ground demands
+
             float spin = 0.0f;
             if (absA > 80.0f && absA > expected * 1.6f + 30.0f) {
                 spin = Mth.clamp((absA - (expected * 1.6f + 30.0f)) / 200.0f, 0.0f, 1.0f);
             }
-            // Lockup/stall: commanded sizeable but actual far below
+
             float lock = 0.0f;
             if (absC > 60.0f && absA < absC * 0.25f) {
                 lock = Mth.clamp(1.0f - (absA / Math.max(1.0f, absC * 0.25f)), 0.0f, 1.0f);
             }
             wheelLoss[i] = Math.max(spin, lock);
         }
-        // [3]
+
         float tractionLossPct = 0.0f;
         for (float wl : wheelLoss) tractionLossPct = Math.max(tractionLossPct, wl);
         tractionLossPct *= 100.0f;
 
-        // Steering: average front-axle signed steer (indices 0 = FL, 1 = FR).
         float steerSignal = 0.0f;
         int steerCount = 0;
         for (int i = 0; i < 2 && i < steer.length; i++) {
@@ -134,53 +121,49 @@ public final class OtomobilHud {
             steerCount++;
         }
         if (steerCount > 0) steerSignal /= steerCount;
-        // Map -15..15 signal to ±450° visual.
+
         float steerTargetDeg = (steerSignal / 15.0f) * 450.0f;
         steerTargetDeg = Mth.clamp(steerTargetDeg, -450.0f, 450.0f);
 
-        // [4]
+        // horizontal only, slopes inflated the speedo
+
         float speedTargetMps = hasTelemetry ? (float) Math.hypot(velX, velZ) : Float.NaN;
 
-        // smooth
         smoothedSpeedMps = HudEasing.expSmooth(smoothedSpeedMps, speedTargetMps, 0.10f, dtSec);
         smoothedCommandedRpm = HudEasing.expSmooth(smoothedCommandedRpm, commandedAvg, 0.08f, dtSec);
         smoothedActualRpm    = HudEasing.expSmooth(smoothedActualRpm,    actualAvg,    0.08f, dtSec);
         smoothedSlipPct      = HudEasing.expSmooth(smoothedSlipPct,      tractionLossPct, 0.20f, dtSec);
         smoothedSteerDeg     = HudEasing.expSmooth(smoothedSteerDeg,     steerTargetDeg, 0.12f, dtSec);
 
-        // [5]
         float yawRad = (float) Math.toRadians(craftHeading);
-        // Minecraft convention: yaw=0 faces +Z (south); forward = (-sin yaw, 0, +cos yaw).
+
         float fwdX = -(float) Math.sin(yawRad);
         float fwdZ =  (float) Math.cos(yawRad);
         float forwardMps = velX * fwdX + velZ * fwdZ;
-        // Trip distance accumulates from the same ground speed as the speedo (crab-steer sideways
-        // travel is real travel), keeping every logged stat consistent with the live readout.
+
         if (Float.isFinite(speedTargetMps)) {
             double deltaM = speedTargetMps * dtSec;
             tripDistanceM += deltaM;
-            if (tripDistanceM > 9_999_999.0) tripDistanceM = 9_999_999.0; // clamp display ceiling
+            if (tripDistanceM > 9_999_999.0) tripDistanceM = 9_999_999.0;
             pendingTotalTripFlushM += deltaM;
         }
-        // Lateral velocity in craft frame: right axis = (cos yaw, 0, sin yaw).
+
         float rightX =  (float) Math.cos(yawRad);
         float rightZ =  (float) Math.sin(yawRad);
         float lateralMps = velX * rightX + velZ * rightZ;
-        // Acceleration = (v - vPrev) / dt, converted to g (1g = 9.81 m/s²). Noise floor
-        // is large at small dtSec, so we expSmooth aggressively to keep the readout legible.
+
         if (Float.isFinite(forwardMps) && Float.isFinite(lateralMps) && dtSec > 1.0e-4f) {
             float fwdAccelMpss = (forwardMps - prevForwardMps) / dtSec;
             float latAccelMpss = (lateralMps - prevLateralMps) / dtSec;
             float fwdG = fwdAccelMpss / 9.81f;
             float latG = latAccelMpss / 9.81f;
-            // Clamp obvious teleport spikes (e.g. dim change) before smoothing.
+
             if (Math.abs(fwdG) < 25.0f) smoothedForwardAccelG = HudEasing.expSmooth(smoothedForwardAccelG, fwdG, 0.18f, dtSec);
             if (Math.abs(latG) < 25.0f) smoothedLateralAccelG = HudEasing.expSmooth(smoothedLateralAccelG, latG, 0.18f, dtSec);
         }
         prevForwardMps = Float.isFinite(forwardMps) ? forwardMps : 0.0f;
         prevLateralMps = Float.isFinite(lateralMps) ? lateralMps : 0.0f;
-        // Speed/time statistics (session + persisted all-time), fed by the same ground speed as
-        // the speedo so top/average speed and the live readout always agree.
+
         float absSpeed = Float.isFinite(speedTargetMps) ? speedTargetMps : 0.0f;
         if (absSpeed > MOVING_EPS_MPS) {
             avgSpeedSumMxS += absSpeed * dtSec;
@@ -194,7 +177,7 @@ public final class OtomobilHud {
                 topSpeedBrokenNanos = now;
             }
         }
-        // Flush staged persisted deltas in ≥1m / ≥1s chunks to amortise I/O.
+
         if (pendingTotalTripFlushM >= 1.0) {
             OtomobilPersistedStats.addTripDistanceM(pendingTotalTripFlushM);
             pendingTotalTripFlushM = 0.0;
@@ -203,8 +186,7 @@ public final class OtomobilHud {
             OtomobilPersistedStats.addDriveTimeSec(pendingTotalDriveFlushSec);
             pendingTotalDriveFlushSec = 0.0;
         }
-        // Disk flush happens in PilotHelmetHudOverlay.tick(), off the render loop.
-        // Top-speed celebratory bump animation: 0.7s ease-out flash.
+
         float bumpAge = (now - topSpeedBrokenNanos) / 1_000_000_000.0f;
         topSpeedBumpAnim = topSpeedBrokenNanos == 0L
             ? 0.0f
@@ -214,7 +196,6 @@ public final class OtomobilHud {
         if (forwardMps > 0.25f)                 newGear = 1;
         else if (forwardMps < -0.25f)           newGear = -1;
         else if (Math.abs(forwardMps) < 0.10f) {
-            // Near-stationary: respect driver intent if they're commanding thrust.
             if (thrustAvg > 0.10f)               newGear = 1;
             else if (thrustAvg < -0.10f)         newGear = -1;
             else                                 newGear = 0;
@@ -226,58 +207,47 @@ public final class OtomobilHud {
         float gearAge = (now - gearChangeTimeNanos) / 1_000_000_000.0f;
         gearChangeAnim = 1.0f - HudEasing.easeOutCubic(Mth.clamp(gearAge / 0.35f, 0.0f, 1.0f));
 
-        // Warning pulse oscillates 1 Hz.
         warningPulse = (float) (0.5 + 0.5 * Math.sin((now / 1_000_000_000.0) * Math.PI * 2.0));
 
-        // fuel snapshot from linked Stats Display panel
         HelmetFuelSnapshot.Snapshot fuel = HelmetFuelSnapshot.read(statsDisplayPos);
         smoothedTotalFuel = HudEasing.expSmooth(smoothedTotalFuel, fuel.totalMb, 0.25f, dtSec);
 
-        // [6]
         float fuelBarTargetPct = fuel.totalCapacityMb > 0.5f
             ? Mth.clamp(smoothedTotalFuel / fuel.totalCapacityMb, 0.0f, 1.0f)
-            : 0.0f; // capacity unknown -> don't fake a full bar; the numeric mB carries the value
+            : 0.0f;
         fuelBarPctSmoothed = HudEasing.expSmooth(fuelBarPctSmoothed, Mth.clamp(fuelBarTargetPct, 0.0f, 1.0f), 0.20f, dtSec);
-        fuelShimmerPhase += dtSec * 0.6f; // 0.6 cycles/s shimmer sweep
+        fuelShimmerPhase += dtSec * 0.6f;
         if (fuelShimmerPhase > 1.0f) fuelShimmerPhase -= 1.0f;
 
-        // layout anchors (HUD-scale aware via scaleAt)
         Font font = mc.font;
 
-        // Heading tape (top center, like fighter)
         int headingY = 18;
         int headingW = Math.min(width - 160, 260);
         scaleAt(graphics, centerX, headingY, hudScale, () ->
             renderHeadingTape(graphics, font, centerX, headingY, headingW, viewHeading));
 
-        // Top status chip (link state)
         int chipX = centerX - 80;
         int chipY = 44;
         scaleAt(graphics, chipX + 80, chipY, hudScale, () ->
             renderLinkStatusChip(graphics, font, chipX, chipY, 160, hasTelemetry, statsDisplayPos != null));
 
-        // Speed widget (large, bottom-center)
         int speedCX = centerX;
         int speedCY = height - 92;
         final boolean speedLive = hasTelemetry;
         scaleAt(graphics, speedCX, speedCY, hudScale, () ->
             renderSpeedWidget(graphics, font, speedCX, speedCY, smoothedSpeedMps, gearDirection < 0, speedLive));
 
-        // Trip distance line under speed widget.
         int tripCX = centerX;
         int tripCY = speedCY + 36;
         final double tripDistanceCapture = tripDistanceM;
         scaleAt(graphics, tripCX, tripCY, hudScale, () ->
             renderTripLine(graphics, font, tripCX, tripCY, tripDistanceCapture));
 
-        // Gear chip (above speed)
         int gearCX = centerX;
         int gearCY = speedCY - 38;
         scaleAt(graphics, gearCX, gearCY, hudScale, () ->
             renderGearChip(graphics, font, gearCX, gearCY, gearDirection, gearChangeAnim));
 
-        // Steering widget (left-bottom): wheel ring for cars, per-side track power bars in tank
-        // trim (a steering-wheel dial is meaningless for a skid-steer vehicle).
         int wheelCX = 96;
         int wheelCY = height - 90;
         int wheelR  = 44;
@@ -290,7 +260,6 @@ public final class OtomobilHud {
                 renderSteeringWheel(graphics, font, wheelCX, wheelCY, wheelR, smoothedSteerDeg, steerSignalFinal));
         }
 
-        // RPM block (left-top)
         int rpmX = 18;
         int rpmY = 70;
         final boolean tankTrim = tankMode;
@@ -299,8 +268,6 @@ public final class OtomobilHud {
                 smoothedCommandedRpm, smoothedActualRpm, smoothedSlipPct,
                 commanded, actual, maxAbsCmd, maxAbsAct, wheelLoss, now));
 
-        // Fuel block (left-side, directly under the RPM block to keep it clear of
-        // overlay mods like JourneyMap that camp the top-right corner).
         int fuelX = rpmX;
         int fuelY = rpmY + 96 + 6;
         int fuelW = 190;
@@ -308,9 +275,8 @@ public final class OtomobilHud {
         scaleAt(graphics, fuelX + fuelW, fuelY, hudScale, () ->
             renderFuelBlock(graphics, font, fuelX, fuelY, fuelW, fuel, smoothedTotalFuel, fuelBarPctSmoothed, fuelShimmerPhase, now));
 
-        // [7]
         int statsW = fuelW;
-        int statsH = 76; // 14 header + 5 rows × 12 + 2 padding
+        int statsH = 76;
         int statsX = fuelX;
         int statsY = fuelY + fuelH + 6;
         final float topSpeedSessionCapture = topSpeedSessionMps;
@@ -329,8 +295,6 @@ public final class OtomobilHud {
                 forwardAccelCapture, lateralAccelCapture,
                 topSpeedBumpCapture, now));
 
-        // Warning stack (top-center under heading): every concurrent problem, severity-ordered,
-        // instead of the old single-slot pick that hid one fault behind another.
         java.util.List<HudWarnings.Entry> warnings =
             collectWarnings(fuel, smoothedSlipPct, smoothedTotalFuel, signalStale, snapshot);
         if (!warnings.isEmpty()) {
@@ -341,42 +305,38 @@ public final class OtomobilHud {
         }
     }
 
-    // ============== WIDGETS ================================================
-
     private static void renderSpeedWidget(GuiGraphics graphics, Font font, int cx, int cy, float mps, boolean reverse, boolean live) {
         int boxW = 144;
         int boxH = 56;
         int x = cx - boxW / 2;
         int y = cy - boxH / 2;
-        // Background panel
+
         graphics.fill(x, y, x + boxW, y + boxH, COL_PANEL_BG);
         drawFrame(graphics, x, y, boxW, boxH, live ? COL_AMBER_DIM : COL_WARN);
-        // Top header
+
         String header = "SPEED  m/s";
         graphics.drawString(font, header, x + 8, y + 4, COL_AMBER_DIM, false);
-        // Format big digits, show fixed-width integer m/s with one decimal beneath. When the
-        // telemetry stream is gone the digits become dashes rather than a frozen plausible value.
+
         int displayInt = (int) Math.floor(Math.max(0, Math.abs(mps)));
         String big = live ? String.format(Locale.ROOT, "%3d", Math.min(displayInt, 999)) : "---";
         float dec = Math.max(0.0f, Math.abs(mps)) - displayInt;
         String small = live ? String.format(Locale.ROOT, ".%d", (int) Math.floor(dec * 10.0f)) : ".-";
-        // Draw big digits scaled up
+
         float scale = 2.6f;
         PoseStack pose = graphics.pose();
         pose.pushPose();
         int digitX = x + boxW - 8;
         int digitY = y + 18;
-        // Right-align large digits
+
         int bigW = (int) Math.ceil(font.width(big) * scale);
         pose.translate(digitX - bigW, digitY, 0);
         pose.scale(scale, scale, 1.0f);
         graphics.drawString(font, big, 0, 0, COL_AMBER, false);
         pose.popPose();
-        // Small decimals trailing
+
         int smallW = font.width(small);
         graphics.drawString(font, small, x + boxW - 6 - smallW, y + boxH - 14, COL_AMBER_DIM, false);
-        // Reverse indicator dot (driven by the gear direction, since the smoothed speed
-        // is an unsigned magnitude).
+
         if (reverse) {
             int dotX = x + 8;
             int dotY = y + boxH - 12;
@@ -399,7 +359,7 @@ public final class OtomobilHud {
         int h = font.lineHeight + padY * 2;
         int x = cx - w / 2;
         int y = cy - h / 2;
-        // Bump scale on change
+
         float bump = 1.0f + bumpAnim * 0.12f;
         PoseStack pose = graphics.pose();
         pose.pushPose();
@@ -414,13 +374,12 @@ public final class OtomobilHud {
 
     private static void renderSteeringWheel(GuiGraphics graphics, Font font, int cx, int cy, int r,
                                             float steerDeg, float rawSignal) {
-        // Background panel
         int boxR = r + 18;
         graphics.fill(cx - boxR, cy - boxR, cx + boxR, cy + boxR, COL_PANEL_BG2);
-        // Ring (dotted)
+
         drawDottedCircle(graphics, cx, cy, r, COL_CYAN_DIM, 5);
         drawDottedCircle(graphics, cx, cy, r - 4, COL_TICK_DIM, 9);
-        // Cardinal ticks every 30 deg of the visual wheel angle space
+
         for (int ang = 0; ang < 360; ang += 30) {
             float rad = (float) Math.toRadians(ang - 90);
             int x1 = cx + Math.round(Mth.cos(rad) * (r - 2));
@@ -429,22 +388,22 @@ public final class OtomobilHud {
             int y2 = cy + Math.round(Mth.sin(rad) * (r + 3));
             drawLine(graphics, x1, y1, x2, y2, COL_FRAME_DIM);
         }
-        // Pointer rotated by steerDeg
+
         float rad = (float) Math.toRadians(steerDeg - 90);
         int px = cx + Math.round(Mth.cos(rad) * (r - 6));
         int py = cy + Math.round(Mth.sin(rad) * (r - 6));
-        // Pointer line from center
+
         drawLine(graphics, cx, cy, px, py, COL_AMBER);
-        // Tip diamond
+
         drawFilledDiamond(graphics, px, py, 3, COL_AMBER);
-        // Hub
+
         graphics.fill(cx - 3, cy - 3, cx + 4, cy + 4, COL_CYAN);
-        // Label below
+
         String label = String.format(Locale.ROOT, "STEER  %+4d°  (%+d/15)",
             Math.round(steerDeg), Math.round(rawSignal));
         int lw = font.width(label);
         graphics.drawString(font, label, cx - lw / 2, cy + r + 6, COL_TEXT_DIM, false);
-        // L/R hint
+
         graphics.drawString(font, "L", cx - r - 14, cy - 4, COL_FRAME_DIM, false);
         graphics.drawString(font, "R", cx + r + 8,  cy - 4, COL_FRAME_DIM, false);
     }
@@ -458,17 +417,17 @@ public final class OtomobilHud {
         graphics.fill(x, y, x + w, y + h, COL_PANEL_BG);
         drawFrame(graphics, x, y, w, h, COL_CYAN_DIM);
         graphics.drawString(font, tankMode ? "TRACK RPM" : "WHEEL RPM", x + 8, y + 4, COL_CYAN, false);
-        // COM line
+
         String comStr = String.format(Locale.ROOT, "COM  %+5d", Math.round(comAvg));
         graphics.drawString(font, comStr, x + 8, y + 18, COL_AMBER, false);
-        // ACT line
+
         String actStr = String.format(Locale.ROOT, "ACT  %+5d", Math.round(actAvg));
         graphics.drawString(font, actStr, x + 8, y + 30, COL_OK, false);
-        // SLIP
+
         int slipColor = slipPct < 10.0f ? COL_OK : slipPct < 30.0f ? COL_WARN : COL_DANGER;
         String slipStr = String.format(Locale.ROOT, "SLIP %4.0f%%", Math.min(slipPct, 999.0f));
         graphics.drawString(font, slipStr, x + 8, y + 42, slipColor, false);
-        // Per-wheel dot matrix (FL FR / ML MR / RL RR)
+
         int dotsX = x + 110;
         int dotsY = y + 18;
         int dotSize = 10;
@@ -486,12 +445,12 @@ public final class OtomobilHud {
                 : ratio < 0.75f ? HudEasing.blendArgb(COL_OK, COL_AMBER, (ratio - 0.35f) / 0.40f)
                 : HudEasing.blendArgb(COL_AMBER, COL_DANGER, Math.min(1.0f, (ratio - 0.75f) / 0.25f));
             graphics.fill(dx, dy, dx + dotSize, dy + dotSize, dotColor);
-            // Outline ring if commanded but no actual (= stall)
+
             if (commanded[i] != 0 && Math.abs(actual[i]) < Math.abs(commanded[i]) / 4) {
                 drawRect(graphics, dx - 1, dy - 1, dotSize + 2, dotSize + 2, COL_DANGER);
             }
             graphics.drawString(font, labels[i], dx + dotSize + 2, dy + 1, COL_TEXT_DIM, false);
-            // Animated traction-loss warning overlay (per wheel).
+
             float lossI = wheelLoss != null && i < wheelLoss.length ? wheelLoss[i] : 0.0f;
             if (lossI > 0.05f) {
                 drawTractionWarning(graphics, dx + dotSize + 14, dy - 1, lossI, nowNanos);
@@ -499,21 +458,17 @@ public final class OtomobilHud {
         }
     }
 
-    /**
-     * Animated traction-loss warning glyph: pulsing red/amber triangle with a
-     * blinking "!" character. Intensity 0..1 controls scale + alpha + blink rate.
-     */
     private static void drawTractionWarning(GuiGraphics graphics, int x, int y, float intensity, long nowNanos) {
         float t = (nowNanos / 1_000_000_000.0f);
-        // Faster blink as intensity rises (3..8 Hz).
+
         float blinkHz = 3.0f + intensity * 5.0f;
         float phase = (float)(0.5 + 0.5 * Math.sin(t * blinkHz * Math.PI * 2.0));
-        // Colour ramps amber → red with intensity
+
         int baseCol = HudEasing.blendArgb(COL_WARN, COL_DANGER, Mth.clamp(intensity, 0.0f, 1.0f));
-        // Pulse alpha 0.55..1.0
+
         float alpha = 0.55f + 0.45f * phase * intensity;
         int colWithAlpha = (Math.round(alpha * 255.0f) << 24) | (baseCol & 0x00FFFFFF);
-        // Filled triangle 9px wide, 8px tall via horizontal scanlines.
+
         int tw = 9;
         int th = 8;
         for (int row = 0; row < th; row++) {
@@ -521,9 +476,9 @@ public final class OtomobilHud {
             int sx = x + (tw - span) / 2;
             graphics.fill(sx, y + row, sx + span, y + row + 1, colWithAlpha);
         }
-        // Inner dark outline edges for legibility
+
         graphics.fill(x + tw / 2, y, x + tw / 2 + 1, y + 1, 0xFF000000);
-        // Blinking exclamation tick, bright pixel near bottom of triangle
+
         if (phase > 0.4f) {
             int dotCol = 0xFFFFFFFF;
             graphics.fill(x + tw / 2, y + th - 3, x + tw / 2 + 1, y + th - 2, dotCol);
@@ -531,7 +486,6 @@ public final class OtomobilHud {
         }
     }
 
-    /** [8] */
     private static void renderTrackBars(GuiGraphics graphics, Font font, int cx, int cy, int r,
                                         int[] commanded, int[] actual) {
         int boxR = r + 18;
@@ -547,7 +501,7 @@ public final class OtomobilHud {
         int gap = 24;
         drawTrackBar(graphics, font, cx - gap - barW, cy, barW, r, left, leftCmd, peak, "L");
         drawTrackBar(graphics, font, cx + gap, cy, barW, r, right, rightCmd, peak, "R");
-        // Turn chevron: more power on the right track slews the hull left, and vice versa.
+
         float diff = right - left;
         if (Math.abs(diff) > peak * 0.12f) {
             String chevron = diff > 0 ? "<<" : ">>";
@@ -561,7 +515,7 @@ public final class OtomobilHud {
                                      float actualRpm, float commandedRpm, float peak, String label) {
         graphics.fill(x, cy - halfH, x + w, cy + halfH, COL_PANEL_BG);
         drawRect(graphics, x, cy - halfH, w, halfH * 2, COL_CYAN_DIM);
-        graphics.fill(x, cy, x + w, cy + 1, COL_FRAME_DIM); // axle (zero) line
+        graphics.fill(x, cy, x + w, cy + 1, COL_FRAME_DIM);
         float frac = Mth.clamp(actualRpm / peak, -1.0f, 1.0f);
         int fillH = Math.round(Math.abs(frac) * (halfH - 2));
         int color = Math.abs(frac) > 0.75f ? COL_AMBER : COL_OK;
@@ -576,7 +530,6 @@ public final class OtomobilHud {
         graphics.drawString(font, label, x + w / 2 - font.width(label) / 2, cy + halfH + 3, COL_TEXT_DIM, false);
     }
 
-    /** Mean RPM over one side's wheel telemetry slots: side 0 = left (FL/ML/RL), 1 = right. */
     private static float sideMeanRpm(int[] arr, int side) {
         if (arr == null) return 0.0f;
         long sum = 0;
@@ -592,11 +545,10 @@ public final class OtomobilHud {
                                         HelmetFuelSnapshot.Snapshot fuel,
                                         float smoothedTotal, float barPct,
                                         float shimmerPhase, long nowNanos) {
-        // Header bar
         int h = computeFuelBlockHeight(fuel);
         graphics.fill(x, y, x + w, y + h, COL_PANEL_BG);
         drawFrame(graphics, x, y, w, h, COL_AMBER_DIM);
-        // Title row with kind dot, gently pulsing when fuelled.
+
         float dotPulse = (float)(0.5 + 0.5 * Math.sin((nowNanos / 1_000_000_000.0) * Math.PI * 2.0 * 0.9));
         int dotColorBase = fuel.hasFuel() ? fuel.dominantKind.color : COL_FRAME_DIM;
         int dotColor = fuel.hasFuel()
@@ -605,8 +557,7 @@ public final class OtomobilHud {
         graphics.fill(x + 6, y + 6, x + 12, y + 12, dotColor);
         String title = fuel.linked ? (fuel.hasFuel() ? fuel.dominantKind.displayName.toUpperCase(Locale.ROOT) : "NO FUEL") : "FUEL LINK?";
         graphics.drawString(font, title, x + 18, y + 4, fuel.linked ? COL_AMBER : COL_TEXT_DIM, false);
-        // Header readout: "amount / capacity mB  (pct%)" if capacity is known,
-        // otherwise fall back to just the amount.
+
         String headerStr;
         if (!fuel.linked) {
             headerStr = ",";
@@ -618,7 +569,7 @@ public final class OtomobilHud {
         }
         int totW = font.width(headerStr);
         graphics.drawString(font, headerStr, x + w - 8 - totW, y + 4, COL_TEXT, false);
-        // Capacity bar
+
         int barX = x + 8;
         int barY = y + 18;
         int barW = w - 16;
@@ -628,7 +579,7 @@ public final class OtomobilHud {
             int fillW = Math.max(1, Math.round(barW * Mth.clamp(barPct, 0.0f, 1.0f)));
             int barColor = barPct < 0.15f ? COL_DANGER : barPct < 0.35f ? COL_WARN : COL_AMBER;
             graphics.fill(barX, barY, barX + fillW, barY + barH, barColor);
-            // Animated shimmer sweep across filled region.
+
             int shimmerX = barX + Math.round(shimmerPhase * fillW);
             int shimmerW = Math.max(2, fillW / 8);
             int shimmerEnd = Math.min(barX + fillW, shimmerX + shimmerW);
@@ -637,7 +588,7 @@ public final class OtomobilHud {
                 graphics.fill(shimmerX, barY, shimmerEnd, barY + barH, shineCol);
             }
         }
-        // Breakdown list (top 5) with animated drop indicator scaling with amount
+
         if (fuel.linked && !fuel.entries.isEmpty()) {
             int listY = y + 28;
             int rows = Math.min(5, fuel.entries.size());
@@ -648,9 +599,9 @@ public final class OtomobilHud {
             for (int i = 0; i < rows; i++) {
                 HelmetFuelSnapshot.Entry e = fuel.entries.get(i);
                 int rowY = listY + i * 11;
-                // Per-entry kind dot
+
                 graphics.fill(barX, rowY + 1, barX + 4, rowY + 5, e.kind.color);
-                // Animated mini "drop" sliding subtly to convey flow.
+
                 float ratio = e.amountMb / maxAmt;
                 int dropY = rowY + 2 + ((int)(Math.sin(dropPhase + i * 0.8f) * 1.5f));
                 int dropW = Math.max(2, Math.round(3.0f * (0.4f + 0.6f * ratio)));
@@ -677,7 +628,6 @@ public final class OtomobilHud {
         }
     }
 
-    /** Compact trip-distance line under the speed widget. */
     private static void renderTripLine(GuiGraphics graphics, Font font, int cx, int y, double tripMetres) {
         String label;
         if (tripMetres < 1000.0) {
@@ -693,7 +643,6 @@ public final class OtomobilHud {
         return 18 + (fuel.linked ? Math.min(72, 14 + fuel.entries.size() * 11) : 14);
     }
 
-    /** [9] */
     private static void renderStatsPanel(GuiGraphics graphics, Font font, int x, int y, int w, int h,
                                          float currentSpeedMps,
                                          float topSpeedSessionMps,
@@ -705,11 +654,9 @@ public final class OtomobilHud {
                                          float lateralAccelG,
                                          float topSpeedBump,
                                          long nowNanos) {
-        // Background + border (matches RPM/FUEL block treatment).
         graphics.fill(x, y, x + w, y + h, COL_PANEL_BG);
         drawFrame(graphics, x, y, w, h, COL_FRAME_DIM);
 
-        // Header strip.
         graphics.fill(x + 1, y + 1, x + w - 1, y + 11, COL_PANEL_BG2);
         graphics.drawString(font, "STATS", x + 6, y + 2, COL_AMBER_DIM, false);
         int pipColor = currentSpeedMps > MOVING_EPS_MPS ? COL_OK : COL_TEXT_DIM;
@@ -717,7 +664,6 @@ public final class OtomobilHud {
         int pipY = y + 5;
         graphics.fill(pipX, pipY, pipX + 3, pipY + 3, pipColor);
 
-        // row 1: TOP SPEED
         int rowY = y + 14;
         graphics.drawString(font, "TOP", x + 6, rowY, COL_TEXT_DIM, false);
         String sess = String.format(Locale.ROOT, "%4.1f", topSpeedSessionMps);
@@ -737,13 +683,11 @@ public final class OtomobilHud {
         int allW = font.width(allTime);
         graphics.drawString(font, allTime, x + w - 6 - allW, rowY, COL_CYAN_DIM, false);
 
-        // row 2: AVG SPEED
         rowY += 12;
         graphics.drawString(font, "AVG", x + 6, rowY, COL_TEXT_DIM, false);
         String avg = String.format(Locale.ROOT, "%.1f m/s", avgSpeedMps);
         graphics.drawString(font, avg, x + 36, rowY, COL_TEXT, false);
 
-        // row 3: DRIVE TIME
         rowY += 12;
         graphics.drawString(font, "DRIVE", x + 6, rowY, COL_TEXT_DIM, false);
         String sessTime = formatDuration(driveTimeSessionSec, false);
@@ -752,7 +696,6 @@ public final class OtomobilHud {
         int totW = font.width(totalTime);
         graphics.drawString(font, totalTime, x + w - 6 - totW, rowY, COL_CYAN_DIM, false);
 
-        // row 4: CLOCK
         rowY += 12;
         graphics.drawString(font, "CLOCK", x + 6, rowY, COL_TEXT_DIM, false);
         Minecraft mc = Minecraft.getInstance();
@@ -768,34 +711,26 @@ public final class OtomobilHud {
         int irlW = font.width(irlStr);
         graphics.drawString(font, irlStr, x + w - 6 - irlW, rowY, COL_CYAN, false);
 
-        // row 5: G-FORCE (longitudinal + lateral)
         rowY += 12;
         graphics.drawString(font, "ACCEL", x + 6, rowY, COL_TEXT_DIM, false);
         String accelStr = String.format(Locale.ROOT, "%+.2fg", forwardAccelG);
         int accelColor = colorForG(Math.abs(forwardAccelG));
         graphics.drawString(font, accelStr, x + 42, rowY, accelColor, false);
-        // Mini centred bar visualising signed forward G (-1g..+1g range).
+
         int barCX = x + 100;
         drawCenteredAccelBar(graphics, barCX, rowY + 2, 26, forwardAccelG, 1.0f);
-        // Lateral G.
+
         String latStr = String.format(Locale.ROOT, "LAT %+.2fg", lateralAccelG);
         int latColor = colorForG(Math.abs(lateralAccelG));
         int latW = font.width(latStr);
         graphics.drawString(font, latStr, x + w - 6 - latW, rowY, latColor, false);
 
-        // Touch the timestamp arg so future per-second derivatives stay wireable.
         if (nowNanos == Long.MIN_VALUE) return;
     }
 
-    /**
-     * Small horizontal bar centred at {@code (cx, y)}; signed {@code valueG} fills
-     * leftward (negative / braking) or rightward (positive / accel) up to
-     * {@code maxG}. Half-width {@code halfW} sets the maximum visible extent.
-     */
     private static void drawCenteredAccelBar(GuiGraphics graphics, int cx, int y, int halfW, float valueG, float maxG) {
-        // Track outline (faint).
         graphics.fill(cx - halfW, y, cx + halfW, y + 1, COL_PANEL_BG2);
-        graphics.fill(cx, y - 1, cx + 1, y + 2, COL_FRAME_DIM); // centre tick
+        graphics.fill(cx, y - 1, cx + 1, y + 2, COL_FRAME_DIM);
         float clamped = Mth.clamp(valueG / maxG, -1.0f, 1.0f);
         int fillW = Math.round(Math.abs(clamped) * halfW);
         int col = colorForG(Math.abs(valueG));
@@ -813,7 +748,6 @@ public final class OtomobilHud {
         return COL_DANGER;
     }
 
-    /** [10] */
     private static String formatDuration(double seconds, boolean compact) {
         long s = (long) Math.max(0.0, seconds);
         long days = s / 86400L;
@@ -860,10 +794,10 @@ public final class OtomobilHud {
     private static void renderHeadingTape(GuiGraphics graphics, Font font, int centerX, int y, int width, float heading) {
         int half = width / 2;
         int x0 = centerX - half;
-        // Background strip
+
         graphics.fill(x0, y, x0 + width, y + 14, COL_PANEL_BG2);
         drawFrame(graphics, x0, y, width, 14, COL_FRAME_DIM);
-        // Ticks every 10°
+
         float hdg = ((heading % 360.0f) + 360.0f) % 360.0f;
         for (int tick = -90; tick <= 90; tick += 10) {
             float angle = hdg + tick;
@@ -876,16 +810,14 @@ public final class OtomobilHud {
                 graphics.drawString(font, label, ix - font.width(label) / 2, y + 14, COL_TEXT_DIM, false);
             }
         }
-        // Center caret
+
         int cx = centerX;
         drawLine(graphics, cx - 4, y - 2, cx, y + 2, COL_AMBER);
         drawLine(graphics, cx + 4, y - 2, cx, y + 2, COL_AMBER);
-        // Heading number above the caret
+
         String hLabel = String.format(Locale.ROOT, "%03d°", (int) Math.round(hdg));
         graphics.drawString(font, hLabel, cx - font.width(hLabel) / 2, y - 12, COL_AMBER, true);
     }
-
-    // ============== HELPERS ================================================
 
     private static String cardinalOrAngle(float angle) {
         float h = ((angle % 360.0f) + 360.0f) % 360.0f;
@@ -914,7 +846,6 @@ public final class OtomobilHud {
         return m;
     }
 
-    /** Mean signed thrust across vehicle zones (null/empty arrays → 0). */
     private static float vehicleThrustAverage(com.createstats.flight.network.FccTelemetryPacket telemetry) {
         if (telemetry == null) return 0.0f;
         float[] thrust = telemetry.thrustSigned();
@@ -927,8 +858,6 @@ public final class OtomobilHud {
         return count == 0 ? 0.0f : sum / count;
     }
 
-
-    /** [11] */
     private static java.util.List<HudWarnings.Entry> collectWarnings(HelmetFuelSnapshot.Snapshot fuel,
                                                                      float tractionLossPct, float totalFuel,
                                                                      boolean signalStale,
@@ -937,8 +866,8 @@ public final class OtomobilHud {
         if (signalStale) {
             list.add(new HudWarnings.Entry(HudWarnings.Severity.ALARM, "FCC SIGNAL STALE"));
         }
-        // A stats source is configured on the helmet but its panel is unreachable -> the
-        // fuel readout is dead. Warn instead of silently showing stale/no fuel.
+        // linked but panel unreachable, say so instead of stale fuel
+
         if (fuel.linked && !fuel.panelPresent) {
             list.add(new HudWarnings.Entry(HudWarnings.Severity.WARNING, "FUEL LINK LOST"));
         }
@@ -946,10 +875,8 @@ public final class OtomobilHud {
             if (!fuel.hasFuel()) {
                 list.add(new HudWarnings.Entry(HudWarnings.Severity.WARNING, "NO FUEL SOURCES"));
             } else {
-                // Capacity-relative thresholds when the tank size is known; only fall back to a
-                // tiny absolute floor when capacity is unknown.
                 boolean capacityKnown = fuel.totalCapacityMb > 0.5f;
-                float fill = fuel.fillPct(); // 0..1, or 0 when capacity unknown
+                float fill = fuel.fillPct();
                 if (capacityKnown ? fill <= 0.08f : totalFuel < 50.0f) {
                     list.add(new HudWarnings.Entry(HudWarnings.Severity.ALARM, "FUEL CRITICAL"));
                 } else if (capacityKnown && fill <= 0.20f) {
@@ -968,8 +895,7 @@ public final class OtomobilHud {
                 list.add(new HudWarnings.Entry(HudWarnings.Severity.WARNING,
                     fccWarning.length() > 26 ? fccWarning.substring(0, 26) : fccWarning));
             }
-            // FE Dependent Mode: mirror the flight collector's power entries. With the mode off
-            // the snapshot always reads powered at 100 percent, so these never fire.
+
             if (!snapshot.fePowered()) {
                 list.add(new HudWarnings.Entry(HudWarnings.Severity.ALARM, "NO POWER"));
             } else if (snapshot.feBufferPct() < com.createstats.power.FeConsumer.LOW_POWER_PCT) {
@@ -984,10 +910,6 @@ public final class OtomobilHud {
         return list;
     }
 
-    /**
-     * Stack of pulsing warning chips, most severe on top (max 3 + overflow line). Keeps the
-     * existing chip look; ALARM/WARNING rows pulse, CAUTION/INFO rows hold steady.
-     */
     private static void renderWarningStack(GuiGraphics graphics, Font font, int cx, int y,
                                            java.util.List<HudWarnings.Entry> entries, float pulse) {
         int rowY = y;
@@ -1004,8 +926,6 @@ public final class OtomobilHud {
             graphics.drawString(font, more, cx - font.width(more) / 2, rowY, COL_TEXT_DIM, true);
         }
     }
-
-    // drawing primitives
 
     private static void scaleAt(GuiGraphics graphics, float anchorX, float anchorY, float scale, Runnable draw) {
         if (Math.abs(scale - 1.0f) < 0.001f) {

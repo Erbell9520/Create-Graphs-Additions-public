@@ -1,0 +1,243 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"textures": {
+		"particle": "create_stats:block/arc_body",
+		"body": "create_stats:block/arc_body",
+		"deck": "create_stats:block/arc_deck",
+		"deck_side": "create_stats:block/arc_deck_side",
+		"fan_housing": "create_stats:block/arc_fan_housing",
+		"front": "create_stats:block/arc_front",
+		"gland": "create_stats:block/arc_gland",
+		"grille": "create_stats:block/arc_grille",
+		"hearth": "create_stats:block/arc_hearth",
+		"lining": "create_stats:block/arc_lining",
+		"plinth": "create_stats:block/arc_plinth",
+		"plinth_front": "create_stats:block/arc_plinth_front",
+		"spout": "create_stats:block/arc_spout"
+	},
+	"elements": [
+		{
+			"name": "plinth",
+			"from": [0, 0, 0],
+			"to": [16, 3, 16],
+			"faces": {
+				"north": {"uv": [0, 13, 16, 16], "texture": "#plinth_front"},
+				"east": {"uv": [0, 13, 16, 16], "texture": "#plinth"},
+				"south": {"uv": [0, 13, 16, 16], "texture": "#plinth"},
+				"west": {"uv": [0, 13, 16, 16], "texture": "#plinth"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#plinth"}
+			}
+		},
+		{
+			"name": "body, west slab (front of pocket)",
+			"from": [0, 3, 0],
+			"to": [4, 11, 5.2],
+			"faces": {
+				"north": {"uv": [12, 5, 16, 13], "texture": "#body"},
+				"east": {"uv": [10.8, 5, 16, 13], "texture": "#lining"},
+				"south": {"uv": [0, 5, 4, 13], "texture": "#fan_housing"},
+				"west": {"uv": [0, 5, 5.2, 13], "texture": "#body"}
+			}
+		},
+		{
+			"name": "body, west slab (behind pocket)",
+			"from": [0, 3, 10.8],
+			"to": [4, 11, 16],
+			"faces": {
+				"north": {"uv": [12, 5, 16, 13], "texture": "#fan_housing"},
+				"east": {"uv": [0, 5, 5.2, 13], "texture": "#lining"},
+				"south": {"uv": [0, 5, 4, 13], "texture": "#body"},
+				"west": {"uv": [10.8, 5, 16, 13], "texture": "#body"}
+			}
+		},
+		{
+			"name": "body, west slab (over pocket)",
+			"from": [0, 8, 5.2],
+			"to": [4, 11, 10.8],
+			"faces": {
+				"east": {"uv": [5.2, 5, 10.8, 8], "texture": "#lining"},
+				"west": {"uv": [5.2, 5, 10.8, 8], "texture": "#body"},
+				"down": {"uv": [0, 5.2, 4, 10.8], "texture": "#fan_housing"}
+			}
+		},
+		{
+			"name": "body, west slab (under pocket)",
+			"from": [0, 3, 5.2],
+			"to": [4, 3.4, 10.8],
+			"faces": {
+				"west": {"uv": [5.2, 12.6, 10.8, 13], "texture": "#body"},
+				"up": {"uv": [0, 5.2, 4, 10.8], "texture": "#fan_housing"}
+			}
+		},
+		{
+			"name": "fan pocket, back wall",
+			"from": [1, 3.4, 5.2],
+			"to": [4, 8, 10.8],
+			"faces": {
+				"east": {"uv": [5.2, 8, 10.8, 12.6], "texture": "#lining"},
+				"west": {"uv": [5.2, 8, 10.8, 12.6], "texture": "#fan_housing"}
+			}
+		},
+		{
+			"name": "body, east slab",
+			"from": [12, 3, 0],
+			"to": [16, 11, 16],
+			"faces": {
+				"north": {"uv": [0, 5, 4, 13], "texture": "#body"},
+				"east": {"uv": [0, 5, 16, 13], "texture": "#body"},
+				"south": {"uv": [12, 5, 16, 13], "texture": "#body"},
+				"west": {"uv": [0, 5, 16, 13], "texture": "#lining"}
+			}
+		},
+		{
+			"name": "body, front slab",
+			"from": [4, 3, 0],
+			"to": [12, 11, 4],
+			"faces": {
+				"north": {"uv": [4, 5, 12, 13], "texture": "#front"},
+				"south": {"uv": [4, 5, 12, 13], "texture": "#lining"}
+			}
+		},
+		{
+			"name": "body, back slab",
+			"from": [4, 3, 12],
+			"to": [12, 11, 16],
+			"faces": {
+				"north": {"uv": [4, 5, 12, 13], "texture": "#lining"},
+				"south": {"uv": [4, 5, 12, 13], "texture": "#body"}
+			}
+		},
+		{
+			"name": "hearth floor",
+			"from": [4, 3, 4],
+			"to": [12, 8, 12],
+			"faces": {
+				"up": {"uv": [4, 4, 12, 12], "texture": "#hearth"}
+			}
+		},
+		{
+			"name": "fan hub",
+			"from": [0.15, 5.1, 7.4],
+			"to": [0.9, 6.3, 8.6],
+			"faces": {
+				"north": {"uv": [7, 9, 9, 12], "texture": "#fan_housing"},
+				"east": {"uv": [7, 9, 9, 12], "texture": "#fan_housing"},
+				"south": {"uv": [7, 9, 9, 12], "texture": "#fan_housing"},
+				"west": {"uv": [7, 9, 9, 12], "texture": "#fan_housing"},
+				"up": {"uv": [7, 9, 9, 12], "texture": "#fan_housing"},
+				"down": {"uv": [7, 9, 9, 12], "texture": "#fan_housing"}
+			}
+		},
+		{
+			"name": "fan guard bar",
+			"from": [0, 3.4, 6],
+			"to": [0.22, 8, 6.5],
+			"faces": {
+				"north": {"uv": [15.78, 8, 16, 12.6], "texture": "#grille"},
+				"east": {"uv": [9.5, 8, 10, 12.6], "texture": "#grille"},
+				"south": {"uv": [0, 8, 0.22, 12.6], "texture": "#grille"},
+				"west": {"uv": [6, 8, 6.5, 12.6], "texture": "#grille"},
+				"up": {"uv": [0, 6, 0.22, 6.5], "texture": "#grille"},
+				"down": {"uv": [0, 9.5, 0.22, 10], "texture": "#grille"}
+			}
+		},
+		{
+			"name": "fan guard bar",
+			"from": [0, 3.4, 7.75],
+			"to": [0.22, 8, 8.25],
+			"faces": {
+				"north": {"uv": [15.78, 8, 16, 12.6], "texture": "#grille"},
+				"east": {"uv": [7.75, 8, 8.25, 12.6], "texture": "#grille"},
+				"south": {"uv": [0, 8, 0.22, 12.6], "texture": "#grille"},
+				"west": {"uv": [7.75, 8, 8.25, 12.6], "texture": "#grille"},
+				"up": {"uv": [0, 7.75, 0.22, 8.25], "texture": "#grille"},
+				"down": {"uv": [0, 7.75, 0.22, 8.25], "texture": "#grille"}
+			}
+		},
+		{
+			"name": "fan guard bar",
+			"from": [0, 3.4, 9.5],
+			"to": [0.22, 8, 10],
+			"faces": {
+				"north": {"uv": [15.78, 8, 16, 12.6], "texture": "#grille"},
+				"east": {"uv": [6, 8, 6.5, 12.6], "texture": "#grille"},
+				"south": {"uv": [0, 8, 0.22, 12.6], "texture": "#grille"},
+				"west": {"uv": [9.5, 8, 10, 12.6], "texture": "#grille"},
+				"up": {"uv": [0, 9.5, 0.22, 10], "texture": "#grille"},
+				"down": {"uv": [0, 6, 0.22, 6.5], "texture": "#grille"}
+			}
+		},
+		{
+			"name": "deck, front bar (console)",
+			"from": [0, 11, 0],
+			"to": [16, 13, 4],
+			"faces": {
+				"north": {"uv": [0, 3, 16, 5], "texture": "#deck_side"},
+				"east": {"uv": [12, 3, 16, 5], "texture": "#deck_side"},
+				"south": {"uv": [0, 3, 16, 5], "texture": "#lining"},
+				"west": {"uv": [0, 3, 4, 5], "texture": "#deck_side"},
+				"up": {"uv": [0, 0, 16, 4], "texture": "#deck"}
+			}
+		},
+		{
+			"name": "deck, back bar",
+			"from": [0, 11, 12],
+			"to": [16, 13, 16],
+			"faces": {
+				"north": {"uv": [0, 3, 16, 5], "texture": "#lining"},
+				"east": {"uv": [0, 3, 4, 5], "texture": "#deck_side"},
+				"south": {"uv": [0, 3, 16, 5], "texture": "#deck_side"},
+				"west": {"uv": [12, 3, 16, 5], "texture": "#deck_side"},
+				"up": {"uv": [0, 12, 16, 16], "texture": "#deck"}
+			}
+		},
+		{
+			"name": "deck, west bar",
+			"from": [0, 11, 4],
+			"to": [4, 13, 12],
+			"faces": {
+				"east": {"uv": [4, 3, 12, 5], "texture": "#lining"},
+				"west": {"uv": [4, 3, 12, 5], "texture": "#deck_side"},
+				"up": {"uv": [0, 4, 4, 12], "texture": "#deck"}
+			}
+		},
+		{
+			"name": "deck, east bar",
+			"from": [12, 11, 4],
+			"to": [16, 13, 12],
+			"faces": {
+				"east": {"uv": [4, 3, 12, 5], "texture": "#deck_side"},
+				"west": {"uv": [4, 3, 12, 5], "texture": "#lining"},
+				"up": {"uv": [12, 4, 16, 12], "texture": "#deck"}
+			}
+		},
+		{
+			"name": "tap spout",
+			"from": [16, 4.2, 6.6],
+			"to": [17.2, 6.8, 9.4],
+			"faces": {
+				"north": {"uv": [0, 4, 2, 7], "texture": "#spout"},
+				"east": {"uv": [6, 9, 10, 12], "texture": "#spout"},
+				"south": {"uv": [0, 4, 2, 7], "texture": "#spout"},
+				"west": {"uv": [6.6, 9.2, 9.4, 11.8], "texture": "#spout"},
+				"up": {"uv": [6, 4, 10, 6], "texture": "#spout"},
+				"down": {"uv": [6, 13, 10, 15], "texture": "#spout"}
+			}
+		},
+		{
+			"name": "conduit gland",
+			"from": [6, 5, 16],
+			"to": [10, 9, 17.4],
+			"faces": {
+				"north": {"uv": [6, 7, 10, 11], "texture": "#gland"},
+				"east": {"uv": [0, 7, 2, 11], "texture": "#gland"},
+				"south": {"uv": [6, 7, 10, 11], "texture": "#gland"},
+				"west": {"uv": [0, 7, 2, 11], "texture": "#gland"},
+				"up": {"uv": [6, 2, 10, 4], "texture": "#gland"},
+				"down": {"uv": [6, 12, 10, 14], "texture": "#gland"}
+			}
+		}
+	]
+}

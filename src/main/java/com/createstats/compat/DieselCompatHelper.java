@@ -457,6 +457,8 @@ public final class DieselCompatHelper {
         }
         if (burnRate > 0.0f) {
             putSample(metrics, "fuel_burn_rate", "Burn Rate", burnRate, MetricType.WATER_SUPPLY);
+
+            putSample(metrics, "fuel_burn_mbt", "Fuel Burn (mB/t)", burnRate, MetricType.FLUID_MB_PER_TICK);
         }
         if (remainingTicks > 0.0f) {
             putSample(metrics, "remaining_burn_ticks", "Remaining Burn", remainingTicks, MetricType.BURN_TIME);
@@ -464,9 +466,15 @@ public final class DieselCompatHelper {
             putSample(metrics, "burn_total", "Total Burn", Math.max(remainingTicks, 1.0f), MetricType.BURN_TIME);
         }
         putSample(metrics, "superheated", "Superheated", 0.0f, MetricType.BOOLEAN_FLAG);
-        final float engineCount = resolveEngineCount(controller);
-        if (engineCount > 1.0f) {
-            putSample(metrics, "engine_count", "Engine Blocks", engineCount, MetricType.ENGINE_COUNT);
+        final float engineCount = Math.max(1.0f, resolveEngineCount(controller));
+        // always emit, even at 1. otherwise "one engine" and "not reported" look the same
+
+        putSample(metrics, "engine_count", "Engine Blocks", engineCount, MetricType.ENGINE_COUNT);
+        if (generatedStress > 0.0f) {
+            // "switch off four of these" is the only advice anyone acts on
+
+            putSample(metrics, "su_per_engine", "SU per Engine", generatedStress / engineCount,
+                    MetricType.STRESS_SU);
         }
         final String upgradeName = resolveUpgradeName(controller);
         if (!upgradeName.isEmpty()) {
@@ -559,6 +567,13 @@ public final class DieselCompatHelper {
             putSample(metrics, "stress_pct", "Network Stress %", Math.max(0.0f, Math.min(100.0f, networkLoad * 100.0f / networkCapacity)), MetricType.STRESS_PERCENT);
         }
         putSample(metrics, "engine_count", "Engines", engineCount, MetricType.ENGINE_COUNT);
+        // divide by running engines, not the whole group
+
+        if (generatedStress > 0.0f) {
+            putSample(metrics, "su_per_engine", "SU per Engine",
+                    generatedStress / Math.max(1.0f, okEngines > 0.0f ? okEngines : engineCount),
+                    MetricType.STRESS_SU);
+        }
         putSample(metrics, "ok_engines", "OK Engines", okEngines, MetricType.ENGINE_COUNT);
         putSample(metrics, "stalling_engines", "Stalling Engines", stallingEngines, MetricType.ENGINE_COUNT);
         putSample(metrics, "off_engines", "Off Engines", offEngines, MetricType.ENGINE_COUNT);

@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "brew": "create_stats:block/coffee_brew",
+    "particle": "create_stats:block/coffee_brew"
+  },
+  "elements": [
+    {
+      "__comment": "brew",
+      "from": [
+        -1.14,
+        0.4,
+        -1.14
+      ],
+      "to": [
+        1.14,
+        3.2,
+        1.14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#brew"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#brew"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#brew"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#brew"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#brew"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#brew"
+        }
+      }
+    }
+  ]
+}

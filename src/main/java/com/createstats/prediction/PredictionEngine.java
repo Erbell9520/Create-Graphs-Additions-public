@@ -11,10 +11,10 @@ public final class PredictionEngine
     public static final double MIN_R_SQUARED = 0.2;
     public static final long RECOMPUTE_INTERVAL = 20L;
     private static final ConcurrentHashMap<String, PredictionResult> cache;
-    
+
     private PredictionEngine() {
     }
-    
+
     public static PredictionResult computePrediction(String channelId, TimeSeriesStore store, MetricType metricType, PredictionConfig config, StatsDisplaySettings settings, long currentTick, double alertThreshold) {
         if (metricType == MetricType.BOOLEAN_FLAG) {
             return null;
@@ -93,15 +93,15 @@ public final class PredictionEngine
         PredictionEngine.cache.put(channelId, result);
         return result;
     }
-    
+
     public static void invalidate(String channelId) {
         PredictionEngine.cache.remove(channelId);
     }
-    
+
     public static void clearAll() {
         PredictionEngine.cache.clear();
     }
-    
+
     static {
         cache = new ConcurrentHashMap<String, PredictionResult>();
     }

@@ -72,9 +72,9 @@ public class StressometerHudSettingsScreen extends Screen {
     private int addedWidgetsY;
     private int categoryPage;
     private int sourcePage;
-    /** P4.3: persisted by SourceCategory.name() so rebuilds restore selection even when the visible list changes. */
+
     private String selectedCategoryId = "";
-    /** P4.1: prepared reset state awaiting user confirmation when default would be empty. */
+
     private StressometerHudState pendingResetConfirm;
     private int resetModalConfirmX, resetModalConfirmY, resetModalCancelX, resetModalCancelY, resetModalBtnW, resetModalBtnH;
     private int BG;
@@ -96,50 +96,48 @@ public class StressometerHudSettingsScreen extends Screen {
     private long lastAddedTick = -100L;
     private long lastSourceCycleTick = -100L;
 
-    // phase 1 V3 infrastructure
-    /** P1.10 Undo: snapshots of canonical state before each mutation, capped at 50. */
     private final Deque<UndoEntry> undoStack = new ArrayDeque<>();
     private final Deque<UndoEntry> redoStack = new ArrayDeque<>();
     private static final int UNDO_CAP = 50;
-    /** Snapshot taken at the END of the previous rebuildStudio (= state right after the last mutation). */
+
     private CompoundTag lastCommittedSnapshot;
-    /** Action label used the next time an undo entry is pushed. Reset to "Edit" after each push. */
+
     private String pendingActionLabel = "Edit";
-    /** P1.10 transactional gestures (drag/resize/keyboard nudge): snapshot taken at gesture start. */
+
     private CompoundTag pendingGestureSnapshot;
     private String pendingGestureLabel = "";
-    /** P1.13 snap-to-grid (8 px). */
+
     private boolean snapToGrid;
-    /** P1.18 help mode toggle. */
+
     private boolean helpMode;
-    /** P1.19 dirty state: NBT snapshot of the saved (server-known) state, refreshed on saveAndClose. */
+
     private CompoundTag savedSnapshot;
-    /** P1.19 inline confirm modal for cancel-when-dirty. */
+
     private boolean pendingDiscardConfirm;
     private int discardModalConfirmX, discardModalConfirmY, discardModalCancelX, discardModalCancelY, discardModalBtnW, discardModalBtnH;
-    /** Status line shown briefly in the bottom bar. */
+
     private String statusMessage = "";
     private long statusMessageExpiryTick;
-    /** P1.13 active drag handle (NONE = no gesture, MOVE = drag, others = resize from named anchor). */
+
     private DragHandle activeHandle = DragHandle.NONE;
     private int dragStartBoundsX, dragStartBoundsY, dragStartBoundsW, dragStartBoundsH;
-    /** P1.5/6/7 browser: domain filter, search query, recently-used widget ids. */
+
     private BrowserDomain selectedDomain = BrowserDomain.ALL;
     private String browserQuery = "";
     private EditBox browserSearchBox;
     private final ArrayDeque<String> recentlyUsedWidgetIds = new ArrayDeque<>();
     private static final int RECENT_CAP = 8;
-    /** P1.16 preset replace confirm. */
+
     private StressometerHudState.LayoutPreset pendingPresetConfirm;
     private int presetModalApplyX, presetModalApplyY, presetModalAddX, presetModalAddY, presetModalCancelX, presetModalCancelY;
-    /** Quick-action chip hitboxes (P1.8), populated each frame in drawCanvas, consumed in mouseClicked. */
+
     private int chipDuplicateX = -1, chipDuplicateY, chipDeleteX = -1, chipDeleteY, chipVariantX = -1, chipVariantY, chipBtnW, chipBtnH;
-    /** P1.5 domain chip hitboxes, populated in render(), consumed in mouseClicked(). */
+
     private final int[] domainChipX = new int[BrowserDomain.values().length];
     private int domainChipY, domainChipW, domainChipH;
-    /** P2.2 studio-only theme preview override (null = use panel theme). */
+
     private DisplayTheme previewThemeOverride;
-    /** P1.8 variant cycle hover-preview (currently empty, ready for future popovers). */
+
     private boolean variantMenuOpen;
 
     public StressometerHudSettingsScreen(StatsDisplayPanelBE panel, Screen parentScreen) {
@@ -189,7 +187,7 @@ public class StressometerHudSettingsScreen extends Screen {
         addTooltip(this.addButton(this.width - margin - 56, margin + 7, 56, 20, "Save", this::saveAndClose), "Save changes and close the studio.");
         addTooltip(this.addButton(this.width - margin - 118, margin + 7, 58, 20, "Cancel", this::cancel), "Discard changes and close the studio.");
         addTooltip(this.addButton(this.width - margin - 186, margin + 7, 64, 20, "Reset", this::requestReset), "Reset HUD layout to defaults.");
-        // P1.3 toolbar: Undo / Redo / Snap / Help, left-aligned after the title.
+
         final int toolY = margin + 7;
         int toolX = 200;
         final Button undoBtn = this.addButton(toolX, toolY, 26, 20, "↶", this::undo);
@@ -213,7 +211,7 @@ public class StressometerHudSettingsScreen extends Screen {
         });
         addTooltip(helpBtn, "Toggle help overlay.");
         toolX += 24;
-        // P2.2 studio-only theme preview cycle button.
+
         final Button themeBtn = this.addButton(toolX, toolY, 92, 20,
                 "Preview: " + this.studioTheme().getDisplayName(), () -> {
                     final DisplayTheme curr = this.studioTheme();
@@ -223,7 +221,6 @@ public class StressometerHudSettingsScreen extends Screen {
                 });
         addTooltip(themeBtn, "Cycle studio chrome preview through available themes (does not save).");
 
-        // P1.6 browser search box, placed inside the left panel under the Elements header.
         final int searchY = this.canvasY + 22;
         if (this.browserSearchBox == null) {
             this.browserSearchBox = new EditBox(this.font, this.leftX + 6, searchY, this.leftW - 12, 14, Component.literal("Search widgets"));
@@ -239,7 +236,6 @@ public class StressometerHudSettingsScreen extends Screen {
         });
         this.addRenderableWidget(this.browserSearchBox);
 
-        // P1.5 domain chips, laid out under the search box.
         this.domainChipY = searchY + 18;
         this.domainChipH = 14;
         final BrowserDomain[] domains = BrowserDomain.values();
@@ -284,7 +280,7 @@ public class StressometerHudSettingsScreen extends Screen {
 
         y = this.addWidgetsStartY();
         final List<StressometerHudState.SourceCategory> categories = this.getVisibleCategories();
-        // P4.3: prefer the persisted selectedCategoryId; fall back to clamped page for back-compat.
+
         if (!categories.isEmpty()) {
             int restored = -1;
             if (!this.selectedCategoryId.isEmpty()) {
@@ -360,7 +356,6 @@ public class StressometerHudSettingsScreen extends Screen {
         final StressometerHudState.PartWidget selectedWidget = this.draftState.getSelectedWidget();
         y = this.inspectorActionStartY(selectedWidget);
         if (selectedWidget != null) {
-            // P1.12 Inspector duplicate (Ctrl+D shortcut already wired in keyPressed).
             final int halfBtnW = (this.rightW - 22) / 2;
             this.addButton(this.rightX + 10, y, halfBtnW, 18, "Duplicate", () -> {
                 this.setNextActionLabel("Duplicate");
@@ -385,7 +380,7 @@ public class StressometerHudSettingsScreen extends Screen {
                 this.rebuildStudio();
             });
             y = inspectorNextBlock(y);
-            // Per-widget font scale stepper
+
             final float wScale = selectedWidget.getTextScale();
             final String wScaleLabel = wScale > 0.01f ? String.format(Locale.ROOT, "Font: %.1fx", wScale) : "Font: (global)";
             this.addButton(this.rightX + 10, y, this.rightW - 42, 18, wScaleLabel, () -> {});
@@ -398,7 +393,7 @@ public class StressometerHudSettingsScreen extends Screen {
                 this.rebuildStudio();
             });
             y = inspectorNextRow(y);
-            // Per-widget padding stepper
+
             final int wPad = selectedWidget.getPaddingOffset();
             this.addButton(this.rightX + 10, y, this.rightW - 42, 18, "Padding: " + (wPad == 0 ? "(global)" : (wPad > 0 ? "+" : "") + wPad), () -> {});
             this.addButton(this.rightX + this.rightW - 40, y, 18, 18, "-", () -> {
@@ -409,8 +404,7 @@ public class StressometerHudSettingsScreen extends Screen {
                 selectedWidget.setPaddingOffset(selectedWidget.getPaddingOffset() + 1);
                 this.rebuildStudio();
             });
-            // V3: per-widget Variant cycle button (P3.2 + P6.1.* + Inspector control).
-            // Hidden when the widget has no variants registered.
+
             final java.util.List<String> variants = availableVariantsFor(selectedWidget);
             if (variants.size() > 1) {
                 y = inspectorNextRow(y);
@@ -426,7 +420,6 @@ public class StressometerHudSettingsScreen extends Screen {
             }
         }
 
-        // Global font scale and padding controls always visible at bottom of inspector
         final int globalCtrlY = this.canvasY + this.canvasH - 64;
         final float gScale = this.draftState.getGlobalTextScale();
         final int gPad = this.draftState.getGlobalPaddingOffset();
@@ -448,17 +441,15 @@ public class StressometerHudSettingsScreen extends Screen {
                 }));
 
         this.refreshLabels();
-        // P1.10/P1.19: capture baseline snapshot AFTER the panel is rebuilt so undo/redo
-        // and dirty detection have a stable comparison point.
+
         this.captureBaselineSnapshot();
     }
 
-    // P4.2: inspector layout helpers, replace magic +24/+26/+28 offsets with named constants.
     private static final int INSPECTOR_ROW_H = 18;
-    private static final int INSPECTOR_ROW_GAP = 4;       // matches old +22 cadence (18 + 4)
-    private static final int INSPECTOR_SECTION_GAP = 6;   // matches old +24 cadence (18 + 6)
-    private static final int INSPECTOR_BLOCK_GAP = 8;     // matches old +26 cadence (18 + 8)
-    private static final int INSPECTOR_HEADER_GAP = 10;   // matches old +28 cadence (18 + 10)
+    private static final int INSPECTOR_ROW_GAP = 4;
+    private static final int INSPECTOR_SECTION_GAP = 6;
+    private static final int INSPECTOR_BLOCK_GAP = 8;
+    private static final int INSPECTOR_HEADER_GAP = 10;
 
     private static int inspectorNextRow(int y) { return y + INSPECTOR_ROW_H + INSPECTOR_ROW_GAP; }
     private static int inspectorNextSection(int y) { return y + INSPECTOR_ROW_H + INSPECTOR_SECTION_GAP; }
@@ -479,7 +470,6 @@ public class StressometerHudSettingsScreen extends Screen {
         this.drawDraftingPanel(g, 8, 8, this.width - 16, this.topBarH, this.BG, false);
         this.drawBrassRailH(g, 9, 8 + this.topBarH - 5, this.width - 18, 4);
         g.drawString(this.font, "HUD Studio", 18, 18, this.ACCENT);
-        // [1]
 
         this.drawPanelShadow(g, this.leftX, this.canvasY, this.leftW, this.canvasH);
         this.drawDraftingPanel(g, this.leftX, this.canvasY, this.leftW, this.canvasH, this.BG, true);
@@ -505,19 +495,19 @@ public class StressometerHudSettingsScreen extends Screen {
                                    : "Click to select, drag to move, drag handles to resize. G snap-to-grid · Ctrl+Z/Y undo/redo.")
                 : "Window is too small for safe placement editing. Enlarge the game window to drag/resize.";
         g.drawString(this.font, tip, 14, this.height - 23, this.DIM);
-        // P1.19 status message (right-aligned bottom).
+
         if (!this.statusMessage.isEmpty() && this.tickCount < this.statusMessageExpiryTick) {
             final int sw = this.font.width(this.statusMessage);
             g.drawString(this.font, this.statusMessage, this.width - 18 - sw, this.height - 23, 0xFFE9DBB4);
         }
         super.render(g, mouseX, mouseY, partialTick);
-        // P1.9 Help mode, non-interactive annotations overlaid on the studio chrome.
+
         if (this.helpMode) {
             this.drawHelpOverlay(g);
         }
-        // P1.19 dirty pip overlay on the Save button.
+
         if (this.isDirty()) {
-            final int sx = this.width - 10 - 56 + 56 - 6; // top-right of save button
+            final int sx = this.width - 10 - 56 + 56 - 6;
             final int sy = 10 + 7 + 2;
             g.fill(sx, sy, sx + 4, sy + 4, 0xFFFFAA33);
             g.fill(sx - 1, sy - 1, sx + 5, sy, 0x66000000);
@@ -552,7 +542,6 @@ public class StressometerHudSettingsScreen extends Screen {
     }
 
     private void drawHelpOverlay(GuiGraphics g) {
-        // Translucent dim with bright callouts on each major zone.
         g.fill(0, 0, this.width, this.height, 0x80000000);
         this.drawHelpLabel(g, 200, 8, 200, 30, "Toolbar: Undo / Redo / Snap / Help");
         this.drawHelpLabel(g, this.leftX, this.canvasY, this.leftW, 30, "Browser, pick widgets to add");
@@ -572,7 +561,6 @@ public class StressometerHudSettingsScreen extends Screen {
     }
 
     private void drawResetModal(GuiGraphics g, int mouseX, int mouseY) {
-        // Dim curtain over everything
         g.fill(0, 0, this.width, this.height, 0xB0000000);
         final int cardW = Math.min(360, this.width - 80);
         final int cardH = 120;
@@ -583,7 +571,7 @@ public class StressometerHudSettingsScreen extends Screen {
         g.drawString(this.font, "Reset would clear this layout", cardX + 14, cardY + 14, this.ACCENT);
         g.drawString(this.font, "No source-aware default widgets are", cardX + 14, cardY + 36, this.TEXT);
         g.drawString(this.font, "available for the current scope.", cardX + 14, cardY + 48, this.TEXT);
-        // Buttons
+
         this.resetModalBtnW = 120;
         this.resetModalBtnH = 20;
         this.resetModalCancelX = cardX + 14;
@@ -614,7 +602,6 @@ public class StressometerHudSettingsScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // P4.1: modal swallows all clicks; only its own buttons fire.
         if (this.pendingResetConfirm != null) {
             if (button == 0) {
                 if (this.isInsideResetModalButton(mouseX, mouseY, this.resetModalConfirmX, this.resetModalConfirmY)) {
@@ -625,7 +612,7 @@ public class StressometerHudSettingsScreen extends Screen {
             }
             return true;
         }
-        // P1.19 discard-confirm modal, same routing pattern as reset.
+
         if (this.pendingDiscardConfirm) {
             if (button == 0) {
                 if (this.isInsideResetModalButton(mouseX, mouseY, this.resetModalConfirmX, this.resetModalConfirmY)) {
@@ -643,7 +630,7 @@ public class StressometerHudSettingsScreen extends Screen {
         if (button != 0) {
             return false;
         }
-        // P1.5 domain chip click, switch domain and rebuild.
+
         final BrowserDomain hitDomain = this.hitDomainChip(mouseX, mouseY);
         if (hitDomain != null && hitDomain != this.selectedDomain) {
             this.selectedDomain = hitDomain;
@@ -653,7 +640,7 @@ public class StressometerHudSettingsScreen extends Screen {
             this.rebuildStudio();
             return true;
         }
-        // P1.8 quick-action chip click.
+
         final StressometerHudState.PartWidget chipSel = this.draftState.getSelectedWidget();
         if (chipSel != null) {
             final String chipHit = this.hitQuickActionChip(mouseX, mouseY);
@@ -695,7 +682,7 @@ public class StressometerHudSettingsScreen extends Screen {
         final int localY = this.toScreenY((int) mouseY - this.viewportY);
         final StressometerHudState.PartWidget selectedWidget = this.draftState.getSelectedWidget();
         final StressometerHudState.Bounds.ResolvedBounds selectedBounds = selectedWidget != null ? selectedWidget.resolveBounds(this.editWidth(), this.editHeight(), this.draftState) : null;
-        // P1.13: 8-handle hit test on the selected widget.
+
         if (selectedWidget != null && selectedBounds != null) {
             final DragHandle h = this.hitHandle(localX, localY, selectedBounds);
             if (h != DragHandle.NONE) {
@@ -717,7 +704,7 @@ public class StressometerHudSettingsScreen extends Screen {
             final StressometerHudState.Bounds.ResolvedBounds bounds = widget.resolveBounds(this.editWidth(), this.editHeight(), this.draftState);
             if (this.isInsideBounds(localX, localY, bounds)) {
                 this.draftState.setSelectedWidgetId(widget.getId());
-                // P1.11 drag threshold, arm the drag, don't activate until the pointer moves >= 3px.
+
                 this.dragArmed = true;
                 this.dragging = false;
                 this.dragOffsetX = localX - bounds.x();
@@ -746,7 +733,7 @@ public class StressometerHudSettingsScreen extends Screen {
         if (!this.isCanvasEditable()) {
             return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
         }
-        // P1.11 drag-threshold promotion: only flip from "armed" to "active" once we've travelled >= 3px.
+        // 3px before a drag counts
         if (this.dragArmed && !this.dragging) {
             final int dx = localX - this.dragStartMouseX;
             final int dy = localY - this.dragStartMouseY;
@@ -763,14 +750,13 @@ public class StressometerHudSettingsScreen extends Screen {
                 return false;
             }
             final StressometerHudState.Bounds.ResolvedBounds bounds = widget.resolveBounds(this.editWidth(), this.editHeight(), this.draftState);
-            // P1.13 snap delta from the original gesture origin (not iteratively).
+
             final int newX = this.snap(this.dragStartBoundsX + (localX - this.dragStartMouseX));
             final int newY = this.snap(this.dragStartBoundsY + (localY - this.dragStartMouseY));
             widget.setBoundsFromPixels(newX, newY, bounds.width(), bounds.height(), this.editWidth(), this.editHeight());
             return true;
         }
         if (this.resizing && this.resizeStartBounds != null) {
-            // P1.13 anchored 8-handle resize.
             this.applyHandleResize(this.activeHandle, localX, localY);
             return true;
         }
@@ -798,11 +784,10 @@ public class StressometerHudSettingsScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // P4.1: modal swallows all keys; Esc cancels, Enter confirms.
         if (this.pendingResetConfirm != null) {
-            if (keyCode == 256) { // ESCAPE
+            if (keyCode == 256) {
                 this.cancelReset();
-            } else if (keyCode == 257 || keyCode == 335) { // ENTER / KP_ENTER
+            } else if (keyCode == 257 || keyCode == 335) {
                 this.applyReset(this.pendingResetConfirm);
             }
             return true;
@@ -816,19 +801,19 @@ public class StressometerHudSettingsScreen extends Screen {
             }
             return true;
         }
-        // P1.10 undo/redo. Take precedence over per-widget shortcuts so they fire even with no selection.
+
         final boolean ctrlMod = (modifiers & 2) != 0;
         final boolean shiftMod = (modifiers & 1) != 0;
-        if (ctrlMod && keyCode == 90) { // Ctrl+Z
+        if (ctrlMod && keyCode == 90) {
             if (shiftMod) this.redo(); else this.undo();
             return true;
         }
-        if (ctrlMod && keyCode == 89) { // Ctrl+Y
+        if (ctrlMod && keyCode == 89) {
             this.redo();
             return true;
         }
-        // Esc: deselect first, exit on second press (P1.14).
-        if (keyCode == 256) { // GLFW_KEY_ESCAPE
+
+        if (keyCode == 256) {
             if (this.draftState.getSelectedWidgetId() != null && !this.draftState.getSelectedWidgetId().isEmpty()) {
                 this.draftState.setSelectedWidgetId("");
                 this.rebuildStudio();
@@ -837,7 +822,7 @@ public class StressometerHudSettingsScreen extends Screen {
             this.cancel();
             return true;
         }
-        // Only handle widget-modifying shortcuts when canvas is editable and a widget is selected.
+
         if (this.isCanvasEditable()) {
             final StressometerHudState.PartWidget sel = this.draftState.getSelectedWidget();
             if (sel != null) {
@@ -845,12 +830,11 @@ public class StressometerHudSettingsScreen extends Screen {
                 final boolean shift = shiftMod;
                 final int step = shift ? 8 : 1;
                 int dx = 0, dy = 0;
-                if (keyCode == 263) dx = -step;       // LEFT
-                else if (keyCode == 262) dx = step;   // RIGHT
-                else if (keyCode == 265) dy = -step;  // UP
-                else if (keyCode == 264) dy = step;   // DOWN
+                if (keyCode == 263) dx = -step;
+                else if (keyCode == 262) dx = step;
+                else if (keyCode == 265) dy = -step;
+                else if (keyCode == 264) dy = step;
                 if (dx != 0 || dy != 0) {
-                    // P1.10 each nudge is its own atomic undo entry.
                     this.beginUndoGesture(shift ? "Nudge ×8" : "Nudge");
                     final StressometerHudState.Bounds.ResolvedBounds b = sel.resolveBounds(this.editWidth(), this.editHeight(), this.draftState);
                     sel.setBoundsFromPixels(b.x() + dx, b.y() + dy, b.width(), b.height(), this.editWidth(), this.editHeight());
@@ -858,14 +842,14 @@ public class StressometerHudSettingsScreen extends Screen {
                     this.rebuildStudio();
                     return true;
                 }
-                if (keyCode == 261 || keyCode == 259) { // DELETE or BACKSPACE
+                if (keyCode == 261 || keyCode == 259) {
                     this.setNextActionLabel("Remove widget");
                     this.draftState.removeWidget(sel.getId());
                     this.rebuildStudio();
                     this.setStatus("Widget removed");
                     return true;
                 }
-                if (ctrl && keyCode == 68) { // Ctrl+D, duplicate
+                if (ctrl && keyCode == 68) {
                     this.setNextActionLabel("Duplicate");
                     this.draftState.duplicateWidget(sel.getId(), 8, 8, this.editWidth(), this.editHeight());
                     this.rebuildStudio();
@@ -873,8 +857,8 @@ public class StressometerHudSettingsScreen extends Screen {
                     return true;
                 }
             }
-            // P1.18 Snap toggle: G key while canvas focused.
-            if (keyCode == 71 && !ctrlMod) { // G
+
+            if (keyCode == 71 && !ctrlMod) {
                 this.snapToGrid = !this.snapToGrid;
                 this.setStatus(this.snapToGrid ? "Snap-to-grid: on" : "Snap-to-grid: off");
                 return true;
@@ -909,62 +893,61 @@ public class StressometerHudSettingsScreen extends Screen {
         return this.addRenderableWidget(new StudioChromeButton(x, y, w, h, Component.literal(label), b -> action.run()));
     }
 
-    /** V3 variant catalogue, declares which renderVariant strings are valid for a widget. */
     private static java.util.List<String> availableVariantsFor(StressometerHudState.PartWidget widget) {
         if (widget == null) return java.util.List.of();
-        // [2]
+
         if (widget.getPart() == StressometerHudState.Part.LOAD_GAUGE) {
             final String src = widget.getSourceType();
             if (src == null || src.isEmpty() || "Stressometer".equals(src)) {
                 return java.util.List.of("classic", "reactor");
             }
         }
-        // Stockpile gauge / output state share the lamp variant.
+
         if (("Stockpile Switch".equals(widget.getSourceType()))
                 && (widget.getPart() == StressometerHudState.Part.STOCKPILE_GAUGE
                  || widget.getPart() == StressometerHudState.Part.STOCKPILE_OUTPUT)) {
             return java.util.List.of("classic", "lamp");
         }
-        // Droplet variant for fluid-ish parts.
+
         if (widget.getPart() == StressometerHudState.Part.FLUID_LEVEL
          || widget.getPart() == StressometerHudState.Part.BOILER_WATER
          || widget.getPart() == StressometerHudState.Part.ENGINE_FUEL) {
             return java.util.List.of("classic", "droplet");
         }
-        // Flame variant for boiler heat.
+
         if (widget.getPart() == StressometerHudState.Part.BOILER_HEAT) {
             return java.util.List.of("classic", "flame");
         }
-        // Streak variant for axis velocity / aero drive.
+
         if (widget.getPart() == StressometerHudState.Part.VELOCITY_AXIS
          || widget.getPart() == StressometerHudState.Part.AERO_DRIVE) {
             return java.util.List.of("classic", "streak");
         }
-        // Marquee for inbound trains.
+
         if (widget.getPart() == StressometerHudState.Part.INBOUND_TRAINS) {
             return java.util.List.of("classic", "marquee");
         }
-        // P6.2.a attitude_ladder for AERO_HORIZON.
+
         if (widget.getPart() == StressometerHudState.Part.AERO_HORIZON) {
             return java.util.List.of("classic", "attitude_ladder");
         }
-        // P6.1.e Factory Pulse, production cardiograph for PRODUCTION_RATE.
+
         if (widget.getPart() == StressometerHudState.Part.PRODUCTION_RATE) {
             return java.util.List.of("classic", "pulse");
         }
-        // P6.1.f Factory Bottleneck, clipboard for FACTORY_SHORTFALL.
+
         if (widget.getPart() == StressometerHudState.Part.FACTORY_SHORTFALL) {
             return java.util.List.of("classic", "bottleneck");
         }
-        // P6.2.c Ship Compass, brass rose for AERO_ORIENTATION.
+
         if (widget.getPart() == StressometerHudState.Part.AERO_ORIENTATION) {
             return java.util.List.of("classic", "compass");
         }
-        // P6.2.d Ship Docking / Proximity, radar scope for DOCKING_PAIR.
+
         if (widget.getPart() == StressometerHudState.Part.DOCKING_PAIR) {
             return java.util.List.of("classic", "proximity");
         }
-        // P6.3.b Platform Occupancy / Signal Wait Board, for TRAIN_STATION_STATUS.
+
         if (widget.getPart() == StressometerHudState.Part.TRAIN_STATION_STATUS) {
             return java.util.List.of("classic", "signalbox");
         }
@@ -1006,7 +989,7 @@ public class StressometerHudSettingsScreen extends Screen {
         for (int i = 0; i < wanted; ++i) {
             final SpecializedHudWidgetCatalog.Definition definition = definitions.get(i);
             final StressometerHudState.PartWidget widget = StressometerHudState.PartWidget.createSpecialized(source, definition.part(), definition, i);
-            // Curated V3 presets auto-assign their signature variant per part where applicable.
+
             applyCuratedVariant(widget, preset);
             this.placePresetWidget(widget, preset, i, wanted);
             widgets.add(widget);
@@ -1017,7 +1000,6 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** Curated V3 presets pre-bind the signature variant for matching parts so users see the new visuals immediately. */
     private static void applyCuratedVariant(StressometerHudState.PartWidget widget, StressometerHudState.LayoutPreset preset) {
         if (widget == null || preset == null) return;
         final StressometerHudState.Part part = widget.getPart();
@@ -1108,18 +1090,16 @@ public class StressometerHudSettingsScreen extends Screen {
     }
 
     private void rebuildStudio() {
-        // P1.10: if state diverged since the last commit, push the previous canonical snapshot to undo.
         this.maybeCaptureUndoFromRebuild();
         this.clearWidgets();
         this.init();
     }
 
-    /** [3] */
+    // empty reset asks first instead of wiping the canvas
     private void requestReset() {
         final StressometerHudState prepared = this.buildSourceAwareReset();
         this.removeWidgetsOutsideStudioScope(prepared);
         if (prepared.getWidgets().isEmpty()) {
-            // Cancel any in-flight drag/resize so the modal becomes the only interactive layer.
             this.dragging = false;
             this.dragArmed = false;
             this.resizing = false;
@@ -1144,13 +1124,12 @@ public class StressometerHudSettingsScreen extends Screen {
         } else {
             reset.setBounds(this.draftState.getBounds());
         }
-        // A fresh StressometerHudState seeds Stressometer parts; drop them when no
-        // stressometer source is in scope so we don't ship empty placeholder cards.
+
         final boolean hasStressometer = !this.getStressometerSources().isEmpty();
         if (!hasStressometer) {
             reset.clearWidgets();
         }
-        // [4]
+
         int seeded = reset.getWidgets().size();
         for (SourceConfig source : this.getHudSources()) {
             if (seeded >= 4) break;
@@ -1160,8 +1139,7 @@ public class StressometerHudSettingsScreen extends Screen {
                 seeded++;
             }
         }
-        // addSourceCard mutates selectedWidgetId; normalise to the first widget so
-        // reset behaves like applyPreset rather than landing on the last seeded card.
+
         if (!reset.getWidgets().isEmpty()) {
             reset.setSelectedWidgetId(reset.getWidgets().get(0).getId());
         } else {
@@ -1198,7 +1176,6 @@ public class StressometerHudSettingsScreen extends Screen {
         this.removeWidgetsOutsideStudioScope(this.draftState);
     }
 
-    /** [5] */
     private void removeWidgetsOutsideStudioScope(StressometerHudState state) {
         if (state == null || !this.hasStudioScope()) {
             return;
@@ -1266,11 +1243,11 @@ public class StressometerHudSettingsScreen extends Screen {
 
     private void drawLeftPanelLabels(GuiGraphics g) {
         if (!this.hasTopologyControls()) {
-            // Scope summary fits in the slot above Presets where the source button would be.
-            // Do NOT repeat it below, that caused a duplicate line on non-topology panels.
+            // don't repeat it below, that was a duplicate line
+
             g.drawString(this.font, this.truncateLabel(this.scopeSummary(), this.leftW - 20), this.leftX + 10, this.canvasY + 56, this.DIM);
         }
-        // [6]
+
         this.drawSectionHeader(g, "Presets", this.leftX + 10, this.presetsY - 16, this.leftW);
         this.drawSectionHeader(g, "Widget groups", this.leftX + 10, this.addWidgetsStartY() - 18, this.leftW);
         if (this.sourceWidgetsY > 0) {
@@ -1279,7 +1256,6 @@ public class StressometerHudSettingsScreen extends Screen {
     }
 
     private int addWidgetsStartY() {
-        // [7]
         return (this.presetsY > 0 ? this.presetsY : this.canvasY + 104) + 124;
     }
 
@@ -1358,11 +1334,11 @@ public class StressometerHudSettingsScreen extends Screen {
         g.drawString(this.font, "Actions", left, actionY - 18, this.DIM);
         g.drawString(this.font, "Appearance", left, actionY + 34, this.DIM);
         g.drawString(this.font, "Style", left, actionY + 82, this.DIM);
-        // Canvas section shifted down by 48px to accommodate font/padding rows
+
         g.fill(left, actionY + 130, this.rightX + this.rightW - 10, actionY + 131, this.withAlpha(RAIL_MID, 70));
         g.drawString(this.font, "Canvas", left, actionY + 138, this.DIM);
         g.drawString(this.font, "Drag to place. Pull the lower-right corner to resize.", left, actionY + 152, this.DIM);
-        // Global controls label at bottom
+
         final int globalLabelY = this.canvasY + this.canvasH - 76;
         g.fill(left, globalLabelY - 2, this.rightX + this.rightW - 10, globalLabelY - 1, this.withAlpha(RAIL_MID, 70));
         g.drawString(this.font, "Global style", left, globalLabelY + 5, this.DIM);
@@ -1388,8 +1364,7 @@ public class StressometerHudSettingsScreen extends Screen {
 
         g.fill(this.viewportX, this.viewportY, this.viewportX + this.viewportW, this.viewportY + this.viewportH, 0x77090B13);
         this.drawViewportFrame(g);
-        // P1.16 keep rendering the preview even when the canvas is too small to edit;
-        // only the placement chrome (handles, chip, edit hints) is suppressed.
+
         final boolean editable = this.isCanvasEditable();
         if (this.viewportW > 0 && this.viewportH > 0) {
             final float pScale = this.previewScale();
@@ -1405,17 +1380,16 @@ public class StressometerHudSettingsScreen extends Screen {
             g.drawCenteredString(this.font, "Enlarge window to edit", this.viewportX + this.viewportW / 2, this.viewportY + this.viewportH / 2 - 5, this.TEXT);
             return;
         }
-        // Outline and handle drawn in viewport pixel space (convert bounds from screen coords)
+
         final int localX = this.toScreenX(mouseX - this.viewportX);
         final int localY = this.toScreenY(mouseY - this.viewportY);
-        // P1.16 Empty state: distinguish "no widgets at all" from "nothing selected".
+
         final boolean noWidgets = this.draftState.getWidgets().isEmpty();
         final StressometerHudState.PartWidget selectedWidget = this.draftState.getSelectedWidget();
         if (selectedWidget == null) {
             final int cxC = this.viewportX + this.viewportW / 2;
             final int cyC = this.viewportY + this.viewportH / 2;
             if (noWidgets) {
-                // Friendly prompt with two short actionable lines.
                 g.drawCenteredString(this.font, "Empty HUD layout", cxC, cyC - 14, this.TEXT);
                 g.drawCenteredString(this.font, "Pick a widget on the left to add it.", cxC, cyC - 2, this.DIM);
                 g.drawCenteredString(this.font, "Then drag, resize, or change its variant.", cxC, cyC + 9, this.DIM);
@@ -1432,7 +1406,7 @@ public class StressometerHudSettingsScreen extends Screen {
         final int outlineBase = this.isInsideBounds(localX, localY, bounds) ? 0x0033E0A0 : 0x00D6B84A;
         final int outline = this.withAlpha(outlineBase, 0x90 + Math.round(this.pulse01(40.0f, 0.15f) * 0x6F));
         this.border(g, vpBX - 1, vpBY - 1, vpBW + 2, vpBH + 2, outline);
-        // P1.13: render eight resize handles (corners + edge midpoints) instead of a single SE corner.
+
         final DragHandle hovered = this.hitHandle(localX, localY, bounds);
         this.drawHandle(g, vpBX, vpBY, hovered == DragHandle.NW);
         this.drawHandle(g, vpBX + vpBW - 6, vpBY, hovered == DragHandle.NE);
@@ -1442,7 +1416,7 @@ public class StressometerHudSettingsScreen extends Screen {
         this.drawHandle(g, vpBX + vpBW / 2 - 3, vpBY + vpBH - 6, hovered == DragHandle.S);
         this.drawHandle(g, vpBX, vpBY + vpBH / 2 - 3, hovered == DragHandle.W);
         this.drawHandle(g, vpBX + vpBW - 6, vpBY + vpBH / 2 - 3, hovered == DragHandle.E);
-        // P1.8 quick-action chip near the selected widget.
+
         this.drawQuickActionChip(g, mouseX, mouseY, vpBX, vpBY, vpBW, vpBH, selectedWidget);
     }
 
@@ -1465,15 +1439,14 @@ public class StressometerHudSettingsScreen extends Screen {
         } else if (StressometerHudOverlay.isPinned(this.panel)) {
             StressometerHudOverlay.clear();
         }
-        // P1.19: refresh saved baseline so dirty becomes false again.
+
         this.savedSnapshot = this.canonicalSnapshot();
         Minecraft.getInstance().setScreen(this.parentScreen);
     }
 
     private void cancel() {
-        // P1.19: warn before discarding unsaved edits.
         if (this.isDirty() && !this.pendingDiscardConfirm) {
-            this.pendingResetConfirm = null; // never let discard + reset overlap
+            this.pendingResetConfirm = null;
             this.pendingDiscardConfirm = true;
             this.dragging = false;
             this.dragArmed = false;
@@ -1602,7 +1575,7 @@ public class StressometerHudSettingsScreen extends Screen {
         if (this.draftState.getWidget("network_grade") != null || this.draftState.getWidget("network_efficiency") != null) {
             categories.add(StressometerHudState.SourceCategory.EFFICIENCY);
         }
-        // P1.5 domain filter.
+
         final ArrayList<StressometerHudState.SourceCategory> filtered = new ArrayList<>();
         for (StressometerHudState.SourceCategory c : categories) {
             if (this.domainAllows(c)) filtered.add(c);
@@ -1692,7 +1665,7 @@ public class StressometerHudSettingsScreen extends Screen {
                 this.rebuildStudio();
             }));
         }
-        // P1.6 query filter, keep only buttons whose label or context matches.
+
         if (this.browserQuery != null && !this.browserQuery.isEmpty()) {
             final ArrayList<StudioButton> filtered = new ArrayList<>();
             for (StudioButton b : buttons) {
@@ -1976,24 +1949,20 @@ public class StressometerHudSettingsScreen extends Screen {
         return this.viewportW > 0 ? (float) this.viewportW / this.editWidth() : 1.0f;
     }
 
-    /** Convert a viewport-relative pixel X to screen coordinate space. */
     private int toScreenX(int viewportLocalX) {
         final float s = this.previewScale();
         return s > 0 ? Math.round(viewportLocalX / s) : viewportLocalX;
     }
 
-    /** Convert a viewport-relative pixel Y to screen coordinate space. */
     private int toScreenY(int viewportLocalY) {
         final float s = this.previewScale();
         return s > 0 ? Math.round(viewportLocalY / s) : viewportLocalY;
     }
 
-    /** Convert a screen-space X to viewport pixel space (for drawing). */
     private int toViewportX(int screenX) {
         return Math.round(screenX * this.previewScale());
     }
 
-    /** Convert a screen-space dimension to viewport pixel space (for drawing). */
     private int toViewportD(int screenD) {
         return Math.max(1, Math.round(screenD * this.previewScale()));
     }
@@ -2209,7 +2178,6 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** V3 slider for the global font scale (0.5x..1.5x). */
     private final class GlobalFloatSlider extends AbstractSliderButton {
         private final float min;
         private final float max;
@@ -2232,7 +2200,6 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** V3 slider for the global padding offset (-4..+8 px). */
     private final class GlobalIntSlider extends AbstractSliderButton {
         private final int min;
         private final int max;
@@ -2255,11 +2222,6 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    // ====================================================================================
-    // Phase 1 V3, undo/redo, dirty state, status, snap, help, drag-handle, browser domain
-    // ====================================================================================
-
-    /** P1.10 single undo entry: action label + canonical state snapshot. */
     private static final class UndoEntry {
         final String label;
         final CompoundTag snapshot;
@@ -2269,12 +2231,10 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** P1.13 enum of selected-widget interaction handles. */
     private enum DragHandle {
         NONE, MOVE, NW, N, NE, E, SE, S, SW, W
     }
 
-    /** P1.5 goal-domain chips. ALL preserves the legacy by-source-category browsing. */
     private enum BrowserDomain {
         ALL("All"),
         FACTORY("Factory"),
@@ -2301,7 +2261,6 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** Canonical NBT for dirty/undo comparison: excludes transient SelectedWidgetId. */
     private CompoundTag canonicalSnapshot() {
         final CompoundTag tag = this.draftState.save();
         tag.remove("SelectedWidgetId");
@@ -2315,13 +2274,12 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** Push the lastCommittedSnapshot to the undo stack if the current state diverges. Called on rebuildStudio. */
     private void maybeCaptureUndoFromRebuild() {
         if (this.lastCommittedSnapshot == null) {
             this.lastCommittedSnapshot = this.canonicalSnapshot();
             return;
         }
-        // Skip if a gesture is in flight; gestures push their own snapshot at commit time.
+
         if (this.pendingGestureSnapshot != null) {
             this.lastCommittedSnapshot = this.canonicalSnapshot();
             return;
@@ -2376,7 +2334,6 @@ public class StressometerHudSettingsScreen extends Screen {
             if (this.draftState.getWidget(selBefore) != null) {
                 this.draftState.setSelectedWidgetId(selBefore);
             } else {
-                // P1.12: surface a status message when the previously selected widget is gone.
                 this.setStatus("Widget removed");
             }
         }
@@ -2391,7 +2348,6 @@ public class StressometerHudSettingsScreen extends Screen {
         this.init();
     }
 
-    /** P1.10 transactional gesture: snapshot taken at start; commit pushes if state changed. */
     private void beginUndoGesture(String label) {
         this.pendingGestureLabel = (label != null) ? label : "Edit";
         this.pendingGestureSnapshot = this.canonicalSnapshot();
@@ -2417,7 +2373,7 @@ public class StressometerHudSettingsScreen extends Screen {
 
     private void setStatus(String message) {
         this.statusMessage = (message != null) ? message : "";
-        this.statusMessageExpiryTick = this.tickCount + 60L; // 3 seconds at 20 tps
+        this.statusMessageExpiryTick = this.tickCount + 60L;
     }
 
     private void setNextActionLabel(String label) {
@@ -2431,23 +2387,21 @@ public class StressometerHudSettingsScreen extends Screen {
         return !this.canonicalSnapshot().equals(this.savedSnapshot);
     }
 
-    /** P1.13 snap a pixel coordinate to an 8-px grid (when snapToGrid is on). */
     private int snap(int v) {
         if (!this.snapToGrid) return v;
         final int g = 8;
         return Math.round(v / (float) g) * g;
     }
 
-    /** P1.13 hit-test all 8 handles around the selected widget. Returns the matching handle or NONE. */
     private DragHandle hitHandle(int localX, int localY, StressometerHudState.Bounds.ResolvedBounds b) {
-        final int hit = 14; // forgiving hitbox
+        final int hit = 14;
         final int x0 = b.x(), y0 = b.y(), x1 = b.x() + b.width(), y1 = b.y() + b.height();
-        // Corners first (priority over edges where they overlap).
+
         if (localX >= x0 - hit / 2 && localX <= x0 + hit / 2 && localY >= y0 - hit / 2 && localY <= y0 + hit / 2) return DragHandle.NW;
         if (localX >= x1 - hit / 2 && localX <= x1 + hit / 2 && localY >= y0 - hit / 2 && localY <= y0 + hit / 2) return DragHandle.NE;
         if (localX >= x0 - hit / 2 && localX <= x0 + hit / 2 && localY >= y1 - hit / 2 && localY <= y1 + hit / 2) return DragHandle.SW;
         if (localX >= x1 - hit / 2 && localX <= x1 + hit / 2 && localY >= y1 - hit / 2 && localY <= y1 + hit / 2) return DragHandle.SE;
-        // Edges.
+
         if (localX >= x0 + hit / 2 && localX <= x1 - hit / 2 && localY >= y0 - hit / 2 && localY <= y0 + hit / 2) return DragHandle.N;
         if (localX >= x0 + hit / 2 && localX <= x1 - hit / 2 && localY >= y1 - hit / 2 && localY <= y1 + hit / 2) return DragHandle.S;
         if (localY >= y0 + hit / 2 && localY <= y1 - hit / 2 && localX >= x0 - hit / 2 && localX <= x0 + hit / 2) return DragHandle.W;
@@ -2455,7 +2409,6 @@ public class StressometerHudSettingsScreen extends Screen {
         return DragHandle.NONE;
     }
 
-    /** Apply an anchored resize using the original gesture bounds + raw mouse delta. */
     private void applyHandleResize(DragHandle h, int localX, int localY) {
         final StressometerHudState.PartWidget widget = this.draftState.getSelectedWidget();
         if (widget == null) return;
@@ -2500,12 +2453,10 @@ public class StressometerHudSettingsScreen extends Screen {
         widget.setBoundsFromPixels(x, y, w, hgt, this.editWidth(), this.editHeight());
     }
 
-    /** P2.2 effective studio theme, preview override takes precedence over panel theme. */
     private DisplayTheme studioTheme() {
         return this.previewThemeOverride != null ? this.previewThemeOverride : this.panel.getSettings().getDisplayTheme();
     }
 
-    /** P1.5/6/7 helper, record a widget id as recently used (most-recent first). */
     private void recordRecentlyUsed(String widgetId) {
         if (widgetId == null || widgetId.isEmpty()) return;
         this.recentlyUsedWidgetIds.remove(widgetId);
@@ -2515,12 +2466,10 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** Whether a category is visible under the current domain filter. */
     private boolean domainAllows(StressometerHudState.SourceCategory cat) {
         return this.selectedDomain == null || this.selectedDomain.includes(cat);
     }
 
-    /** Whether a label matches the current browser query (substring, case-insensitive). */
     private boolean queryMatches(String... haystack) {
         if (this.browserQuery == null || this.browserQuery.isEmpty()) return true;
         final String q = this.browserQuery.toLowerCase(Locale.ROOT);
@@ -2530,7 +2479,6 @@ public class StressometerHudSettingsScreen extends Screen {
         return false;
     }
 
-    /** P1.5 draw the domain chip strip beneath the search box. */
     private void drawDomainChips(GuiGraphics g) {
         if (this.domainChipW <= 0) return;
         final BrowserDomain[] domains = BrowserDomain.values();
@@ -2550,7 +2498,6 @@ public class StressometerHudSettingsScreen extends Screen {
         }
     }
 
-    /** P1.5 hit-test domain chips. Returns the BrowserDomain or null. */
     private BrowserDomain hitDomainChip(double mouseX, double mouseY) {
         if (mouseY < this.domainChipY || mouseY >= this.domainChipY + this.domainChipH) return null;
         final BrowserDomain[] domains = BrowserDomain.values();
@@ -2561,7 +2508,6 @@ public class StressometerHudSettingsScreen extends Screen {
         return null;
     }
 
-    /** P1.8 draw the quick-action chip near the selected widget on the canvas. */
     private void drawQuickActionChip(GuiGraphics g, int mouseX, int mouseY,
                                       int vpBX, int vpBY, int vpBW, int vpBH,
                                       StressometerHudState.PartWidget selectedWidget) {
@@ -2577,7 +2523,7 @@ public class StressometerHudSettingsScreen extends Screen {
         final int chipCount = hasVariants ? 3 : 2;
         final int chipsW = chipCount * this.chipBtnW + (chipCount - 1) * 2 + padding * 2;
         final int chipsH = this.chipBtnH + padding * 2;
-        // Position: prefer to the right of widget; clamp inside viewport.
+
         int cx = vpBX + vpBW + 6;
         int cy = vpBY;
         if (cx + chipsW > this.viewportX + this.viewportW - 2) {
@@ -2588,7 +2534,7 @@ public class StressometerHudSettingsScreen extends Screen {
             cy = Math.max(this.viewportY + 2, vpBY - chipsH - 4);
         }
         cy = Math.max(this.viewportY + 2, Math.min(this.viewportY + this.viewportH - chipsH - 2, cy));
-        // Background plate.
+
         final DisplayTheme th = this.studioTheme();
         g.fill(cx, cy, cx + chipsW, cy + chipsH, 0xCC1A1209);
         this.border(g, cx, cy, chipsW, chipsH, th.chromeDivider());
@@ -2615,7 +2561,6 @@ public class StressometerHudSettingsScreen extends Screen {
         g.drawString(this.font, label, x + (this.chipBtnW - this.font.width(label)) / 2, y + 4, hover ? th.text : th.dim);
     }
 
-    /** P1.8 hit-test the quick-action chip; returns the chip name or null. */
     private String hitQuickActionChip(double mouseX, double mouseY) {
         if (this.chipDuplicateX >= 0 && mouseX >= this.chipDuplicateX && mouseX < this.chipDuplicateX + this.chipBtnW
                 && mouseY >= this.chipDuplicateY && mouseY < this.chipDuplicateY + this.chipBtnH) return "duplicate";

@@ -1,0 +1,38 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    },
+    {
+      "tag": "create_stats:biofuel/green"
+    }
+  ],
+  "results": [
+    {
+      "count": 1,
+      "id": "create_stats:compacted_biofuel"
+    }
+  ]
+}

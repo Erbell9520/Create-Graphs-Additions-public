@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "active=true,facing=north": {
+      "model": "create_stats:block/holographic_projector_mk3"
+    },
+    "active=false,facing=north": {
+      "model": "create_stats:block/holographic_projector_mk3"
+    },
+    "active=true,facing=east": {
+      "model": "create_stats:block/holographic_projector_mk3",
+      "y": 90
+    },
+    "active=false,facing=east": {
+      "model": "create_stats:block/holographic_projector_mk3",
+      "y": 90
+    },
+    "active=true,facing=south": {
+      "model": "create_stats:block/holographic_projector_mk3",
+      "y": 180
+    },
+    "active=false,facing=south": {
+      "model": "create_stats:block/holographic_projector_mk3",
+      "y": 180
+    },
+    "active=true,facing=west": {
+      "model": "create_stats:block/holographic_projector_mk3",
+      "y": 270
+    },
+    "active=false,facing=west": {
+      "model": "create_stats:block/holographic_projector_mk3",
+      "y": 270
+    }
+  }
+}

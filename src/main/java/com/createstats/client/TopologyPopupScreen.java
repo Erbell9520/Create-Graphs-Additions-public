@@ -79,7 +79,7 @@ public class TopologyPopupScreen extends Screen
     private int modeNextY;
     private int modeNextW;
     private int modeNextH;
-    
+
     public TopologyPopupScreen(StatsDisplayPanelBE panel, Screen parentScreen) {
         super(Component.literal("Network Topology"));
         this.lastGraphHash = 0;
@@ -94,7 +94,7 @@ public class TopologyPopupScreen extends Screen
         this.panel = panel;
         this.parentScreen = parentScreen;
     }
-    
+
     protected void init() {
         final int margin = 20;
         this.areaX = margin;
@@ -110,7 +110,7 @@ public class TopologyPopupScreen extends Screen
         this.BORDER = theme.border;
         this.WARN = theme.warn;
     }
-    
+
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(g);
         g.fill(0, 0, this.width, this.height, -301331942);
@@ -238,7 +238,7 @@ public class TopologyPopupScreen extends Screen
         this.drawBorder(g, x, y, w, h, -12040120);
         g.drawCenteredString(this.font, text, x + w / 2, y + 4, -1);
     }
-     
+
     private void drawEdges(GuiGraphics g, NetworkGraph graph, int cx, int cy) {
         final Matrix4f pose = g.pose().last().pose();
         RenderSystem.enableBlend();
@@ -342,7 +342,7 @@ public class TopologyPopupScreen extends Screen
         g.fill(this.areaX + 1, this.areaY + 1, this.areaX + 3, this.areaY + this.areaH - 1, color);
         g.fill(this.areaX + this.areaW - 3, this.areaY + 1, this.areaX + this.areaW - 1, this.areaY + this.areaH - 1, color);
     }
-    
+
     private void renderNodeIcon(GuiGraphics g, TopologyNode node, int nx, int ny, int nodeRadius) {
         final byte[] icon = TopologyIcons.getIcon(node.getType());
         final int iconSize = node.getType().getIconSize();
@@ -363,7 +363,7 @@ public class TopologyPopupScreen extends Screen
             }
         }
     }
-    
+
     private void renderTruncationWarning(GuiGraphics g, NetworkGraph graph) {
         if (graph.isTruncated()) {
             final String warn = "\u26a0 Network truncated at " + graph.getNodes().size() + " nodes, raise Max Nodes for full topology";
@@ -374,7 +374,7 @@ public class TopologyPopupScreen extends Screen
             g.drawCenteredString(this.font, warn, this.areaX + this.areaW / 2, wy + 2, -21948);
         }
     }
-    
+
     private void renderStalenessIndicator(GuiGraphics g, NetworkGraph graph) {
         final long discoveredTick = graph.getDiscoveredAtTick();
         long currentTick = 0L;
@@ -397,7 +397,7 @@ public class TopologyPopupScreen extends Screen
         final int iw = this.font.width(indicator) + 4;
         g.drawString(this.font, indicator, this.areaX + this.areaW - iw, this.areaY - 12, -7829351);
     }
-    
+
     private void computeLayout(NetworkGraph graph) {
         final int hash = this.computeLayoutHash(graph);
         final boolean graphChanged = hash != this.lastGraphHash || this.targetNodePositions == null || !this.targetNodePositions.keySet().equals(graph.getNodes().keySet());
@@ -421,7 +421,7 @@ public class TopologyPopupScreen extends Screen
         this.targetNodePositions = this.copyPositions(scaledTargets);
         this.lastAnimationMs = System.currentTimeMillis();
     }
-  
+
     private int computeLayoutHash(NetworkGraph graph) {
         int h = graph.getNodes().size() * 31;
         h = h * 31 + this.layoutMode.ordinal();
@@ -520,7 +520,7 @@ public class TopologyPopupScreen extends Screen
         }
         return copy;
     }
-    
+
     private void renderSummaryBar(GuiGraphics g, NetworkGraph graph) {
         final int barY = this.areaY + this.areaH + 2;
         final int barH = 16;
@@ -546,7 +546,7 @@ public class TopologyPopupScreen extends Screen
         this.drawBorder(g, barX, barY, barW, barH, -13421739);
         g.drawCenteredString(this.font, hasCapacity ? String.format("%.0f%%", load * 100.0f) : "?", barX + barW / 2, barY + 4, -1);
     }
-    
+
     private void renderNodeTooltip(GuiGraphics g, TopologyNode node, int mx, int my) {
         final List<Component> lines = new ArrayList<Component>();
         lines.add(Component.literal("§l" + node.getName()));
@@ -579,7 +579,7 @@ public class TopologyPopupScreen extends Screen
         final int tipY = Math.min(my - 8, this.height - lines.size() * 12 - 10);
         g.renderTooltip(this.font, (List)lines, (Optional)Optional.empty(), tipX, tipY);
     }
-    
+
     private void renderLegend(GuiGraphics g) {
         final int lx = this.areaX + this.areaW - 110;
         final int ly = this.areaY + 4;
@@ -599,13 +599,13 @@ public class TopologyPopupScreen extends Screen
         g.fill(lx + 4, ly + 62, lx + 12, ly + 70, -48060);
         g.drawString(this.font, "§cOverstressed", lx + 16, ly + 62, -48060);
     }
-    
+
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
         this.zoom *= ((scrollY > 0.0) ? 1.15f : 0.87f);
         this.zoom = Math.max(0.2f, Math.min(3.0f, this.zoom));
         return true;
     }
-    
+
     public boolean mouseClicked(double mx, double my, int button) {
         if (button == 0) {
             if (mx >= this.modePrevX && mx < this.modePrevX + this.modePrevW && my >= this.modePrevY && my < this.modePrevY + this.modePrevH) {
@@ -635,7 +635,7 @@ public class TopologyPopupScreen extends Screen
         this.panStartPanY = this.panY;
         return true;
     }
-    
+
     public boolean mouseReleased(double mx, double my, int button) {
         if (button == 0) {
             this.panning = false;
@@ -646,7 +646,7 @@ public class TopologyPopupScreen extends Screen
         }
         return super.mouseReleased(mx, my, button);
     }
-    
+
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         if (button == 0 && this.nodeDragging && this.draggedNode != null) {
             final float[] pos = this.nodePositions.get(this.draggedNode);
@@ -672,22 +672,22 @@ public class TopologyPopupScreen extends Screen
         }
         return super.mouseDragged(mx, my, button, dx, dy);
     }
-    
+
     public void onClose() {
         this.minecraft.setScreen(this.parentScreen);
     }
-    
+
     public boolean isPauseScreen() {
         return false;
     }
-    
+
     private void drawBorder(GuiGraphics g, int x, int y, int w, int h, int color) {
         g.fill(x, y, x + w, y + 1, color);
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y, x + 1, y + h, color);
         g.fill(x + w - 1, y, x + w, y + h, color);
     }
-    
+
     private int getNodeColor(TopologyNode node) {
         if (node.isOverStressed()) {
             return -48060;
@@ -715,35 +715,35 @@ public class TopologyPopupScreen extends Screen
             default -> -11171892;
         };
     }
-    
+
     private int getNodeRadius(TopologyNode node) {
         if (node.isSource() || node.isInferredRoot()) {
             return 7;
         }
         return (node.getType().getIconSize() >= 7) ? 6 : 4;
     }
-    
+
     private String formatSpeed(float speed) {
         if (Math.abs(speed) >= 1000.0f) {
             return String.format("%.1fk RPM", speed / 1000.0f);
         }
         return String.format("%.0f RPM", speed);
     }
-    
+
     private String formatSU(float su) {
         if (su >= 1000.0f) {
             return String.format("%.1fk SU", su / 1000.0f);
         }
         return String.format("%.0f SU", su);
     }
-    
+
     private String formatRatio(float ratio) {
         if (ratio == (int)ratio) {
             return (int)ratio + ":1";
         }
         return String.format("%.1f:1", ratio);
     }
-    
+
     private String formatNodeType(NodeType type) {
         final String name = type.name().replace('_', ' ').toLowerCase();
         final StringBuilder sb = new StringBuilder();
@@ -778,7 +778,7 @@ public class TopologyPopupScreen extends Screen
         }
         return label.substring(0, Math.max(1, maxLen - 2)) + "..";
     }
-    
+
     private int darken(int color, float factor) {
         final int a = color >> 24 & 0xFF;
         final int r = (int)((color >> 16 & 0xFF) * factor);

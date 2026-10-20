@@ -15,27 +15,27 @@ public class StatsUpdatePacket implements CustomPacketPayload
 
     private final BlockPos pos;
     private final TimeSeriesStore store;
-    
+
     public StatsUpdatePacket(BlockPos pos, TimeSeriesStore store) {
         this.pos = pos;
         this.store = store;
     }
-    
+
     public StatsUpdatePacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.store = TimeSeriesStore.readFromBuf(buf);
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         this.store.writeToBuf(buf);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(StatsUpdatePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> StatsClientHooks.handleStatsUpdate(packet.pos, packet.store));
     }

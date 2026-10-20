@@ -20,7 +20,7 @@ public class TimeSeriesStore
     private long oldestSampleTick;
     private int sampleIntervalTicks;
     private PredictionConfig predictionConfig;
-    
+
     public TimeSeriesStore(int capacity) {
         this.predictionConfig = new PredictionConfig();
         this.buffer = new RingBuffer(capacity);
@@ -39,15 +39,27 @@ public class TimeSeriesStore
     private static int normalizeSampleInterval(int ticks) {
         return Math.max(1, ticks);
     }
-    
+
     public static TimeSeriesStore forPanel() {
-        return createConfiguredStore((int)ModConfiguration.COMMON.panelBufferSize.get(), (int)ModConfiguration.COMMON.sampleIntervalTicks.get());
+        return createConfiguredStore(configInt(ModConfiguration.COMMON.panelBufferSize, DEFAULT_PANEL_CAPACITY),
+                configInt(ModConfiguration.COMMON.sampleIntervalTicks, DEFAULT_SAMPLE_INTERVAL_TICKS));
     }
-    
+
     public static TimeSeriesStore forRecorder() {
-        return createConfiguredStore((int)ModConfiguration.COMMON.recorderBufferSize.get(), (int)ModConfiguration.COMMON.sampleIntervalTicks.get());
+        return createConfiguredStore(configInt(ModConfiguration.COMMON.recorderBufferSize, DEFAULT_RECORDER_CAPACITY),
+                configInt(ModConfiguration.COMMON.sampleIntervalTicks, DEFAULT_SAMPLE_INTERVAL_TICKS));
     }
-    
+
+    // neoforge throws before load, fall back. offline previews need this
+    private static int configInt(net.neoforged.neoforge.common.ModConfigSpec.ConfigValue<Integer> value, int fallback) {
+        try {
+            final Integer configured = value.get();
+            return configured == null ? fallback : configured;
+        } catch (final IllegalStateException notLoaded) {
+            return fallback;
+        }
+    }
+
     public void addSample(float value, long gameTick) {
         if (gameTick - this.lastSampleTick >= this.sampleIntervalTicks || this.lastSampleTick == 0L) {
             if (this.buffer.size() == 0) {
@@ -60,39 +72,39 @@ public class TimeSeriesStore
             this.lastSampleTick = gameTick;
         }
     }
-    
+
     public void addSampleDirect(float value) {
         this.buffer.add(value);
     }
-    
+
     public RingBuffer getBuffer() {
         return this.buffer;
     }
-    
+
     public MetricType getMetricType() {
         return this.metricType;
     }
-    
+
     public void setMetricType(MetricType type) {
         this.metricType = type;
     }
-    
+
     public int getSampleIntervalTicks() {
         return this.sampleIntervalTicks;
     }
-    
+
     public void setSampleIntervalTicks(int ticks) {
         this.sampleIntervalTicks = normalizeSampleInterval(ticks);
     }
-    
+
     public PredictionConfig getPredictionConfig() {
         return this.predictionConfig;
     }
-    
+
     public void setPredictionConfig(PredictionConfig config) {
         this.predictionConfig = config;
     }
-    
+
     public int getRecentDataHash() {
         int hash = this.buffer.size();
         for (int count = Math.min(8, this.buffer.size()), i = 0; i < count; ++i) {
@@ -100,58 +112,66 @@ public class TimeSeriesStore
         }
         return hash;
     }
-    
+
     public float getLatestValue() {
         return this.buffer.latest();
     }
-    
+
     public float getMin() {
         return this.buffer.min();
     }
-    
+
     public float getMax() {
         return this.buffer.max();
     }
-    
+
     public float getAverage() {
         return this.buffer.average();
     }
-    
+
     public int getSampleCount() {
         return this.buffer.size();
     }
-    
+
     public long getLastSampleTick() {
         return this.lastSampleTick;
     }
-    
+
     public long getOldestSampleTick() {
         return this.oldestSampleTick;
     }
-    
+
     public boolean hasValidTimestamps() {
         return this.oldestSampleTick > 0L && this.lastSampleTick > this.oldestSampleTick;
     }
-    
+
     public long getActualWindowTicks() {
         if (this.oldestSampleTick > 0L && this.lastSampleTick > this.oldestSampleTick) {
             return this.lastSampleTick - this.oldestSampleTick;
         }
         return (this.buffer.size() - 1) * (long)this.sampleIntervalTicks;
     }
-    
+
     public float[] getData() {
         return this.buffer.toArray();
     }
-    
+
     public float[] getDataWindow(int maxSamples) {
-        final float[] all = this.buffer.toArray();
-        if (all.length <= maxSamples) {
-            return all;
+        final int count = Math.min(Math.max(0, maxSamples), this.buffer.size());
+        if (count == this.buffer.size()) {
+            return this.buffer.toArray();
         }
-        final float[] window = new float[maxSamples];
-        System.arraycopy(all, all.length - maxSamples, window, 0, maxSamples);
+        final float[] window = new float[count];
+        this.buffer.copyRecent(window, count);
         return window;
+    }
+
+    public long getRevision() {
+        return this.buffer.revision();
+    }
+
+    public int copyRecent(float[] destination, int maxSamples) {
+        return this.buffer.copyRecent(destination, maxSamples);
     }
 
     public int getSampleCountForSeconds(int timeScaleSeconds) {
@@ -162,15 +182,15 @@ public class TimeSeriesStore
         final int samplesToShow = (int)Math.ceil(timeScaleSeconds * 20.0 / interval);
         return Math.min(Math.max(1, samplesToShow), this.buffer.size());
     }
-    
+
     public float[] getDataForTimeScale(int timeScaleSeconds) {
         return this.getDataWindow(this.getSampleCountForSeconds(timeScaleSeconds));
     }
-    
+
     public float getStdDev() {
         return this.getStdDevWindow(0);
     }
-    
+
     public float getRateOfChange() {
         if (this.buffer.size() < 2) {
             return 0.0f;
@@ -180,7 +200,7 @@ public class TimeSeriesStore
         final float intervalSec = this.sampleIntervalTicks / 20.0f;
         return (latest - prev) / intervalSec;
     }
-    
+
     public float getAvgRateOfChange(int samples) {
         if (this.buffer.size() < 2) {
             return 0.0f;
@@ -194,15 +214,15 @@ public class TimeSeriesStore
         }
         return (newest - oldest) / totalTimeSec;
     }
-    
+
     public float getMedian() {
         return this.getMedianWindow(0);
     }
-    
+
     public float getPercentile(float percentile) {
         return this.getPercentileWindow(percentile, 0);
     }
-    
+
     public int getMinIndex() {
         if (this.buffer.size() == 0) {
             return -1;
@@ -216,7 +236,7 @@ public class TimeSeriesStore
         }
         return minIdx;
     }
-    
+
     public int getMaxIndex() {
         if (this.buffer.size() == 0) {
             return -1;
@@ -230,7 +250,7 @@ public class TimeSeriesStore
         }
         return maxIdx;
     }
-    
+
     public String getTimeAgo(int sampleIndex) {
         final int samplesAgo = this.buffer.size() - 1 - sampleIndex;
         final int secondsAgo = samplesAgo * this.sampleIntervalTicks / 20;
@@ -242,18 +262,18 @@ public class TimeSeriesStore
         }
         return secondsAgo / 3600 + "h " + secondsAgo % 3600 / 60 + "m ago";
     }
-    
+
     public int getDurationSeconds() {
         return Math.max(0, this.buffer.size() - 1) * this.sampleIntervalTicks / 20;
     }
-    
+
     private float[] getWindowArray(int windowSamples) {
         if (windowSamples <= 0 || windowSamples >= this.buffer.size()) {
             return this.buffer.toArray();
         }
         return this.getDataWindow(windowSamples);
     }
-    
+
     public float getMinWindow(int windowSamples) {
         final float[] d = this.getWindowArray(windowSamples);
         if (d.length == 0) {
@@ -267,7 +287,7 @@ public class TimeSeriesStore
         }
         return m;
     }
-    
+
     public float getMaxWindow(int windowSamples) {
         final float[] d = this.getWindowArray(windowSamples);
         if (d.length == 0) {
@@ -281,7 +301,7 @@ public class TimeSeriesStore
         }
         return m;
     }
-    
+
     public float getAverageWindow(int windowSamples) {
         final float[] d = this.getWindowArray(windowSamples);
         if (d.length == 0) {
@@ -293,7 +313,7 @@ public class TimeSeriesStore
         }
         return sum / d.length;
     }
-    
+
     public float getStdDevWindow(int windowSamples) {
         final float[] d = this.getWindowArray(windowSamples);
         if (d.length < 2) {
@@ -311,7 +331,7 @@ public class TimeSeriesStore
         }
         return (float)Math.sqrt(sumSq / d.length);
     }
-    
+
     public float getMedianWindow(int windowSamples) {
         final float[] d = this.getWindowArray(windowSamples);
         if (d.length == 0) {
@@ -322,7 +342,7 @@ public class TimeSeriesStore
         final int mid = sorted.length / 2;
         return (sorted.length % 2 == 0) ? ((sorted[mid - 1] + sorted[mid]) / 2.0f) : sorted[mid];
     }
-    
+
     public float getPercentileWindow(float percentile, int windowSamples) {
         final float[] d = this.getWindowArray(windowSamples);
         if (d.length == 0) {
@@ -336,13 +356,13 @@ public class TimeSeriesStore
         final float frac = idx - lower;
         return sorted[lower] * (1.0f - frac) + sorted[upper] * frac;
     }
-    
+
     public void clear() {
         this.buffer.clear();
         this.lastSampleTick = 0L;
         this.oldestSampleTick = 0L;
     }
-    
+
     public CompoundTag save() {
         return this.saveLimited(this.buffer.size());
     }
@@ -366,7 +386,7 @@ public class TimeSeriesStore
         tag.put("PredictionConfig", (Tag)this.predictionConfig.save());
         return tag;
     }
-    
+
     public static TimeSeriesStore load(CompoundTag tag) {
         final RingBuffer buffer = RingBuffer.load(tag.getCompound("Buffer"));
         final TimeSeriesStore store = new TimeSeriesStore(buffer.capacity());
@@ -390,7 +410,7 @@ public class TimeSeriesStore
         store.normalizeLoadedTimestamps();
         return store;
     }
-    
+
     public void writeToBuf(FriendlyByteBuf buf) {
         this.buffer.writeToBuf(buf);
         buf.writeEnum((Enum)this.metricType);
@@ -399,7 +419,7 @@ public class TimeSeriesStore
         buf.writeLong(this.oldestSampleTick);
         this.predictionConfig.writeToBuf(buf);
     }
-    
+
     public static TimeSeriesStore readFromBuf(FriendlyByteBuf buf) {
         final RingBuffer buffer = RingBuffer.readFromBuf(buf);
         final TimeSeriesStore store = new TimeSeriesStore(buffer.capacity());

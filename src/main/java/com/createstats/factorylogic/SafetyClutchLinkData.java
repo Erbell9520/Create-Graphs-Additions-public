@@ -7,7 +7,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 public class SafetyClutchLinkData {
-
     public enum TargetType {
         SAFETY_CLUTCH("Safety Clutch"),
         CONTROL_CLUTCH("Control Clutch"),

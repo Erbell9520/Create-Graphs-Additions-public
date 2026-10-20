@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** [1] */
 public final class DamageObserverVoxelMap
 {
     public final BlockPos observerPos;
@@ -22,17 +21,16 @@ public final class DamageObserverVoxelMap
     public final int dx;
     public final int dy;
     public final int dz;
-    public final BlockState[] palette;     // index 0 reserved as "no block here"
-    public final int[] paletteIndices;     // size = dx*dy*dz
-    public final BitSet baselineMask;      // size = dx*dy*dz
+    public final BlockState[] palette;
+    public final int[] paletteIndices;
+    public final BitSet baselineMask;
     public final long capturedTick;
-    public final String observerName;      // for the GUI list
-    public final String observerCategory;  // CARGO / WEAPONS / HULL etc
+    public final String observerName;
+    public final String observerCategory;
 
-    // [2]
     public BlockState[] cannonPalette;
-    public int[] cannonIndices;    // index into cannonPalette, one entry per cannon block
-    public long[] cannonPositions; // local BlockPos.asLong, one entry per cannon block
+    public int[] cannonIndices;
+    public long[] cannonPositions;
 
     public DamageObserverVoxelMap(BlockPos observerPos, BlockPos minCorner,
                                   int dx, int dy, int dz,
@@ -92,7 +90,6 @@ public final class DamageObserverVoxelMap
                 && this.cannonIndices != null && this.cannonPalette != null;
     }
 
-    /** Sets the assembled-cannon model from local position -> block state pairs (server-side). */
     public void setCannonModel(Map<BlockPos, BlockState> model) {
         if (model == null || model.isEmpty()) {
             this.cannonPositions = null;
@@ -123,8 +120,6 @@ public final class DamageObserverVoxelMap
         this.cannonPalette = pal.toArray(new BlockState[0]);
     }
 
-    // serialization
-
     public CompoundTag toNbt(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.putLong("Pos", this.observerPos.asLong());
@@ -136,7 +131,6 @@ public final class DamageObserverVoxelMap
         tag.putString("Name", this.observerName);
         tag.putString("Cat", this.observerCategory);
 
-        // Palette: index 0 = AIR placeholder, skip it in NBT to save space.
         ListTag paletteList = new ListTag();
         for (int i = 1; i < this.palette.length; i++) {
             paletteList.add(NbtUtils.writeBlockState(this.palette[i]));
@@ -200,8 +194,6 @@ public final class DamageObserverVoxelMap
         return result;
     }
 
-    // builder helper (server-side)
-
     public static final class Builder {
         private final BlockPos observerPos;
         private final BlockPos minCorner;
@@ -223,7 +215,7 @@ public final class DamageObserverVoxelMap
             this.dz = dz;
             this.indices = new int[dx * dy * dz];
             this.baseline = new BitSet(dx * dy * dz);
-            this.palette.add(net.minecraft.world.level.block.Blocks.AIR.defaultBlockState()); // idx 0 = empty marker
+            this.palette.add(net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
         }
 
         public Builder name(String n) { this.name = n == null ? "" : n; return this; }

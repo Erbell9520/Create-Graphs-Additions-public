@@ -4,12 +4,26 @@ import com.createstats.power.PduMode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduStatusLineTest {
-
     private static final int STEADY = Integer.MAX_VALUE;
+
+    @Test
+    void aNewAgeConnectorWithNoCouplerIsSaidBeforeAnythingElse() {
+        final String s = PduStatusLine.derive(PduMode.AUTO, false, true, false, false, 0, 0,
+                STEADY, 0.0f, 15, true);
+        assertTrue(s.contains("New Age connector"), s);
+        assertTrue(s.contains("Coupler"), s);
+    }
+
+    @Test
+    void aCorrectlyWiredPanelSaysNothingAboutFaces() {
+        final String s = PduStatusLine.derive(PduMode.AUTO, true, false, false, false, 0, 0,
+                STEADY, 0.5f, 15, false);
+        assertFalse(s.contains("terminal"), s);
+    }
 
     @Test
     void noBranchIsCaughtBeforeAnyDerivedNumber() {
@@ -85,8 +99,6 @@ class PduStatusLineTest {
 
     @Test
     void aFullBufferExplainsWhyNothingIsFlowingIn() {
-        // The reported contradiction: a large Supply headline over an intake of zero. Both are true and
-        // the panel has to say why, or it reads as a fault.
         assertEquals("buffer full, intake paused", PduStatusLine.formatSupplySubtitle(0, 0.99f));
     }
 
@@ -98,5 +110,20 @@ class PduStatusLineTest {
     @Test
     void realIntakeIsReportedAsSuch() {
         assertEquals("3,843 FE/t flowing in", PduStatusLine.formatSupplySubtitle(3843, 0.5f));
+    }
+
+    @Test
+    void aStudToStudLegIsNamed() {
+        final String s = PduStatusLine.derive(PduMode.AUTO, true, false, false, false, 0, 0,
+                STEADY, 0.8f, 15, false, -1, 0, 2);
+        assertTrue(s.startsWith("Leg 3 runs to another panel's stud"), s);
+        assertTrue(s.contains("side boss"), "the sentence has to say what to do instead");
+    }
+
+    @Test
+    void theDeadWireIsSaidBeforeAnySentenceAboutNumbers() {
+        final String s = PduStatusLine.derive(PduMode.AUTO, true, false, true, false, 0, 5000,
+                STEADY, 0.9f, 15, false, -1, 0, 0);
+        assertTrue(s.contains("another panel's stud"), s);
     }
 }

@@ -1,0 +1,79 @@
+{
+  "variants": {
+    "facing=north,livery=0": {
+      "model": "create_stats:block/driver_helmet"
+    },
+    "facing=north,livery=1": {
+      "model": "create_stats:block/driver_helmet_dark"
+    },
+    "facing=north,livery=2": {
+      "model": "create_stats:block/driver_helmet_racing"
+    },
+    "facing=north,livery=3": {
+      "model": "create_stats:block/driver_helmet_create"
+    },
+    "facing=north,livery=4": {
+      "model": "create_stats:block/driver_helmet_punk"
+    },
+    "facing=east,livery=0": {
+      "model": "create_stats:block/driver_helmet",
+      "y": 90
+    },
+    "facing=east,livery=1": {
+      "model": "create_stats:block/driver_helmet_dark",
+      "y": 90
+    },
+    "facing=east,livery=2": {
+      "model": "create_stats:block/driver_helmet_racing",
+      "y": 90
+    },
+    "facing=east,livery=3": {
+      "model": "create_stats:block/driver_helmet_create",
+      "y": 90
+    },
+    "facing=east,livery=4": {
+      "model": "create_stats:block/driver_helmet_punk",
+      "y": 90
+    },
+    "facing=south,livery=0": {
+      "model": "create_stats:block/driver_helmet",
+      "y": 180
+    },
+    "facing=south,livery=1": {
+      "model": "create_stats:block/driver_helmet_dark",
+      "y": 180
+    },
+    "facing=south,livery=2": {
+      "model": "create_stats:block/driver_helmet_racing",
+      "y": 180
+    },
+    "facing=south,livery=3": {
+      "model": "create_stats:block/driver_helmet_create",
+      "y": 180
+    },
+    "facing=south,livery=4": {
+      "model": "create_stats:block/driver_helmet_punk",
+      "y": 180
+    },
+    "facing=west,livery=0": {
+      "model": "create_stats:block/driver_helmet",
+      "y": 270
+    },
+    "facing=west,livery=1": {
+      "model": "create_stats:block/driver_helmet_dark",
+      "y": 270
+    },
+    "facing=west,livery=2": {
+      "model": "create_stats:block/driver_helmet_racing",
+      "y": 270
+    },
+    "facing=west,livery=3": {
+      "model": "create_stats:block/driver_helmet_create",
+      "y": 270
+    },
+    "facing=west,livery=4": {
+      "model": "create_stats:block/driver_helmet_punk",
+      "y": 270
+    }
+  }
+}

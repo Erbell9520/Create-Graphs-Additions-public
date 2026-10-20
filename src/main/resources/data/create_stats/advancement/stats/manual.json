@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:root",
+  "display": {
+    "icon": {
+      "id": "create_stats:students_manual"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.manual.title",
+      "fallback": "The Only Person Who Read the Manual"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.manual.description",
+      "fallback": "Pick up the Student's Manual. Legend says someone once read past page one."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "manual": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:students_manual"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "manual"
+    ]
+  ]
+}

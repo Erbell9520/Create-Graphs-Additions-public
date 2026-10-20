@@ -1,0 +1,45 @@
+{
+  "parent": "create_stats:root",
+  "display": {
+    "icon": {
+      "id": "create_stats:kinetic_dynamo"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.first_generator.title",
+      "fallback": "The Power's Back!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.first_generator.description",
+      "fallback": "Get your first generator. The whole block cheers from the balcony."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "generator": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:open_frame_dynamo",
+              "create_stats:kinetic_dynamo",
+              "create_stats:industrial_alternator",
+              "create_stats:biofuel_burner",
+              "create_stats:solar_panel",
+              "create_stats:photovoltaic_array",
+              "create_stats:reinforced_solar_panel"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "generator"
+    ]
+  ]
+}

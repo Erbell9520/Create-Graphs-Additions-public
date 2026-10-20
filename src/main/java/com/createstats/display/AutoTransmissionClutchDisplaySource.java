@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AutoTransmissionClutchDisplaySource extends DisplaySource implements StatsLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         final BlockEntity be = context.getSourceBlockEntity();
@@ -23,7 +22,6 @@ public class AutoTransmissionClutchDisplaySource extends DisplaySource implement
         final List<MutableComponent> lines = new ArrayList<>();
         final int maxRows = Math.max(1, stats.maxRows());
 
-        // Line 1: State
         Component stateStr;
         if (!transmission.getSettings().isEnabled()) {
             stateStr = Component.translatable("create_stats.auto_transmission_clutch.display.state.disabled");

@@ -16,7 +16,6 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class ControlClutchBE extends SplitShaftBlockEntity {
-
     private static final int CONTROLLER_TIMEOUT_TICKS = 40;
     private static final int PAIR_FEEDBACK_TICKS = 32;
 
@@ -248,8 +247,6 @@ public class ControlClutchBE extends SplitShaftBlockEntity {
         }
         boolean currentActive = getBlockState().getValue(ControlClutchBlock.ACTIVE);
         if (currentActive != controllerRequestedRun) {
-            // Flag 3 (UPDATE_NEIGHBORS | SEND_TO_CLIENTS) already calls updateNeighborsAt internally;
-            // skip the duplicate explicit call and only follow up with the comparator-specific signal.
             level.setBlock(worldPosition, getBlockState().setValue(ControlClutchBlock.ACTIVE, controllerRequestedRun), 3);
             level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
         }
@@ -294,7 +291,7 @@ public class ControlClutchBE extends SplitShaftBlockEntity {
         } else {
             refreshDialTarget();
         }
-        // dialColor is no longer persisted; refreshDialTarget() on the next tick recomputes it
+
         lastComparatorLevel = getAnalogOutputSignal();
     }
 }

@@ -45,9 +45,8 @@ import java.util.UUID;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
-public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGoggleInformation, com.createstats.power.IFeConsumer {
-
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
+public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGoggleInformation, com.createstats.power.IFeConsumer,
+        com.createstats.util.CopyableSettings {
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_PATH_SCANNER));
 
@@ -116,6 +115,29 @@ public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGog
         this.settings = settings == null ? PathScanSettings.defaults() : settings;
         this.requestManualRescan();
         this.markDirtyAndSync();
+    }
+
+    @Override
+    public String settingsKey() {
+        return "create_stats:path_scanner";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put("Settings", settings.save());
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries, @Nullable Player player,
+                                 boolean simulate) {
+        if (!tag.contains("Settings")) {
+            return false;
+        }
+        // a held button pastes every tick, don't rescan on repeats
+        if (!simulate && !alreadyHolds(tag, registries)) {
+            setSettings(PathScanSettings.load(tag.getCompound("Settings")));
+        }
+        return true;
     }
 
     public void requestManualRescan() {
@@ -258,7 +280,7 @@ public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGog
         if (!(this.level instanceof ServerLevel serverLevel)) {
             return;
         }
-        // FE Dependent Mode gate: an unpowered scanner idles exactly like the remote-pause path.
+
         final boolean fePowered = this.feConsumer.serviceTick(this.scanQueue.size() > 0);
         com.createstats.power.FePowerFx.handleTransition(this.level, this.worldPosition, this.feConsumer);
         if (!fePowered) {
@@ -282,8 +304,7 @@ public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGog
             || this.currentRegion.forwardChunks() != activeSettings.forwardChunks()
             || this.currentRegion.sideChunks() != activeSettings.sideChunks()
             || this.manualRescanRequested;
-        // FE burst: one scan region batch. On refusal the flags stay dirty so it retries once
-        // the buffer can cover the cost.
+
         if (regionChanged && this.feConsumer.spendBurst()) {
             this.enqueueCurrentRegion(serverLevel, this.manualRescanRequested || this.currentRegion == null,
                 true, scanOrigin, facing, scanFrame.yawDeg(), activeSettings);
@@ -333,8 +354,6 @@ public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGog
         List<Long> secondary = new ArrayList<>();
 
         for (int sideDistance = 0; sideDistance <= activeSettings.sideChunks(); sideDistance++) {
-            // Forward window first (it gates planning via coverage), then the fixed rearward margin
-            // (planner room for reverse detours / K-turns), so the forward corridor still loads promptly.
             for (int forward = 0; forward < activeSettings.forwardChunks(); forward++) {
                 if (sideDistance == 0) {
                     addScanKey(primary, secondary, baseChunkX, baseChunkZ, forwardX, forwardZ, rightX, rightZ, forward, 0);
@@ -508,7 +527,6 @@ public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGog
     }
 
     public boolean isPlayerInInteractionRange(Player player) {
-        // Shared lenient ship-aware reach check, see SableBridge for rationale.
         return com.createstats.flight.bridge.SableBridge.isPlayerInInteractionRangeFor(this, player);
     }
 
@@ -527,13 +545,11 @@ public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGog
             this.worldPosition.getZ() + 0.5);
     }
 
-    // goggle overlay
-
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         tooltip.add(Component.literal("  ").append(
             Component.literal("Path Scanner").withStyle(ChatFormatting.GRAY)));
-        // Scan coverage
+
         int loaded = loadedChunkCount;
         int expected = Math.max(1, expectedChunkCount);
         int coveragePct = Math.round(loaded * 100f / expected);
@@ -541,7 +557,7 @@ public class PathScannerBE extends BlockEntity implements MenuProvider, IHaveGog
             Component.literal(String.format(java.util.Locale.ROOT,
                 "Chunks: %d / %d  (%d %%)", loaded, expected, coveragePct))
                 .withStyle(coveragePct >= 90 ? ChatFormatting.GREEN : ChatFormatting.YELLOW)));
-        // Cell breakdown
+
         int passable = totalPassableCells;
         int marginal = totalMarginalCells;
         int blocked  = totalBlockedCells;

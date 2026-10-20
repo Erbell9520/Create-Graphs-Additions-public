@@ -1,0 +1,9 @@
+{
+  "parent": "create:block/portable_fluid_interface/item",
+  "textures": {
+    "0": "create_stats:block/portable_power_interface",
+    "2": "create:block/copper_underside",
+    "3": "create_stats:block/portable_power_interface_coil",
+    "particle": "create_stats:block/portable_power_interface_coil"
+  }
+}

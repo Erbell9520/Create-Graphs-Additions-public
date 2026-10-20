@@ -14,7 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
 public class AutoTransmissionClutchScreen extends Screen {
-
     private static final int PANEL_BG = 0xF0181818;
     private static final int ACCENT = 0xFF5599DD;
     private static final int TEXT = 0xFFDDCCAA;
@@ -77,14 +76,12 @@ public class AutoTransmissionClutchScreen extends Screen {
         final int left = cx - panelW / 2;
         int y = CONTENT_START_Y;
 
-        // limits Section
         addSectionHeader("⚡ Limits", left, y, panelW, this.limitsOpen, () -> {
             this.limitsOpen = !this.limitsOpen;
             this.rebuildWidgets();
         });
         y += 16;
         if (this.limitsOpen) {
-            // Limit mode toggle
             this.addRenderableWidget(Button.builder(
                     Component.literal("Mode: " + this.settings.getLimitMode().getDisplayName()),
                     b -> { this.settings.cycleLimitMode(); this.rebuildWidgets(); }
@@ -106,7 +103,6 @@ public class AutoTransmissionClutchScreen extends Screen {
         }
         y += 4;
 
-        // control Section
         addSectionHeader("⚙ Control", left, y, panelW, this.controlOpen, () -> {
             this.controlOpen = !this.controlOpen;
             this.rebuildWidgets();
@@ -121,7 +117,6 @@ public class AutoTransmissionClutchScreen extends Screen {
         }
         y += 12;
 
-        // apply / Cancel
         final int btnW = 80;
         this.addRenderableWidget(Button.builder(Component.literal("✔ Apply"), b -> applyAndClose())
                 .bounds(cx - btnW - 4, screenY(y), btnW, 20).build());
@@ -198,7 +193,7 @@ public class AutoTransmissionClutchScreen extends Screen {
             } else {
                 this.settings.setUpperBound(value);
             }
-            // Only sync the OTHER field, not the one being edited
+            // only sync the other field
             this.syncBoundInputs(lower);
         } catch (NumberFormatException ignored) {
         } finally {
@@ -265,20 +260,18 @@ public class AutoTransmissionClutchScreen extends Screen {
         final int left = cx - panelW / 2;
         final int top = (this.height - this.visibleHeight) / 2;
 
-        // Panel background
         g.fill(left, top, left + panelW, top + this.visibleHeight, PANEL_BG);
         g.fill(left, top, left + panelW, top + 1, BORDER);
         g.fill(left, top + this.visibleHeight - 1, left + panelW, top + this.visibleHeight, BORDER);
         g.fill(left, top, left + 1, top + this.visibleHeight, BORDER);
         g.fill(left + panelW - 1, top, left + panelW, top + this.visibleHeight, BORDER);
 
-        // Title
         g.drawCenteredString(this.font, "§b§l⚡ Auto Stress Governor", cx, top + 5, ACCENT);
         drawStatusCard(g, left, top, panelW);
 
         int y = CONTENT_START_Y + 16;
         if (this.limitsOpen) {
-            y += 20; // skip limit mode button
+            y += 20;
             if (this.settings.getLimitMode() == AutoTransmissionClutchSettings.LimitMode.SU) {
                 drawInlineLabel(g, left + 8, screenY(y) + 4, "Lower bound");
                 y += 20;
@@ -292,7 +285,6 @@ public class AutoTransmissionClutchScreen extends Screen {
             drawInlineLabel(g, left + 8, screenY(y) + 4, "Max output cap");
         }
 
-        // Scroll bar
         if (this.contentHeight > this.visibleHeight) {
             final int maxS = Math.max(1, this.contentHeight - this.visibleHeight + 20);
             final int barH = Math.max(12, this.visibleHeight * this.visibleHeight / this.contentHeight);
@@ -421,7 +413,6 @@ public class AutoTransmissionClutchScreen extends Screen {
     }
 
     private class PercentageBoundSlider extends AbstractSliderButton {
-
         private final boolean lower;
 
         private PercentageBoundSlider(int x, int y, int width, int height, boolean lower) {

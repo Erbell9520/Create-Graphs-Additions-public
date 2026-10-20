@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light BASE (static), rendered by the BER. FACING=up reference.",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

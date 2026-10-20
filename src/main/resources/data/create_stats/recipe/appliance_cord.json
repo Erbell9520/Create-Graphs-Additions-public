@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CW ",
+    " W ",
+    " WB"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:black_dye"
+    },
+    "W": {
+      "item": "create_stats:copper_wire"
+    },
+    "B": {
+      "item": "create:brass_nugget"
+    }
+  },
+  "result": {
+    "id": "create_stats:appliance_cord",
+    "count": 2
+  },
+  "show_notification": true
+}

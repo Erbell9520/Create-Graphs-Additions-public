@@ -16,7 +16,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** [1] */
+// head slot, works while worn
 public class PilotHelmetNightVisionTogglePacket implements CustomPacketPayload {
     public static final Type<PilotHelmetNightVisionTogglePacket> TYPE =
         new Type<>(ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "pilot_helmet_nv_toggle"));
@@ -62,9 +62,6 @@ public class PilotHelmetNightVisionTogglePacket implements CustomPacketPayload {
             }
             data.setNightVisionEnabled(packet.desiredEnabled);
 
-            // Clear our own short-lived NV effect on switch-off so the screen
-            // darkens immediately. Long-duration effects (potions, beacons) are
-            // left alone since they didn't come from us.
             if (previous && !packet.desiredEnabled) {
                 MobEffectInstance nv = player.getEffect(MobEffects.NIGHT_VISION);
                 if (nv != null && nv.getDuration() < 250) {

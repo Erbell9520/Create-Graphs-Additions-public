@@ -1,0 +1,34 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "create_stats:experimental_blocks_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EAE",
+    "SPS",
+    "EME"
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    },
+    "P": {
+      "item": "create_stats:holographic_projector"
+    },
+    "M": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stats:holographic_projector_mk3",
+    "count": 1
+  }
+}

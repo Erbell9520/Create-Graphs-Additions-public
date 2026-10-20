@@ -1,0 +1,129 @@
+{
+  "textures": {
+    "particle": "create_stats:block/power_track/iron",
+    "ink": "create_stats:block/power_track/iron",
+    "brass": "create_stats:block/power_track/brass"
+  },
+  "elements": [
+    {
+      "name": "needle",
+      "from": [
+        7.82,
+        6.4,
+        3.25
+      ],
+      "to": [
+        8.18,
+        11.8,
+        3.38
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.82,
+            4.2,
+            8.18,
+            9.6
+          ],
+          "texture": "#ink"
+        },
+        "east": {
+          "uv": [
+            12.62,
+            4.2,
+            12.75,
+            9.6
+          ],
+          "texture": "#ink"
+        },
+        "west": {
+          "uv": [
+            3.25,
+            4.2,
+            3.38,
+            9.6
+          ],
+          "texture": "#ink"
+        },
+        "up": {
+          "uv": [
+            7.82,
+            3.25,
+            8.18,
+            3.38
+          ],
+          "texture": "#ink"
+        },
+        "down": {
+          "uv": [
+            7.82,
+            3.25,
+            8.18,
+            3.38
+          ],
+          "texture": "#ink"
+        }
+      }
+    },
+    {
+      "name": "hub",
+      "from": [
+        7.6,
+        6.8,
+        3.13
+      ],
+      "to": [
+        8.4,
+        7.6,
+        3.38
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.6,
+            8.4,
+            8.4,
+            9.2
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            12.62,
+            8.4,
+            12.87,
+            9.2
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            3.13,
+            8.4,
+            3.38,
+            9.2
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            7.6,
+            3.13,
+            8.4,
+            3.38
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            7.6,
+            3.13,
+            8.4,
+            3.38
+          ],
+          "texture": "#brass"
+        }
+      }
+    }
+  ]
+}

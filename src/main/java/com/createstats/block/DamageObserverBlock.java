@@ -38,29 +38,26 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class DamageObserverBlock extends HorizontalDirectionalBlock implements EntityBlock {
-
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
-        public static final BooleanProperty WALL_MOUNT = BooleanProperty.create("wall_mount");
-    private static final VoxelShape SHAPE_NORTH = Block.box(0.0, 1.0, 0.0, 16.0, 15.0, 9.0);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(0.0, 1.0, 7.0, 16.0, 15.0, 16.0);
-    private static final VoxelShape SHAPE_EAST = Block.box(7.0, 1.0, 0.0, 16.0, 15.0, 16.0);
-    private static final VoxelShape SHAPE_WEST = Block.box(0.0, 1.0, 0.0, 9.0, 15.0, 16.0);
-        private static final VoxelShape SHAPE_REGULAR = Shapes.or(
-            Block.box(3.0, 0.0, 3.0, 13.0, 3.0, 13.0),
-            Block.box(4.0, 3.0, 4.0, 12.0, 12.0, 12.0),
-            Block.box(5.0, 5.0, 11.0, 11.0, 11.0, 15.0));
+    public static final BooleanProperty WALL_MOUNT = BooleanProperty.create("wall_mount");
+    public static final BooleanProperty CEILING = BooleanProperty.create("ceiling");
+
+    private static final VoxelShape FLOOR = Shapes.or(Block.box(3, 0, 3, 13, 1.5, 13), Block.box(6, 1.5, 6, 10, 3, 10));
+    private static final VoxelShape CEILING_SHAPE = Shapes.or(Block.box(3, 14.5, 3, 13, 16, 13), Block.box(6, 13, 6, 10, 14.5, 10));
+    private static final VoxelShape WALL_NORTH = Shapes.or(Block.box(3, 3, 0, 13, 13, 1.5), Block.box(6, 6, 1.5, 10, 10, 3));
+    private static final VoxelShape WALL_SOUTH = Shapes.or(Block.box(3, 3, 14.5, 13, 13, 16), Block.box(6, 6, 13, 10, 10, 14.5));
+    private static final VoxelShape WALL_EAST = Shapes.or(Block.box(14.5, 3, 3, 16, 13, 13), Block.box(13, 6, 6, 14.5, 10, 10));
+    private static final VoxelShape WALL_WEST = Shapes.or(Block.box(0, 3, 3, 1.5, 13, 13), Block.box(1.5, 6, 6, 3, 10, 10));
 
     public DamageObserverBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any()
-                .setValue(FACING, Direction.NORTH)
-            .setValue(ACTIVE, true)
-            .setValue(WALL_MOUNT, false));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, true)
+                .setValue(WALL_MOUNT, false).setValue(CEILING, false));
     }
 
     @Override
@@ -70,71 +67,77 @@ public class DamageObserverBlock extends HorizontalDirectionalBlock implements E
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, ACTIVE, WALL_MOUNT);
+        builder.add(FACING, ACTIVE, WALL_MOUNT, CEILING);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction clickedFace = context.getClickedFace();
-        BlockState state = clickedFace.getAxis().isHorizontal()
-                ? this.defaultBlockState().setValue(FACING, clickedFace.getOpposite()).setValue(WALL_MOUNT, true)
-                : this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(WALL_MOUNT, false);
+        Direction face = context.getClickedFace();
+        BlockState state;
+        if (face.getAxis().isHorizontal()) {
+            state = defaultBlockState().setValue(FACING, face.getOpposite()).setValue(WALL_MOUNT, true);
+        } else {
+            state = defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite())
+                    .setValue(CEILING, face == Direction.DOWN);
+        }
         return state.canSurvive(context.getLevel(), context.getClickedPos()) ? state : null;
+    }
+
+    private static Direction support(BlockState state) {
+        if (state.getValue(WALL_MOUNT)) return state.getValue(FACING);
+        return state.getValue(CEILING) ? Direction.UP : Direction.DOWN;
     }
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        if (!state.getValue(WALL_MOUNT)) {
-            BlockPos supportPos = pos.below();
-            BlockState supportState = level.getBlockState(supportPos);
-            return supportState.isFaceSturdy(level, supportPos, Direction.UP)
-                    || supportState.getBlock() instanceof ChestBlock;
-        }
-        Direction supportDirection = state.getValue(FACING);
-        BlockPos supportPos = pos.relative(supportDirection);
+        Direction toSupport = support(state);
+        BlockPos supportPos = pos.relative(toSupport);
         BlockState supportState = level.getBlockState(supportPos);
-        return supportState.isFaceSturdy(level, supportPos, supportDirection.getOpposite())
-                || supportState.getBlock() instanceof ChestBlock;
+        return supportState.isFaceSturdy(level, supportPos, toSupport.getOpposite()) || supportState.getBlock() instanceof ChestBlock;
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
-                                  LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
-        Direction supportDirection = state.getValue(WALL_MOUNT) ? state.getValue(FACING) : Direction.DOWN;
-        if (direction == supportDirection && !state.canSurvive(level, currentPos)) {
-            return Blocks.AIR.defaultBlockState();
-        }
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
+                                  BlockPos currentPos, BlockPos neighborPos) {
+        if (direction == support(state) && !state.canSurvive(level, currentPos)) return Blocks.AIR.defaultBlockState();
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
     }
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (!state.getValue(WALL_MOUNT)) {
-            return SHAPE_REGULAR;
+        if (state.getValue(WALL_MOUNT)) {
+            return switch (state.getValue(FACING)) {
+                case SOUTH -> WALL_SOUTH;
+                case EAST -> WALL_EAST;
+                case WEST -> WALL_WEST;
+                default -> WALL_NORTH;
+            };
         }
-        return switch (state.getValue(FACING)) {
-            case SOUTH -> SHAPE_SOUTH;
-            case EAST -> SHAPE_EAST;
-            case WEST -> SHAPE_WEST;
-            default -> SHAPE_NORTH;
-        };
+        return state.getValue(CEILING) ? CEILING_SHAPE : FLOOR;
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                              Player player, InteractionHand hand, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                              InteractionHand hand, BlockHitResult hit) {
         if (AllItems.WRENCH.isIn(stack) || stack.getItem() instanceof ClickToLinkBlockItem) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        BlockEntity be = level.getBlockEntity(pos);
-        if (!(be instanceof DamageObserverBE observer)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
+        if (!(level.getBlockEntity(pos) instanceof DamageObserverBE marker)) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         if (level.isClientSide()) {
-            ClientScreenAccess.openDamageObserver(observer);
+            ClientScreenAccess.openDamageObserver(marker);
             return ItemInteractionResult.SUCCESS;
         }
         return ItemInteractionResult.CONSUME;
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof DamageObserverBE be ? be.comparatorOutput() : 0;
     }
 
     @Nullable
@@ -146,14 +149,12 @@ public class DamageObserverBlock extends HorizontalDirectionalBlock implements E
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide() || type != ModBlockEntities.DAMAGE_OBSERVER.get()) {
-            return null;
-        }
+        if (level.isClientSide() || type != ModBlockEntities.DAMAGE_OBSERVER.get()) return null;
         return (lvl, pos, blockState, blockEntity) -> ((DamageObserverBE) blockEntity).serverTick();
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.damage_observer");
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "battle.create_stats.marker");
     }
 }

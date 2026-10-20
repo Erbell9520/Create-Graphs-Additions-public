@@ -259,7 +259,6 @@ public final class StressometerHudDataResolver {
     private static final org.slf4j.Logger METRIC_LOG = com.mojang.logging.LogUtils.getLogger();
     private static final java.util.Set<String> LEGACY_FUZZY_LOGGED = java.util.Collections.synchronizedSet(new java.util.HashSet<String>());
 
-    /** [1] */
     static StatsDisplayPanelBE.DataChannel findMetricExact(List<StatsDisplayPanelBE.DataChannel> channels, String metricId, String label) {
         if (channels == null || channels.isEmpty() || metricId == null || metricId.isEmpty()) {
             return null;
@@ -282,10 +281,6 @@ public final class StressometerHudDataResolver {
         return null;
     }
 
-    /**
-     * P4.6: legacy substring-match fallback. Emits a debug log on first hit per
-     * (metricId → matched channel id) pair so we can audit lingering aliases.
-     */
     static StatsDisplayPanelBE.DataChannel findMetricLegacy(List<StatsDisplayPanelBE.DataChannel> channels, String metricId) {
         if (channels == null || channels.isEmpty() || metricId == null || metricId.isEmpty()) {
             return null;
@@ -508,7 +503,7 @@ public final class StressometerHudDataResolver {
                 candidateKeys.add(key);
             }
         }
-        // P4.5: try EXACT (id-suffix or exact label) across all candidate keys first.
+        // exact matches first
         for (String key : candidateKeys) {
             if (key == null || key.isEmpty()) continue;
             final StatsDisplayPanelBE.DataChannel exact = findMetricExact(channels, key, key);
@@ -516,7 +511,7 @@ public final class StressometerHudDataResolver {
                 return exact;
             }
         }
-        // P4.5: only after exhausting all explicit ids do we try legacy fuzzy (substring).
+        // fuzzy only after every exact id failed
         for (String key : candidateKeys) {
             if (key == null || key.isEmpty()) continue;
             final StatsDisplayPanelBE.DataChannel legacy = findMetricLegacy(channels, key);

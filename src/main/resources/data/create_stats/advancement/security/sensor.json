@@ -1,0 +1,47 @@
+{
+  "parent": "create_stats:security/panel",
+  "display": {
+    "icon": {
+      "id": "create_stats:motion_sensor"
+    },
+    "title": {
+      "translate": "advancement.create_stats.security.sensor.title",
+      "fallback": "Neighbour Auntie System"
+    },
+    "description": {
+      "translate": "advancement.create_stats.security.sensor.description",
+      "fallback": "Place a security sensor. Still not as good as the auntie at the window across the street."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "sensor": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:fire_sensor",
+                  "create_stats:motion_sensor",
+                  "create_stats:tamper_sensor",
+                  "create_stats:water_sensor"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "sensor"
+    ]
+  ]
+}

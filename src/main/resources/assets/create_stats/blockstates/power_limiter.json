@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "facing=north,state=idle": {
+      "model": "create_stats:block/power_limiter_idle"
+    },
+    "facing=north,state=flowing": {
+      "model": "create_stats:block/power_limiter_flowing"
+    },
+    "facing=north,state=shut": {
+      "model": "create_stats:block/power_limiter_shut"
+    },
+    "facing=east,state=idle": {
+      "model": "create_stats:block/power_limiter_idle",
+      "y": 90
+    },
+    "facing=east,state=flowing": {
+      "model": "create_stats:block/power_limiter_flowing",
+      "y": 90
+    },
+    "facing=east,state=shut": {
+      "model": "create_stats:block/power_limiter_shut",
+      "y": 90
+    },
+    "facing=south,state=idle": {
+      "model": "create_stats:block/power_limiter_idle",
+      "y": 180
+    },
+    "facing=south,state=flowing": {
+      "model": "create_stats:block/power_limiter_flowing",
+      "y": 180
+    },
+    "facing=south,state=shut": {
+      "model": "create_stats:block/power_limiter_shut",
+      "y": 180
+    },
+    "facing=west,state=idle": {
+      "model": "create_stats:block/power_limiter_idle",
+      "y": 270
+    },
+    "facing=west,state=flowing": {
+      "model": "create_stats:block/power_limiter_flowing",
+      "y": 270
+    },
+    "facing=west,state=shut": {
+      "model": "create_stats:block/power_limiter_shut",
+      "y": 270
+    }
+  }
+}

@@ -12,7 +12,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.nbt.Tag;
 
 public class FreightManifest {
-
     private final List<FreightManifestLine> lines;
     @Nullable
     private UUID ownerId;

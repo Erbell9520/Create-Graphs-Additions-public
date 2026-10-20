@@ -2,18 +2,25 @@ package com.createstats.blockentity;
 
 import com.createstats.CreateStats;
 import com.createstats.block.AutoTransmissionClutchBlock;
+import com.createstats.block.SplitShaftValueBoxTransform;
 import com.simibubi.create.content.kinetics.base.IRotate.StressImpact;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings;
 import net.createmod.catnip.theme.Color;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+
+import java.util.List;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
-
     private static final int FALLBACK_CHECK_INTERVAL = 20;
     private static final int RECALC_INTERVAL_DIRTY = 3;
     private static final int MAX_SETTLE_TICKS = 20;
@@ -22,7 +29,7 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
     private static final float MODIFIER_NEUTRAL = 1.0f;
     private static final float MODIFIER_EPSILON = 0.01f;
     private static final int STEP_COOLDOWN_TICKS = 10;
-    private static final int DOWN_STEP_COOLDOWN_TICKS = 20; // 1 second between downregulation jumps
+    private static final int DOWN_STEP_COOLDOWN_TICKS = 20;
     private static final float STRESS_SAFETY_MARGIN = 0.95f;
 
     public enum AlarmState {
@@ -41,8 +48,6 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
     private int lastComparatorLevel;
     private Direction lastKnownInputFacing;
 
-    // True while applyModifierChange is executing. Prevents re-entrant calls from
-    // onSpeedChanged (which fires during propagation) and freezes governor logic.
     private boolean inModifierChange;
     private boolean inNetworkCallback;
     private boolean pendingModifierRebuild;
@@ -59,6 +64,131 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
     public float prevDialState;
     public int dialColor;
 
+    private static final BehaviourType<SettingsValueBox> LOAD_BOX = new BehaviourType<>();
+    private static final BehaviourType<SettingsValueBox> MIN_BOX = new BehaviourType<>();
+    private static final BehaviourType<SettingsValueBox> MAX_BOX = new BehaviourType<>();
+
+    private static final int[] BAND_HALF_WIDTH = {5, 10, 15};
+    private static final int ROW_OFF = BAND_HALF_WIDTH.length;
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+        behaviours.add(new SettingsValueBox(
+                Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.load", "Target Load"),
+                this, new SplitShaftValueBoxTransform(SplitShaftValueBoxTransform.Slot.VARIATOR_LOAD),
+                LOAD_BOX, 1, "VariableClutchLoad", 95, 10,
+                List.of(Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.tight", "Tight"),
+                        Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.normal", "Normal"),
+                        Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.wide", "Wide"),
+                        Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.off", "Off (1:1)")),
+                this::loadBoxSettings,
+                (player, v) -> editSettings(s -> {
+                    s.setEnabled(v.row() != ROW_OFF);
+                    if (v.row() != ROW_OFF) {
+                        int half = BAND_HALF_WIDTH[Math.min(v.row(), BAND_HALF_WIDTH.length - 1)];
+                        int centre = Math.max(10, v.value());
+                        s.setPercentageBand(centre - half, centre + half);
+                    }
+                }),
+                v -> v.row() == ROW_OFF
+                        ? Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.off", "Off (1:1)")
+                        : Component.literal(bandText(Math.max(10, v.value()),
+                                BAND_HALF_WIDTH[Math.min(v.row(), BAND_HALF_WIDTH.length - 1)])),
+                this::loadBoxLabel));
+        behaviours.add(new SettingsValueBox(
+                Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.min", "Min RPM"),
+                this, new SplitShaftValueBoxTransform(SplitShaftValueBoxTransform.Slot.VARIATOR_MIN),
+                MIN_BOX, 2, "VariableClutchMinRpm", 256, 32,
+                List.of(Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.floor", "Floor")),
+                () -> new ValueSettings(0, Math.round(settings.getMinimumRPM())),
+                (player, v) -> editSettings(s -> s.setMinimumRPM(Math.max(1, v.value()))),
+                v -> Component.literal(Math.max(1, v.value()) + " RPM"),
+                () -> settings == null ? "" : Math.round(settings.getMinimumRPM()) + " RPM"));
+        behaviours.add(new SettingsValueBox(
+                Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.max", "Max RPM"),
+                this, new SplitShaftValueBoxTransform(SplitShaftValueBoxTransform.Slot.VARIATOR_MAX),
+                MAX_BOX, 3, "VariableClutchMaxRpm", 256, 32,
+                List.of(Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.cap", "Cap")),
+                () -> new ValueSettings(0, Math.round(settings.getMaximumRPM())),
+                (player, v) -> editSettings(s -> s.setMaximumRPM(Math.max(1, v.value()))),
+                v -> Component.literal(Math.max(1, v.value()) + " RPM"),
+                () -> settings == null ? "" : Math.round(settings.getMaximumRPM()) + " RPM"));
+    }
+
+    private ValueSettings loadBoxSettings() {
+        float lo = settings.getPercentageLowerBound();
+        float hi = settings.getPercentageUpperBound();
+        int centre = Math.round((lo + hi) / 2f);
+        if (!settings.isEnabled()) {
+            return new ValueSettings(ROW_OFF, centre);
+        }
+        float half = (hi - lo) / 2f;
+        int row = 0;
+        for (int i = 1; i < BAND_HALF_WIDTH.length; i++) {
+            if (Math.abs(BAND_HALF_WIDTH[i] - half) < Math.abs(BAND_HALF_WIDTH[row] - half)) {
+                row = i;
+            }
+        }
+        return new ValueSettings(row, centre);
+    }
+
+    private String loadBoxLabel() {
+        if (settings == null) {
+            return "";
+        }
+        if (!settings.isEnabled()) {
+            return Component.translatableWithFallback("create_stats.auto_transmission_clutch.box.off", "Off (1:1)").getString();
+        }
+        if (settings.getLimitMode() == AutoTransmissionClutchSettings.LimitMode.SU) {
+            return Math.round(settings.getLowerBound()) + "-" + Math.round(settings.getUpperBound()) + " SU";
+        }
+        return Math.round(settings.getPercentageLowerBound()) + "-" + Math.round(settings.getPercentageUpperBound()) + "%";
+    }
+
+    private static String bandText(int centre, int half) {
+        return Math.max(1, centre - half) + "-" + Math.min(100, centre + half) + "%";
+    }
+
+    private void editSettings(java.util.function.Consumer<AutoTransmissionClutchSettings> edit) {
+        AutoTransmissionClutchSettings next = AutoTransmissionClutchSettings.load(settings.save());
+        edit.accept(next);
+        setSettings(next);
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        tooltip.add(Component.literal("    ").append(Component.translatable("block.create_stats.auto_transmission_clutch")
+                .withStyle(ChatFormatting.GRAY)));
+        Component state;
+        if (!settings.isEnabled()) {
+            state = Component.translatable("create_stats.auto_transmission_clutch.display.state.disabled");
+        } else if (alarmState == AlarmState.CONCERNING) {
+            state = Component.translatable("create_stats.auto_transmission_clutch.display.state.min_rpm");
+        } else if (alarmState == AlarmState.VERY_CONCERNING) {
+            state = Component.translatable("create_stats.auto_transmission_clutch.display.state.emergency");
+        } else if (!isNetworkRunning()) {
+            state = Component.translatable("create_stats.auto_transmission_clutch.display.state.idle");
+        } else if (isBoosting()) {
+            state = Component.translatable("create_stats.auto_transmission_clutch.display.state.boosting");
+        } else if (isActive()) {
+            state = Component.translatable("create_stats.auto_transmission_clutch.display.state.throttling");
+        } else {
+            state = Component.translatable("create_stats.auto_transmission_clutch.display.state.pass_through");
+        }
+        tooltip.add(Component.literal("    ").append(state));
+        tooltip.add(Component.literal("    ").append(Component.translatable("create_stats.auto_transmission_clutch.display.io",
+                String.format("%.0f", getSourceSpeed()), String.format("%.0f", getTransmittedSpeed()),
+                String.format("%.0f", currentModifier * 100.0f))));
+        if (isPlayerSneaking) {
+            tooltip.add(Component.literal("    ").append(Component.translatable("create_stats.auto_transmission_clutch.display.band",
+                    String.format("%.0f", settings.getLowerBound()), String.format("%.0f", settings.getUpperBound()),
+                    settings.getLimitMode().getDisplayName(),
+                    String.format("%.0f", settings.getMinimumRPM()), String.format("%.0f", settings.getMaximumRPM()))));
+        }
+        return true;
+    }
+
     public AutoTransmissionClutchBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         this.settings = new AutoTransmissionClutchSettings();
@@ -73,21 +203,19 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
 
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // Orient from the LIVE source facing first so the ratio always lands on the real output,
-        // even the instant the source flips to the opposite side (reverse drive).
         Direction inputFace = getEffectiveInputFacing();
         if (inputFace != null && face != inputFace) {
-            // [1]
+            // clamp live, a back driving flywheel can beat the governor by a tick and create breaks us
+
             float src = Math.abs(getTheoreticalSpeed());
             if (src > 0.0f) {
                 return Math.min(currentModifier, getEffectiveMaxRPM() / src);
             }
-            return currentModifier; // Output face
+            return currentModifier;
         }
-        return 1.0f; // Input face or unknown
+        return 1.0f;
     }
 
-    /** [2] */
     private Direction getEffectiveInputFacing() {
         if (hasSource()) {
             Direction live = getSourceFacing();
@@ -113,7 +241,6 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
 
         processPendingModifierRebuild();
 
-        // [3]
         if (!hasSource()) {
             boolean wasActive = currentModifier != MODIFIER_NEUTRAL || targetModifier != MODIFIER_NEUTRAL
                     || lastKnownInputFacing != null || alarmState != AlarmState.NORMAL;
@@ -131,14 +258,12 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
             return;
         }
 
-        // [4]
         if (hasSource()) {
             Direction liveInput = getSourceFacing();
             if (liveInput != null) {
                 if (lastKnownInputFacing == null) {
                     lastKnownInputFacing = liveInput;
                 } else if (liveInput != lastKnownInputFacing) {
-                    // [5]
                     lastKnownInputFacing = liveInput;
                     refreshNetworkSnapshot();
                     markDirty();
@@ -180,7 +305,6 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
             recalculateTarget();
         }
 
-        // Decrement step cooldown (prevents flicker accumulation from rapid handleRemoved/handleAdded cycles)
         if (stepCooldown > 0) {
             stepCooldown--;
         }
@@ -199,17 +323,14 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
             }
         }
 
-        // Step current modifier toward target (gated by cooldown)
         if (currentModifier != targetModifier) {
             if (stepCooldown <= 0) {
                 float prev = currentModifier;
                 boolean isDownregulating = currentModifier > targetModifier;
 
                 if (isDownregulating) {
-                    // [6]
                     currentModifier = targetModifier;
                 } else {
-                    // Upregulation: smooth stepping (already stable)
                     if (Math.abs(currentModifier - targetModifier) <= STEP_SIZE) {
                         currentModifier = targetModifier;
                     } else {
@@ -240,15 +361,12 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
     }
 
     private void recalculateTarget() {
-        // When overstressed, getSpeed() returns 0 even though the network is still running.
-        // Skip the early-exit so the metric logic can proportionally reduce the modifier.
         if (!hasNetwork() || (getSpeed() == 0.0f && !isOverStressed())) {
             targetModifier = MODIFIER_NEUTRAL;
             alarmState = AlarmState.NORMAL;
             return;
         }
 
-        // Use theoretical speed (unaffected by overstress flag) to compute the modifier ceiling.
         float sourceSpeed = Math.abs(getTheoreticalSpeed());
         if (sourceSpeed == 0.0f) {
             targetModifier = MODIFIER_NEUTRAL;
@@ -256,7 +374,6 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
             return;
         }
 
-        // Read current stress metric and configured bounds
         float metric;
         float lower = settings.getLowerBound();
         float upper = settings.getUpperBound();
@@ -267,21 +384,16 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
             metric = lastStressSU;
         }
 
-        // Dead-band governor with proportional response
         float idealModifier;
         if (metric <= 0.0f) {
-            // No/stale stress data, hold current position to avoid oscillation during reconnect cycles
             idealModifier = currentModifier;
         } else if (metric > upper && upper > 0.0f) {
-            // Over upper bound, slow down proportionally
             float base = Math.max(currentModifier, MODIFIER_EPSILON);
             idealModifier = base * (upper / metric);
         } else if (metric < lower) {
-            // Under lower bound, speed up proportionally
             float base = Math.max(currentModifier, MODIFIER_EPSILON);
             idealModifier = base * (lower / metric);
         } else {
-            // Within the dead-band, hold steady
             idealModifier = currentModifier;
         }
 
@@ -292,7 +404,6 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
                 String.format("%.2f", metric), String.format("%.1f", lower), String.format("%.1f", upper),
                 String.format("%.3f", currentModifier), String.format("%.3f", idealModifier), isOverStressed());
 
-        // Apply minimum RPM alarm logic
         float idealRPM = sourceSpeed * idealModifier;
         float minRPM = settings.getMinimumRPM();
 
@@ -300,11 +411,9 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
             alarmState = AlarmState.NORMAL;
             targetModifier = idealModifier;
         } else if (idealRPM >= minRPM / 2.0f) {
-            // Concerning: clamp to minimum RPM, raise alarm
             alarmState = AlarmState.CONCERNING;
             targetModifier = Math.max(0.0f, Math.min(getMaxAllowedModifier(sourceSpeed), minRPM / sourceSpeed));
         } else {
-            // Very concerning: allow emergency underspeed
             alarmState = AlarmState.VERY_CONCERNING;
             targetModifier = idealModifier;
         }
@@ -350,23 +459,17 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
         if (sourceSpeed <= 0.0f) {
             return MODIFIER_NEUTRAL;
         }
-        // Use floor to guarantee sourceSpeed * modifier never exceeds maxRPM in float math.
-        float rpmCap = (float) Math.floor(getEffectiveMaxRPM() / sourceSpeed);
 
-        // Stress-safe cap: limit modifier so output stress stays under 95% of capacity.
+        float rpmCap = VariableClutchPlan.rpmCapModifier(getEffectiveMaxRPM(), sourceSpeed);
+
         if (lastCapacitySU > 0 && lastStressSU > 0 && currentModifier > MODIFIER_EPSILON) {
             float stressCap = currentModifier * (lastCapacitySU / lastStressSU) * STRESS_SAFETY_MARGIN;
             rpmCap = Math.min(rpmCap, stressCap);
         }
 
-        // Allow sub-1.0 modifiers (throttling below source RPM), but not below a sensible floor
         return Math.max(MODIFIER_EPSILON, rpmCap);
     }
 
-    /**
-     * Snaps a modifier so that sourceSpeed * modifier produces an integer RPM.
-     * Prevents float-precision issues in Create's getConveyedSpeed/propagateNewSource.
-     */
     private float snapToIntegerRPM(float modifier, float sourceSpeed) {
         if (sourceSpeed < 1.0f) return modifier;
         float outputRPM = Math.round(sourceSpeed * modifier);
@@ -415,7 +518,6 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
                 alarmState = AlarmState.NORMAL;
                 applyModifierChange(oldMod);
             } else {
-                // Immediately clamp modifiers to new effective max RPM
                 float sourceSpeed = getSourceSpeed();
                 if (sourceSpeed > 0.0f) {
                     float maxMod = getMaxAllowedModifier(sourceSpeed);
@@ -448,12 +550,9 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
         updateComparatorOutput();
     }
 
-    /** [7] */
     private void applyModifierChange(float oldModifier) {
         if (level == null || level.isClientSide() || !isLiveClutch()) return;
 
-        // Re-entrancy guard: onSpeedChanged (fired during propagation) can try to call
-        // applyModifierChange again. Ignore the nested call.
         if (inModifierChange) return;
         if (inNetworkCallback) {
             pendingModifierRebuild = true;
@@ -473,7 +572,6 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
     private void performModifierRebuild() {
         inModifierChange = true;
         try {
-            // [8]
             detachKinetics();
             attachKinetics();
             syncNetworkState();
@@ -561,27 +659,22 @@ public class AutoTransmissionClutchBE extends SplitShaftBlockEntity {
             }
             if (getSpeed() == 0.0f) {
                 if (inModifierChange) {
-                    // Transient zero during SpeedController-style re-propagation, hold modifier.
                     return;
                 }
                 if (isOverStressed()) {
-                    // Network overstressed, do NOT reset modifier; let the governor reduce it
                     markDirty();
                     return;
                 }
-                // [9]
+                // zero speed can be a 1 tick split-shaft blip. don't reset here, chained governors knocked each other to neutral
+
                 markDirty();
                 return;
             }
 
-            // During modifier change propagation, skip all modifier mutation.
-            // Create calls onSpeedChanged on the AVC during handleAdded's propagation walk.
-            // If we mutate currentModifier here, different edges see different ratios → destruction.
             if (inModifierChange) {
                 return;
             }
 
-            // Clamp modifiers to the new source speed's max allowed
             float sourceSpeed = getSourceSpeed();
             if (sourceSpeed > 0.0f) {
                 float maxMod = getMaxAllowedModifier(sourceSpeed);

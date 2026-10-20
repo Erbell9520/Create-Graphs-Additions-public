@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    { "id": "#c:crops/wheat", "required": false },
+    { "id": "#c:crops/carrot", "required": false },
+    { "id": "#c:crops/potato", "required": false },
+    { "id": "#c:crops/beetroot", "required": false },
+    { "id": "#c:crops/pumpkin", "required": false },
+    "#minecraft:wool",
+    "minecraft:wheat",
+    "minecraft:carrot",
+    "minecraft:potato",
+    "minecraft:beetroot",
+    "minecraft:pumpkin",
+    "minecraft:carved_pumpkin"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "create_stats:power/meter",
+  "display": {
+    "icon": {
+      "id": "create_stats:main_breaker"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.breaker_trip.title",
+      "fallback": "The Fuse Blew!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.breaker_trip.description",
+      "fallback": "Be there when a Main Breaker trips. Someone ran the kettle and the heater together. Again."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "tripped": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "tripped"
+    ]
+  ]
+}

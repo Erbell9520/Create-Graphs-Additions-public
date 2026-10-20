@@ -2,7 +2,6 @@ package com.createstats.flight;
 
 import net.minecraft.core.Direction;
 
-/** [1] */
 public enum NoseAxis {
     POS_X(Direction.EAST),
     NEG_X(Direction.WEST),

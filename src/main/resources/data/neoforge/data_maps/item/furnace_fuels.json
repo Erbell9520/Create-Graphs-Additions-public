@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": {
+    "create_stats:compacted_biofuel": {
+      "burn_time": 200
+    }
+  }
+}

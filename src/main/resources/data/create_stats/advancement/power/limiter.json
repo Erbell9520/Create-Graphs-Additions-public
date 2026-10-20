@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:power/meter",
+  "display": {
+    "icon": {
+      "id": "create_stats:power_limiter"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.limiter.title",
+      "fallback": "Fair Usage Quota"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.limiter.description",
+      "fallback": "Place a Power Limiter. Fair usage quota exceeded: you are now on 1 Mbps."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "limiter": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:power_limiter"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "limiter"
+    ]
+  ]
+}

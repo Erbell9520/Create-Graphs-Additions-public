@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PumpTierTest {
-
     @Test
     @DisplayName("each grade moves exactly half its pressure, the Create pipe transfer rate")
     void flowIsHalfThePressure() {

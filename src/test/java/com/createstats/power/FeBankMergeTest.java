@@ -10,9 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Tests for how touching Capacitor Banks merge, and what a merged bank is worth. */
 class FeBankMergeTest {
-
     private static List<BlockPos> column(int height) {
         final List<BlockPos> positions = new ArrayList<>();
         for (int y = 0; y < height; y++) {
@@ -42,7 +40,6 @@ class FeBankMergeTest {
 
     @Test
     void aTallerColumnSplitsAtTheHeightLimitFromTheBottomUp() {
-        // [1]
         List<List<BlockPos>> banks = FeBankMerge.partition(column(10), 3, 6);
         assertEquals(2, banks.size());
         assertEquals(6, banks.get(0).size());
@@ -60,7 +57,6 @@ class FeBankMergeTest {
 
     @Test
     void theFootprintLimitIsEnforcedNotJustTheHeight() {
-        // 4 wide exceeds a 3 footprint, so it cannot all be one bank however short it is.
         List<List<BlockPos>> banks = FeBankMerge.partition(box(4, 1, 1), 3, 6);
         assertTrue(banks.size() > 1, "a 4-wide row cannot merge under a 3 footprint");
         for (List<BlockPos> bank : banks) {
@@ -76,7 +72,6 @@ class FeBankMergeTest {
 
     @Test
     void thePartitionIsIdenticalWhateverOrderTheClusterArrivesIn() {
-        // [2]
         final List<BlockPos> cluster = box(3, 8, 2);
         final List<List<BlockPos>> reference = FeBankMerge.partition(cluster, 3, 6);
 
@@ -98,21 +93,17 @@ class FeBankMergeTest {
         assertEquals(cluster.size(), new java.util.HashSet<>(flattened).size());
     }
 
-    /** The shipped default: 1,024,000 FE per block before the merge bonus. */
     private static final int BASE = 1_024_000;
 
     @Test
     void capacityFollowsTheGentleMergeCurve() {
-        // The shipped numbers, pinned. One block is exactly its base, and merging pays a bonus of
-        // roughly 2.1x at two blocks and 4.6x at four.
         assertEquals(BASE, FeBankMerge.capacity(1, BASE, 1.1));
         assertEquals(2_194_992, FeBankMerge.capacity(2, BASE, 1.1));
         assertEquals(4_705_068, FeBankMerge.capacity(4, BASE, 1.1));
         assertEquals(82_401_116, FeBankMerge.capacity(54, BASE, 1.1), "a full 3x3x6 bank");
 
-        // An exponent of 1.0 removes the bonus entirely.
         assertEquals(4 * BASE, FeBankMerge.capacity(4, BASE, 1.0));
-        // Merging is never a downgrade.
+
         int previous = 0;
         for (int n = 1; n <= 54; n++) {
             final int capacity = FeBankMerge.capacity(n, BASE, 1.1);
@@ -124,7 +115,6 @@ class FeBankMergeTest {
 
     @Test
     void anAbsurdConfigSaturatesInsteadOfOverflowing() {
-        // [3]
         final int huge = FeBankMerge.capacity(54, 100_000_000, 1.5);
         assertTrue(huge > 0, "capacity must never wrap negative");
         assertEquals(Integer.MAX_VALUE, huge);
@@ -147,7 +137,7 @@ class FeBankMergeTest {
                 sum += share;
             }
             assertEquals(total, sum, "shares must add back up to the bank total at n=" + blocks);
-            // The remainder rides on the lowest blocks, which fill first.
+
             assertTrue(shares[0] >= shares[shares.length - 1]);
         }
     }

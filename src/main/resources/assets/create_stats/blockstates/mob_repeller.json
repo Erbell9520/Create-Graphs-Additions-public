@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/mob_repeller"
+    },
+    "facing=east": {
+      "model": "create_stats:block/mob_repeller",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/mob_repeller",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/mob_repeller",
+      "y": 270
+    }
+  }
+}

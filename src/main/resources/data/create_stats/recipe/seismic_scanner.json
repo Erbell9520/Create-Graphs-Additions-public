@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GTG",
+    "RWC",
+    "SPS"
+  ],
+  "key": {
+    "G": {
+      "item": "create:metal_girder"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "R": {
+      "item": "create:rope_pulley"
+    },
+    "W": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:clock"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    },
+    "P": {
+      "item": "minecraft:heavy_weighted_pressure_plate"
+    }
+  },
+  "result": {
+    "id": "create_stats:seismic_scanner",
+    "count": 1
+  },
+  "show_notification": true
+}

@@ -12,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class KineticFlywheelConfigPacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<KineticFlywheelConfigPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "kinetic_flywheel_config"));
 

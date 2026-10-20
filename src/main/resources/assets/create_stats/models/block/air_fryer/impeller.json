@@ -1,0 +1,460 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "steel": "create_stats:block/air_fryer_steel",
+    "chrome": "create_stats:block/air_fryer_chrome",
+    "particle": "create_stats:block/air_fryer_steel"
+  },
+  "elements": [
+    {
+      "__comment": "hub",
+      "from": [
+        -0.72,
+        -0.16,
+        -0.72
+      ],
+      "to": [
+        0.72,
+        0.18,
+        0.72
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "__comment": "cap",
+      "from": [
+        -0.34,
+        0.14,
+        -0.34
+      ],
+      "to": [
+        0.34,
+        0.28,
+        0.34
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        }
+      }
+    },
+    {
+      "__comment": "blade_e",
+      "from": [
+        0.62,
+        -0.1,
+        -0.5
+      ],
+      "to": [
+        2.18,
+        0.1,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        }
+      },
+      "rotation": {
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "axis": "x",
+        "angle": 22.5
+      }
+    },
+    {
+      "__comment": "blade_w",
+      "from": [
+        -2.18,
+        -0.1,
+        -0.5
+      ],
+      "to": [
+        -0.62,
+        0.1,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        }
+      },
+      "rotation": {
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    },
+    {
+      "__comment": "blade_s",
+      "from": [
+        -0.5,
+        -0.1,
+        0.62
+      ],
+      "to": [
+        0.5,
+        0.1,
+        2.18
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#chrome"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#chrome"
+        }
+      },
+      "rotation": {
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "axis": "z",
+        "angle": -22.5
+      }
+    },
+    {
+      "__comment": "blade_n",
+      "from": [
+        -0.5,
+        -0.1,
+        -2.18
+      ],
+      "to": [
+        0.5,
+        0.1,
+        -0.62
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#chrome"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#chrome"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#chrome"
+        }
+      },
+      "rotation": {
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "axis": "z",
+        "angle": 22.5
+      }
+    }
+  ]
+}

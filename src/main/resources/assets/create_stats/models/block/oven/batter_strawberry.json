@@ -1,0 +1,447 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "batter_strawberry": "create_stats:block/oven_batter_strawberry",
+    "particle": "create_stats:block/oven_batter_strawberry"
+  },
+  "elements": [
+    {
+      "__comment": "bake0_mid",
+      "from": [
+        -2.16,
+        0.0,
+        -0.8947
+      ],
+      "to": [
+        2.16,
+        1.0,
+        0.8947
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            2
+          ],
+          "texture": "#batter_strawberry"
+        }
+      }
+    },
+    {
+      "__comment": "bake0_up",
+      "from": [
+        -0.8947,
+        0.0,
+        0.8947
+      ],
+      "to": [
+        0.8947,
+        1.0,
+        2.16
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        }
+      }
+    },
+    {
+      "__comment": "bake0_dn",
+      "from": [
+        -0.8947,
+        0.0,
+        -2.16
+      ],
+      "to": [
+        0.8947,
+        1.0,
+        -0.8947
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        }
+      }
+    },
+    {
+      "__comment": "bake0_cpp",
+      "from": [
+        0.1853,
+        0.055,
+        0.4474
+      ],
+      "to": [
+        1.9747,
+        0.945,
+        1.7126
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        }
+      },
+      "rotation": {
+        "origin": [
+          1.08,
+          0.055,
+          1.08
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "__comment": "bake0_cnp",
+      "from": [
+        -1.9747,
+        0.055,
+        0.4474
+      ],
+      "to": [
+        -0.1853,
+        0.945,
+        1.7126
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        }
+      },
+      "rotation": {
+        "origin": [
+          -1.08,
+          0.055,
+          1.08
+        ],
+        "axis": "y",
+        "angle": -45
+      }
+    },
+    {
+      "__comment": "bake0_cnn",
+      "from": [
+        -1.9747,
+        0.055,
+        -1.7126
+      ],
+      "to": [
+        -0.1853,
+        0.945,
+        -0.4474
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        }
+      },
+      "rotation": {
+        "origin": [
+          -1.08,
+          0.055,
+          -1.08
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "__comment": "bake0_cpn",
+      "from": [
+        0.1853,
+        0.055,
+        -1.7126
+      ],
+      "to": [
+        1.9747,
+        0.945,
+        -0.4474
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#batter_strawberry"
+        }
+      },
+      "rotation": {
+        "origin": [
+          1.08,
+          0.055,
+          -1.08
+        ],
+        "axis": "y",
+        "angle": -45
+      }
+    }
+  ]
+}

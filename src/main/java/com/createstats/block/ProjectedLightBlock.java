@@ -13,10 +13,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-/** [1] */
 public class ProjectedLightBlock extends Block {
-
-    /** Emitted block-light level (0..15), driven by the owning Stage Light's brightness. */
     public static final IntegerProperty LEVEL = BlockStateProperties.LEVEL;
 
     public ProjectedLightBlock(BlockBehaviour.Properties properties) {
@@ -24,7 +21,6 @@ public class ProjectedLightBlock extends Block {
         this.registerDefaultState(this.stateDefinition.any().setValue(LEVEL, 15));
     }
 
-    /** Light emission for the block's {@code lightLevel} supplier. */
     public static int lightLevel(BlockState state) {
         return state.getValue(LEVEL);
     }

@@ -1,0 +1,262 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"textures": {
+		"back": "create_stats:block/smelter_back",
+		"particle": "create_stats:block/smelter_body",
+		"body": "create_stats:block/smelter_body",
+		"cap_side": "create_stats:block/smelter_cap_side",
+		"cap_top": "create_stats:block/smelter_cap_top",
+		"dial": "create_stats:block/smelter_dial",
+		"front": "create_stats:block/smelter_front",
+		"grille": "create_stats:block/smelter_grille",
+		"hearth": "create_stats:block/smelter_hearth",
+		"leaf": "create_stats:block/smelter_leaf",
+		"leaf_inner": "create_stats:block/smelter_leaf_inner",
+		"lever": "create_stats:block/smelter_lever",
+		"lining": "create_stats:block/smelter_lining",
+		"needle": "create_stats:block/smelter_needle",
+		"plinth": "create_stats:block/smelter_plinth",
+		"well": "create_stats:block/smelter_well",
+		"well_floor": "create_stats:block/smelter_well_floor"
+	},
+	"elements": [
+		{
+			"name": "plinth",
+			"from": [0, 0, 0],
+			"to": [16, 3, 16],
+			"faces": {
+				"north": {"uv": [0, 13, 16, 16], "texture": "#plinth"},
+				"east": {"uv": [0, 13, 16, 16], "texture": "#plinth"},
+				"south": {"uv": [0, 13, 16, 16], "texture": "#plinth"},
+				"west": {"uv": [0, 13, 16, 16], "texture": "#plinth"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#plinth"}
+			}
+		},
+		{
+			"name": "body, west slab",
+			"from": [0, 3, 0],
+			"to": [5, 13, 16],
+			"faces": {
+				"north": {"uv": [11, 3, 16, 13], "texture": "#front"},
+				"east": {"uv": [0, 3, 16, 13], "texture": "#lining"},
+				"south": {"uv": [0, 3, 5, 13], "texture": "#back"},
+				"west": {"uv": [0, 3, 16, 13], "texture": "#body"}
+			}
+		},
+		{
+			"name": "body, east slab",
+			"from": [11, 3, 0],
+			"to": [16, 13, 16],
+			"faces": {
+				"north": {"uv": [0, 3, 5, 13], "texture": "#front"},
+				"east": {"uv": [0, 3, 16, 13], "texture": "#body"},
+				"south": {"uv": [11, 3, 16, 13], "texture": "#back"},
+				"west": {"uv": [0, 3, 16, 13], "texture": "#lining"}
+			}
+		},
+		{
+			"name": "body, floor slab under the muffle",
+			"from": [5, 3, 0],
+			"to": [11, 5, 16],
+			"faces": {
+				"north": {"uv": [5, 11, 11, 13], "texture": "#front"},
+				"south": {"uv": [5, 11, 11, 13], "texture": "#back"},
+				"up": {"uv": [5, 0, 11, 16], "texture": "#hearth"}
+			}
+		},
+		{
+			"name": "body, roof slab over the muffle",
+			"from": [5, 11, 0],
+			"to": [11, 13, 16],
+			"faces": {
+				"north": {"uv": [5, 3, 11, 5], "texture": "#front"},
+				"south": {"uv": [5, 3, 11, 5], "texture": "#back"},
+				"down": {"uv": [5, 0, 11, 16], "texture": "#hearth"}
+			}
+		},
+		{
+			"name": "the muffle's back wall",
+			"from": [5, 5, 13],
+			"to": [11, 11, 16],
+			"faces": {
+				"north": {"uv": [5, 5, 11, 11], "texture": "#lining"},
+				"south": {"uv": [5, 5, 11, 11], "texture": "#back"}
+			}
+		},
+		{
+			"name": "cap, north bar",
+			"from": [0, 13, 0],
+			"to": [16, 16, 5],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 3], "texture": "#cap_side"},
+				"east": {"uv": [11, 0, 16, 3], "texture": "#cap_side"},
+				"south": {"uv": [0, 0, 16, 3], "texture": "#cap_side"},
+				"west": {"uv": [0, 0, 5, 3], "texture": "#cap_side"},
+				"up": {"uv": [0, 0, 16, 5], "texture": "#cap_top"}
+			}
+		},
+		{
+			"name": "cap, south bar",
+			"from": [0, 13, 11],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 3], "texture": "#cap_side"},
+				"east": {"uv": [0, 0, 5, 3], "texture": "#cap_side"},
+				"south": {"uv": [0, 0, 16, 3], "texture": "#cap_side"},
+				"west": {"uv": [11, 0, 16, 3], "texture": "#cap_side"},
+				"up": {"uv": [0, 11, 16, 16], "texture": "#cap_top"}
+			}
+		},
+		{
+			"name": "cap, west bar",
+			"from": [0, 13, 5],
+			"to": [5, 16, 11],
+			"faces": {
+				"east": {"uv": [5, 0, 11, 3], "texture": "#well"},
+				"west": {"uv": [5, 0, 11, 3], "texture": "#cap_side"},
+				"up": {"uv": [0, 5, 5, 11], "texture": "#cap_top"}
+			}
+		},
+		{
+			"name": "cap, east bar",
+			"from": [11, 13, 5],
+			"to": [16, 16, 11],
+			"faces": {
+				"east": {"uv": [5, 0, 11, 3], "texture": "#cap_side"},
+				"west": {"uv": [5, 0, 11, 3], "texture": "#well"},
+				"up": {"uv": [11, 5, 16, 11], "texture": "#cap_top"}
+			}
+		},
+		{
+			"name": "well, north wall",
+			"from": [5, 13, 4.79],
+			"to": [11, 16, 5.1],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 0.1]},
+			"faces": {
+				"south": {"uv": [5, 0, 11, 3], "texture": "#well"}
+			}
+		},
+		{
+			"name": "well, south wall",
+			"from": [5, 13, 10.9],
+			"to": [11, 16, 11.11],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, -0.1]},
+			"faces": {
+				"north": {"uv": [5, 0, 11, 3], "texture": "#well"}
+			}
+		},
+		{
+			"name": "well floor, behind the fan",
+			"from": [5, 12.9, 5],
+			"to": [11, 13, 11],
+			"faces": {
+				"up": {"uv": [5, 5, 11, 11], "texture": "#well_floor"}
+			}
+		},
+		{
+			"name": "well guard bar 0",
+			"from": [5, 15.6, 6.2],
+			"to": [11, 16, 6.9],
+			"faces": {
+				"north": {"uv": [5, 0, 11, 0.4], "texture": "#grille"},
+				"east": {"uv": [9.1, 0, 9.8, 0.4], "texture": "#grille"},
+				"south": {"uv": [5, 0, 11, 0.4], "texture": "#grille"},
+				"west": {"uv": [6.2, 0, 6.9, 0.4], "texture": "#grille"},
+				"up": {"uv": [5, 6.2, 11, 6.9], "texture": "#grille"},
+				"down": {"uv": [5, 9.1, 11, 9.8], "texture": "#grille"}
+			}
+		},
+		{
+			"name": "well guard bar 1",
+			"from": [5, 15.6, 8.1],
+			"to": [11, 16, 8.8],
+			"faces": {
+				"north": {"uv": [5, 0, 11, 0.4], "texture": "#grille"},
+				"east": {"uv": [7.2, 0, 7.9, 0.4], "texture": "#grille"},
+				"south": {"uv": [5, 0, 11, 0.4], "texture": "#grille"},
+				"west": {"uv": [8.1, 0, 8.8, 0.4], "texture": "#grille"},
+				"up": {"uv": [5, 8.1, 11, 8.8], "texture": "#grille"},
+				"down": {"uv": [5, 7.2, 11, 7.9], "texture": "#grille"}
+			}
+		},
+		{
+			"name": "well guard bar 2",
+			"from": [5, 15.6, 10],
+			"to": [11, 16, 10.7],
+			"faces": {
+				"north": {"uv": [5, 0, 11, 0.4], "texture": "#grille"},
+				"east": {"uv": [5.3, 0, 6, 0.4], "texture": "#grille"},
+				"south": {"uv": [5, 0, 11, 0.4], "texture": "#grille"},
+				"west": {"uv": [10, 0, 10.7, 0.4], "texture": "#grille"},
+				"up": {"uv": [5, 10, 11, 10.7], "texture": "#grille"},
+				"down": {"uv": [5, 5.3, 11, 6], "texture": "#grille"}
+			}
+		},
+		{
+			"name": "temperature dial",
+			"from": [0, 7, -0.4],
+			"to": [4, 11, 0],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#dial"},
+				"east": {"uv": [7, 0, 9, 16], "texture": "#dial"},
+				"west": {"uv": [7, 0, 9, 16], "texture": "#dial"},
+				"up": {"uv": [0, 7, 16, 9], "texture": "#dial"},
+				"down": {"uv": [0, 7, 16, 9], "texture": "#dial"}
+			}
+		},
+		{
+			"name": "shutter leaf",
+			"from": [5, 5, 0.35],
+			"to": [8, 11, 1.05],
+			"faces": {
+				"north": {"uv": [0, 5, 8, 11], "texture": "#leaf"},
+				"east": {"uv": [7, 5, 8, 11], "texture": "#leaf"},
+				"south": {"uv": [8, 5, 16, 11], "texture": "#leaf_inner"},
+				"west": {"uv": [7, 5, 8, 11], "texture": "#leaf"},
+				"up": {"uv": [0, 7, 8, 8], "texture": "#leaf"},
+				"down": {"uv": [0, 7, 8, 8], "texture": "#leaf"}
+			}
+		},
+		{
+			"name": "shutter leaf",
+			"from": [8, 5, 0.35],
+			"to": [11, 11, 1.05],
+			"faces": {
+				"north": {"uv": [0, 5, 8, 11], "texture": "#leaf"},
+				"east": {"uv": [7, 5, 8, 11], "texture": "#leaf"},
+				"south": {"uv": [8, 5, 16, 11], "texture": "#leaf_inner"},
+				"west": {"uv": [7, 5, 8, 11], "texture": "#leaf"},
+				"up": {"uv": [0, 7, 8, 8], "texture": "#leaf"},
+				"down": {"uv": [0, 7, 8, 8], "texture": "#leaf"}
+			}
+		},
+		{
+			"name": "damper lever",
+			"from": [13.7, 5.2, -0.75],
+			"to": [14.3, 8.1, -0.15],
+			"faces": {
+				"north": {"uv": [6, 3, 10, 16], "texture": "#lever"},
+				"east": {"uv": [6, 0, 10, 16], "texture": "#lever"},
+				"south": {"uv": [6, 0, 10, 16], "texture": "#lever"},
+				"west": {"uv": [6, 0, 10, 16], "texture": "#lever"},
+				"up": {"uv": [6, 0, 10, 16], "texture": "#lever"},
+				"down": {"uv": [6, 0, 10, 16], "texture": "#lever"}
+			}
+		},
+		{
+			"name": "dial needle",
+			"from": [1.83, 8.7, -0.64],
+			"to": [2.17, 10.3, -0.42],
+			"faces": {
+				"north": {"uv": [6, 0, 10, 16], "texture": "#needle"},
+				"east": {"uv": [6, 0, 10, 16], "texture": "#needle"},
+				"south": {"uv": [6, 0, 10, 16], "texture": "#needle"},
+				"west": {"uv": [6, 0, 10, 16], "texture": "#needle"},
+				"up": {"uv": [6, 0, 10, 16], "texture": "#needle"},
+				"down": {"uv": [6, 0, 10, 16], "texture": "#needle"}
+			}
+		}
+	]
+}

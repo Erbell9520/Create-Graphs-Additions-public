@@ -10,7 +10,6 @@ public record FccGuiGroupEntry(
         int deviceCount,
         String zoneKey
 ) {
-
     public void encode(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(id);
         buf.writeUtf(label == null ? "" : label, 128);

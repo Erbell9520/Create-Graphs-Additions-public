@@ -6,7 +6,7 @@ public final class ThresholdResolver
 {
     private ThresholdResolver() {
     }
-    
+
     public static Threshold resolve(MetricType metricType, boolean slopePositive, double alertThreshold) {
         if (!Double.isNaN(alertThreshold)) {
             return new Threshold(alertThreshold, "Target reached");
@@ -26,6 +26,6 @@ public final class ThresholdResolver
             default -> null;
         };
     }
-    
+
     record Threshold(double value, String label) {}
 }

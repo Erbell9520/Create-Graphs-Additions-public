@@ -67,8 +67,6 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 public class FactoryLogicControllerBE extends BlockEntity implements MenuProvider, RangeAttachment, com.createstats.power.IFeConsumer {
-
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_FACTORY_LOGIC));
 
@@ -88,7 +86,7 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
     private static final int MAX_SCAN_VOLUME = MachineSelectionCardData.MAX_AREA_BLOCKS;
     private static final int RUN_SIGNAL = 15;
     private static final int STOP_SIGNAL = 0;
-    /** Sequential bank: hand off to the next unit once the active one drops to this charge percent. */
+
     private static final float SEQUENTIAL_ADVANCE_PCT = 2.0f;
     private static final int TARGET_RPM_MIN = 16;
     private static final int TARGET_RPM_MAX = 256;
@@ -102,7 +100,7 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
     private AntennaTier antennaTier;
     private BankStrategy bankStrategy = BankStrategy.PARALLEL;
     private int targetRpm = 64;
-    /** Rebuilt each evaluation pass: the flywheel rows currently running (not manually paused). */
+
     private final List<FlywheelMember> flywheelMembers = new ArrayList<>();
 
     public FactoryLogicControllerBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -161,8 +159,7 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         if (this.level == null || this.level.isClientSide()) {
             return;
         }
-        // FE Dependent Mode gate: a dead controller stops evaluating rules and coordinating
-        // flywheel banks until the buffer is charged again.
+
         final boolean fePowered = this.feConsumer.serviceTick(true);
         com.createstats.power.FePowerFx.handleTransition(this.level, this.worldPosition, this.feConsumer);
         if (!fePowered) {
@@ -360,7 +357,6 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         return data.getTargetDisplayName() + " @ " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }
 
-    /** True when this row's link card targets a Kinetic Flywheel (so it skips the machine slot). */
     public boolean isRowFlywheelLinked(int row) {
         ItemStack stack = this.getClutchLinkStack(row);
         if (!(stack.getItem() instanceof SafetyClutchLinkCardItem)) {
@@ -379,7 +375,6 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         this.markForClientSync();
     }
 
-    /** True when at least one row's link card targets a Kinetic Flywheel (drives the bank UI). */
     public boolean hasFlywheelRows() {
         for (int row = 0; row < RULE_COUNT; row++) {
             if (this.isRowFlywheelLinked(row)) {
@@ -411,14 +406,12 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         return this.runtimes[row].detail;
     }
 
-    /** Pause is valid only when the row is actively running or counting down. */
     public boolean canManualPause(int row) {
         if (row < 0 || row >= RULE_COUNT) return false;
         RuleStatus s = this.runtimes[row].status;
         return s == RuleStatus.RUNNING || s == RuleStatus.COUNTDOWN;
     }
 
-    /** Reset is valid when the row is stopped, or when NO_MACHINES is holding a stop. */
     public boolean canManualReset(int row) {
         if (row < 0 || row >= RULE_COUNT) return false;
         RuleRuntime rt = this.runtimes[row];
@@ -461,7 +454,6 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
             return;
         }
 
-        // [1]
         if (clutchLinkStack.getItem() instanceof SafetyClutchLinkCardItem) {
             SafetyClutchLinkData linkProbe = SafetyClutchLinkCardItem.getData(clutchLinkStack);
             if (linkProbe.getTargetType() == SafetyClutchLinkData.TargetType.KINETIC_FLYWHEEL) {
@@ -524,8 +516,6 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         if (machines.isEmpty()) {
             runtime.idleTicks = 0;
             if (runtime.controllerHeldStopped) {
-                // Re-apply the stop signal so the clutch is not silently resumed while the
-                // area is reconfigured (e.g. machines temporarily absent during a rebuild).
                 if (this.applyLinkedState(row, clutchLink, false, STOP_SIGNAL)) {
                     this.setRuntime(row, RuleStatus.NO_MACHINES, "No machines in area, clutch held stopped");
                 } else {
@@ -623,7 +613,7 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         }
     }
 
-    /** [2] */
+    // flywheel row just keeps it armed
     private void handleFlywheelRow(int row, SafetyClutchLinkData linkData) {
         RuleRuntime runtime = this.runtimes[row];
         if (!linkData.isLinked()) {
@@ -642,8 +632,8 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         runtime.rememberLink(linkData);
         runtime.controllerHeldStopped = false;
         runtime.idleTicks = 0;
-        // Defer the actual arm/standby decision to coordinateFlywheelBanks(), which groups all running
-        // flywheel rows by kinetic network and applies the bank strategy. This status is provisional.
+        // provisional, coordinateFlywheelBanks decides per network
+
         this.flywheelMembers.add(new FlywheelMember(row, flywheel));
         this.setRuntime(row, RuleStatus.RUNNING,
                 String.format("Armed: %.0f%% charge, %s", flywheel.getChargePercent(), flywheelModeLabel(flywheel)));
@@ -655,7 +645,7 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         return be instanceof KineticFlywheelBE flywheel ? flywheel : null;
     }
 
-    /** [3] */
+    // only write on change, and leave overstress holds alone
     private static void setFlywheelArmed(KineticFlywheelBE flywheel, boolean armed) {
         if (flywheel.isDischargeArmed() == armed) {
             return;
@@ -673,7 +663,6 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         };
     }
 
-    /** [4] */
     private void coordinateFlywheelBanks() {
         if (this.flywheelMembers.isEmpty()) {
             return;
@@ -717,7 +706,6 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
             return;
         }
 
-        // [5]
         boolean smart = this.bankStrategy == BankStrategy.SMART;
         FlywheelMember active = this.chooseSequentialActive(bank);
         for (FlywheelMember member : bank) {
@@ -740,7 +728,6 @@ public class FactoryLogicControllerBE extends BlockEntity implements MenuProvide
         }
     }
 
-    /** Sequential bank active unit: keep a still-charged armed unit (hysteresis), else the fullest one. */
     private FlywheelMember chooseSequentialActive(List<FlywheelMember> bank) {
         FlywheelMember fullest = null;
         float fullestCharge = -1f;

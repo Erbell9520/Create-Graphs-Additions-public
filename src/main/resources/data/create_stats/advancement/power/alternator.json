@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:industrial_alternator"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.alternator.title",
+      "fallback": "The Neighbour's Generator"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.alternator.description",
+      "fallback": "Place an Industrial Alternator. When the street goes dark, yours is the one humming."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "alternator": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:industrial_alternator"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "alternator"
+    ]
+  ]
+}

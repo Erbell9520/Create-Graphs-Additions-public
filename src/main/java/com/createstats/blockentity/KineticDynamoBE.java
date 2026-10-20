@@ -16,13 +16,26 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import java.util.List;
 import java.util.Locale;
 
-/** [1] */
-public class KineticDynamoBE extends KineticBlockEntity {
-
+public class KineticDynamoBE extends KineticBlockEntity
+        implements com.createstats.power.FeSupply, com.createstats.power.FeForecastingSource {
     private int energy;
+
     private int lastGeneratedFePerTick;
 
-    /** Extract-only view: the dynamo is a source, nothing can force-feed it. */
+    private int lastOutflowFePerTick;
+
+    private int outflowThisTick;
+
+    private int outflowBudget() {
+        return Math.max(0, transferRate() - outflowThisTick);
+    }
+
+    private void recordOutflow(int amount) {
+        if (amount > 0) {
+            outflowThisTick += amount;
+        }
+    }
+
     private final IEnergyStorage energyView = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
@@ -31,12 +44,13 @@ public class KineticDynamoBE extends KineticBlockEntity {
 
         @Override
         public int extractEnergy(int maxExtract, boolean simulate) {
-            final int amount = Math.min(Math.min(maxExtract, transferRate()), energy);
+            final int amount = Math.min(Math.min(maxExtract, outflowBudget()), energy);
             if (amount <= 0) {
                 return 0;
             }
             if (!simulate) {
                 energy -= amount;
+                recordOutflow(amount);
                 setChanged();
             }
             return amount;
@@ -79,10 +93,19 @@ public class KineticDynamoBE extends KineticBlockEntity {
         return lastGeneratedFePerTick;
     }
 
-    /** [2] */
+    public int lastOutflowFePerTick() {
+        return lastOutflowFePerTick;
+    }
+
+    @Override
     public int potentialFePerTick() {
         final float speed = Math.abs(getSpeed());
         return speed <= 0.01f ? 0 : Math.max(0, (int) Math.floor(speed * fePerRpm()));
+    }
+
+    @Override
+    public int potentialFePerTickIn(int ticks) {
+        return potentialFePerTick();
     }
 
     @Override
@@ -95,38 +118,41 @@ public class KineticDynamoBE extends KineticBlockEntity {
         if (energy > capacity) {
             energy = capacity;
         }
-        final float speed = Math.abs(getSpeed());
-        if (speed > 0.01f) {
-            final int generated = Math.max(0, (int) Math.floor(speed * fePerRpm()));
-            lastGeneratedFePerTick = generated;
-            if (generated > 0 && energy < capacity) {
-                energy = Math.min(capacity, energy + generated);
-                setChanged();
-            }
-        } else {
-            lastGeneratedFePerTick = 0;
+
+        lastOutflowFePerTick = outflowThisTick;
+        outflowThisTick = 0;
+
+        final int potential = potentialFePerTick();
+        final int generated = Math.min(potential, Math.max(0, capacity - energy));
+        lastGeneratedFePerTick = generated;
+        if (generated > 0) {
+            energy += generated;
+            setChanged();
         }
         if (energy > 0) {
             pushToNeighbors();
         }
-        syncReadout(lastGeneratedFePerTick * 31 + energy / 64);
+        syncReadout(lastGeneratedFePerTick * 31 + lastOutflowFePerTick * 7 + energy / 64);
     }
 
-    /** Push FE to every non-shaft neighbor that can receive (consumers, connectors, batteries). */
     private void pushToNeighbors() {
-        final int rate = transferRate();
         for (Direction direction : Direction.values()) {
             if (direction == Direction.DOWN || energy <= 0) {
-                continue; // DOWN is the shaft face.
+                continue;
+            }
+            final int budget = Math.min(outflowBudget(), energy);
+            if (budget <= 0) {
+                return;
             }
             final IEnergyStorage target = level.getCapability(Capabilities.EnergyStorage.BLOCK,
                     worldPosition.relative(direction), direction.getOpposite());
             if (target == null || !target.canReceive()) {
                 continue;
             }
-            final int moved = target.receiveEnergy(Math.min(rate, energy), false);
+            final int moved = target.receiveEnergy(budget, false);
             if (moved > 0) {
                 energy -= moved;
+                recordOutflow(moved);
                 setChanged();
             }
         }
@@ -134,15 +160,14 @@ public class KineticDynamoBE extends KineticBlockEntity {
 
     @Override
     public float calculateStressApplied() {
-        return (float) tier().stressPerRpm();
+        final float impact = (float) tier().stressPerRpm();
+        this.lastStressApplied = impact;
+        return impact;
     }
 
-
-    /** Last readout actually sent, and how long ago, so a still block costs nothing. */
     private int lastSyncedReadout = Integer.MIN_VALUE;
     private int ticksSinceReadoutSync;
 
-    /** [3] */
     private void syncReadout(int shown) {
         ticksSinceReadoutSync++;
         final int bucket = Math.max(1, Math.abs(shown) / 32);
@@ -159,6 +184,7 @@ public class KineticDynamoBE extends KineticBlockEntity {
         super.write(tag, registries, clientPacket);
         tag.putInt("Energy", energy);
         tag.putInt("Generated", lastGeneratedFePerTick);
+        tag.putInt("Outflow", lastOutflowFePerTick);
     }
 
     @Override
@@ -166,19 +192,20 @@ public class KineticDynamoBE extends KineticBlockEntity {
         super.read(tag, registries, clientPacket);
         energy = Math.max(0, tag.getInt("Energy"));
         lastGeneratedFePerTick = Math.max(0, tag.getInt("Generated"));
+        lastOutflowFePerTick = Math.max(0, tag.getInt("Outflow"));
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        tooltip.add(Component.literal("    ").append(
-                Component.literal("Kinetic Dynamo").withStyle(ChatFormatting.GRAY)));
-        tooltip.add(Component.literal("    ").append(Component
-                .literal(String.format(Locale.ROOT, "Generating: %d FE/t", lastGeneratedFePerTick))
-                .withStyle(lastGeneratedFePerTick > 0 ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY)));
-        tooltip.add(Component.literal("    ").append(Component
-                .literal(String.format(Locale.ROOT, "Buffer: %,d / %,d FE", energy, bufferCapacity()))
-                .withStyle(ChatFormatting.AQUA)));
+        tooltip.add(com.createstats.power.FeGoggle.title("Kinetic Dynamo"));
+        final int potential = potentialFePerTick();
+        tooltip.add(com.createstats.power.FeGoggle.output(lastGeneratedFePerTick));
+        if (potential > 0 && lastGeneratedFePerTick < potential) {
+            tooltip.add(com.createstats.power.FeGoggle.dim(String.format(Locale.ROOT,
+                    "Capable of %,d FE/t, grid not drawing the rest", potential)));
+        }
+        tooltip.add(com.createstats.power.FeGoggle.amount("Buffer", energy, bufferCapacity()));
         return true;
     }
 
@@ -198,12 +225,10 @@ public class KineticDynamoBE extends KineticBlockEntity {
         }
     }
 
-    /** [4] */
     private double fePerRpm() {
         return tier().fePerRpm();
     }
 
-    /** This dynamo's grade, defaulting to the middle one if it somehow has no dynamo block. */
     public com.createstats.power.DynamoTier tier() {
         return getBlockState().getBlock() instanceof com.createstats.block.KineticDynamoBlock dynamo
                 ? dynamo.tier()

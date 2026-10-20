@@ -1,0 +1,140 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "brass": "create_stats:block/seismic_scanner/brass",
+    "soot": "create_stats:block/seismic_scanner/soot",
+    "particle": "create_stats:block/seismic_scanner/frame"
+  },
+  "elements": [
+    {
+      "__comment": "carriage",
+      "from": [
+        3.85,
+        5.3,
+        0.7
+      ],
+      "to": [
+        4.4,
+        6.2,
+        1.25
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            3.85,
+            0.7,
+            4.4,
+            1.25
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            3.85,
+            14.75,
+            4.4,
+            15.3
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            11.6,
+            9.8,
+            12.15,
+            10.7
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            3.85,
+            9.8,
+            4.4,
+            10.7
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            14.75,
+            9.8,
+            15.3,
+            10.7
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0.7,
+            9.8,
+            1.25,
+            10.7
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "__comment": "pen",
+      "from": [
+        3.8,
+        5.65,
+        1.25
+      ],
+      "to": [
+        3.85,
+        5.85,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.15,
+            10.15,
+            12.2,
+            10.35
+          ],
+          "texture": "#soot"
+        },
+        "south": {
+          "uv": [
+            3.8,
+            10.15,
+            3.85,
+            10.35
+          ],
+          "texture": "#soot"
+        },
+        "up": {
+          "uv": [
+            3.8,
+            1.25,
+            3.85,
+            1.5
+          ],
+          "texture": "#soot"
+        },
+        "down": {
+          "uv": [
+            3.8,
+            14.5,
+            3.85,
+            14.75
+          ],
+          "texture": "#soot"
+        },
+        "west": {
+          "uv": [
+            1.25,
+            10.15,
+            1.5,
+            10.35
+          ],
+          "texture": "#soot"
+        }
+      }
+    }
+  ]
+}

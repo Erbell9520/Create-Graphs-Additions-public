@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TableAlarmClockStatePacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<TableAlarmClockStatePacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "table_alarm_clock_state"));
     public static final StreamCodec<FriendlyByteBuf, TableAlarmClockStatePacket> STREAM_CODEC =

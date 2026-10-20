@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:stats/display",
+  "display": {
+    "icon": {
+      "id": "create_stats:calculator"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.calculator.title",
+      "fallback": "The Bill's On Me!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.calculator.description",
+      "fallback": "Place a Calculator. Three uncles are already wrestling over the bill."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "calculator": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:calculator"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "calculator"
+    ]
+  ]
+}

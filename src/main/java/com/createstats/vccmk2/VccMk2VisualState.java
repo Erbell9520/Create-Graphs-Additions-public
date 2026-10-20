@@ -2,7 +2,6 @@ package com.createstats.vccmk2;
 
 import net.minecraft.util.StringRepresentable;
 
-/** [1] */
 public enum VccMk2VisualState implements StringRepresentable {
     OFF("off"),
     STANDBY("standby"),
@@ -20,7 +19,6 @@ public enum VccMk2VisualState implements StringRepresentable {
         return name;
     }
 
-    /** Cycle helper used by the temporary right-click look-test interaction. */
     public VccMk2VisualState next() {
         return switch (this) {
             case OFF -> STANDBY;

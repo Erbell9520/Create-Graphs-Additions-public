@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class LoadBalancerSettings {
-
     private static final float SU_MIN = 1.0f;
     private static final float SU_MAX = 65536.0f;
     private static final float PCT_MIN = 1.0f;

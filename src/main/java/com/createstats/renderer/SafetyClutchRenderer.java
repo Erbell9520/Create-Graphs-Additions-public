@@ -21,9 +21,6 @@ import net.minecraft.world.level.block.Block;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class SafetyClutchRenderer extends KineticBlockEntityRenderer<SafetyClutchBE> {
-
-    // Gauge center on top face: model coords (8, 15, 8) = face center
-    // Pivot in normalized block coords (0-1 range)
     private static final float NEEDLE_PIVOT_X = 8.0f / 16.0f;
     private static final float NEEDLE_PIVOT_Z = 8.0f / 16.0f;
     private static final float NEEDLE_START_ANGLE = (float) (Math.PI * 5.0 / 4.0);

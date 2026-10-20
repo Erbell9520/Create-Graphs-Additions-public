@@ -1,0 +1,8 @@
+{
+  "__generator": "gen_powered_door.py",
+  "variants": {
+    "": {
+      "model": "create_stats:block/copper_powered_door_empty"
+    }
+  }
+}

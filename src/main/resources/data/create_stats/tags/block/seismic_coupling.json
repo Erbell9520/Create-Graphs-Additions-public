@@ -1,0 +1,49 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:base_stone_overworld",
+    "#minecraft:base_stone_nether",
+    "#minecraft:dirt",
+    "#minecraft:sand",
+    "#minecraft:terracotta",
+    "minecraft:gravel",
+    "minecraft:clay",
+    "minecraft:sandstone",
+    "minecraft:red_sandstone",
+    "minecraft:calcite",
+    "minecraft:dripstone_block",
+    "minecraft:smooth_basalt",
+    "minecraft:magma_block",
+    "minecraft:soul_sand",
+    "minecraft:soul_soil",
+    "minecraft:crimson_nylium",
+    "minecraft:warped_nylium",
+    "minecraft:end_stone",
+    "minecraft:bedrock",
+    "minecraft:sculk",
+    "minecraft:ice",
+    "minecraft:packed_ice",
+    "minecraft:blue_ice",
+    "minecraft:snow_block",
+    {
+      "id": "#c:ores",
+      "required": false
+    },
+    {
+      "id": "#c:gravels",
+      "required": false
+    },
+    {
+      "id": "#c:stones",
+      "required": false
+    },
+    {
+      "id": "#c:netherracks",
+      "required": false
+    },
+    {
+      "id": "#c:end_stones",
+      "required": false
+    }
+  ]
+}

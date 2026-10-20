@@ -40,23 +40,23 @@ public final class FluidPalette {
 
     public static int colorForFluidId(String fluidId) {
         if (fluidId == null || fluidId.isEmpty()) return FALLBACK_GENERIC;
-        ResourceLocation id;
+        // guard everything past the parse, paint the fallback blue rather than crash a gui over a pipe colour
+
         try {
-            id = ResourceLocation.parse(fluidId);
-        } catch (Exception e) {
+            ResourceLocation id = ResourceLocation.parse(fluidId);
+            Fluid fluid = net.minecraft.core.registries.BuiltInRegistries.FLUID.get(id);
+            if (fluid == null || fluid == Fluids.EMPTY) {
+                if ("minecraft:water".equals(fluidId)) return FALLBACK_WATER;
+                if ("minecraft:lava".equals(fluidId)) return FALLBACK_LAVA;
+                return FALLBACK_GENERIC;
+            }
+            return colorFor(new FluidStack(fluid, 1));
+        } catch (Throwable t) {
             return FALLBACK_GENERIC;
         }
-        Fluid fluid = net.minecraft.core.registries.BuiltInRegistries.FLUID.get(id);
-        if (fluid == null || fluid == Fluids.EMPTY) {
-            if ("minecraft:water".equals(fluidId)) return FALLBACK_WATER;
-            if ("minecraft:lava".equals(fluidId)) return FALLBACK_LAVA;
-            return FALLBACK_GENERIC;
-        }
-        return colorFor(new FluidStack(fluid, 1));
     }
 
     private static int computeColor(FluidStack stack, Fluid fluid) {
-        // hard fallbacks for vanilla fluids that are texture-driven and would otherwise read as -1
         if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) return FALLBACK_WATER;
         if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) return FALLBACK_LAVA;
 
@@ -74,7 +74,6 @@ public final class FluidPalette {
                     int w = contents.width();
                     int h = contents.height();
                     if (w > 0 && h > 0) {
-                        // average a 4-pixel cluster at center for better stability
                         long aR=0, aG=0, aB=0; int n=0;
                         int cx = w / 2; int cy = h / 2;
                         for (int dy = -1; dy <= 1; dy++) {
@@ -115,7 +114,6 @@ public final class FluidPalette {
         return sampled;
     }
 
-    /** Resolves the still-fluid atlas sprite for a fluid registry id, or null if unavailable. */
     public static TextureAtlasSprite stillSpriteForFluidId(String fluidId) {
         if (fluidId == null || fluidId.isEmpty() || !fluidId.contains(":")) return null;
         try {
@@ -132,7 +130,6 @@ public final class FluidPalette {
         }
     }
 
-    /** Human-friendly display name for a fluid registry id. */
     public static String displayNameForFluidId(String fluidId) {
         if (fluidId == null || fluidId.isEmpty() || !fluidId.contains(":")) return "None";
         try {

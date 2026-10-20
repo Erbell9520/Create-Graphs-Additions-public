@@ -1,0 +1,109 @@
+{
+  "variants": {
+    "content=empty,facing=north": {
+      "model": "create_stats:block/steel_mug"
+    },
+    "content=empty,facing=east": {
+      "model": "create_stats:block/steel_mug",
+      "y": 90
+    },
+    "content=empty,facing=south": {
+      "model": "create_stats:block/steel_mug",
+      "y": 180
+    },
+    "content=empty,facing=west": {
+      "model": "create_stats:block/steel_mug",
+      "y": 270
+    },
+    "content=coffee,facing=north": {
+      "model": "create_stats:block/steel_mug_coffee"
+    },
+    "content=coffee,facing=east": {
+      "model": "create_stats:block/steel_mug_coffee",
+      "y": 90
+    },
+    "content=coffee,facing=south": {
+      "model": "create_stats:block/steel_mug_coffee",
+      "y": 180
+    },
+    "content=coffee,facing=west": {
+      "model": "create_stats:block/steel_mug_coffee",
+      "y": 270
+    },
+    "content=milk,facing=north": {
+      "model": "create_stats:block/steel_mug_milk"
+    },
+    "content=milk,facing=east": {
+      "model": "create_stats:block/steel_mug_milk",
+      "y": 90
+    },
+    "content=milk,facing=south": {
+      "model": "create_stats:block/steel_mug_milk",
+      "y": 180
+    },
+    "content=milk,facing=west": {
+      "model": "create_stats:block/steel_mug_milk",
+      "y": 270
+    },
+    "content=latte,facing=north": {
+      "model": "create_stats:block/steel_mug_latte"
+    },
+    "content=latte,facing=east": {
+      "model": "create_stats:block/steel_mug_latte",
+      "y": 90
+    },
+    "content=latte,facing=south": {
+      "model": "create_stats:block/steel_mug_latte",
+      "y": 180
+    },
+    "content=latte,facing=west": {
+      "model": "create_stats:block/steel_mug_latte",
+      "y": 270
+    },
+    "content=spring_water,facing=north": {
+      "model": "create_stats:block/steel_mug_spring_water"
+    },
+    "content=spring_water,facing=east": {
+      "model": "create_stats:block/steel_mug_spring_water",
+      "y": 90
+    },
+    "content=spring_water,facing=south": {
+      "model": "create_stats:block/steel_mug_spring_water",
+      "y": 180
+    },
+    "content=spring_water,facing=west": {
+      "model": "create_stats:block/steel_mug_spring_water",
+      "y": 270
+    },
+    "content=chilled_water,facing=north": {
+      "model": "create_stats:block/steel_mug_chilled_water"
+    },
+    "content=chilled_water,facing=east": {
+      "model": "create_stats:block/steel_mug_chilled_water",
+      "y": 90
+    },
+    "content=chilled_water,facing=south": {
+      "model": "create_stats:block/steel_mug_chilled_water",
+      "y": 180
+    },
+    "content=chilled_water,facing=west": {
+      "model": "create_stats:block/steel_mug_chilled_water",
+      "y": 270
+    },
+    "content=sparkling_water,facing=north": {
+      "model": "create_stats:block/steel_mug_sparkling_water"
+    },
+    "content=sparkling_water,facing=east": {
+      "model": "create_stats:block/steel_mug_sparkling_water",
+      "y": 90
+    },
+    "content=sparkling_water,facing=south": {
+      "model": "create_stats:block/steel_mug_sparkling_water",
+      "y": 180
+    },
+    "content=sparkling_water,facing=west": {
+      "model": "create_stats:block/steel_mug_sparkling_water",
+      "y": 270
+    }
+  }
+}

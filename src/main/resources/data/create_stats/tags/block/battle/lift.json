@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "#aeronautics:envelope",
+      "required": false
+    },
+    {
+      "id": "#aeronautics:levitite",
+      "required": false
+    },
+    {
+      "id": "aeronautics:adjustable_burner",
+      "required": false
+    },
+    {
+      "id": "aeronautics:steam_vent",
+      "required": false
+    }
+  ]
+}

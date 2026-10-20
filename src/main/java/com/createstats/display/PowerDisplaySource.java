@@ -1,8 +1,10 @@
 package com.createstats.display;
 
+import com.createstats.blockentity.BatteryControllerBE;
 import com.createstats.blockentity.CapacitorBankBE;
 import com.createstats.blockentity.KineticDynamoBE;
 import com.createstats.blockentity.PowerConnectorBE;
+import com.createstats.blockentity.PowerDistributionUnitBE;
 import com.createstats.power.FeGridSolver;
 import com.createstats.power.FeWireNetwork;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
@@ -16,9 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** [1] */
 public class PowerDisplaySource extends DisplaySource implements StatsLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         final BlockEntity be = context.getSourceBlockEntity();
@@ -31,10 +31,45 @@ public class PowerDisplaySource extends DisplaySource implements StatsLinkSource
             appendBank(lines, bank, maxRows);
         } else if (be instanceof KineticDynamoBE dynamo) {
             appendDynamo(lines, dynamo, maxRows);
+        } else if (be instanceof PowerDistributionUnitBE pdu) {
+            appendPdu(lines, pdu, maxRows);
+        } else if (be instanceof BatteryControllerBE controller) {
+            appendController(lines, controller, maxRows);
         } else {
             return EMPTY;
         }
         return lines;
+    }
+
+    private void appendPdu(List<MutableComponent> lines, PowerDistributionUnitBE pdu, int maxRows) {
+        final FeGridSolver.BranchResult branch = pdu.lastBranchResult();
+        add(lines, maxRows, "create_stats.power.line.pdu_branch",
+                String.valueOf(branch.served()), String.valueOf(branch.served() + branch.shed()));
+        add(lines, maxRows, "create_stats.power.line.pdu_load",
+                compact(pdu.servedDemandFePerTick()), compact(pdu.branchDemandFePerTick()));
+        add(lines, maxRows, "create_stats.power.line.pdu_supply",
+                compact(pdu.measuredGeneration()), pdu.mode().getDisplayName());
+        if (pdu.isThroughputLimited()) {
+            add(lines, maxRows, "create_stats.power.line.pdu_wiring", compact(pdu.branchCeilingFePerTick()));
+        }
+    }
+
+    private void appendController(List<MutableComponent> lines, BatteryControllerBE controller, int maxRows) {
+        add(lines, maxRows, "create_stats.power.line.bank_charge",
+                compact(controller.reserveEnergy()), compact(controller.reserveCapacity()),
+                String.valueOf(controller.reservePct()));
+        add(lines, maxRows, "create_stats.power.line.grid_flow",
+                compact(controller.generationFePerTick()), compact(controller.deliveredFePerTick()));
+        final com.createstats.power.FeReserveReport report = controller.reserveState();
+        if (report != null && report.stance() != null) {
+            add(lines, maxRows, "create_stats.power.line.controller_stance", report.stance().label());
+        }
+
+        if (controller.reserveCapacity() > 0 && lines.size() < maxRows) {
+            lines.add(Component.translatableWithFallback("create_stats.power.line.controller_outlook",
+                    "Foreseen: %s", com.createstats.power.ReserveWords.controllerOutlook(controller.outlook(),
+                            controller.reserveRateFePerTick())));
+        }
     }
 
     private void appendGrid(List<MutableComponent> lines, PowerConnectorBE connector, int maxRows) {
@@ -46,8 +81,7 @@ public class PowerDisplaySource extends DisplaySource implements StatsLinkSource
                 compact(result.stored()), compact(result.capacity()), String.format(Locale.ROOT, "%.0f", pct));
         add(lines, maxRows, "create_stats.power.line.grid_flow",
                 compact(result.collected()), compact(result.delivered()));
-        // Shortfall is the early warning: demand the grid could not meet, visible before anything
-        // has actually browned out.
+
         if (result.shortfall() > 0) {
             add(lines, maxRows, "create_stats.power.line.grid_shortfall", compact(result.shortfall()));
         } else {
@@ -75,7 +109,6 @@ public class PowerDisplaySource extends DisplaySource implements StatsLinkSource
         add(lines, maxRows, "create_stats.power.line.dynamo_buffer", compact(dynamo.storedEnergy()));
     }
 
-    /** Renders endurance as mm:ss, or a dash when nothing is draining and the answer is "forever". */
     private void appendEndurance(List<MutableComponent> lines, int maxRows, int ticks) {
         if (ticks == Integer.MAX_VALUE) {
             add(lines, maxRows, "create_stats.power.line.endurance_stable");
@@ -92,7 +125,6 @@ public class PowerDisplaySource extends DisplaySource implements StatsLinkSource
         }
     }
 
-    /** Compact FE formatting, so a 5-wide sign is not swallowed by a seven-digit number. */
     private static String compact(int value) {
         if (value >= 1_000_000) {
             return String.format(Locale.ROOT, "%.1fM", value / 1_000_000.0);
@@ -106,7 +138,6 @@ public class PowerDisplaySource extends DisplaySource implements StatsLinkSource
         return String.valueOf(value);
     }
 
-    /** [2] */
     @Override
     public int getPassiveRefreshTicks() {
         return 20;

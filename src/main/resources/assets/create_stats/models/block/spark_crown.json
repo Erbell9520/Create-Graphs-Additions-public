@@ -1,0 +1,3122 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "create_stats:block/spark_crown/brass_frame",
+    "brass": "create_stats:block/spark_crown/brass",
+    "brass_frame": "create_stats:block/spark_crown/brass_frame",
+    "panel": "create_stats:block/spark_crown/panel",
+    "steel": "create_stats:block/spark_crown/steel",
+    "steel_deep": "create_stats:block/spark_crown/steel_deep",
+    "nixie": "create_stats:block/spark_crown/nixie",
+    "ipc_base": "create_stats:block/industrial_power_connector_base",
+    "ipc_insulator": "create_stats:block/industrial_power_connector_insulator",
+    "ipc_terminal": "create_stats:block/industrial_power_connector_terminal"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        1.5,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            0.0,
+            14.5,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            14.5,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            14.5,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            14.5,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "plinth"
+    },
+    {
+      "from": [
+        0,
+        9.5,
+        0
+      ],
+      "to": [
+        16,
+        11,
+        15.6
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            15.6
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            15.6
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            0.0,
+            5.0,
+            16.0,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            5.0,
+            16.0,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            5.0,
+            15.6,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            5.0,
+            15.6,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "band"
+    },
+    {
+      "from": [
+        0,
+        9.5,
+        15.6
+      ],
+      "to": [
+        7.3,
+        11,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0.0,
+            15.6,
+            7.3,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            15.6,
+            7.3,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            5.0,
+            7.3,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            15.6,
+            5.0,
+            16.0,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            15.6,
+            5.0,
+            16.0,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "band front"
+    },
+    {
+      "from": [
+        8.7,
+        9.5,
+        15.6
+      ],
+      "to": [
+        16,
+        11,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.7,
+            15.6,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            8.7,
+            15.6,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            8.7,
+            5.0,
+            16.0,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            15.6,
+            5.0,
+            16.0,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            15.6,
+            5.0,
+            16.0,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "band front"
+    },
+    {
+      "from": [
+        7.3,
+        9.5,
+        15.6
+      ],
+      "to": [
+        8.7,
+        9.7,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            7.3,
+            15.6,
+            8.7,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            7.3,
+            15.6,
+            8.7,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            7.3,
+            6.3,
+            8.7,
+            6.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "pilot notch sill"
+    },
+    {
+      "from": [
+        7.3,
+        10.8,
+        15.6
+      ],
+      "to": [
+        8.7,
+        11,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            7.3,
+            15.6,
+            8.7,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            7.3,
+            15.6,
+            8.7,
+            16.0
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            7.3,
+            5.0,
+            8.7,
+            5.2
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "pilot notch head"
+    },
+    {
+      "from": [
+        0,
+        1.5,
+        0
+      ],
+      "to": [
+        2,
+        9.5,
+        2
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "post"
+    },
+    {
+      "from": [
+        14,
+        1.5,
+        0
+      ],
+      "to": [
+        16,
+        9.5,
+        2
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            2.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "up": {
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            2.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "post"
+    },
+    {
+      "from": [
+        0,
+        1.5,
+        14
+      ],
+      "to": [
+        2,
+        9.5,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0.0,
+            14.0,
+            2.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            14.0,
+            2.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            6.5,
+            2.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "post"
+    },
+    {
+      "from": [
+        14,
+        1.5,
+        14
+      ],
+      "to": [
+        16,
+        9.5,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            14.0,
+            14.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "up": {
+          "uv": [
+            14.0,
+            14.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            14.0,
+            6.5,
+            16.0,
+            14.5
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "post"
+    },
+    {
+      "from": [
+        0.6,
+        1.5,
+        0.6
+      ],
+      "to": [
+        15.4,
+        9.5,
+        15.4
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0.6,
+            6.5,
+            15.4,
+            14.5
+          ],
+          "texture": "#panel"
+        },
+        "west": {
+          "uv": [
+            0.6,
+            6.5,
+            15.4,
+            14.5
+          ],
+          "texture": "#panel"
+        },
+        "east": {
+          "uv": [
+            0.6,
+            6.5,
+            15.4,
+            14.5
+          ],
+          "texture": "#panel"
+        }
+      },
+      "name": "panels"
+    },
+    {
+      "from": [
+        2.0,
+        1.5,
+        0.6
+      ],
+      "to": [
+        14.0,
+        2.6,
+        0.65
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.0,
+            13.4,
+            14.0,
+            14.5
+          ],
+          "texture": "#panel"
+        }
+      },
+      "name": "back panel"
+    },
+    {
+      "from": [
+        2.0,
+        2.6,
+        0.6
+      ],
+      "to": [
+        3.5,
+        9.5,
+        0.65
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.0,
+            6.5,
+            3.5,
+            13.4
+          ],
+          "texture": "#panel"
+        }
+      },
+      "name": "back panel"
+    },
+    {
+      "from": [
+        12.5,
+        2.6,
+        0.6
+      ],
+      "to": [
+        14.0,
+        9.5,
+        0.65
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.5,
+            6.5,
+            14.0,
+            13.4
+          ],
+          "texture": "#panel"
+        }
+      },
+      "name": "back panel"
+    },
+    {
+      "from": [
+        3.5,
+        2.4,
+        0.6
+      ],
+      "to": [
+        12.5,
+        2.6,
+        6.6
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            3.5,
+            0.6,
+            12.5,
+            6.6
+          ],
+          "texture": "#steel_deep"
+        }
+      },
+      "name": "bay floor"
+    },
+    {
+      "from": [
+        3.3,
+        2.6,
+        0.6
+      ],
+      "to": [
+        3.5,
+        9.5,
+        6.6
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0.6,
+            6.5,
+            6.6,
+            13.4
+          ],
+          "texture": "#steel_deep"
+        }
+      },
+      "name": "bay wall west"
+    },
+    {
+      "from": [
+        12.5,
+        2.6,
+        0.6
+      ],
+      "to": [
+        12.7,
+        9.5,
+        6.6
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0.6,
+            6.5,
+            6.6,
+            13.4
+          ],
+          "texture": "#steel_deep"
+        }
+      },
+      "name": "bay wall east"
+    },
+    {
+      "from": [
+        3.5,
+        2.6,
+        6.6
+      ],
+      "to": [
+        12.5,
+        9.5,
+        6.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            6.5,
+            12.5,
+            13.4
+          ],
+          "texture": "#steel_deep"
+        }
+      },
+      "name": "bay back"
+    },
+    {
+      "from": [
+        1.0,
+        11,
+        1.0
+      ],
+      "to": [
+        15.0,
+        11.4,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            1.0,
+            1.0,
+            15.0,
+            15.0
+          ],
+          "texture": "#steel_deep"
+        }
+      },
+      "name": "well floor"
+    },
+    {
+      "from": [
+        0.5,
+        11,
+        0.5
+      ],
+      "to": [
+        15.5,
+        11.8,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0.5,
+            0.5,
+            15.5,
+            1.0
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0.5,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0.5,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            0.5,
+            4.2,
+            1.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            0.5,
+            4.2,
+            1.0,
+            5.0
+          ],
+          "texture": "#steel"
+        }
+      },
+      "name": "well wall"
+    },
+    {
+      "from": [
+        0.5,
+        11,
+        15.0
+      ],
+      "to": [
+        15.5,
+        11.8,
+        15.5
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0.5,
+            15.0,
+            15.5,
+            15.5
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0.5,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0.5,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            15.0,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            15.0,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        }
+      },
+      "name": "well wall"
+    },
+    {
+      "from": [
+        0.5,
+        11,
+        1.0
+      ],
+      "to": [
+        1.0,
+        11.8,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0.5,
+            1.0,
+            1.0,
+            15.0
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0.5,
+            4.2,
+            1.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0.5,
+            4.2,
+            1.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1.0,
+            4.2,
+            15.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1.0,
+            4.2,
+            15.0,
+            5.0
+          ],
+          "texture": "#steel"
+        }
+      },
+      "name": "well wall"
+    },
+    {
+      "from": [
+        15.0,
+        11,
+        1.0
+      ],
+      "to": [
+        15.5,
+        11.8,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            15.0,
+            1.0,
+            15.5,
+            15.0
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            15.0,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            15.0,
+            4.2,
+            15.5,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1.0,
+            4.2,
+            15.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1.0,
+            4.2,
+            15.0,
+            5.0
+          ],
+          "texture": "#steel"
+        }
+      },
+      "name": "well wall"
+    },
+    {
+      "from": [
+        0.2,
+        11,
+        0.2
+      ],
+      "to": [
+        3.0,
+        14.2,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0.2,
+            0.2,
+            3.0,
+            3.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "merlon"
+    },
+    {
+      "from": [
+        13.0,
+        11,
+        0.2
+      ],
+      "to": [
+        15.8,
+        14.2,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            13.0,
+            0.2,
+            15.8,
+            3.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "merlon"
+    },
+    {
+      "from": [
+        0.2,
+        11,
+        13.0
+      ],
+      "to": [
+        3.0,
+        14.2,
+        15.8
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0.2,
+            13.0,
+            3.0,
+            15.8
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            0.2,
+            1.8,
+            3.0,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "merlon"
+    },
+    {
+      "from": [
+        13.0,
+        11,
+        13.0
+      ],
+      "to": [
+        15.8,
+        14.2,
+        15.8
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            13.0,
+            13.0,
+            15.8,
+            15.8
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            13.0,
+            1.8,
+            15.8,
+            5.0
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "merlon"
+    },
+    {
+      "from": [
+        14.85,
+        12.2,
+        7.6
+      ],
+      "to": [
+        15.65,
+        12.8,
+        8.4
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            14.85,
+            7.6,
+            15.65,
+            8.4
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            14.85,
+            3.2,
+            15.65,
+            3.8
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            14.85,
+            3.2,
+            15.65,
+            3.8
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            7.6,
+            3.2,
+            8.4,
+            3.8
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            7.6,
+            3.2,
+            8.4,
+            3.8
+          ],
+          "texture": "#steel"
+        }
+      },
+      "name": "strike stud post"
+    },
+    {
+      "from": [
+        14.75,
+        12.8,
+        7.4
+      ],
+      "to": [
+        15.85,
+        14.0,
+        8.6
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            14.75,
+            7.4,
+            15.85,
+            8.6
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            14.75,
+            7.4,
+            15.85,
+            8.6
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            14.75,
+            2.0,
+            15.85,
+            3.2
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            14.75,
+            2.0,
+            15.85,
+            3.2
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            7.4,
+            2.0,
+            8.6,
+            3.2
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            7.4,
+            2.0,
+            8.6,
+            3.2
+          ],
+          "texture": "#brass"
+        }
+      },
+      "name": "strike stud"
+    },
+    {
+      "from": [
+        0.35,
+        12.2,
+        7.6
+      ],
+      "to": [
+        1.15,
+        12.8,
+        8.4
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0.35,
+            7.6,
+            1.15,
+            8.4
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0.35,
+            3.2,
+            1.15,
+            3.8
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0.35,
+            3.2,
+            1.15,
+            3.8
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            7.6,
+            3.2,
+            8.4,
+            3.8
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            7.6,
+            3.2,
+            8.4,
+            3.8
+          ],
+          "texture": "#steel"
+        }
+      },
+      "name": "strike stud post"
+    },
+    {
+      "from": [
+        0.15,
+        12.8,
+        7.4
+      ],
+      "to": [
+        1.25,
+        14.0,
+        8.6
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0.15,
+            7.4,
+            1.25,
+            8.6
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0.15,
+            7.4,
+            1.25,
+            8.6
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            0.15,
+            2.0,
+            1.25,
+            3.2
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0.15,
+            2.0,
+            1.25,
+            3.2
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            7.4,
+            2.0,
+            8.6,
+            3.2
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            7.4,
+            2.0,
+            8.6,
+            3.2
+          ],
+          "texture": "#brass"
+        }
+      },
+      "name": "strike stud"
+    },
+    {
+      "from": [
+        14.8,
+        9.0,
+        6.0
+      ],
+      "to": [
+        15.85,
+        12.2,
+        10.0
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            14.8,
+            6.0,
+            15.85,
+            10.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "up": {
+          "uv": [
+            14.8,
+            6.0,
+            15.85,
+            10.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            14.8,
+            3.8,
+            15.85,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            14.8,
+            3.8,
+            15.85,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            6.0,
+            3.8,
+            10.0,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            6.0,
+            3.8,
+            10.0,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "horn socket"
+    },
+    {
+      "from": [
+        0.15,
+        9.0,
+        6.0
+      ],
+      "to": [
+        1.2,
+        12.2,
+        10.0
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0.15,
+            6.0,
+            1.2,
+            10.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "up": {
+          "uv": [
+            0.15,
+            6.0,
+            1.2,
+            10.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "north": {
+          "uv": [
+            0.15,
+            3.8,
+            1.2,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "south": {
+          "uv": [
+            0.15,
+            3.8,
+            1.2,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "west": {
+          "uv": [
+            6.0,
+            3.8,
+            10.0,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        },
+        "east": {
+          "uv": [
+            6.0,
+            3.8,
+            10.0,
+            7.0
+          ],
+          "texture": "#brass_frame"
+        }
+      },
+      "name": "horn socket"
+    },
+    {
+      "from": [
+        2.2,
+        3.4,
+        15.4
+      ],
+      "to": [
+        8.6,
+        8.8,
+        15.75
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            2.2,
+            15.4,
+            8.6,
+            15.75
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            2.2,
+            15.4,
+            8.6,
+            15.75
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            2.2,
+            7.2,
+            8.6,
+            12.6
+          ],
+          "texture": "#steel_deep"
+        },
+        "west": {
+          "uv": [
+            15.4,
+            7.2,
+            15.75,
+            12.6
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            15.4,
+            7.2,
+            15.75,
+            12.6
+          ],
+          "texture": "#brass"
+        }
+      },
+      "name": "nixie bezel"
+    },
+    {
+      "from": [
+        2.6,
+        3.8,
+        15.75
+      ],
+      "to": [
+        8.2,
+        8.4,
+        15.85
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            12
+          ],
+          "texture": "#nixie"
+        }
+      },
+      "name": "nixie glass"
+    },
+    {
+      "from": [
+        8.9,
+        3.4,
+        15.4
+      ],
+      "to": [
+        13.9,
+        8.4,
+        15.85
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.9,
+            15.4,
+            13.9,
+            15.85
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            8.9,
+            15.4,
+            13.9,
+            15.85
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            15.4,
+            7.6,
+            15.85,
+            12.6
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            15.4,
+            7.6,
+            15.85,
+            12.6
+          ],
+          "texture": "#brass"
+        }
+      },
+      "name": "dial bezel"
+    },
+    {
+      "from": [
+        3.8,
+        4.5,
+        5.8
+      ],
+      "to": [
+        7.4,
+        8.1,
+        6.6
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            3.8,
+            5.8,
+            7.4,
+            6.6
+          ],
+          "texture": "#ipc_base"
+        },
+        "up": {
+          "uv": [
+            3.8,
+            5.8,
+            7.4,
+            6.6
+          ],
+          "texture": "#ipc_base"
+        },
+        "north": {
+          "uv": [
+            3.8,
+            7.9,
+            7.4,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        },
+        "south": {
+          "uv": [
+            3.8,
+            7.9,
+            7.4,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        },
+        "west": {
+          "uv": [
+            5.8,
+            7.9,
+            6.6,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        },
+        "east": {
+          "uv": [
+            5.8,
+            7.9,
+            6.6,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        }
+      },
+      "name": "stud A pad"
+    },
+    {
+      "from": [
+        4.1,
+        4.8,
+        5.1
+      ],
+      "to": [
+        7.1,
+        7.8,
+        5.8
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4.1,
+            5.1,
+            7.1,
+            5.8
+          ],
+          "texture": "#ipc_base"
+        },
+        "up": {
+          "uv": [
+            4.1,
+            5.1,
+            7.1,
+            5.8
+          ],
+          "texture": "#ipc_base"
+        },
+        "north": {
+          "uv": [
+            4.1,
+            8.2,
+            7.1,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        },
+        "south": {
+          "uv": [
+            4.1,
+            8.2,
+            7.1,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        },
+        "west": {
+          "uv": [
+            5.1,
+            8.2,
+            5.8,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        },
+        "east": {
+          "uv": [
+            5.1,
+            8.2,
+            5.8,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        }
+      },
+      "name": "stud A collar"
+    },
+    {
+      "from": [
+        3.6,
+        4.3,
+        4.5
+      ],
+      "to": [
+        7.6,
+        8.3,
+        5.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            3.6,
+            4.5,
+            7.6,
+            5.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            3.6,
+            4.5,
+            7.6,
+            5.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            3.6,
+            7.7,
+            7.6,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            3.6,
+            7.7,
+            7.6,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            7.7,
+            5.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            7.7,
+            5.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud A shed"
+    },
+    {
+      "from": [
+        4.3,
+        5.0,
+        4.1
+      ],
+      "to": [
+        6.9,
+        7.6,
+        4.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4.3,
+            4.1,
+            6.9,
+            4.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            4.3,
+            4.1,
+            6.9,
+            4.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            4.3,
+            8.4,
+            6.9,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            4.3,
+            8.4,
+            6.9,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            4.1,
+            8.4,
+            4.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            4.1,
+            8.4,
+            4.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud A neck"
+    },
+    {
+      "from": [
+        3.6,
+        4.3,
+        3.5
+      ],
+      "to": [
+        7.6,
+        8.3,
+        4.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            3.6,
+            3.5,
+            7.6,
+            4.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            3.6,
+            3.5,
+            7.6,
+            4.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            3.6,
+            7.7,
+            7.6,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            3.6,
+            7.7,
+            7.6,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            7.7,
+            4.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            7.7,
+            4.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud A shed"
+    },
+    {
+      "from": [
+        4.3,
+        5.0,
+        3.1
+      ],
+      "to": [
+        6.9,
+        7.6,
+        3.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4.3,
+            3.1,
+            6.9,
+            3.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            4.3,
+            3.1,
+            6.9,
+            3.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            4.3,
+            8.4,
+            6.9,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            4.3,
+            8.4,
+            6.9,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            3.1,
+            8.4,
+            3.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            3.1,
+            8.4,
+            3.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud A neck"
+    },
+    {
+      "from": [
+        3.6,
+        4.3,
+        2.5
+      ],
+      "to": [
+        7.6,
+        8.3,
+        3.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            3.6,
+            2.5,
+            7.6,
+            3.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            3.6,
+            2.5,
+            7.6,
+            3.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            3.6,
+            7.7,
+            7.6,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            3.6,
+            7.7,
+            7.6,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            7.7,
+            3.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            2.5,
+            7.7,
+            3.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud A shed"
+    },
+    {
+      "from": [
+        4.3,
+        5.0,
+        2.1
+      ],
+      "to": [
+        6.9,
+        7.6,
+        2.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4.3,
+            2.1,
+            6.9,
+            2.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            4.3,
+            2.1,
+            6.9,
+            2.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            4.3,
+            8.4,
+            6.9,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            4.3,
+            8.4,
+            6.9,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            2.1,
+            8.4,
+            2.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            2.1,
+            8.4,
+            2.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud A neck"
+    },
+    {
+      "from": [
+        4.0,
+        4.7,
+        0.05
+      ],
+      "to": [
+        7.2,
+        7.9,
+        2.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4.0,
+            0.05,
+            7.2,
+            2.1
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "up": {
+          "uv": [
+            4.0,
+            0.05,
+            7.2,
+            2.1
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "north": {
+          "uv": [
+            4.0,
+            8.1,
+            7.2,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "south": {
+          "uv": [
+            4.0,
+            8.1,
+            7.2,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "west": {
+          "uv": [
+            0.05,
+            8.1,
+            2.1,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "east": {
+          "uv": [
+            0.05,
+            8.1,
+            2.1,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        }
+      },
+      "name": "stud A cap"
+    },
+    {
+      "from": [
+        8.6,
+        4.5,
+        5.8
+      ],
+      "to": [
+        12.2,
+        8.1,
+        6.6
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.6,
+            5.8,
+            12.2,
+            6.6
+          ],
+          "texture": "#ipc_base"
+        },
+        "up": {
+          "uv": [
+            8.6,
+            5.8,
+            12.2,
+            6.6
+          ],
+          "texture": "#ipc_base"
+        },
+        "north": {
+          "uv": [
+            8.6,
+            7.9,
+            12.2,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        },
+        "south": {
+          "uv": [
+            8.6,
+            7.9,
+            12.2,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        },
+        "west": {
+          "uv": [
+            5.8,
+            7.9,
+            6.6,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        },
+        "east": {
+          "uv": [
+            5.8,
+            7.9,
+            6.6,
+            11.5
+          ],
+          "texture": "#ipc_base"
+        }
+      },
+      "name": "stud B pad"
+    },
+    {
+      "from": [
+        8.9,
+        4.8,
+        5.1
+      ],
+      "to": [
+        11.9,
+        7.8,
+        5.8
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.9,
+            5.1,
+            11.9,
+            5.8
+          ],
+          "texture": "#ipc_base"
+        },
+        "up": {
+          "uv": [
+            8.9,
+            5.1,
+            11.9,
+            5.8
+          ],
+          "texture": "#ipc_base"
+        },
+        "north": {
+          "uv": [
+            8.9,
+            8.2,
+            11.9,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        },
+        "south": {
+          "uv": [
+            8.9,
+            8.2,
+            11.9,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        },
+        "west": {
+          "uv": [
+            5.1,
+            8.2,
+            5.8,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        },
+        "east": {
+          "uv": [
+            5.1,
+            8.2,
+            5.8,
+            11.2
+          ],
+          "texture": "#ipc_base"
+        }
+      },
+      "name": "stud B collar"
+    },
+    {
+      "from": [
+        8.4,
+        4.3,
+        4.5
+      ],
+      "to": [
+        12.4,
+        8.3,
+        5.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.4,
+            4.5,
+            12.4,
+            5.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            8.4,
+            4.5,
+            12.4,
+            5.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            8.4,
+            7.7,
+            12.4,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            8.4,
+            7.7,
+            12.4,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            7.7,
+            5.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            7.7,
+            5.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud B shed"
+    },
+    {
+      "from": [
+        9.1,
+        5.0,
+        4.1
+      ],
+      "to": [
+        11.7,
+        7.6,
+        4.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            9.1,
+            4.1,
+            11.7,
+            4.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            9.1,
+            4.1,
+            11.7,
+            4.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            9.1,
+            8.4,
+            11.7,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            9.1,
+            8.4,
+            11.7,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            4.1,
+            8.4,
+            4.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            4.1,
+            8.4,
+            4.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud B neck"
+    },
+    {
+      "from": [
+        8.4,
+        4.3,
+        3.5
+      ],
+      "to": [
+        12.4,
+        8.3,
+        4.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.4,
+            3.5,
+            12.4,
+            4.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            8.4,
+            3.5,
+            12.4,
+            4.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            8.4,
+            7.7,
+            12.4,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            8.4,
+            7.7,
+            12.4,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            7.7,
+            4.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            7.7,
+            4.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud B shed"
+    },
+    {
+      "from": [
+        9.1,
+        5.0,
+        3.1
+      ],
+      "to": [
+        11.7,
+        7.6,
+        3.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            9.1,
+            3.1,
+            11.7,
+            3.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            9.1,
+            3.1,
+            11.7,
+            3.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            9.1,
+            8.4,
+            11.7,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            9.1,
+            8.4,
+            11.7,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            3.1,
+            8.4,
+            3.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            3.1,
+            8.4,
+            3.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud B neck"
+    },
+    {
+      "from": [
+        8.4,
+        4.3,
+        2.5
+      ],
+      "to": [
+        12.4,
+        8.3,
+        3.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.4,
+            2.5,
+            12.4,
+            3.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            8.4,
+            2.5,
+            12.4,
+            3.1
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            8.4,
+            7.7,
+            12.4,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            8.4,
+            7.7,
+            12.4,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            7.7,
+            3.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            2.5,
+            7.7,
+            3.1,
+            11.7
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud B shed"
+    },
+    {
+      "from": [
+        9.1,
+        5.0,
+        2.1
+      ],
+      "to": [
+        11.7,
+        7.6,
+        2.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            9.1,
+            2.1,
+            11.7,
+            2.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "up": {
+          "uv": [
+            9.1,
+            2.1,
+            11.7,
+            2.5
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "north": {
+          "uv": [
+            9.1,
+            8.4,
+            11.7,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "south": {
+          "uv": [
+            9.1,
+            8.4,
+            11.7,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "west": {
+          "uv": [
+            2.1,
+            8.4,
+            2.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        },
+        "east": {
+          "uv": [
+            2.1,
+            8.4,
+            2.5,
+            11.0
+          ],
+          "texture": "#ipc_insulator"
+        }
+      },
+      "name": "stud B neck"
+    },
+    {
+      "from": [
+        8.8,
+        4.7,
+        0.05
+      ],
+      "to": [
+        12.0,
+        7.9,
+        2.1
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            8.8,
+            0.05,
+            12.0,
+            2.1
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "up": {
+          "uv": [
+            8.8,
+            0.05,
+            12.0,
+            2.1
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "north": {
+          "uv": [
+            8.8,
+            8.1,
+            12.0,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "south": {
+          "uv": [
+            8.8,
+            8.1,
+            12.0,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "west": {
+          "uv": [
+            0.05,
+            8.1,
+            2.1,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        },
+        "east": {
+          "uv": [
+            0.05,
+            8.1,
+            2.1,
+            11.3
+          ],
+          "texture": "#ipc_terminal"
+        }
+      },
+      "name": "stud B cap"
+    }
+  ]
+}

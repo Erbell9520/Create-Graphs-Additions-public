@@ -5,9 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
-/** [1] */
 public final class PduStatCard {
-
     private PduStatCard() {
     }
 

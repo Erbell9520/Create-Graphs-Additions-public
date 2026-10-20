@@ -3,6 +3,7 @@ package com.createstats.blockentity;
 import com.createstats.antenna.AntennaRange;
 import com.createstats.antenna.AntennaTier;
 import com.createstats.antenna.RangeAttachment;
+import com.createstats.flight.bridge.SableBridge;
 import com.createstats.battle.BattleObserverSnapshot;
 import com.createstats.display.BattleCompactTargetHandler;
 import com.createstats.train.manifest.FreightManifest;
@@ -26,9 +27,13 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.CompoundTag;
 import com.createstats.renderer.DisplayTextureManager;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import com.createstats.data.TimeSeriesStore;
 import com.createstats.efficiency.EfficiencyGrader;
-import com.createstats.efficiency.NetworkDataSnapshot;
+import com.createstats.efficiency.EfficiencyInputs;
+import com.createstats.efficiency.EfficiencyNbt;
+import com.createstats.efficiency.EfficiencySampler;
+import com.createstats.efficiency.EfficiencyTrace;
 import com.simibubi.create.content.fluids.tank.BoilerData;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
@@ -94,17 +99,15 @@ import java.util.UUID;
 
 public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceiver, RangeAttachment, com.createstats.power.IFeConsumer
 {
-    /** [1] */
     protected final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles
                     .pooled(com.createstats.power.FeProfiles.KEY_STATS_DISPLAY_PANEL, this::panelCount));
 
-    /** [2] */
+    // controller's buffer, the whole display is one device. boots and browns out together
     public com.createstats.power.FeConsumer feConsumer() {
         if (!this.isController) {
             final StatsDisplayPanelBE controller = this.getControllerBE();
-            // getControllerBE falls back to this when the controller cannot be resolved (unloaded
-            // chunk, broken assembly), in which case the panel correctly powers itself.
+
             if (controller != this) {
                 return controller.feConsumer;
             }
@@ -112,7 +115,6 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         return this.feConsumer;
     }
 
-    /** Blocks covered by this panel's assembly, used to scale the shared buffer and its drain. */
     public int panelCount() {
         return Math.max(1, this.multiblockWidth * this.multiblockHeight);
     }
@@ -134,6 +136,12 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     private final LinkedHashMap<String, FreightManifestLink> freightManifestLinks;
     private final LinkedHashMap<String, TrainStationLink> trainStationLinks;
     private final LinkedHashMap<String, MiniDisplayLink> miniDisplayLinks;
+
+    private final AerialLinks aerialLinks = new AerialLinks(this);
+
+    private final GroundLinks groundLinks = new GroundLinks(this);
+
+    private final SeismicLinks seismicLinks = new SeismicLinks(this);
     private int nextAutoSourceIndex;
     private boolean isController;
     private BlockPos controllerPos;
@@ -153,6 +161,8 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     private static final int DATA_POLL_INTERVAL = 20;
     private GradeHistory gradeHistory;
     private EfficiencyScore latestEfficiencyScore;
+
+    private EfficiencyTrace latestEfficiencyTrace;
     private int efficiencyRecalcCooldown;
     private static final int EFFICIENCY_RECALC_INTERVAL = 40;
     private Object cachedNetworkGraph;
@@ -179,7 +189,10 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     private int postLoadRetryTicks = 0;
     private static final int POST_LOAD_RETRY_MAX = 20;
     private AntennaTier antennaTier;
-    
+
+    private final Map<String, com.createstats.rs.RsNetworkState> rsNetworks =
+            new LinkedHashMap<String, com.createstats.rs.RsNetworkState>();
+
     public StatsDisplayPanelBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super((BlockEntityType)type, pos, state);
         this.channels = new LinkedHashMap<String, DataChannel>();
@@ -214,6 +227,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.dataPollCooldown = 0;
         this.gradeHistory = new GradeHistory();
         this.latestEfficiencyScore = null;
+        this.latestEfficiencyTrace = null;
         this.efficiencyRecalcCooldown = 0;
         this.cachedNetworkGraph = null;
         this.lastTopologyScanTick = 0L;
@@ -229,16 +243,16 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.controllerPos = pos;
         this.antennaTier = AntennaTier.NONE;
     }
-    
+
     public DataChannel getOrCreateChannel(String channelId, String defaultLabel) {
         return this.channels.computeIfAbsent(channelId, id -> new DataChannel(id, defaultLabel));
     }
-    
+
     @Nullable
     public DataChannel getChannel(String channelId) {
         return this.channels.get(channelId);
     }
-    
+
     public List<DataChannel> getActiveChannels() {
         final List<DataChannel> active = new ArrayList<DataChannel>();
         for (DataChannel ch : this.channels.values()) {
@@ -258,11 +272,45 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return visible;
     }
-    
+
     public Map<String, DataChannel> getAllChannels() {
         return this.channels;
     }
-    
+
+    public Map<String, com.createstats.rs.RsNetworkState> getRsNetworks() {
+        return this.rsNetworks;
+    }
+
+    @Nullable
+    public com.createstats.rs.RsNetworkState getRsNetwork(String sourceId) {
+        return sourceId == null ? null : this.rsNetworks.get(sourceId);
+    }
+
+    public com.createstats.rs.RsNetworkState getOrCreateRsNetwork(String sourceId) {
+        if (sourceId == null || sourceId.isEmpty()) {
+            return new com.createstats.rs.RsNetworkState();
+        }
+        if (!this.rsNetworks.containsKey(sourceId) && this.rsNetworks.size() >= 16) {
+            final Iterator<String> it = this.rsNetworks.keySet().iterator();
+            if (it.hasNext()) {
+                it.next();
+                it.remove();
+            }
+        }
+        return this.rsNetworks.computeIfAbsent(sourceId,
+                ignored -> new com.createstats.rs.RsNetworkState());
+    }
+
+    public void removeRsNetwork(String sourceId) {
+        if (sourceId != null) {
+            this.rsNetworks.remove(sourceId);
+        }
+    }
+
+    public String rsFocusedItemId() {
+        return "";
+    }
+
     public SourceConfig registerOrUpdateSource(BlockPos sourcePos, String sourceType) {
         return this.registerOrUpdateSource(sourcePos, sourceType, false);
     }
@@ -303,7 +351,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.setChanged();
         return config2;
     }
-    
+
     public LinkedHashMap<String, SourceConfig> getSourceRegistry() {
         return this.sourceRegistry;
     }
@@ -484,10 +532,6 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         return this.registerOrUpdateBattleScreen(sourcePos, battleScreen, -1);
     }
 
-    /**
-     * @param viewMode 0 = V1 strategic board, 1 = V2 tactical console, or -1 to leave the existing
-     *                 link mode unchanged (used by paths that do not know the Display Link config).
-     */
     public BattleScreenLink registerOrUpdateBattleScreen(BlockPos sourcePos, BattleScreenDisplayBE battleScreen, int viewMode) {
         final String sourceType = BattleCompactTargetHandler.SOURCE_TYPE;
         this.registerOrUpdateSource(sourcePos, sourceType, true);
@@ -511,7 +555,6 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             link.setLastForcedSyncTick(tick);
             this.publishBattleScreenChannels(sourcePos, sourceType, link.getObservers());
         } else if (tick - link.getLastForcedSyncTick() >= 40L) {
-            // Heartbeat: periodically sync lastDataTick so client freshness indicator stays alive
             link.setLastForcedSyncTick(tick);
             changed = true;
         }
@@ -699,6 +742,33 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         return !this.trainStationLinks.isEmpty();
     }
 
+    public AerialLinks aerialLinks() {
+        return this.aerialLinks;
+    }
+
+    void markAerialLinksChanged() {
+        this.needsSync = true;
+        this.setChanged();
+    }
+
+    public GroundLinks groundLinks() {
+        return this.groundLinks;
+    }
+
+    void markGroundLinksChanged() {
+        this.needsSync = true;
+        this.setChanged();
+    }
+
+    public SeismicLinks seismicLinks() {
+        return this.seismicLinks;
+    }
+
+    void markSeismicLinksChanged() {
+        this.needsSync = true;
+        this.setChanged();
+    }
+
     public boolean removeSourceByPosition(BlockPos sourcePos) {
         boolean changed = false;
         final Set<String> removedSourceIds = new HashSet<String>();
@@ -772,7 +842,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return changed;
     }
-    
+
     public List<DataChannel> getChannelsForSource(String sourceId) {
         final String prefix = "src_" + sourceId + "_";
         final List<DataChannel> result = new ArrayList<DataChannel>();
@@ -1150,7 +1220,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     private static boolean isStockpileSemanticChannel(String channelId) {
         return channelId.endsWith("_auto_fill_pct") || channelId.endsWith("_auto_stock_level") || channelId.endsWith("_auto_stock_capacity") || channelId.endsWith("_auto_min_level") || channelId.endsWith("_auto_upper_thresh") || channelId.endsWith("_auto_lower_thresh");
     }
-    
+
     public LinkedHashMap<String, List<DataChannel>> getChannelsBySource() {
         final LinkedHashMap<String, List<DataChannel>> map = new LinkedHashMap<String, List<DataChannel>>();
         for (DataChannel ch : this.channels.values()) {
@@ -1162,7 +1232,14 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return map;
     }
-    
+
+    public SourceConfig getSourceForChannel(String channelId) {
+        if (channelId == null || channelId.isEmpty()) {
+            return null;
+        }
+        return this.sourceRegistry.get(this.extractSourceId(channelId));
+    }
+
     private String extractSourceId(String channelId) {
         if (!channelId.startsWith("src_")) {
             return "legacy";
@@ -1178,7 +1255,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return rest;
     }
-    
+
     public void onReceiveData(BlockPos sourcePos, String sourceType, int line, float value, MetricType detectedType, String rawText) {
         this.clearStatsDisplayLinkOptInRequired();
         final SourceConfig src = this.registerOrUpdateSource(sourcePos, sourceType);
@@ -1195,7 +1272,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public void onReceiveData(int line, float value, MetricType detectedType, String rawText) {
         final String channelId = "line" + line;
         final String label = (detectedType != MetricType.GENERIC) ? detectedType.getDisplayName() : ("Line " + line);
@@ -1210,7 +1287,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public void onAutoData(BlockPos sourcePos, String sourceType, String metricId, String label, float value, MetricType type) {
         this.onAutoDataInternal(sourcePos, sourceType, metricId, label, value, type, false);
     }
@@ -1238,7 +1315,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         ch.lastText = type.formatValue(value);
         this.requestSync(this.isResponsiveAeroSourceType(sourceType) ? this.getResponsiveAeroSyncTicks() : DEFAULT_SYNC_DEBOUNCE_TICKS);
     }
-    
+
     public void onAutoData(String channelId, String label, float value, MetricType type) {
         final DataChannel ch = this.getOrCreateChannel(channelId, label);
         if (ch.getStore().getMetricType() != type) {
@@ -1284,7 +1361,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         this.setChanged();
     }
-    
+
     public void setSourceType(String sourceType) {
         if (!this.sourceType.equals(sourceType)) {
             this.sourceType = sourceType;
@@ -1292,7 +1369,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.setChanged();
         }
     }
-    
+
     public String getSourceType() {
         return this.sourceType;
     }
@@ -1385,8 +1462,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.setChanged();
         }
     }
-     
-    /** [3] */
+
     public int countLiveFeSources() {
         int count = 0;
         for (final SourceConfig config : this.sourceRegistry.values()) {
@@ -1397,28 +1473,39 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         return count;
     }
 
-    /** [4] */
     private boolean feServiceTick() {
         final com.createstats.power.FeConsumer bank = this.feConsumer();
-        // Every panel is a valid charging point for the shared bank, whoever owns it.
+
         com.createstats.power.FePowerFx.chargeFromNeighbors(this.level, this.worldPosition, bank);
         if (bank != this.feConsumer) {
-            // Member: the controller pays the upkeep and owns the boot and cutoff effects, so the
-            // display does not play nine chimes at once.
-            return bank.isPowered();
+            final boolean memberPowered = bank.isPowered();
+            this.syncLitState(memberPowered);
+            return memberPowered;
         }
-        // A panel counts as working whenever it has at least one live source, regardless of scan
-        // mode, and its draw scales sub-linearly with how many it is carrying.
+
         final int liveSources = this.countLiveFeSources();
         final boolean powered = bank.serviceTick(liveSources > 0,
                 com.createstats.power.FeLoadCurve.multiplier(liveSources));
         com.createstats.power.FePowerFx.playTransition(this.level, this.worldPosition, bank.pollTransition());
+        this.syncLitState(powered);
         return powered;
     }
 
+    private void syncLitState(boolean powered) {
+        if (this.level == null || this.level.isClientSide()) {
+            return;
+        }
+        final net.minecraft.world.level.block.state.BlockState state = this.getBlockState();
+        final net.minecraft.world.level.block.state.properties.BooleanProperty lit =
+                net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT;
+        if (!state.hasProperty(lit) || state.getValue(lit) == powered) {
+            return;
+        }
+        this.level.setBlock(this.worldPosition, state.setValue(lit, powered),
+                net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+    }
+
     public void tick() {
-        // FE Dependent Mode gate: a dead panel freezes. It stops polling sources, scanning
-        // topology, and driving redstone until the buffer is charged again.
         if (this.level != null && !this.level.isClientSide() && !this.feServiceTick()) {
             return;
         }
@@ -1436,6 +1523,14 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
                 this.cachedRedstonePower = power;
                 this.level.updateNeighborsAt(this.worldPosition, this.getBlockState().getBlock());
             }
+        }
+
+        if (this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            this.aerialLinks.serverTick(serverLevel, serverLevel.getGameTime());
+
+            this.groundLinks.serverTick(serverLevel, serverLevel.getGameTime());
+
+            this.seismicLinks.serverTick(serverLevel, serverLevel.getGameTime());
         }
         if (this.scanSettings.getScanMode() == ScanSettings.ScanMode.AUTO && this.level != null && !this.level.isClientSide() && --this.scanCooldown <= 0) {
             this.scanCooldown = this.scanSettings.getAutoIntervalTicks();
@@ -1462,7 +1557,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         if (this.level != null && !this.level.isClientSide()) {
             if (this.hasEfficiencyInputs() && --this.efficiencyRecalcCooldown <= 0) {
-                this.efficiencyRecalcCooldown = 40;
+                this.efficiencyRecalcCooldown = EfficiencyGrader.DEFAULT_INTERVAL_TICKS;
                 this.recalculateEfficiency();
             }
             else if (!this.hasEfficiencyInputs()) {
@@ -1504,7 +1599,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             }
         }
     }
-    
+
     private void runPostLoadTopologyValidation() {
         if (this.level == null || this.level.isClientSide()) {
             return;
@@ -1647,7 +1742,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
-    
+
     public void detectAndFormMultiblock() {
         if (this.level == null || this.level.isClientSide()) {
             return;
@@ -1764,11 +1859,11 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
                 }
                 panel.setChanged();
                 this.level.sendBlockUpdated(p3, panel.getBlockState(), panel.getBlockState(), 3);
-                // [5]
+
                 this.level.invalidateCapabilities(p3);
             }
         }
-        // [6]
+
         if (this.level.getBlockEntity(ctrlPos) instanceof StatsDisplayPanelBE controller) {
             for (BlockPos memberPos : inRect) {
                 if (memberPos.equals(ctrlPos)) {
@@ -1792,21 +1887,19 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.multiblockWidth = 1;
         this.multiblockHeight = 1;
         if (changed && this.level != null && !this.level.isClientSide()) {
-            // Back to owning its own buffer, so the cached energy capability must re-resolve away
-            // from the assembly's shared bank.
             this.level.invalidateCapabilities(this.worldPosition);
         }
         return changed;
     }
-    
+
     private static long packHV(int h, int v) {
         return (long)h << 32 | ((long)v & 0xFFFFFFFFL);
     }
-    
+
     private static int dotAlongAxis(BlockPos pos, Direction axis) {
         return pos.getX() * axis.getStepX() + pos.getZ() * axis.getStepZ();
     }
-    
+
     public List<BlockPos> getMultiblockMembers() {
         final List<BlockPos> members = new ArrayList<BlockPos>();
         final BlockPos origin = (this.controllerPos != null) ? this.controllerPos : this.worldPosition;
@@ -1829,15 +1922,15 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return members;
     }
-    
+
     public ScanSettings getScanSettings() {
         return this.scanSettings;
     }
-    
+
     public boolean isScanEnabled() {
         return this.scanSettings.getScanMode() == ScanSettings.ScanMode.AUTO;
     }
-    
+
     public void setScanEnabled(boolean enabled) {
         this.scanSettings.setScanMode(enabled ? ScanSettings.ScanMode.AUTO : ScanSettings.ScanMode.MANUAL);
         this.scanCooldown = 0;
@@ -1855,11 +1948,11 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public void triggerManualScan() {
         this.executeScan();
     }
-    
+
     public void markDirtyAndSync() {
         this.needsSync = true;
         this.setChanged();
@@ -1867,7 +1960,23 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
-    
+
+    private static final long SETTINGS_HOLD_NANOS = 1_000_000_000L;
+
+    private long settingsHoldUntil;
+
+    // hold local edits, the once a second update would revert a toggle you just flipped
+    public void holdClientSettings() {
+        if (this.level != null && this.level.isClientSide()) {
+            this.settingsHoldUntil = System.nanoTime() + SETTINGS_HOLD_NANOS;
+        }
+    }
+
+    private boolean clientSettingsHeld() {
+        return this.level != null && this.level.isClientSide()
+                && System.nanoTime() - this.settingsHoldUntil < 0L;
+    }
+
     private void executeScan() {
         if (this.level == null) {
             return;
@@ -1912,7 +2021,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     private void pollDiscoveredSources() {
         if (this.level == null) {
             return;
@@ -1944,7 +2053,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.setChanged();
         }
     }
-    
+
     private String detectSourceTypeFromBE(BlockEntity be) {
         final String dieselSourceType = DieselCompatHelper.getSourceType(be);
         if (!dieselSourceType.isEmpty()) {
@@ -2016,7 +2125,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             iterator.remove();
         }
     }
-    
+
     private void scanTopologyNetwork() {
         if (this.level == null) {
             return;
@@ -2035,34 +2144,45 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public Object getCachedNetworkGraph() {
         return this.cachedNetworkGraph;
     }
-    
+
     public boolean hasTrainConnection() {
         return this.hasTrainConnection;
     }
-    
+
     public TrainMapData getTrainMapData() {
         return this.trainMapData;
     }
-    
+
     public List<String> getTrainMapGroups() {
         return this.trainMapGroups;
     }
-    
+
     public void setTrainMapGroups(List<String> groups) {
         this.trainMapGroups.clear();
         this.trainMapGroups.addAll(groups);
         this.setChanged();
     }
-    
+
     public void enableTrainConnection() {
         this.lastTrainConnectionTick = ((this.level != null) ? this.level.getGameTime() : 0L);
+        boolean changed = false;
         if (!this.hasTrainConnection) {
             this.hasTrainConnection = true;
             this.lastTrainScanTick = 0L;
+            changed = true;
+        }
+        // train stations never fill DataChannels so pick the train map page, rechecked every call for old saves
+
+        if (this.settings.getGraphType() == StatsDisplaySettings.GraphType.LINE_CHART && this.getActiveChannels().isEmpty()) {
+            this.settings.setGraphType(StatsDisplaySettings.GraphType.TRAIN_MAP);
+            this.settings.setDisplayMode(StatsDisplaySettings.DisplayMode.SPECIALIZED);
+            changed = true;
+        }
+        if (changed) {
             this.needsSync = true;
             this.setChanged();
         }
@@ -2103,7 +2223,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     private boolean shouldScanTopology(long currentTick) {
         return this.settings.getGraphType() == StatsDisplaySettings.GraphType.TOPOLOGY || currentTick - this.lastTopologyActivityTick <= TOPOLOGY_ACTIVITY_WINDOW;
     }
-    
+
     private void autoReadFromNearby(BlockPos sourcePos, BlockEntity sourceBE) {
         try {
             if (DieselCompatHelper.emitAutoData(this, sourcePos, sourceBE) && !(sourceBE instanceof FluidTankBlockEntity)) {
@@ -2339,14 +2459,14 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         this.onAutoData(sourcePos, sourceType, "total_items", "Total Items", (float)totalItems, MetricType.ITEM_COUNT);
         this.onAutoData(sourcePos, sourceType, "slot_capacity", "Slot Capacity", (float)slotCapacity, MetricType.ITEM_COUNT);
-        // Track which item metricIds we are emitting in this scan so we can zero out stale ones.
+
         final java.util.HashSet<String> emittedItemMetricIds = new java.util.HashSet<String>();
         itemCounts.forEach((registryName, count) -> {
             final String metricId = "item_" + this.sanitizeMetricId(registryName);
             emittedItemMetricIds.add(metricId);
             this.onAutoData(sourcePos, sourceType, metricId, itemNames.get(registryName), (float)count.intValue(), MetricType.ITEM_COUNT);
         });
-        // Zero-out previously observed items that are no longer present.
+
         final SourceConfig srcCfg = this.registerOrUpdateSource(sourcePos, sourceType);
         if (srcCfg != null) {
             final String prefix = "src_" + srcCfg.getSourceId() + "_auto_";
@@ -2362,7 +2482,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         this.onAutoData(sourcePos, sourceType, "unique_types", "Unique Types", (float)itemCounts.size(), MetricType.ITEM_COUNT);
     }
-    
+
     private void recordObservedTarget(BlockPos sourcePos, String sourceType, Level level, BlockPos targetPos) {
         if (level == null || targetPos == null) {
             return;
@@ -2530,7 +2650,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     private String sanitizeMetricId(String name) {
         return (name == null) ? "" : name.toLowerCase().replaceAll("[^a-z0-9_]", "_");
     }
-    
+
     private int calculateRedstonePower() {
         final DataChannel ch = this.channels.get(this.redstoneChannelId);
         if (ch == null || ch.getStore().getSampleCount() == 0) {
@@ -2548,70 +2668,76 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return Math.round(Math.max(0.0f, Math.min(15.0f, (value - min) / range * 15.0f)));
     }
-    
+
     public boolean isRedstoneEnabled() {
         return this.redstoneEnabled;
     }
-    
+
     public void setRedstoneEnabled(boolean enabled) {
         this.redstoneEnabled = enabled;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public String getRedstoneChannelId() {
         return this.redstoneChannelId;
     }
-    
+
     public void setRedstoneChannelId(String id) {
         this.redstoneChannelId = id;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public float getRedstoneThreshold() {
         return this.redstoneThreshold;
     }
-    
+
     public void setRedstoneThreshold(float t) {
         this.redstoneThreshold = t;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public boolean isRedstoneAbove() {
         return this.redstoneAbove;
     }
-    
+
     public void setRedstoneAbove(boolean above) {
         this.redstoneAbove = above;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public int getRedstoneMode() {
         return this.redstoneMode;
     }
-    
+
     public void setRedstoneMode(int mode) {
         this.redstoneMode = mode;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public int getRedstonePower() {
         return this.cachedRedstonePower;
     }
-    
+
     private void recalculateEfficiency() {
-        final NetworkDataSnapshot snapshot = NetworkDataSnapshot.fromPanel(this);
+        final EfficiencyInputs snapshot = EfficiencySampler.fromPanel(this);
         if (snapshot == null) {
             this.clearEfficiencyScore();
             return;
         }
         final String previousGrade = (this.latestEfficiencyScore != null) ? this.latestEfficiencyScore.grade() : null;
         final float previousScore = (this.latestEfficiencyScore != null) ? this.latestEfficiencyScore.compositeScore() : 0.0f;
-        this.latestEfficiencyScore = EfficiencyGrader.calculate(snapshot, this.gradeHistory.getODEState());
+
+        final int elapsedTicks = this.gradeHistory.consumeElapsedTicks(
+                this.level != null ? this.level.getGameTime() : 0L);
+        final EfficiencyGrader.Evaluation evaluation = EfficiencyGrader.evaluate(
+                snapshot, this.gradeHistory.getODEState(), elapsedTicks);
+        this.latestEfficiencyScore = evaluation.score();
+        this.latestEfficiencyTrace = evaluation.trace();
         if (this.level != null) {
             this.gradeHistory.recordScore(this.latestEfficiencyScore, this.level.getGameTime());
         }
@@ -2638,6 +2764,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             return;
         }
         this.latestEfficiencyScore = EfficiencyScore.noNetwork();
+        this.latestEfficiencyTrace = null;
         this.needsSync = true;
         this.setChanged();
     }
@@ -2697,7 +2824,9 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     }
 
     public void refreshDerivedDataAfterSettingsChange() {
-        this.efficiencyRecalcCooldown = 0;
+        if (this.efficiencyRecalcCooldown <= 0) {
+            this.efficiencyRecalcCooldown = EfficiencyGrader.DEFAULT_INTERVAL_TICKS;
+        }
         if (this.level == null || this.level.isClientSide()) {
             return;
         }
@@ -2709,15 +2838,19 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.lastTopologyScanTick = this.level.getGameTime();
         }
     }
-    
+
     public EfficiencyScore getLatestEfficiencyScore() {
         return this.latestEfficiencyScore;
     }
-    
+
+    public EfficiencyTrace getLatestEfficiencyTrace() {
+        return this.latestEfficiencyTrace;
+    }
+
     public GradeHistory getGradeHistory() {
         return this.gradeHistory;
     }
-    
+
     public TimeSeriesStore getStore() {
         for (DataChannel ch : this.channels.values()) {
             if (ch.getStore().getSampleCount() > 0) {
@@ -2726,19 +2859,19 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return this.getOrCreateChannel("line0", "Line 0").getStore();
     }
-    
+
     public AnnotationManager getAnnotationManager() {
         return this.annotationManager;
     }
-    
+
     public StatsDisplaySettings getSettings() {
         return this.settings;
     }
-    
+
     public boolean isController() {
         return this.isController;
     }
-    
+
     public BlockPos getControllerPos() {
         return this.controllerPos;
     }
@@ -2761,7 +2894,10 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         final double range = AntennaRange.directRange(controller.getLevel() != null ? controller.getLevel().dimension() : null,
                 64.0, controller.getAntennaTier());
         for (BlockPos memberPos : controller.getMultiblockMembers()) {
-            if (player.distanceToSqr(memberPos.getX() + 0.5, memberPos.getY() + 0.5, memberPos.getZ() + 0.5) <= range * range) {
+            // world point, not block pos. edits on an aero ship got dropped silently. sable tax #4
+
+            final Vec3 member = SableBridge.worldPointOf(controller, Vec3.atCenterOf(memberPos));
+            if (member != null && player.distanceToSqr(member) <= range * range) {
                 return true;
             }
         }
@@ -2790,11 +2926,11 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     public int getMultiblockWidth() {
         return this.multiblockWidth;
     }
-    
+
     public int getMultiblockHeight() {
         return this.multiblockHeight;
     }
-    
+
     public AABB getRenderBoundingBox() {
         final BlockPos origin = (this.controllerPos != null) ? this.controllerPos : this.worldPosition;
         AABB base;
@@ -2815,7 +2951,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         return base.inflate(64.0);
     }
-    
+
     public void setSettings(StatsDisplaySettings settings) {
         this.settings = ((settings != null) ? settings : new StatsDisplaySettings());
         this.normalizeSettingsState();
@@ -2826,14 +2962,14 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             DisplayTextureManager.markDirty(this.worldPosition);
         }
     }
-    
+
     public void setRemoved() {
         super.setRemoved();
         if (this.level != null && this.level.isClientSide()) {
             DisplayTextureManager.disposeTexture(this.worldPosition);
         }
     }
-    
+
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         this.feConsumer.save(tag);
@@ -2887,6 +3023,9 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             trainStationLinkList.add(trainStationLink.save(registries));
         }
         tag.put("TrainStationLinks", (Tag)trainStationLinkList);
+        this.aerialLinks.save(tag, false);
+        this.groundLinks.save(tag, false);
+        this.seismicLinks.save(tag, false);
         tag.putInt("NextAutoSourceIdx", this.nextAutoSourceIndex);
         tag.putBoolean("StockpileMetricsV2", true);
         tag.put("Settings", (Tag)this.settings.save());
@@ -2915,7 +3054,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         tag.put("EfficiencyGrade", (Tag)this.gradeHistory.save());
         if (this.latestEfficiencyScore != null) {
-            tag.put("LatestEffScore", (Tag)this.latestEfficiencyScore.save());
+            tag.put("LatestEffScore", (Tag)EfficiencyNbt.saveScore(this.latestEfficiencyScore));
         }
         tag.putBoolean("HasTrainConn", this.hasTrainConnection);
         tag.putLong("TrainConnTick", this.lastTrainConnectionTick);
@@ -2930,6 +3069,35 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
                 grpList.add(gt);
             }
             tag.put("TrainMapGroups", (Tag)grpList);
+        }
+        this.writeRsNetworks(tag, false);
+    }
+
+    private void writeRsNetworks(CompoundTag tag, boolean forSync) {
+        if (this.rsNetworks.isEmpty()) {
+            return;
+        }
+        final String focus = forSync ? this.rsFocusedItemId() : "";
+        final CompoundTag networks = new CompoundTag();
+        for (Map.Entry<String, com.createstats.rs.RsNetworkState> entry : this.rsNetworks.entrySet()) {
+            networks.put(entry.getKey(), (Tag)(forSync
+                    ? entry.getValue().saveSync(focus)
+                    : entry.getValue().save()));
+        }
+        tag.put(forSync ? "RsNetSync" : "RsNet", (Tag)networks);
+    }
+
+    private void readRsNetworks(CompoundTag tag) {
+        this.rsNetworks.clear();
+        final boolean sync = tag.contains("RsNetSync");
+        if (!sync && !tag.contains("RsNet")) {
+            return;
+        }
+        final CompoundTag networks = tag.getCompound(sync ? "RsNetSync" : "RsNet");
+        for (String key : networks.getAllKeys()) {
+            this.rsNetworks.put(key, sync
+                    ? com.createstats.rs.RsNetworkState.loadSync(networks.getCompound(key))
+                    : com.createstats.rs.RsNetworkState.load(networks.getCompound(key)));
         }
     }
 
@@ -2985,6 +3153,9 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             trainStationLinkList.add(trainStationLink.save(registries));
         }
         tag.put("TrainStationLinks", (Tag)trainStationLinkList);
+        this.aerialLinks.save(tag, true);
+        this.groundLinks.save(tag, true);
+        this.seismicLinks.save(tag, true);
         tag.putInt("NextAutoSourceIdx", this.nextAutoSourceIndex);
         tag.putBoolean("StockpileMetricsV2", true);
         tag.put("Settings", (Tag)this.settings.save());
@@ -3013,7 +3184,11 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         }
         tag.put("EfficiencyGrade", (Tag)this.gradeHistory.savePreview(TimeSeriesStore.DEFAULT_SYNC_PREVIEW_SAMPLES));
         if (this.latestEfficiencyScore != null) {
-            tag.put("LatestEffScore", (Tag)this.latestEfficiencyScore.save());
+            tag.put("LatestEffScore", (Tag)EfficiencyNbt.saveScore(this.latestEfficiencyScore));
+        }
+
+        if (this.latestEfficiencyTrace != null) {
+            tag.put("LatestEffTrace", (Tag)EfficiencyNbt.saveTrace(this.latestEfficiencyTrace));
         }
         tag.putBoolean("HasTrainConn", this.hasTrainConnection);
         tag.putLong("TrainConnTick", this.lastTrainConnectionTick);
@@ -3029,10 +3204,12 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             }
             tag.put("TrainMapGroups", (Tag)grpList);
         }
+        this.writeRsNetworks(tag, true);
     }
-    
+
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        this.readRsNetworks(tag);
         this.feConsumer.load(tag);
         this.channels.clear();
         if (tag.contains("Channels", 9)) {
@@ -3123,9 +3300,12 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
                 this.trainStationLinks.put(trainStationLink.getId(), trainStationLink);
             }
         }
+        this.aerialLinks.load(tag, this.level != null && this.level.isClientSide());
+        this.groundLinks.load(tag, this.level != null && this.level.isClientSide());
+        this.seismicLinks.load(tag, this.level != null && this.level.isClientSide());
         this.nextAutoSourceIndex = Math.max(0, tag.getInt("NextAutoSourceIdx"));
         this.recoverNextAutoSourceIndex();
-        if (tag.contains("Settings")) {
+        if (tag.contains("Settings") && !this.clientSettingsHeld()) {
             this.settings = StatsDisplaySettings.load(tag.getCompound("Settings"));
         }
         this.sourceType = tag.getString("SourceType");
@@ -3179,8 +3359,11 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.gradeHistory = new GradeHistory();
         }
         if (tag.contains("LatestEffScore")) {
-            this.latestEfficiencyScore = EfficiencyScore.load(tag.getCompound("LatestEffScore"));
+            this.latestEfficiencyScore = EfficiencyNbt.loadScore(tag.getCompound("LatestEffScore"));
         }
+        this.latestEfficiencyTrace = tag.contains("LatestEffTrace")
+                ? EfficiencyNbt.loadTrace(tag.getCompound("LatestEffTrace"))
+                : null;
         this.hasTrainConnection = tag.getBoolean("HasTrainConn");
         this.lastTrainConnectionTick = tag.getLong("TrainConnTick");
         if (tag.contains("TrainMap")) {
@@ -3201,25 +3384,25 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.setChanged();
         }
     }
-    
+
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
         this.saveSyncAdditional(tag, registries);
         return tag;
     }
-    
+
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return (Packet<ClientGamePacketListener>)ClientboundBlockEntityDataPacket.create((BlockEntity)this);
     }
-    
+
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider registries) {
         final CompoundTag tag = pkt.getTag();
         if (tag != null) {
             this.handleUpdateTag(tag, registries);
         }
     }
-    
+
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
         this.loadAdditional(tag, registries);
         if (this.level != null && this.level.isClientSide()) {
@@ -3258,7 +3441,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
     private static String createTrainStationLinkId(BlockPos sourcePos) {
         return "station_" + sourcePos.getX() + "_" + sourcePos.getY() + "_" + sourcePos.getZ();
     }
-    
+
     public static class DataChannel
     {
         private final String id;
@@ -3268,7 +3451,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         private float alertThreshold;
         private boolean alertAbove;
         private boolean alertEnabled;
-        
+
         public DataChannel(String id, String label) {
             this.lastText = "";
             this.alertThreshold = 0.0f;
@@ -3278,51 +3461,51 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             this.label = label;
             this.store = TimeSeriesStore.forPanel();
         }
-        
+
         public String getId() {
             return this.id;
         }
-        
+
         public String getLabel() {
             return this.label;
         }
-        
+
         public void setLabel(String label) {
             this.label = label;
         }
-        
+
         public TimeSeriesStore getStore() {
             return this.store;
         }
-        
+
         public String getLastText() {
             return this.lastText;
         }
-        
+
         public float getAlertThreshold() {
             return this.alertThreshold;
         }
-        
+
         public void setAlertThreshold(float threshold) {
             this.alertThreshold = threshold;
         }
-        
+
         public boolean isAlertAbove() {
             return this.alertAbove;
         }
-        
+
         public void setAlertAbove(boolean above) {
             this.alertAbove = above;
         }
-        
+
         public boolean isAlertEnabled() {
             return this.alertEnabled;
         }
-        
+
         public void setAlertEnabled(boolean enabled) {
             this.alertEnabled = enabled;
         }
-        
+
         public boolean isAlertTriggered() {
             if (!this.alertEnabled || this.store.getSampleCount() == 0) {
                 return false;
@@ -3330,7 +3513,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             final float latest = this.store.getLatestValue();
             return this.alertAbove ? (latest >= this.alertThreshold) : (latest <= this.alertThreshold);
         }
-        
+
         public CompoundTag save() {
             final CompoundTag tag = new CompoundTag();
             tag.putString("Id", this.id);
@@ -3354,7 +3537,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             tag.putBoolean("AlertEnabled", this.alertEnabled);
             return tag;
         }
-        
+
         public static DataChannel load(CompoundTag tag) {
             final String id = tag.getString("Id");
             final String label = tag.getString("Label");
@@ -3374,7 +3557,7 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             }
             return ch;
         }
-        
+
         public static DataChannel ofStore(String id, String label, TimeSeriesStore existingStore) {
             final DataChannel ch = new DataChannel(id, label);
             ch.store = existingStore;
@@ -3521,6 +3704,8 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         private int tier;
         private int flywheelCount;
         private boolean halted;
+        private boolean parked;
+        private boolean depleted;
         private boolean lowReserve;
         private long lastDataTick;
 
@@ -3574,6 +3759,14 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             return this.halted;
         }
 
+        public boolean isParked() {
+            return this.parked;
+        }
+
+        public boolean isDepleted() {
+            return this.depleted;
+        }
+
         public boolean isLowReserve() {
             return this.lowReserve;
         }
@@ -3621,6 +3814,14 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
                 this.halted = flywheel.isOverstressHalted();
                 changed = true;
             }
+            if (this.parked != flywheel.isParked()) {
+                this.parked = flywheel.isParked();
+                changed = true;
+            }
+            if (this.depleted != flywheel.isDepleted()) {
+                this.depleted = flywheel.isDepleted();
+                changed = true;
+            }
             if (this.lowReserve != flywheel.isLowReserve()) {
                 this.lowReserve = flywheel.isLowReserve();
                 changed = true;
@@ -3645,6 +3846,8 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             tag.putInt("Tier", this.tier);
             tag.putInt("FlywheelCount", this.flywheelCount);
             tag.putBoolean("Halted", this.halted);
+            tag.putBoolean("Parked", this.parked);
+            tag.putBoolean("Depleted", this.depleted);
             tag.putBoolean("LowReserve", this.lowReserve);
             tag.putLong("LastDataTick", this.lastDataTick);
             return tag;
@@ -3665,6 +3868,8 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             link.tier = tag.getInt("Tier");
             link.flywheelCount = tag.getInt("FlywheelCount");
             link.halted = tag.getBoolean("Halted");
+            link.parked = tag.getBoolean("Parked");
+            link.depleted = tag.getBoolean("Depleted");
             link.lowReserve = tag.getBoolean("LowReserve");
             link.lastDataTick = tag.getLong("LastDataTick");
             return link;
@@ -4642,7 +4847,12 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             String newCurrentCargoSummary = "No train currently docked.";
             if (presentTrain != null) {
                 newCurrentTrainName = resolveTrainName(presentTrain);
-                newCurrentCargoView = FreightStationCargoView.capture(presentTrain, FreightManifestLogic.previewProgress(presentTrain));
+                final com.createstats.train.manifest.FreightManifestStationState presentStationState =
+                    level instanceof ServerLevel presentLevel && newStationId != null
+                        ? FreightManifestSavedData.get(presentLevel).getStationState(newStationId)
+                        : null;
+                newCurrentCargoView = FreightStationCargoView.capture(presentTrain,
+                    FreightManifestLogic.captureVisitProgress(presentStationState, presentTrain));
                 newCurrentCargoSummary = buildCargoConditionSummary(newManifest, validation, newCurrentCargoView);
             }
 
@@ -4977,9 +5187,9 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
         private int totalNewBlocks;
         private List<BattleObserverSnapshot> observers;
         private long lastDataTick;
-        /** Server-only: tracks when we last forced a client sync (for heartbeat pacing). Not serialized. */
+
         private long lastForcedSyncTick;
-        /** [7] */
+
         private int battleViewMode;
 
         public BattleScreenLink(String id, BlockPos sourcePos) {
@@ -5049,7 +5259,6 @@ public class StatsDisplayPanelBE extends BlockEntity implements IAutoDataReceive
             return this.battleViewMode;
         }
 
-        /** @return true if the value changed (caller should mark panel dirty / sync). */
         public boolean setBattleViewMode(int mode) {
             final int clamped = mode <= 0 ? 0 : 1;
             if (this.battleViewMode == clamped) {

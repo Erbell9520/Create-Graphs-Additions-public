@@ -15,27 +15,27 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class RequestStatsPacket implements CustomPacketPayload
 {
     private final BlockPos pos;
-    
+
     public static final CustomPacketPayload.Type<RequestStatsPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "request_stats"));
     public static final StreamCodec<FriendlyByteBuf, RequestStatsPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), RequestStatsPacket::new);
-    
+
     public RequestStatsPacket(BlockPos pos) {
         this.pos = pos;
     }
-    
+
     public RequestStatsPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(RequestStatsPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();

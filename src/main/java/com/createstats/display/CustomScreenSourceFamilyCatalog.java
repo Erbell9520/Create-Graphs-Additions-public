@@ -27,22 +27,45 @@ public final class CustomScreenSourceFamilyCatalog {
                 List.of("Kinetic Flywheel"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
         register(def("kinetics.load_balancer", "Load Balancer", SourceFamilyDefinition.SourceFamilyGroup.KINETICS,
                 List.of("Load Balancer"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("kinetics.topology_scanner", "Topology Scanner", SourceFamilyDefinition.SourceFamilyGroup.KINETICS,
+                List.of("Topology Scanner"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.SIMPLIFY));
         register(def("energy.accumulator", "Modular Accumulator", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
                 List.of("Modular Accumulator"), List.of(), SourceFamilyDefinition.RendererFamily.ACCUMULATOR, List.of(), SourceFamilyDefinition.CompactPolicy.SIMPLIFY));
         register(def("energy.capacitor_bank", "Capacitor Bank", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
                 List.of("Capacitor Bank"), List.of(), SourceFamilyDefinition.RendererFamily.CAPACITOR_BANK, List.of(), SourceFamilyDefinition.CompactPolicy.SIMPLIFY));
         register(def("energy.alternator", "Alternator", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
                 List.of("Alternator"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
         register(def("energy.motor", "Electric Motor", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
-                List.of("Electric Motor"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+                List.of("Electric Motor", "FE Motor"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
         register(def("energy.connector", "Energy Connector", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
                 List.of("Portable Energy Interface", "Energy Connector", "Large Energy Connector", "Tesla Coil", "Creative Energy Source"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("energy.dynamo", "Kinetic Dynamo", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
+                List.of("Kinetic Dynamo"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("energy.grid", "Power Grid", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
+                List.of("Power Connector", "Cable Diagnostic Junction"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+        register(def("energy.pdu", "Power Distribution Unit", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
+                List.of("Power Distribution Unit"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.SIMPLIFY));
+        register(def("energy.battery_controller", "FE Battery Controller", SourceFamilyDefinition.SourceFamilyGroup.ENERGY,
+                List.of("FE Battery Controller"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.SIMPLIFY));
         register(def("factory.stockpile_switch", "Stockpile Switch", SourceFamilyDefinition.SourceFamilyGroup.FACTORY_INVENTORY,
                 List.of("Stockpile Switch"), List.of(), SourceFamilyDefinition.RendererFamily.STOCKPILE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
         register(def("factory.observer", "Observer", SourceFamilyDefinition.SourceFamilyGroup.FACTORY_INVENTORY,
                 List.of("Content Observer", "Smart Observer"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
         register(def("factory.production", "Production / Inventory", SourceFamilyDefinition.SourceFamilyGroup.FACTORY_INVENTORY,
                 List.of("Production Detector", "Inventory Display"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("factory.container", "Container", SourceFamilyDefinition.SourceFamilyGroup.FACTORY_INVENTORY,
+                List.of("Container"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("storage.refined_storage", "Refined Storage Network",
+                SourceFamilyDefinition.SourceFamilyGroup.FACTORY_INVENTORY,
+                List.of("Refined Storage Network"), List.of(),
+                SourceFamilyDefinition.RendererFamily.NONE, List.of(),
+                SourceFamilyDefinition.CompactPolicy.SIMPLIFY));
         register(def("factory.panel", "Factory Panel", SourceFamilyDefinition.SourceFamilyGroup.FACTORY_INVENTORY,
                 List.of("Factory Panel"), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
         register(def("heat.induction_heater", "Induction Heater", SourceFamilyDefinition.SourceFamilyGroup.FACTORY_INVENTORY,
@@ -83,6 +106,15 @@ public final class CustomScreenSourceFamilyCatalog {
                 List.of("Steering Wheel"), List.of(), SourceFamilyDefinition.RendererFamily.SENSOR, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
         register(def("flight.air_support", "Hot Air / Steam Vent", SourceFamilyDefinition.SourceFamilyGroup.FLIGHT_NAVIGATION,
                 List.of("Hot Air Burner", "Steam Vent"), List.of(), SourceFamilyDefinition.RendererFamily.TEXT_UTILITY, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("flight.vcc_aerial", "VCC Mk IV Aerial", SourceFamilyDefinition.SourceFamilyGroup.FLIGHT_NAVIGATION,
+                List.of(com.createstats.blockentity.AerialLinks.SOURCE_TYPE), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("vehicle.vcc_ground", "VCC Mk IV Ground", SourceFamilyDefinition.SourceFamilyGroup.FLIGHT_NAVIGATION,
+                List.of(com.createstats.blockentity.GroundLinks.SOURCE_TYPE), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
+
+        register(def("survey.seismic", "Seismic Survey", SourceFamilyDefinition.SourceFamilyGroup.SENSORS_TEXT,
+                List.of(com.createstats.blockentity.SeismicLinks.SOURCE_TYPE), List.of(), SourceFamilyDefinition.RendererFamily.NONE, List.of(), SourceFamilyDefinition.CompactPolicy.KEEP));
         register(def("flight.contraption_info", "Contraption Info", SourceFamilyDefinition.SourceFamilyGroup.FLIGHT_NAVIGATION,
                 List.of("Contraption Info"), List.of(), SourceFamilyDefinition.RendererFamily.CONTRAPTION, List.of(), SourceFamilyDefinition.CompactPolicy.HIDE));
         register(def("battle.bridge", "Battle Bridge", SourceFamilyDefinition.SourceFamilyGroup.BATTLE,

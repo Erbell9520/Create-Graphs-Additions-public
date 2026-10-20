@@ -17,10 +17,8 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
-/** [1] */
 @OnlyIn(Dist.CLIENT)
 public class VccMk2Renderer implements BlockEntityRenderer<VccMk2BlockEntity> {
-
     private static final float PX = 1.0f / 16.0f;
     private static final float FACE_EPSILON = 1.0f / 512.0f;
     private static final float SCREEN_LEFT_PX = 3.15f;
@@ -66,8 +64,8 @@ public class VccMk2Renderer implements BlockEntityRenderer<VccMk2BlockEntity> {
         float x1 = SCREEN_RIGHT_PX * PX;
         float y0 = SCREEN_BOTTOM_PX * PX;
         float y1 = SCREEN_TOP_PX * PX;
-        // U is flipped (1 on the left edge) so the screen reads correctly in world space
-        // instead of mirrored.
+        // U flipped or it reads mirrored
+
         vertex(vc, pose, normal, x0, y1, 0.0f, 1.0f, 0.0f, packedOverlay);
         vertex(vc, pose, normal, x0, y0, 0.0f, 1.0f, 1.0f, packedOverlay);
         vertex(vc, pose, normal, x1, y0, 0.0f, 0.0f, 1.0f, packedOverlay);

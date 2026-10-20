@@ -16,9 +16,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-/** [1] */
 public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
-
     private static KineticMultimeterRenderer instance;
 
     private static final String BASE = "create_stats:textures/item/";
@@ -28,7 +26,6 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
     private static final ResourceLocation TEX_GLARE  = ResourceLocation.parse(BASE + "kinetic_multimeter_glare.png");
     private static final ResourceLocation TEX_GLOW   = ResourceLocation.parse(BASE + "kinetic_multimeter_glow.png");
 
-    // pivots in centered unit space: nx = X/32 - 0.5 ; ny = 0.5 - Y/32  (from gen_multimeter.py)
     private static final float HUB_X = 15f / 32f - 0.5f;
     private static final float HUB_Y = 0.5f - 11f / 32f;
     private static final float COG_X = 15f / 32f - 0.5f;
@@ -36,7 +33,6 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
 
     private static final float Z_STEP = 0.0015f;
 
-    // shared client-side animation state (single held instrument assumption)
     private float cogAngle = 0f;
     private float needleAngle = -135f;
     private float needleVel = 0f;
@@ -59,20 +55,18 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
                              MultiBufferSource buffer, int light, int overlay) {
         Reading r = KineticMultimeterData.read(stack);
 
-        // advance animation
         long now = System.nanoTime();
         float dt = Mth.clamp((now - lastNanos) / 1.0e9f, 0f, 0.05f);
         lastNanos = now;
         float t = now / 1.0e9f;
 
-        // [2]
         float fresh;
         Minecraft mc = Minecraft.getInstance();
         if (r.state() == KineticMultimeterData.STATE_NONET) {
             fresh = 0f;
         } else if (mc.level != null) {
             long age = mc.level.getGameTime() - r.time();
-            fresh = 1f - Mth.clamp((age - 160f) / 40f, 0f, 1f); // full < 8 s, fully decayed by 10 s
+            fresh = 1f - Mth.clamp((age - 160f) / 40f, 0f, 1f);
         } else {
             fresh = 1f;
         }
@@ -81,18 +75,16 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
         float absRpm = Math.abs(rpm);
         boolean over = r.state() == KineticMultimeterData.STATE_OVER;
 
-        // cog: direction-true spin with an idle mainspring creep
         float cogRate = absRpm < 0.01f ? 20f : Math.signum(rpm) * Mth.clamp(absRpm * 1.2f, 20f, 720f);
         cogAngle = (cogAngle + cogRate * dt) % 360f;
 
-        // needle: second-order spring-damper (plan sec.30, k=90 c=12 -> gentle overshoot, never linear)
         float f = Mth.clamp((float) (Math.log1p(absRpm) / Math.log1p(256.0)), 0f, 1f);
         float target = -135f + 270f * f;
         if (absRpm < 0.01f) {
-            target += Mth.sin(t * 3.14f) * 1.5f; // idle breathing wobble
+            target += Mth.sin(t * 3.14f) * 1.5f;
         }
         if (over) {
-            target += Mth.sin(t * 12.56f) * 3f; // overstress tremor (~2 Hz)
+            target += Mth.sin(t * 12.56f) * 3f;
         }
         float accel = 90f * (target - needleAngle) - 12f * needleVel;
         needleVel += accel * dt;
@@ -105,19 +97,18 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
         PoseStack.Pose pose = ms.last();
         int fullBright = LightTexture.FULL_BRIGHT;
 
-        // 1) body
         quad(pose, buffer.getBuffer(RenderType.entityCutoutNoCull(TEX_BODY)), 0f, 0f, 0f, 0f,
             light, overlay, 255, 255, 255, 255);
-        // 2) spinning cog
+
         quad(pose, buffer.getBuffer(RenderType.entityCutoutNoCull(TEX_COG)), Z_STEP, cogAngle, COG_X, COG_Y,
             light, overlay, 255, 255, 255, 255);
-        // 3) deflecting needle
+
         quad(pose, buffer.getBuffer(RenderType.entityCutoutNoCull(TEX_NEEDLE)), 2 * Z_STEP, needleAngle, HUB_X, HUB_Y,
             light, overlay, 255, 255, 255, 255);
-        // 4) glass glare
+
         quad(pose, buffer.getBuffer(RenderType.entityTranslucentCull(TEX_GLARE)), 3 * Z_STEP, 0f, 0f, 0f,
             light, overlay, 255, 255, 255, 255);
-        // 5) emissive health tint
+
         int[] tint = stateTint(r.state(), now);
         int alpha = (int) (tint[3] * fresh);
         if (alpha > 0) {
@@ -128,7 +119,6 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
         ms.popPose();
     }
 
-    /** Returns {r,g,b,a} 0..255 for the emissive health wash, with a pulse when overstressed. */
     private static int[] stateTint(byte state, long now) {
         float t = now / 1.0e9f;
         return switch (state) {
@@ -138,14 +128,10 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
                 int a = (int) (110 + 90 * (0.5f + 0.5f * Mth.sin(t * 9f)));
                 yield new int[]{224, 70, 58, a};
             }
-            default -> new int[]{70, 90, 120, 34}; // no-network: cold, dim
+            default -> new int[]{70, 90, 120, 34};
         };
     }
 
-    /**
-     * Emit one full-texture quad (uv 0..1) in centered unit space, facing +Z, optionally rotated by
-     * {@code rotDeg} about pivot ({@code pivX},{@code pivY}). zOff layers it above the body.
-     */
     private static void quad(PoseStack.Pose pose, VertexConsumer vc, float zOff, float rotDeg,
                              float pivX, float pivY, int light, int overlay,
                              int red, int green, int blue, int alpha) {
@@ -153,7 +139,6 @@ public class KineticMultimeterRenderer extends BlockEntityWithoutLevelRenderer {
         float cos = Mth.cos(rad);
         float sin = Mth.sin(rad);
 
-        // corners: (x, y, u, v) CCW facing +Z
         float[][] c = {
             {-0.5f,  0.5f, 0f, 0f},
             {-0.5f, -0.5f, 0f, 1f},

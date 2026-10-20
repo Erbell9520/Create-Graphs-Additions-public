@@ -8,9 +8,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-/** [1] */
 class PduStudWiringTest {
-
     private static final long PANEL = 1L;
     private static final long CONNECTOR = 2L;
     private static final int RANGE = 32;
@@ -26,7 +24,7 @@ class PduStudWiringTest {
 
     private static PduStudWiring.Verdict check(PduStudWiring.Endpoint from, PduStudWiring.Endpoint to,
                                                double distSq, boolean linked, int fromLinks, int toLinks) {
-        return PduStudWiring.check(from, to, distSq, RANGE, linked, fromLinks, toLinks, MAX);
+        return PduStudWiring.check(from, to, distSq, RANGE, linked, fromLinks, toLinks, MAX, MAX);
     }
 
     @Test
@@ -56,7 +54,6 @@ class PduStudWiringTest {
     @Test
     @DisplayName("a stud index off the panel is refused before anything else is judged")
     void badStudOutranksEveryOtherComplaint() {
-        // [2]
         assertEquals(PduStudWiring.Verdict.BAD_STUD,
                 check(PduStudWiring.Endpoint.stud(PANEL, PduStuds.COUNT), connector(), 1.0e9, true, MAX, MAX));
         assertEquals(PduStudWiring.Verdict.BAD_STUD,
@@ -98,19 +95,21 @@ class PduStudWiringTest {
     @Test
     @DisplayName("a leg with no wire on it carries nothing, not the stud's own rating")
     void emptyStudCarriesNothing() {
-        assertEquals(0, PduStudWiring.ceiling(24576, 8192, null));
+        assertEquals(0, PduStudWiring.ceiling(32768, 8192, null));
         assertNull(PduStudWiring.best(List.of()));
     }
 
     @Test
     @DisplayName("the wire caps the stud, and the stud caps the wire")
     void ceilingIsTheLowerOfTheTwo() {
-        // Plain copper under a stud rated for three times it: the wire is the limit.
-        assertEquals(8192, PduStudWiring.ceiling(24576, 8192, WireTier.COPPER));
-        assertEquals(16384, PduStudWiring.ceiling(24576, 8192, WireTier.INSULATED));
-        // Shielded matches the stud exactly, and nothing above the stud's own rating is reachable.
-        assertEquals(24576, PduStudWiring.ceiling(24576, 8192, WireTier.SHIELDED));
+        assertEquals(8192, PduStudWiring.ceiling(32768, 8192, WireTier.COPPER));
+        assertEquals(16384, PduStudWiring.ceiling(32768, 8192, WireTier.INSULATED));
+
+        assertEquals(32768, PduStudWiring.ceiling(32768, 8192, WireTier.SHIELDED));
         assertEquals(8192, PduStudWiring.ceiling(8192, 8192, WireTier.SHIELDED));
+
+        assertEquals(32768, PduStudWiring.ceiling(32768, 8192, WireTier.HV));
+        assertEquals(65536, PduStudWiring.ceiling(65536, 8192, WireTier.HV));
     }
 
     @Test
@@ -119,5 +118,7 @@ class PduStudWiringTest {
         assertEquals(WireTier.SHIELDED,
                 PduStudWiring.best(List.of(WireTier.COPPER, WireTier.SHIELDED, WireTier.INSULATED)));
         assertEquals(WireTier.COPPER, PduStudWiring.best(List.of(WireTier.COPPER)));
+        assertEquals(WireTier.HV,
+                PduStudWiring.best(List.of(WireTier.SHIELDED, WireTier.HV, WireTier.COPPER)));
     }
 }

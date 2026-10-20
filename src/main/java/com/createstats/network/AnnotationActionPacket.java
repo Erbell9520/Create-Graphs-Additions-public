@@ -24,15 +24,15 @@ public class AnnotationActionPacket implements CustomPacketPayload
     private UUID annotationId;
     private String newLabel;
     private int newColor;
-    
+
     public static final CustomPacketPayload.Type<AnnotationActionPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "annotation_action"));
     public static final StreamCodec<FriendlyByteBuf, AnnotationActionPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), AnnotationActionPacket::new);
-    
+
     private AnnotationActionPacket(BlockPos pos, Action action) {
         this.pos = pos;
         this.action = action;
     }
-    
+
     public static AnnotationActionPacket add(BlockPos pos, long tick, String label, int color) {
         final AnnotationActionPacket pkt = new AnnotationActionPacket(pos, Action.ADD);
         pkt.tickStamp = tick;
@@ -42,7 +42,7 @@ public class AnnotationActionPacket implements CustomPacketPayload
         pkt.annotationType = Annotation.AnnotationType.MARKER;
         return pkt;
     }
-    
+
     public static AnnotationActionPacket addRegion(BlockPos pos, long startTick, long endTick, String label, int color) {
         final AnnotationActionPacket pkt = new AnnotationActionPacket(pos, Action.ADD);
         pkt.tickStamp = startTick;
@@ -52,13 +52,13 @@ public class AnnotationActionPacket implements CustomPacketPayload
         pkt.annotationType = Annotation.AnnotationType.REGION;
         return pkt;
     }
-    
+
     public static AnnotationActionPacket remove(BlockPos pos, UUID annotationId) {
         final AnnotationActionPacket pkt = new AnnotationActionPacket(pos, Action.REMOVE);
         pkt.annotationId = annotationId;
         return pkt;
     }
-    
+
     public static AnnotationActionPacket edit(BlockPos pos, UUID annotationId, String newLabel, int newColor) {
         final AnnotationActionPacket pkt = new AnnotationActionPacket(pos, Action.EDIT);
         pkt.annotationId = annotationId;
@@ -66,7 +66,7 @@ public class AnnotationActionPacket implements CustomPacketPayload
         pkt.newColor = newColor;
         return pkt;
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeEnum((Enum)this.action);
@@ -91,7 +91,7 @@ public class AnnotationActionPacket implements CustomPacketPayload
             }
         }
     }
-    
+
     public AnnotationActionPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.action = (Action)buf.readEnum((Class)Action.class);
@@ -116,12 +116,12 @@ public class AnnotationActionPacket implements CustomPacketPayload
             }
         }
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(AnnotationActionPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();
@@ -214,11 +214,11 @@ public class AnnotationActionPacket implements CustomPacketPayload
             }
         });
     }
-    
+
     public enum Action
     {
-        ADD, 
-        REMOVE, 
+        ADD,
+        REMOVE,
         EDIT;
     }
 }

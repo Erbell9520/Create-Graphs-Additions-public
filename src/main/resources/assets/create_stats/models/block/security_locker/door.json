@@ -1,0 +1,79 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "case": "create_stats:block/security_locker_case",
+    "door": "create_stats:block/security_locker_door",
+    "particle": "create_stats:block/security_locker_case"
+  },
+  "elements": [
+    {
+      "name": "leaf",
+      "from": [
+        3.2,
+        2.7,
+        5.2
+      ],
+      "to": [
+        12.8,
+        13.3,
+        6.6
+      ],
+      "faces": {
+        "north": {
+          "texture": "#case",
+          "uv": [
+            3.2,
+            2.6999999999999993,
+            12.8,
+            13.3
+          ]
+        },
+        "south": {
+          "texture": "#door",
+          "uv": [
+            3.2,
+            2.6999999999999993,
+            12.8,
+            13.3
+          ]
+        },
+        "east": {
+          "texture": "#case",
+          "uv": [
+            5.2,
+            2.6999999999999993,
+            6.6,
+            13.3
+          ]
+        },
+        "west": {
+          "texture": "#case",
+          "uv": [
+            5.2,
+            2.6999999999999993,
+            6.6,
+            13.3
+          ]
+        },
+        "up": {
+          "texture": "#case",
+          "uv": [
+            3.2,
+            5.2,
+            12.8,
+            6.6
+          ]
+        },
+        "down": {
+          "texture": "#case",
+          "uv": [
+            3.2,
+            5.2,
+            12.8,
+            6.6
+          ]
+        }
+      }
+    }
+  ]
+}

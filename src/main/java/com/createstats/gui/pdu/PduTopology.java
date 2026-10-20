@@ -11,18 +11,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** [1] */
 public final class PduTopology {
-
     private PduTopology() {
     }
 
-    /** A player with a branch past this has a different problem; the diagram flags the truncation. */
     public static final int MAX_NODES = 256;
 
-    /** [2] */
     public enum Kind {
-        PDU, CABLE, TRAY, SWITCH, CONNECTOR, DEVICE, DUCT;
+        PDU, CABLE, TRAY, SWITCH, CONNECTOR, DEVICE, DUCT,
+
+        TRUNK;
 
         public static Kind byOrdinal(int ordinal) {
             final Kind[] values = values();
@@ -30,11 +28,9 @@ public final class PduTopology {
         }
     }
 
-    /** A wiring node as gathered from the world, before the tree is built. */
     public record RawNode(BlockPos pos, byte kind, byte tier, boolean open, List<BlockPos> links) {
     }
 
-    /** A wiring node with its spanning tree parent, an index into the result list, or -1 for the root. */
     public record BranchNode(BlockPos pos, byte kind, byte tier, boolean open, int parentIndex) {
         public Kind kindEnum() {
             return Kind.byOrdinal(kind);
@@ -45,12 +41,11 @@ public final class PduTopology {
         public static final Result EMPTY = new Result(List.of(), false);
     }
 
-    /** [3] */
     public static Result build(List<RawNode> raws, BlockPos rootPos, int cap) {
         if (raws.isEmpty()) {
             return Result.EMPTY;
         }
-        // First position wins if a slot is somehow listed twice, so adjacency stays deterministic.
+
         final Map<BlockPos, Integer> idx = new HashMap<>();
         for (int i = 0; i < raws.size(); i++) {
             idx.putIfAbsent(raws.get(i).pos(), i);

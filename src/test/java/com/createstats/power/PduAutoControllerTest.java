@@ -10,14 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduAutoControllerTest {
-
     private static final int CRITICAL = FePriority.CRITICAL.ordinal();
     private static final int NORMAL = FePriority.NORMAL.ordinal();
     private static final int OPTIONAL = FePriority.OPTIONAL.ordinal();
 
-    /** A short dwell, so a test asserts about behaviour rather than simulating three seconds. */
     private static final PduAutoController.Tuning FAST = new PduAutoController.Tuning(4, 2);
 
     private static PduAutoController.Device device(long key, int tier, int demand) {
@@ -28,7 +25,6 @@ class PduAutoControllerTest {
         return new ArrayList<>(Arrays.asList(ds));
     }
 
-    /** Generation alone sustains everything, so nothing is ever shed for want of supply. */
     private static PduAutoController.Supply ample(int budget) {
         return new PduAutoController.Supply(budget, budget, 0, false, true);
     }
@@ -39,7 +35,38 @@ class PduAutoControllerTest {
         return controller;
     }
 
-    // budget: supply against demand
+    @Test
+    void aDeviceHeldOnlyByTheForecastIsNotBlamedOnGeneration() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 500));
+
+        c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+
+        final PduAutoController.Supply dusk = new PduAutoController.Supply(1000, 200, 0, false, true,
+                false, 1000, 0, false, false, 800);
+        final PduAutoController.Plan held = c.decide(branch, dusk, 10L);
+        assertFalse(held.isRunning(1L), "the forecast must still hold it: naming changes no decision");
+        assertEquals(PduReason.SUPPLY_FALLING, held.reasonFor(1L));
+        assertTrue(PduReason.SUPPLY_FALLING.isShed());
+    }
+
+    @Test
+    void aDeviceThatWouldNotFitAnywayIsStillOverBudget() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 1500));
+        c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+
+        final PduAutoController.Supply dusk = new PduAutoController.Supply(1000, 200, 0, false, true,
+                false, 1000, 0, false, false, 800);
+        assertEquals(PduReason.OVER_BUDGET, c.decide(branch, dusk, 10L).reasonFor(1L));
+
+        final PduAutoController c2 = controller();
+        final List<PduAutoController.Device> small = devices(device(1L, NORMAL, 500));
+        c2.decide(small, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+        assertEquals(PduReason.OVER_BUDGET, c2.decide(small,
+                new PduAutoController.Supply(1000, 200, 0, false, true, false, 1000, 0, false, false),
+                10L).reasonFor(1L));
+    }
 
     @Test
     void devicesAreAdmittedDownTheListUntilTheBudgetRunsOut() {
@@ -59,7 +86,7 @@ class PduAutoControllerTest {
     @Test
     void tierOrderBeatsCostSoCriticalIsNeverShedForACheaperOptional() {
         final PduAutoController c = controller();
-        // The OPTIONAL device is far cheaper, so a cost-only sort would admit it and shed CRITICAL.
+
         final PduAutoController.Plan plan = c.decide(devices(
                 device(1L, OPTIONAL, 10),
                 device(2L, CRITICAL, 500)), ample(500), 0L);
@@ -71,7 +98,7 @@ class PduAutoControllerTest {
     @Test
     void aMaxedTierShedsTheHungriestSoTheMostDevicesStayAlive() {
         final PduAutoController c = controller();
-        // [2]
+
         final PduAutoController.Plan plan = c.decide(devices(
                 device(1L, NORMAL, 90),
                 device(2L, NORMAL, 30),
@@ -86,13 +113,10 @@ class PduAutoControllerTest {
     @Test
     void aNewDeviceStartsAdmittedRatherThanShed() {
         final PduAutoController c = controller();
-        // A block just wired to the branch has no history. It should light up, not sit dark waiting
-        // for a restore that needs surplus and a dwell.
+
         final PduAutoController.Plan plan = c.decide(devices(device(1L, NORMAL, 10)), ample(1000), 0L);
         assertTrue(plan.isRunning(1L));
     }
-
-    // the reserve floor: the CRITICAL ride-through
 
     @Test
     void belowTheReserveFloorOnlyCriticalDraws() {
@@ -116,8 +140,6 @@ class PduAutoControllerTest {
         final PduAutoController.Supply outage =
                 new PduAutoController.Supply(0, 0, 0, true, false);
 
-        // No generation at all, floor tripped, no surplus: the pessimal case. Over a hundred steps
-        // CRITICAL must never be dropped, because the floor exists precisely to hold it up.
         for (long now = 0; now < 100; now++) {
             final PduAutoController.Plan plan = c.decide(devices(
                     device(1L, CRITICAL, 500),
@@ -132,26 +154,21 @@ class PduAutoControllerTest {
         final PduAutoController c = controller();
         final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 100));
 
-        // Flip it to running at step 10, so the dwell is live and would otherwise block a change.
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
         assertFalse(c.isRunning(1L));
         c.decide(branch, ample(1000), 10L);
         assertTrue(c.isRunning(1L), "restored once the dwell elapsed");
 
-        // One tick later, well inside the dwell, the floor trips. Waiting here would spend the very
-        // reserve the floor is protecting, so the safety layer is exempt from the dwell.
         final PduAutoController.Plan plan =
                 c.decide(branch, new PduAutoController.Supply(1000, 1000, 0, true, true), 11L);
         assertFalse(plan.isRunning(1L), "a floor trip must not wait out the minimum switching time");
     }
 
-    // hysteresis and the minimum switching time
-
     @Test
     void aDeviceSittingExactlyOnTheBoundaryDoesNotFlapBetweenSteps() {
         final PduAutoController c = controller();
         final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 100));
-        // [3]
+
         final PduAutoController.Supply onTheLine =
                 new PduAutoController.Supply(100, 100, 10, false, true);
 
@@ -176,12 +193,55 @@ class PduAutoControllerTest {
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
         assertFalse(c.isRunning(1L), "shed with no supply");
 
-        // Supply is back immediately, but the dwell is 4 ticks. Steps 1 to 3 must hold.
         for (long now = 1; now < 4; now++) {
             assertFalse(c.decide(branch, ample(1000), now).isRunning(1L),
                     "restored at step " + now + ", inside the dwell");
         }
         assertTrue(c.decide(branch, ample(1000), 4L).isRunning(1L), "restored once the dwell elapsed");
+    }
+
+    @Test
+    void aCriticalDeviceComesBackOnGenerationAloneWithoutWaitingForASurplusSignal() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> branch = devices(device(1L, CRITICAL, 100));
+
+        c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+        assertFalse(c.isRunning(1L), "shed while there was genuinely nothing to give");
+
+        final PduAutoController.Supply rationing =
+                new PduAutoController.Supply(5_000, 5_000, 0, false, false);
+        final PduAutoController.Plan plan = c.decide(branch, rationing, 10L);
+        assertTrue(plan.isRunning(1L), "generation covers it, so critical must come back");
+        assertEquals(PduReason.RUNNING, plan.reasonFor(1L));
+    }
+
+    @Test
+    void anOrdinaryDeviceStillWaitsForSurplusWhileCriticalDoesNot() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> branch = devices(
+                device(1L, CRITICAL, 100),
+                device(2L, NORMAL, 100));
+
+        c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+        final PduAutoController.Plan plan =
+                c.decide(branch, new PduAutoController.Supply(5_000, 5_000, 0, false, false), 10L);
+
+        assertTrue(plan.isRunning(1L), "critical returns");
+        assertFalse(plan.isRunning(2L), "normal waits for a surplus");
+        assertEquals(PduReason.AWAITING_SUPPLY, plan.reasonFor(2L));
+    }
+
+    @Test
+    void aCriticalDeviceThatDoesNotFitGenerationIsStillHeld() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> branch = devices(device(1L, CRITICAL, 9_000));
+
+        c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+        final PduAutoController.Plan plan =
+                c.decide(branch, new PduAutoController.Supply(1_000, 1_000, 0, false, false), 10L);
+
+        assertFalse(plan.isRunning(1L));
+        assertEquals(PduReason.OVER_BUDGET, plan.reasonFor(1L));
     }
 
     @Test
@@ -192,7 +252,6 @@ class PduAutoControllerTest {
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
         assertFalse(c.isRunning(1L));
 
-        // [4]
         final PduAutoController.Supply noSurplus =
                 new PduAutoController.Supply(1000, 1000, 0, false, false);
         for (long now = 4; now < 40; now++) {
@@ -211,21 +270,16 @@ class PduAutoControllerTest {
                 device(2L, NORMAL, 10),
                 device(3L, NORMAL, 10));
 
-        // Shed all three.
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
         assertEquals(0, c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 1L)
                 .admitted().size());
 
-        // Supply returns in abundance. Cold load pickup is a real failure mode, so the controller
-        // must stage the restoration rather than admitting all three on the first eligible step.
         final PduAutoController.Plan first = c.decide(branch, ample(1000), 4L);
         assertEquals(1, first.admitted().size(), "more than one device restored on the same step");
 
-        // The restore interval is 2, so the very next step must not add another.
         assertEquals(1, c.decide(branch, ample(1000), 5L).admitted().size(),
                 "a second device was restored inside the restore interval");
 
-        // Given enough steps all three come back.
         PduAutoController.Plan plan = first;
         for (long now = 6; now < 60; now++) {
             plan = c.decide(branch, ample(1000), now);
@@ -233,23 +287,18 @@ class PduAutoControllerTest {
         assertEquals(3, plan.admitted().size(), "the whole branch should recover eventually");
     }
 
-    // the pulse regression: why the two budgets are asymmetric
-
     @Test
     void aRefilledBufferDoesNotPullAShedDeviceBackIntoAPulse() {
         final PduAutoController c = controller();
-        // One device that generation alone cannot sustain: it needs 1000, generation is 600.
+
         final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 1000));
 
-        // While it runs, generation plus the reserve covers it, so it is allowed to ride the buffer.
         assertTrue(c.decide(branch, new PduAutoController.Supply(1400, 600, 0, false, true), 0L)
                 .isRunning(1L));
 
-        // The reserve drains, the run budget falls under its demand, and it is shed.
         assertFalse(c.decide(branch, new PduAutoController.Supply(700, 600, 0, false, true), 10L)
                 .isRunning(1L));
 
-        // [5]
         for (long now = 20; now < 200; now++) {
             assertFalse(c.decide(branch, new PduAutoController.Supply(1400, 600, 0, false, true), now)
                     .isRunning(1L), "the shed device was pulled back by the reserve at step " + now);
@@ -264,8 +313,6 @@ class PduAutoControllerTest {
         c.decide(branch, new PduAutoController.Supply(700, 600, 0, false, true), 0L);
         assertFalse(c.isRunning(1L), "shed because generation cannot sustain it");
 
-        // Generation itself rises above the demand plus the burst margin. That is a real, durable
-        // improvement rather than a full buffer, so the device is expected back.
         assertTrue(c.decide(branch, new PduAutoController.Supply(1600, 1600, 100, false, true), 10L)
                 .isRunning(1L), "a genuine rise in generation must restore the device");
     }
@@ -275,7 +322,6 @@ class PduAutoControllerTest {
         final PduAutoController c = controller();
         final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 100));
 
-        // [6]
         final PduAutoController.Supply tight =
                 new PduAutoController.Supply(100, 100, 10, false, true);
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
@@ -284,19 +330,15 @@ class PduAutoControllerTest {
                     "restored without clearing the burst margin at step " + now);
         }
 
-        // But a device already running is judged without the margin, so an existing load that fits
-        // the run budget exactly is not shed just to manufacture headroom.
         final PduAutoController fresh = controller();
         assertTrue(fresh.decide(branch, tight, 0L).isRunning(1L),
                 "a running device that fits the run budget exactly should stay running");
     }
 
-    // player overrides
-
     @Test
     void aLockedOffDeviceNeverRunsAndIsNotCountedAsDemand() {
         final PduAutoController c = controller();
-        // [7]
+
         final PduAutoController.Plan plan = c.decide(devices(
                 new PduAutoController.Device(1L, NORMAL, 10_000, FeLock.FORCE_OFF),
                 device(2L, NORMAL, 40),
@@ -314,8 +356,6 @@ class PduAutoControllerTest {
         final List<PduAutoController.Device> branch = devices(
                 new PduAutoController.Device(1L, CRITICAL, 10, FeLock.FORCE_OFF));
 
-        // Critical tier, trivial demand, endless supply, hundreds of steps. None of that matters:
-        // the lock is a statement about intent, not about scarcity.
         for (long now = 0; now < 100; now++) {
             assertFalse(c.decide(branch, ample(100_000), now).isRunning(1L),
                     "locked-off device ran at step " + now);
@@ -343,8 +383,6 @@ class PduAutoControllerTest {
                 device(2L, CRITICAL, 100),
                 device(3L, OPTIONAL, 100)), floorTripped, 0L);
 
-        // An explicit instruction outranks the heuristic about what is worth protecting. The
-        // unlocked Optional device is still shed, so the floor is doing its job around the lock.
         assertTrue(plan.isRunning(1L), "force on outranks the reserve floor");
         assertTrue(plan.isRunning(2L), "and Critical still draws below the floor");
         assertFalse(plan.isRunning(3L), "while an unlocked Optional is still shed");
@@ -353,7 +391,7 @@ class PduAutoControllerTest {
     @Test
     void lockedOnDemandIsChargedBeforeTheOptimizerSpendsTheBudget() {
         final PduAutoController c = controller();
-        // [8]
+
         final PduAutoController.Plan plan = c.decide(devices(
                 new PduAutoController.Device(1L, OPTIONAL, 80, FeLock.FORCE_ON),
                 device(2L, NORMAL, 40)), ample(100), 0L);
@@ -371,13 +409,9 @@ class PduAutoControllerTest {
         c.decide(devices(new PduAutoController.Device(1L, NORMAL, 10, FeLock.FORCE_OFF)), supply, 0L);
         assertFalse(c.isRunning(1L));
 
-        // The lock is cleared. There is plenty of budget, so it should come straight back rather
-        // than being stuck behind a dwell it never earned.
         assertTrue(c.decide(devices(device(1L, NORMAL, 10)), supply, 1L).isRunning(1L),
                 "clearing a lock should hand the device back to the controller, not strand it");
     }
-
-    // reasons: the panel explaining itself
 
     @Test
     void aDeviceThatDoesNotFitSaysSoRatherThanJustGoingDark() {
@@ -411,7 +445,6 @@ class PduAutoControllerTest {
         final PduAutoController c = controller();
         final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 100));
 
-        // [9]
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
         final PduAutoController.Plan held = c.decide(branch, ample(10_000), 1L);
 
@@ -419,7 +452,6 @@ class PduAutoControllerTest {
         assertEquals(PduReason.AWAITING_DWELL, held.reasonFor(1L));
         assertFalse(PduReason.AWAITING_DWELL.isShed(), "holding is a transient, not a shed verdict");
 
-        // Once the dwell elapses it comes back and says so.
         assertEquals(PduReason.RUNNING, c.decide(branch, ample(10_000), 4L).reasonFor(1L));
     }
 
@@ -429,7 +461,7 @@ class PduAutoControllerTest {
         final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 100));
 
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
-        // Budget is ample, dwell has elapsed, but there is no surplus to restore on.
+
         final PduAutoController.Plan plan =
                 c.decide(branch, new PduAutoController.Supply(10_000, 10_000, 0, false, false), 10L);
 
@@ -445,7 +477,7 @@ class PduAutoControllerTest {
                 device(2L, NORMAL, 10));
 
         c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
-        // Both fit and there is surplus, but staged restoration only lets one back per interval.
+
         final PduAutoController.Plan plan = c.decide(branch, ample(10_000), 4L);
 
         assertEquals(1, plan.admitted().size());
@@ -460,7 +492,6 @@ class PduAutoControllerTest {
                 device(1L, CRITICAL, 100),
                 device(2L, OPTIONAL, 100));
 
-        // [10]
         final PduAutoController.Plan generationShort =
                 c.decide(branch, new PduAutoController.Supply(100, 100, 0, false, true, false), 0L);
         assertEquals(PduReason.OVER_BUDGET, generationShort.reasonFor(2L));
@@ -472,26 +503,219 @@ class PduAutoControllerTest {
         assertFalse(wireShort.isRunning(2L), "either way the device is still shed");
     }
 
-    // housekeeping
+    private static PduAutoController.Supply nearlySpent(int runBudget, int criticalBudget) {
+        return new PduAutoController.Supply(runBudget, runBudget, 0, false, true, false,
+                criticalBudget, 1, true, false);
+    }
+
+    private static PduAutoController.Supply healthyReserve(int budget, int depth) {
+        return new PduAutoController.Supply(budget, budget, 0, false, true, false,
+                budget, depth, false, false);
+    }
 
     @Test
-    void switchingHistoryIsForgottenWhenADeviceLeavesTheBranch() {
+    void criticalSpendsTheLastOfTheReserveAndTheOtherTiersDoNot() {
+        final PduAutoController c = controller();
+        final PduAutoController.Plan plan = c.decide(devices(
+                device(1L, CRITICAL, 500),
+                device(2L, NORMAL, 150)), nearlySpent(200, 1_000), 0L);
+
+        assertTrue(plan.isRunning(1L), "Critical is funded by what is left in the banks");
+        assertFalse(plan.isRunning(2L), "Normal is held to what generation alone sustains");
+        assertEquals(PduReason.CORE_RESERVE, plan.reasonFor(2L),
+                "and is told the reserve is being held, not that generation is short");
+    }
+
+    @Test
+    void aNearlySpentReserveBlamesTheReserveRatherThanTheGenerator() {
+        final PduAutoController shortOfSupply = controller();
+        assertEquals(PduReason.OVER_BUDGET, shortOfSupply.decide(devices(
+                device(1L, NORMAL, 500)),
+                new PduAutoController.Supply(100, 100, 0, false, true), 0L).reasonFor(1L));
+
+        final PduAutoController holdingCore = controller();
+        assertEquals(PduReason.CORE_RESERVE, holdingCore.decide(devices(
+                device(1L, NORMAL, 500)), nearlySpent(100, 5_000), 0L).reasonFor(1L));
+    }
+
+    @Test
+    void criticalThatStillDoesNotFitIsToldItIsAShortageNotAHold() {
+        final PduAutoController c = controller();
+        final PduAutoController.Plan plan = c.decide(devices(
+                device(1L, CRITICAL, 9_000)), nearlySpent(100, 1_000), 0L);
+        assertFalse(plan.isRunning(1L));
+        assertEquals(PduReason.OVER_BUDGET, plan.reasonFor(1L));
+    }
+
+    @Test
+    void nothingBelowCriticalIsRestoredWhileTheReserveIsNearlySpent() {
         final PduAutoController c = controller();
 
-        // Shed device 1, so it carries a shed state and a flip time.
         c.decide(devices(device(1L, NORMAL, 100)),
                 new PduAutoController.Supply(0, 0, 0, false, false), 0L);
         assertFalse(c.isRunning(1L));
 
-        // [11]
-        c.decide(devices(device(2L, NORMAL, 10)), ample(1000), 1L);
-        assertTrue(c.isRunning(1L), "history for an absent device should have been dropped");
-
-        assertTrue(c.decide(devices(device(1L, NORMAL, 10)), ample(1000), 2L).isRunning(1L));
+        final PduAutoController.Plan plan = c.decide(devices(device(1L, NORMAL, 100)),
+                nearlySpent(10_000, 10_000), 20L);
+        assertFalse(plan.isRunning(1L), "the core is not spent bringing an ordinary load back");
+        assertEquals(PduReason.CORE_RESERVE, plan.reasonFor(1L));
     }
 
     @Test
-    void anEmptyBranchDecidesToNothingAndClearsItsHistory() {
+    void criticalIsStillRestoredWhileTheReserveIsNearlySpent() {
+        final PduAutoController c = controller();
+        c.decide(devices(device(1L, CRITICAL, 100)),
+                new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+        assertFalse(c.isRunning(1L));
+
+        assertTrue(c.decide(devices(device(1L, CRITICAL, 100)), nearlySpent(10_000, 10_000), 20L)
+                .isRunning(1L), "Critical is the one tier the core is being held for");
+    }
+
+    @Test
+    void aHealthyReserveWithholdsNothing() {
+        final PduAutoController c = controller();
+        final PduAutoController.Plan plan = c.decide(devices(
+                device(1L, CRITICAL, 300),
+                device(2L, NORMAL, 300),
+                device(3L, OPTIONAL, 300)), healthyReserve(2_000, 4), 0L);
+        assertEquals(3, plan.admitted().size(), "a healthy cascade funds the whole branch");
+    }
+
+    @Test
+    void theCriticalBudgetCanNeverBeSmallerThanTheOrdinaryOne() {
+        final PduAutoController.Supply supply =
+                new PduAutoController.Supply(900, 900, 0, false, true, false, 100, 2, false, false);
+        assertEquals(900, supply.criticalBudget());
+        assertEquals(900, supply.budgetFor(CRITICAL));
+        assertEquals(900, supply.budgetFor(NORMAL));
+    }
+
+    @Test
+    void anOlderSupplyWithNoCascadeBehavesExactlyAsItDid() {
+        final PduAutoController.Supply legacy =
+                new PduAutoController.Supply(500, 300, 10, false, true);
+        assertEquals(500, legacy.criticalBudget(), "one budget for everyone");
+        assertEquals(0, legacy.reserveDepth());
+        assertFalse(legacy.reserveLow());
+        assertFalse(legacy.supplyShock());
+    }
+
+    private static PduAutoController.Supply shock(int budget, boolean surplus) {
+        return new PduAutoController.Supply(budget, budget, 0, false, surplus, false,
+                budget, 2, false, true);
+    }
+
+    private static PduAutoController shedAndStartDwell(PduAutoController c, long key) {
+        c.decide(devices(device(key, NORMAL, 100)),
+                new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+        assertFalse(c.isRunning(key), "precondition: the device is shed, with a flip recorded at 0");
+        return c;
+    }
+
+    @Test
+    void aSupplyChangeIsActedOnWithoutWaitingOutTheDwell() {
+        final PduAutoController c = shedAndStartDwell(controller(), 1L);
+        assertTrue(c.decide(devices(device(1L, NORMAL, 100)), shock(10_000, true), 1L).isRunning(1L),
+                "a real topology change is acted on at once");
+    }
+
+    @Test
+    void withoutAShockTheDwellStillHolds() {
+        final PduAutoController c = shedAndStartDwell(controller(), 1L);
+        final PduAutoController.Plan held =
+                c.decide(devices(device(1L, NORMAL, 100)), ample(10_000), 1L);
+        assertFalse(held.isRunning(1L), "a mere measurement dip waits out the anti-flap timer");
+        assertEquals(PduReason.AWAITING_DWELL, held.reasonFor(1L));
+    }
+
+    @Test
+    void aShockShedsPromptlyOnceADeviceHasAFlipOnRecord() {
+        final PduAutoController c = shedAndStartDwell(controller(), 1L);
+        assertTrue(c.decide(devices(device(1L, NORMAL, 100)), shock(10_000, true), 1L).isRunning(1L));
+
+        assertFalse(c.decide(devices(device(1L, NORMAL, 100)), shock(0, false), 2L).isRunning(1L),
+                "the generator is gone and the panel says so this tick, not in three seconds");
+    }
+
+    @Test
+    void aNewGeneratorDoesNotWaitOutTheRestoreInterval() {
+        for (boolean withShock : List.of(false, true)) {
+            final PduAutoController c = controller();
+            final List<PduAutoController.Device> branch =
+                    devices(device(1L, NORMAL, 100), device(2L, NORMAL, 100));
+            c.decide(branch, new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+
+            final PduAutoController.Plan first = c.decide(branch, ample(10_000), 5L);
+            assertEquals(1, first.admitted().size(), "staged restoration, one device per interval");
+            assertEquals(PduReason.STAGED, first.reasonFor(2L));
+
+            final PduAutoController.Plan second =
+                    c.decide(branch, withShock ? shock(10_000, true) : ample(10_000), 6L);
+            assertEquals(withShock ? 2 : 1, second.admitted().size(),
+                    withShock ? "a real supply event resumes restoring at once"
+                            : "otherwise the interval is still being served out");
+        }
+    }
+
+    @Test
+    void aShockStillRespectsTheBudgetAndTheLocks() {
+        final PduAutoController c = controller();
+        final PduAutoController.Plan plan = c.decide(devices(
+                new PduAutoController.Device(1L, NORMAL, 100, FeLock.FORCE_OFF),
+                device(2L, NORMAL, 5_000)), shock(200, true), 0L);
+
+        assertFalse(plan.isRunning(1L), "a device the player switched off stays off");
+        assertEquals(PduReason.LOCKED_OFF, plan.reasonFor(1L));
+        assertFalse(plan.isRunning(2L), "and one that does not fit still does not fit");
+    }
+
+    @Test
+    void aShockDoesNotOverrideTheReserveFloor() {
+        final PduAutoController c = controller();
+        final PduAutoController.Supply belowFloorShock = new PduAutoController.Supply(
+                10_000, 10_000, 0, true, true, false, 10_000, 3, false, true);
+        final PduAutoController.Plan plan = c.decide(devices(
+                device(1L, CRITICAL, 100),
+                device(2L, NORMAL, 100)), belowFloorShock, 0L);
+
+        assertTrue(plan.isRunning(1L));
+        assertFalse(plan.isRunning(2L), "the floor is a safety layer, not a budget");
+        assertEquals(PduReason.BELOW_FLOOR, plan.reasonFor(2L));
+    }
+
+    @Test
+    void switchingHistoryIsForgottenOnceADeviceHasBeenGoneLongerThanTheMemory() {
+        final PduAutoController c = controller();
+        final int memory = c.tuning().forgetTicks();
+
+        c.decide(devices(device(1L, NORMAL, 100)),
+                new PduAutoController.Supply(0, 0, 0, false, false), 0L);
+        assertFalse(c.isRunning(1L));
+
+        c.decide(devices(device(2L, NORMAL, 10)), ample(1000), 1L);
+        c.decide(devices(device(2L, NORMAL, 10)), ample(1000), 2L + memory);
+        final PduAutoController.Plan back = c.decide(devices(device(1L, NORMAL, 10), device(2L, NORMAL, 10)),
+                ample(1000), 3L + memory);
+        assertTrue(back.isRunning(1L), "a forgotten device restored at once on ample supply: no dwell owed");
+    }
+
+    @Test
+    void aBriefAbsenceKeepsADevicesState() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> both = devices(device(1L, NORMAL, 600), device(2L, NORMAL, 600));
+        c.decide(both, new PduAutoController.Supply(700, 700, 0, false, false), 0L);
+        assertTrue(c.isRunning(1L));
+        assertFalse(c.isRunning(2L), "only one 600 fits 700");
+
+        c.decide(devices(), new PduAutoController.Supply(700, 700, 0, false, false), 1L);
+        final PduAutoController.Plan back = c.decide(both, new PduAutoController.Supply(700, 700, 0, false, false), 2L);
+        assertTrue(back.isRunning(1L), "the running device is still running after a one-tick gap");
+        assertFalse(back.isRunning(2L), "the shed device is still shed: the gap did not make it a newcomer");
+    }
+
+    @Test
+    void anEmptyBranchDecidesToNothingAndForgetsOnlyOnceTheMemoryRunsOut() {
         final PduAutoController c = controller();
         c.decide(devices(device(1L, NORMAL, 100)),
                 new PduAutoController.Supply(0, 0, 0, false, false), 0L);
@@ -500,12 +724,94 @@ class PduAutoControllerTest {
         final PduAutoController.Plan plan = c.decide(devices(), ample(1000), 1L);
         assertEquals(0, plan.admitted().size());
         assertEquals(0, plan.admittedDemand());
-        assertTrue(c.isRunning(1L), "an empty branch should not keep stale per-device state");
+        assertFalse(c.isRunning(1L), "inside the memory a device keeps its state across an empty branch");
+
+        c.decide(devices(), ample(1000), 2L + c.tuning().forgetTicks());
+        assertTrue(c.isRunning(1L), "past the memory the history is empty, and an empty history admits");
+    }
+
+    @Test
+    void aNewcomerNeverPushesARunningDeviceOff() {
+        for (boolean surplus : new boolean[] {false, true}) {
+            final PduAutoController c = controller();
+            final PduAutoController.Supply tight = new PduAutoController.Supply(1000, 1000, 100, false, surplus);
+            final List<PduAutoController.Device> before = devices(device(1L, NORMAL, 400), device(2L, NORMAL, 500));
+            for (long t = 0; t < 20; t++) {
+                c.decide(before, tight, t);
+            }
+            final List<PduAutoController.Device> after = devices(device(1L, NORMAL, 400), device(2L, NORMAL, 500),
+                    device(3L, NORMAL, 150));
+            final PduAutoController.Plan plan = c.decide(after, tight, 20L);
+            assertTrue(plan.isRunning(1L));
+            assertTrue(plan.isRunning(2L), "the 500 that was running keeps running, surplus " + surplus);
+            assertFalse(plan.isRunning(3L), "the newcomer is not restored into room it does not have");
+            assertTrue(plan.reasonFor(3L).isShed());
+        }
+    }
+
+    @Test
+    void aShedDeviceIsNeverRestoredBySwappingOutARunningOneOfItsTier() {
+        final PduAutoController c = controller();
+
+        final List<PduAutoController.Device> pair = devices(device(2L, NORMAL, 500), device(3L, NORMAL, 400));
+        c.decide(pair, new PduAutoController.Supply(1000, 1000, 100, false, false), 0L);
+        final List<PduAutoController.Device> branch = devices(device(1L, NORMAL, 150), device(2L, NORMAL, 500),
+                device(3L, NORMAL, 400));
+        assertFalse(c.decide(branch, new PduAutoController.Supply(1000, 1000, 100, false, false), 1L).isRunning(1L));
+
+        final PduAutoController.Supply room = new PduAutoController.Supply(1000, 1000, 100, false, true);
+        for (long t = 2; t < 40; t++) {
+            final PduAutoController.Plan plan = c.decide(branch, room, t);
+            assertTrue(plan.isRunning(2L) && plan.isRunning(3L), "the running pair is never swapped, at step " + t);
+            assertFalse(plan.isRunning(1L), "the 150 has no room beside them, at step " + t);
+        }
+    }
+
+    @Test
+    void aShedCriticalDeviceStillOutranksARunningNormalOne() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> branch = devices(device(1L, CRITICAL, 300), device(2L, NORMAL, 100));
+        final PduAutoController.Plan lean = c.decide(branch, new PduAutoController.Supply(200, 200, 0, false, false), 0L);
+        assertFalse(lean.isRunning(1L), "300 of Critical does not fit 200");
+        assertTrue(lean.isRunning(2L), "the 100 does");
+        final PduAutoController.Plan plan = c.decide(branch,
+                new PduAutoController.Supply(350, 350, 0, false, true), 10L);
+        assertTrue(plan.isRunning(1L), "the Critical device is restored");
+        assertFalse(plan.isRunning(2L), "and the Normal one makes room for it");
+    }
+
+    @Test
+    void aNewcomerThatFitsComesInThroughTheRestoreGate() {
+        final PduAutoController c = controller();
+        final List<PduAutoController.Device> one = devices(device(1L, NORMAL, 100));
+        c.decide(one, ample(1000), 0L);
+        final List<PduAutoController.Device> two = devices(device(1L, NORMAL, 100), device(2L, NORMAL, 100));
+        assertTrue(c.decide(two, ample(1000), 1L).isRunning(2L), "room and surplus: restored on its first step");
+
+        final PduAutoController d = controller();
+        final PduAutoController.Supply lean = new PduAutoController.Supply(1000, 1000, 0, false, false);
+        d.decide(one, lean, 0L);
+        final PduAutoController.Plan waiting = d.decide(two, lean, 1L);
+        assertFalse(waiting.isRunning(2L));
+        assertEquals(PduReason.AWAITING_SUPPLY, waiting.reasonFor(2L));
+    }
+
+    @Test
+    void aNewCriticalDeviceStillTakesItsPowerAtOnce() {
+        final PduAutoController c = controller();
+        final PduAutoController.Supply tight = new PduAutoController.Supply(1000, 1000, 100, false, false);
+        final List<PduAutoController.Device> before = devices(device(1L, NORMAL, 900));
+        for (long t = 0; t < 20; t++) {
+            c.decide(before, tight, t);
+        }
+        final PduAutoController.Plan plan = c.decide(devices(device(1L, NORMAL, 900), device(2L, CRITICAL, 300)),
+                tight, 20L);
+        assertTrue(plan.isRunning(2L), "a new Critical machine runs at once");
+        assertFalse(plan.isRunning(1L), "and the Normal one makes room for it");
     }
 
     @Test
     void theDecisionIsReproducibleWhenTwoDevicesTieOnTierAndCost() {
-        // [12]
         final PduAutoController a = controller();
         final PduAutoController b = controller();
         final PduAutoController.Supply supply = ample(100);

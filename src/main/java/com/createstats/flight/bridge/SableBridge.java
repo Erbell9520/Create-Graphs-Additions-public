@@ -25,24 +25,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** [1] */
+// every read into sable goes through here. reflection, loads without any of them
 public final class SableBridge {
-
-    // capability bootstrap (one-shot, atomic)
-
     private static final AtomicBoolean COMPANION_WARNED        = new AtomicBoolean(false);
     private static final AtomicBoolean SUBLEVEL_PHYS_WARNED    = new AtomicBoolean(false);
     private static final AtomicBoolean AERO_PROPS_WARNED       = new AtomicBoolean(false);
     private static final AtomicBoolean NAV_TABLE_WARNED        = new AtomicBoolean(false);
 
-    // Lazy-initialized capability handles. null = not yet probed; non-null = ready.
     private static volatile @Nullable CompanionCaps   COMPANION;
     private static volatile @Nullable SubLevelPhysCaps PHYS;
     private static volatile @Nullable Class<?> PHYS_SERVER_SUBLEVEL_CLASS;
     private static volatile @Nullable AeroPropCaps    PROPS;
     private static volatile @Nullable NavTableCaps    NAV;
-
-    // per-tick cache
 
     private static volatile long currentTick = Long.MIN_VALUE;
     private static final Map<String, Object> TICK_CACHE = new HashMap<>();
@@ -50,7 +44,6 @@ public final class SableBridge {
 
     private SableBridge() {}
 
-    /** Reset the per-tick cache. Call once per server tick from the FCC BE. */
     public static void beginTick(long tick) {
         synchronized (TICK_CACHE) {
             if (tick != currentTick) {
@@ -60,27 +53,20 @@ public final class SableBridge {
         }
     }
 
-    // top-level availability
-
-    /** {@code true} if the core companion + pose path is callable. */
     public static boolean isAvailable() {
         return companion() != null;
     }
 
-    // =====================================================================
-    // CAPABILITY: companion (SubLevelAccess + logicalPose)
-    // =====================================================================
-
     private static final class CompanionCaps {
-        final Object instance;                    // SableCompanion.INSTANCE
-        final Method getContaining;               // SableCompanion#getContaining(BlockEntity) -> SubLevelAccess
-        final Method getVelocity;                 // SableCompanion#getVelocity(Level, SubLevelAccess, Vec3) -> Vec3
-        final Method logicalPose;                 // SubLevelAccess#logicalPose() -> Pose3dc
-        final Method poseOrientation;             // Pose3dc#orientation() -> Quaterniond
-        final Method posePosition;                // Pose3dc#position() -> Vector3d
-        final Method poseRotationPoint;           // Pose3dc#rotationPoint() -> Vector3d (== CoM local)
-        final Method poseTransformPosition;        // Pose3dc#transformPosition(Vector3dc, Vector3d)
-        final Method poseTransformPositionInverse; // Pose3dc#transformPositionInverse(Vector3dc, Vector3d)
+        final Object instance;
+        final Method getContaining;
+        final Method getVelocity;
+        final Method logicalPose;
+        final Method poseOrientation;
+        final Method posePosition;
+        final Method poseRotationPoint;
+        final Method poseTransformPosition;
+        final Method poseTransformPositionInverse;
         CompanionCaps(Object instance, Method getContaining, Method getVelocity,
                       Method logicalPose, Method poseOrientation, Method posePosition, Method poseRotationPoint,
                       Method poseTransformPosition, Method poseTransformPositionInverse) {
@@ -101,7 +87,8 @@ public final class SableBridge {
         CompanionCaps c = COMPANION;
         if (c != null) return c;
         try {
-            // [2]
+            // Sable.HELPER not SableCompanion.INSTANCE. companion is jij'd twice and our copy's INSTANCE is null. sable tax #8
+
             Class<?> sableClass = Class.forName("dev.ryanhcode.sable.Sable");
             Object instance = sableClass.getField("HELPER").get(null);
             if (instance == null) {
@@ -112,7 +99,6 @@ public final class SableBridge {
             DebugLogging.fccDebug("[FCC/Bridge] companion bootstrap using HELPER class={}",
                     instance.getClass().getName());
 
-            // [3]
             Method getContaining = ReflectionAccessors.findMethodAccepting(
                     instance.getClass(), "getContaining",
                     net.minecraft.world.level.block.entity.BlockEntity.class);
@@ -123,12 +109,9 @@ public final class SableBridge {
                 return null;
             }
 
-            // SubLevelAccess class is derived from getContaining's return type, this is
-            // always from Sable's classloader regardless of which CL we used to bootstrap.
             Class<?> slaClass = getContaining.getReturnType();
             DebugLogging.fccDebug("[FCC/Bridge] slaClass={}", slaClass.getName());
 
-            // logicalPose() → Pose3dc. Zero-arg, resolve from slaClass.
             Method logicalPose = ReflectionAccessors.findMethodAccepting(slaClass, "logicalPose");
             if (logicalPose == null) {
                 if (COMPANION_WARNED.compareAndSet(false, true))
@@ -137,11 +120,8 @@ public final class SableBridge {
             }
             Class<?> poseClass = logicalPose.getReturnType();
 
-            // getVelocity(Level, SubLevelAccess, Vec3), the SubLevelAccess param type is
-            // from Sable's classloader (= slaClass). Match: 3 params, middle param == slaClass.
             Method getVelocity = findVelocityMethod(instance.getClass(), slaClass);
 
-            // Pose accessors (zero-arg).
             Method poseOrientation   = ReflectionAccessors.findMethodAccepting(poseClass, "orientation");
             Method posePosition      = ReflectionAccessors.findMethodAccepting(poseClass, "position");
             Method poseRotationPoint = ReflectionAccessors.findMethodAccepting(poseClass, "rotationPoint");
@@ -171,17 +151,12 @@ public final class SableBridge {
         }
     }
 
-    /**
-     * Find {@code getVelocity(Level, SubLevelAccess, Vec3)} on the companion class.
-     * The SubLevelAccess param type is from Sable's classloader (not ours), so we
-     * match by name + param count + middle-param class identity.
-     */
     @Nullable
     private static Method findVelocityMethod(Class<?> companionClass, Class<?> slaClass) {
         for (Method m : companionClass.getMethods()) {
             if (!m.getName().equals("getVelocity") || m.getParameterCount() != 3) continue;
             Class<?>[] p = m.getParameterTypes();
-            // p[0] must accept Level (or subclass), p[1] must be slaClass, p[2] must accept Vec3
+
             if (p[0].isAssignableFrom(Level.class)
                     && p[1] == slaClass
                     && p[2].isAssignableFrom(Vec3.class)) {
@@ -192,7 +167,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** [4] */
     @Nullable
     public static Object subLevelAccessOf(@Nullable BlockEntity be) {
         if (be == null) return null;
@@ -201,13 +175,8 @@ public final class SableBridge {
         return ReflectionAccessors.invoke(c.getContaining, c.instance, be);
     }
 
-    // =====================================================================
-    // SHIP / SUB-LEVEL ENUMERATION (for targeting). Reflection-only; safe when Sable absent.
-    // =====================================================================
-
     private static final String SUBLEVEL_CONTAINER_CLASS = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
 
-    /** All active sub-levels (ships) in a level, or an empty list when Sable is absent or has none. */
     public static List<Object> listSubLevels(@Nullable Level level) {
         if (level == null) return List.of();
         try {
@@ -233,7 +202,6 @@ public final class SableBridge {
         return List.of();
     }
 
-    /** The stable UUID of a sub-level (ship), or {@code null}. */
     @Nullable
     public static UUID subLevelId(@Nullable Object subLevel) {
         try {
@@ -244,7 +212,6 @@ public final class SableBridge {
         }
     }
 
-    /** A display name for a sub-level (ship), falling back to a short id. */
     public static String subLevelName(@Nullable Object subLevel) {
         try {
             Object n = invokeNoArg(subLevel, "getName");
@@ -255,7 +222,6 @@ public final class SableBridge {
         return id == null ? "Ship" : "Ship " + id.toString().substring(0, 8);
     }
 
-    /** The world-space center of a sub-level (ship), or {@code null}. */
     @Nullable
     public static Vector3d subLevelWorldCenter(@Nullable Object subLevel) {
         Vector3d origin = originWorld(subLevel);
@@ -265,7 +231,6 @@ public final class SableBridge {
         return (world != null && isFinite(world)) ? world : null;
     }
 
-    /** Find an active sub-level (ship) by its UUID, or {@code null}. */
     @Nullable
     public static Object findSubLevelById(@Nullable Level level, @Nullable UUID id) {
         if (id == null) return null;
@@ -308,7 +273,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** The body→world rotation quaternion. Returns a fresh {@link Quaterniond}. */
     @Nullable
     public static Quaterniond bodyOrientation(@Nullable Object subLevelAccess) {
         if (subLevelAccess == null) return null;
@@ -321,7 +285,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** Pose anchor in world coordinates, normally the world-space center of mass. Returns a fresh {@link Vector3d}. */
     @Nullable
     public static Vector3d originWorld(@Nullable Object subLevelAccess) {
         if (subLevelAccess == null) return null;
@@ -334,7 +297,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** Project a sub-level local coordinate into world coordinates using Sable's own pose transform. */
     @Nullable
     public static Vector3d localToWorld(@Nullable Object subLevelAccess, @Nullable Vector3d localPos) {
         if (subLevelAccess == null || localPos == null) return null;
@@ -359,7 +321,7 @@ public final class SableBridge {
         return null;
     }
 
-    /** [5] */
+    // the BE pos stays at the assembly coords while the ship moves, screen opened then closed next frame. sable tax #9
     public static boolean isPlayerInInteractionRangeFor(@Nullable BlockEntity be, @Nullable Player player) {
         if (be == null || player == null || be.isRemoved()) return false;
         Object subLevel = subLevelAccessOf(be);
@@ -371,16 +333,29 @@ public final class SableBridge {
                 double dx = world.x - player.getX();
                 double dy = world.y - player.getY();
                 double dz = world.z - player.getZ();
-                return (dx * dx + dy * dy + dz * dz) <= 1024.0; // 32 blocks
+                return (dx * dx + dy * dy + dz * dz) <= 1024.0;
             }
-            // On a contraption but transform unavailable, trust the open.
+
             return true;
         }
         BlockPos pos = be.getBlockPos();
         return player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0;
     }
 
-    /** Project a world coordinate back into sub-level local coordinates using Sable's own pose transform. */
+    // ship blocks keep plot positions 20.48M out, only the drawing follows. sable tax #10
+    @Nullable
+    public static Vec3 worldPointOf(@Nullable BlockEntity be, Vec3 point) {
+        if (be == null || !SablePresence.LOADED) return point;
+        Object subLevel = subLevelAccessOf(be);
+        if (subLevel == null) return point;
+        Vector3d world = localToWorld(subLevel, new Vector3d(point.x, point.y, point.z));
+        return world != null && isFinite(world) ? new Vec3(world.x, world.y, world.z) : null;
+    }
+
+    private static final class SablePresence {
+        static final boolean LOADED = net.neoforged.fml.ModList.get().isLoaded("sable");
+    }
+
     @Nullable
     public static Vector3d worldToLocal(@Nullable Object subLevelAccess, @Nullable Vector3d worldPos) {
         if (subLevelAccess == null || worldPos == null) return null;
@@ -407,11 +382,49 @@ public final class SableBridge {
         return null;
     }
 
-    /**
-     * Center of mass in sub-level <b>local</b> frame. Sourced from
-     * {@code logicalPose().rotationPoint()}, which {@code MergedMassTracker} writes
-     * each physics tick.
-     */
+    private static volatile @Nullable Class<?> RENDER_POSE_CLASS;
+    private static volatile @Nullable Method RENDER_POSE;
+
+    @Nullable
+    private static Object renderPose(Object subLevelAccess, CompanionCaps c, float partialTick) {
+        final Class<?> cls = subLevelAccess.getClass();
+        Method m = RENDER_POSE;
+        if (cls != RENDER_POSE_CLASS) {
+            m = ReflectionAccessors.findMethodAccepting(cls, "renderPose", float.class);
+            RENDER_POSE = m;
+            RENDER_POSE_CLASS = cls;
+        }
+        final Object pose = m == null ? null : ReflectionAccessors.invoke(m, subLevelAccess, partialTick);
+        return pose != null ? pose : ReflectionAccessors.invoke(c.logicalPose, subLevelAccess);
+    }
+
+    @Nullable
+    public static Vector3d renderLocalToWorld(@Nullable Object subLevelAccess, @Nullable Vector3d localPos,
+                                              float partialTick) {
+        if (subLevelAccess == null || localPos == null) return null;
+        CompanionCaps c = companion();
+        if (c == null || c.poseTransformPosition == null) return null;
+        Object pose = renderPose(subLevelAccess, c, partialTick);
+        if (pose == null) return null;
+        Vector3d dst = new Vector3d();
+        Object out = ReflectionAccessors.invoke(c.poseTransformPosition, pose, new Vector3d(localPos), dst);
+        if (out instanceof Vector3dc vd) return new Vector3d(vd);
+        if (c.poseTransformPosition.getReturnType() == Void.TYPE && isFinite(dst)) return dst;
+        return null;
+    }
+
+    @Nullable
+    public static Quaterniond renderOrientation(@Nullable Object subLevelAccess, float partialTick) {
+        if (subLevelAccess == null) return null;
+        CompanionCaps c = companion();
+        if (c == null) return null;
+        Object pose = renderPose(subLevelAccess, c, partialTick);
+        if (pose == null) return null;
+        Object q = ReflectionAccessors.invoke(c.poseOrientation, pose);
+        if (q instanceof Quaterniondc qd) return new Quaterniond(qd);
+        return null;
+    }
+
     @Nullable
     public static Vector3d centerOfMassLocal(@Nullable Object subLevelAccess) {
         if (subLevelAccess == null) return null;
@@ -424,14 +437,6 @@ public final class SableBridge {
         return null;
     }
 
-    /**
-     * Velocity of a fixed world-space point on the contraption (includes rotational
-     * contribution via the rigid body). Result is cached per-tick keyed on world coords.
-     *
-     * @param outerLevel the real Minecraft {@link Level} (NOT the sub-level)
-     * @param subLevelAccess the SubLevelAccess from {@link #subLevelAccessOf}
-     * @param worldPos the world-space query point (typically world CoM)
-     */
     @Nullable
     public static Vec3 velocityAt(@Nullable Level outerLevel, @Nullable Object subLevelAccess, @Nullable Vec3 worldPos) {
         if (outerLevel == null || subLevelAccess == null || worldPos == null) return null;
@@ -440,7 +445,6 @@ public final class SableBridge {
         Vector3d local = worldToLocal(subLevelAccess, new Vector3d(worldPos.x, worldPos.y, worldPos.z));
         if (local == null) return null;
 
-        // Cache key includes coords (defensive, a Vec3 reused across calls would alias otherwise).
         String key = "vel:" + System.identityHashCode(subLevelAccess)
                 + ':' + Double.doubleToLongBits(worldPos.x)
                 + ':' + Double.doubleToLongBits(worldPos.y)
@@ -457,24 +461,79 @@ public final class SableBridge {
         return out;
     }
 
+    private static volatile @Nullable Method GROUND_VELOCITY_WORLD;
+    private static volatile @Nullable Method AIR_VELOCITY_WORLD;
+    private static final AtomicBoolean AIR_VELOCITY_PROBED = new AtomicBoolean(false);
+    private static final AtomicBoolean AIR_VELOCITY_WARNED = new AtomicBoolean(false);
+
+    private static void probeWorldVelocityMethods(Class<?> companionClass) {
+        if (!AIR_VELOCITY_PROBED.compareAndSet(false, true)) return;
+        for (Method m : companionClass.getMethods()) {
+            if (m.getParameterCount() != 2) continue;
+            Class<?>[] p = m.getParameterTypes();
+            if (!p[0].isAssignableFrom(Level.class)) continue;
+            if (p[1] != Vec3.class) continue;
+            if (m.getReturnType() != Vec3.class) continue;
+            if (m.getName().equals("getVelocity")) {
+                m.setAccessible(true);
+                GROUND_VELOCITY_WORLD = m;
+            } else if (m.getName().equals("getVelocityRelativeToAir")) {
+                m.setAccessible(true);
+                AIR_VELOCITY_WORLD = m;
+            }
+        }
+        if (AIR_VELOCITY_WORLD == null && AIR_VELOCITY_WARNED.compareAndSet(false, true)) {
+            CreateStats.LOGGER.warn("[FCC/Bridge] getVelocityRelativeToAir(Level, Vec3) not found on {}; airspeed unavailable",
+                    companionClass.getName());
+        }
+        DebugLogging.fccDebug("[FCC/Bridge] world velocity ground={} air={}",
+                GROUND_VELOCITY_WORLD != null, AIR_VELOCITY_WORLD != null);
+    }
+
+    @Nullable
+    private static Vec3 invokeWorldVelocity(boolean relativeToAir, @Nullable Level level, @Nullable Vec3 worldPos) {
+        if (level == null || worldPos == null) return null;
+        CompanionCaps c = companion();
+        if (c == null) return null;
+        probeWorldVelocityMethods(c.instance.getClass());
+        Method m = relativeToAir ? AIR_VELOCITY_WORLD : GROUND_VELOCITY_WORLD;
+        if (m == null) return null;
+        Object res = ReflectionAccessors.invoke(m, c.instance, level, worldPos);
+        return (res instanceof Vec3 v) ? v : null;
+    }
+
+    @Nullable
+    public static Vec3 groundVelocityWorldAt(@Nullable Level level, @Nullable Vec3 worldPos) {
+        return invokeWorldVelocity(false, level, worldPos);
+    }
+
+    @Nullable
+    public static Vec3 airVelocityWorldAt(@Nullable Level level, @Nullable Vec3 worldPos) {
+        return invokeWorldVelocity(true, level, worldPos);
+    }
+
+    @Nullable
+    public static Vec3 windWorldAt(@Nullable Level level, @Nullable Vec3 worldPos) {
+        Vec3 ground = groundVelocityWorldAt(level, worldPos);
+        Vec3 air = airVelocityWorldAt(level, worldPos);
+        if (ground == null || air == null) return null;
+        return ground.subtract(air);
+    }
+
     private static boolean isFinite(Vector3d v) {
         return Double.isFinite(v.x) && Double.isFinite(v.y) && Double.isFinite(v.z);
     }
 
-    // =====================================================================
-    // CAPABILITY: subLevelPhysics (mass, inertia, gravity, RigidBodyHandle)
-    // =====================================================================
-
     private static final class SubLevelPhysCaps {
-        @Nullable final Method getMassTracker;        // ServerSubLevel#getMassTracker() -> MassTracker
-        @Nullable final Method massTrackerGetMass;    // MassTracker#getMass() -> double
-        @Nullable final Method massTrackerInertia;    // MassTracker#getInertiaTensor() -> Matrix3d
-        @Nullable final Method massTrackerCoM;        // MassTracker#getCenterOfMass() -> Vector3d (fallback)
-        @Nullable final Method getGravityVector;      // SubLevel#getGravityVector() -> Vector3d
-        @Nullable final Method handleOf;              // RigidBodyHandle.of(ServerSubLevel) -> RigidBodyHandle
-        @Nullable final Method handleIsValid;         // RigidBodyHandle#isValid() -> boolean
-        @Nullable final Method handleAngularVel;      // RigidBodyHandle#getAngularVelocity(Vector3d) -> Vector3d
-        @Nullable final Method handleLinearVel;       // RigidBodyHandle#getLinearVelocity(Vector3d) -> Vector3d
+        @Nullable final Method getMassTracker;
+        @Nullable final Method massTrackerGetMass;
+        @Nullable final Method massTrackerInertia;
+        @Nullable final Method massTrackerCoM;
+        @Nullable final Method getGravityVector;
+        @Nullable final Method handleOf;
+        @Nullable final Method handleIsValid;
+        @Nullable final Method handleAngularVel;
+        @Nullable final Method handleLinearVel;
         SubLevelPhysCaps(Method gmt, Method mass, Method inertia, Method com, Method grav,
                          Method ho, Method hv, Method ang, Method lin) {
             this.getMassTracker = gmt; this.massTrackerGetMass = mass;
@@ -539,7 +598,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** Total mass in kg (or whatever Sable's units are). NaN if unavailable. */
     public static double mass(@Nullable BlockEntity be) {
         Object sl = serverSubLevelOf(be);
         if (sl == null) return Double.NaN;
@@ -552,7 +610,6 @@ public final class SableBridge {
         return Double.NaN;
     }
 
-    /** [6] */
     @Nullable
     public static double[] inertiaTensor(@Nullable BlockEntity be) {
         Object sl = serverSubLevelOf(be);
@@ -571,7 +628,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** [7] */
     @Nullable
     public static Vector3d gravityWorld(@Nullable BlockEntity be) {
         Object sl = serverSubLevelOf(be);
@@ -595,7 +651,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** Fallback enabled after in-game testing showed {@code ServerSubLevel#getGravityVector()} can return null. */
     public static volatile boolean USE_DIMENSION_PHYSICS_GRAVITY_FALLBACK = true;
 
     @Nullable
@@ -622,11 +677,10 @@ public final class SableBridge {
                 res = ReflectionAccessors.invoke(getGrav, inst, level);
             }
             if (res instanceof Vector3dc vd) return new Vector3d(vd);
-        } catch (LinkageError | RuntimeException ignore) { /* dormant fallback, silent */ }
+        } catch (LinkageError | RuntimeException ignore) {  }
         return null;
     }
 
-    /** Angular velocity in world frame, fresh copy. */
     @Nullable
     public static Vector3d angularVelocityWorld(@Nullable BlockEntity be) {
         Object handle = rigidBodyHandle(be);
@@ -641,7 +695,6 @@ public final class SableBridge {
         return new Vector3d(dst);
     }
 
-    /** Linear velocity in world frame, fresh copy. */
     @Nullable
     public static Vector3d linearVelocityWorld(@Nullable BlockEntity be) {
         Object handle = rigidBodyHandle(be);
@@ -656,9 +709,6 @@ public final class SableBridge {
         return new Vector3d(dst);
     }
 
-    // [8]
-
-    /** [9] */
     @Nullable
     private static Object resolveServerSubLevelForPhysics(@Nullable Object subLevel) {
         if (subLevel == null) return null;
@@ -681,7 +731,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** COM linear velocity (world frame) for a target sub-level Object. {@code null} if unavailable. */
     @Nullable
     public static Vector3d linearVelocityWorldOf(@Nullable Object subLevel) {
         Object sl = resolveServerSubLevelForPhysics(subLevel);
@@ -696,7 +745,6 @@ public final class SableBridge {
         return new Vector3d(dst);
     }
 
-    /** COM angular velocity (world frame, rad/tick) for a target sub-level Object. {@code null} if unavailable. */
     @Nullable
     public static Vector3d angularVelocityWorldOf(@Nullable Object subLevel) {
         Object sl = resolveServerSubLevelForPhysics(subLevel);
@@ -711,7 +759,6 @@ public final class SableBridge {
         return new Vector3d(dst);
     }
 
-    /** Gravity vector (world frame) for a target sub-level Object. {@code null} if unavailable. */
     @Nullable
     public static Vector3d gravityWorldOf(@Nullable Object subLevel) {
         Object sl = resolveServerSubLevelForPhysics(subLevel);
@@ -723,7 +770,6 @@ public final class SableBridge {
         return null;
     }
 
-    /** Total mass for a target sub-level Object. {@code NaN} if unavailable. */
     public static double massOf(@Nullable Object subLevel) {
         Object sl = resolveServerSubLevelForPhysics(subLevel);
         if (sl == null) return Double.NaN;
@@ -794,7 +840,6 @@ public final class SableBridge {
         return handle;
     }
 
-    /** {@code be.getLevel()} downcast to ServerSubLevel if applicable; else {@code null}. */
     @Nullable
     public static Object serverSubLevelOf(@Nullable BlockEntity be) {
         if (be == null) return null;
@@ -829,32 +874,25 @@ public final class SableBridge {
         return ownLevel instanceof ServerLevel serverLevel ? serverLevel : null;
     }
 
-    // =====================================================================
-    // CAPABILITY: aeronauticsProps
-    // =====================================================================
-
-    /** Snapshot of one propeller bearing's relevant state. All vectors are fresh copies. */
     public record PropData(
-            double thrustSigned,            // Physical force scalar along thrustDirLocal
-                                            // (positive = force in direction of thrustDirLocal).
-                                            // Equals -BlockEntityPropeller.getThrust() because
-                                            // Sable applies -getThrust * airflow * pressure.
-            double rpm,                     // getRotationSpeed()
-            float sailPower,                // totalSailPower
-            Vector3d thrustDirLocal,        // sub-level local frame (NOT world)
-            @Nullable Quaternionf tiltQuat, // gyro: actual lerp'd orientation
+            double thrustSigned,
+
+            double rpm,
+            float sailPower,
+            Vector3d thrustDirLocal,
+            @Nullable Quaternionf tiltQuat,
             boolean isGyro
     ) {}
 
     private static final class AeroPropCaps {
         @Nullable final Class<?> propClass;
         @Nullable final Class<?> gyroClass;
-        @Nullable final Field    thrustDirection;     // PropellerBearingBE.thrustDirection (Vector3d, sublevel-local)
-        @Nullable final Field    totalSailPower;      // PropellerBearingBE.totalSailPower (float)
-        @Nullable final Method   getThrust;           // PropellerBearingBE.getThrust() -> double
-        @Nullable final Method   getRotationSpeed;    // PropellerBearingBE.getRotationSpeed() -> float
-        @Nullable final Field    tiltQuat;            // GyroscopicPropellerBearingBE.tiltQuat (Quaternionf)
-        @Nullable final Field    tiltVector;          // GyroscopicPropellerBearingBE.tiltVector (Vector3d, protected final, must mutate in place)
+        @Nullable final Field    thrustDirection;
+        @Nullable final Field    totalSailPower;
+        @Nullable final Method   getThrust;
+        @Nullable final Method   getRotationSpeed;
+        @Nullable final Field    tiltQuat;
+        @Nullable final Field    tiltVector;
         AeroPropCaps(Class<?> pc, Class<?> gc, Field td, Field sp, Method gt, Method gr, Field tq, Field tv) {
             this.propClass = pc; this.gyroClass = gc; this.thrustDirection = td; this.totalSailPower = sp;
             this.getThrust = gt; this.getRotationSpeed = gr; this.tiltQuat = tq; this.tiltVector = tv;
@@ -890,7 +928,6 @@ public final class SableBridge {
         }
     }
 
-    /** Read a snapshot of a propeller bearing BE. Returns {@code null} if {@code be} is not a propeller. */
     @Nullable
     public static PropData readProp(@Nullable BlockEntity be) {
         if (be == null) return null;
@@ -908,7 +945,7 @@ public final class SableBridge {
 
         Object thObj = ReflectionAccessors.invoke(a.getThrust, be);
         double rawThrust = (thObj instanceof Number n) ? n.doubleValue() : 0.0;
-        // [10]
+
         double th = -rawThrust;
 
         Object rpmObj = ReflectionAccessors.invoke(a.getRotationSpeed, be);
@@ -923,14 +960,6 @@ public final class SableBridge {
         return new PropData(th, rpm, sp, dir, q, isGyro);
     }
 
-    /**
-     * Write a new target tilt direction into a gyro propeller's {@code tiltVector} field.
-     * <b>Mutates in place</b> (the field is {@code protected final} so we cannot replace it).
-     *
-     * <p>The vector is in <b>sub-level local</b> frame.</p>
-     *
-     * @return {@code true} if the write succeeded, {@code false} otherwise
-     */
     public static boolean writeGyroTiltVector(@Nullable BlockEntity gyroBE, double x, double y, double z) {
         if (gyroBE == null) return false;
         AeroPropCaps a = props();
@@ -938,29 +967,43 @@ public final class SableBridge {
         if (!a.gyroClass.isInstance(gyroBE)) return false;
         Object tv = ReflectionAccessors.read(a.tiltVector, gyroBE);
         if (!(tv instanceof Vector3d vec)) return false;
-        // In-place mutation, required because field is protected final.
+
         vec.set(x, y, z);
         return true;
     }
 
-    // =====================================================================
-    // CAPABILITY: navTable
-    // =====================================================================
-
     private static final class NavTableCaps {
         @Nullable final Class<?> navClass;
-        @Nullable final Field    currentTarget;     // public Vec3 currentTarget
-        NavTableCaps(Class<?> c, Field f) { this.navClass = c; this.currentTarget = f; }
+        @Nullable final Field    currentTarget;
+        @Nullable final Method   distanceToTarget;
+        @Nullable final Method   lastDistance;
+        @Nullable final Method   relativeAngle;
+        @Nullable final Method   projectedSelfPos;
+        NavTableCaps(Class<?> c, Field f, Method d, Method l, Method a, Method p) {
+            this.navClass = c; this.currentTarget = f;
+            this.distanceToTarget = d; this.lastDistance = l;
+            this.relativeAngle = a; this.projectedSelfPos = p;
+        }
     }
+
+    public record NavReading(Vec3 target, double distance, double closingRate,
+                             double relativeAngleDeg, @Nullable Vec3 projectedSelf) {}
+
+    public static final int NAV_SAMPLE_INTERVAL_TICKS = 11;
 
     @Nullable
     private static NavTableCaps nav() {
         NavTableCaps n = NAV;
         if (n != null) return n;
         try {
-            Class<?> c = ReflectionAccessors.findClass("dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlockEntity");
-            Field f = (c != null) ? ReflectionAccessors.field(c, "currentTarget") : null;
-            n = new NavTableCaps(c, f);
+            Class<?> c = ReflectionAccessors.findClass(
+                    "dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlockEntity");
+            n = new NavTableCaps(c,
+                    (c != null) ? ReflectionAccessors.field(c, "currentTarget") : null,
+                    (c != null) ? ReflectionAccessors.method(c, "distanceToTarget") : null,
+                    (c != null) ? ReflectionAccessors.method(c, "lastDistanceToTarget") : null,
+                    (c != null) ? ReflectionAccessors.method(c, "getRelativeAngle") : null,
+                    (c != null) ? ReflectionAccessors.method(c, "getProjectedSelfPos") : null);
             NAV = n;
             return n;
         } catch (LinkageError | RuntimeException ex) {
@@ -970,7 +1013,28 @@ public final class SableBridge {
         }
     }
 
-    /** Current world-space target of a Nav Table BE, or {@code null} if not navigating. */
+    @Nullable
+    public static NavReading readNav(@Nullable BlockEntity navBE) {
+        NavTableCaps n = nav();
+        if (navBE == null || n == null || n.navClass == null || !n.navClass.isInstance(navBE)) return null;
+        Vec3 target = navTableTarget(navBE);
+        if (target == null) return null;
+
+        Double distance = asDouble(ReflectionAccessors.invoke(n.distanceToTarget, navBE));
+        Double last = asDouble(ReflectionAccessors.invoke(n.lastDistance, navBE));
+        Double angle = asDouble(ReflectionAccessors.invoke(n.relativeAngle, navBE));
+        Object projected = ReflectionAccessors.invoke(n.projectedSelfPos, navBE);
+
+        double resolvedDistance = distance == null ? Double.NaN : distance;
+
+        double rate = (distance != null && last != null)
+                ? (last - distance) / NAV_SAMPLE_INTERVAL_TICKS
+                : Double.NaN;
+        return new NavReading(target, resolvedDistance, rate,
+                angle == null ? Double.NaN : angle,
+                projected instanceof Vec3 v ? v : null);
+    }
+
     @Nullable
     public static Vec3 navTableTarget(@Nullable BlockEntity navBE) {
         if (navBE == null) return null;
@@ -981,9 +1045,38 @@ public final class SableBridge {
         return (v instanceof Vec3 vec) ? vec : null;
     }
 
-    // =====================================================================
-    // CAPABILITY: sensors (Simulated GimbalSensor / AltitudeSensor / VelocitySensor)
-    // =====================================================================
+    @Nullable
+    public static Vec3 navTableProjectedTarget(@Nullable BlockEntity navBE) {
+        NavTableCaps n = nav();
+        if (navBE == null || n == null || n.navClass == null || !n.navClass.isInstance(navBE)) return null;
+        Method m = ReflectionAccessors.method(n.navClass, "getTargetPosition", boolean.class);
+        Object v = ReflectionAccessors.invoke(m, navBE, true);
+        return v instanceof Vec3 vec ? vec : null;
+    }
+
+    public static net.minecraft.world.item.ItemStack navTableItem(@Nullable BlockEntity navBE) {
+        NavTableCaps n = nav();
+        if (navBE == null || n == null || n.navClass == null || !n.navClass.isInstance(navBE)) {
+            return net.minecraft.world.item.ItemStack.EMPTY;
+        }
+        Object v = ReflectionAccessors.invoke(ReflectionAccessors.method(n.navClass, "getHeldItem"), navBE);
+        return v instanceof net.minecraft.world.item.ItemStack s ? s : net.minecraft.world.item.ItemStack.EMPTY;
+    }
+
+    private static volatile @Nullable Method projectOut;
+
+    public static Vec3 projectOutOfSubLevel(Level level, Vec3 point) {
+        CompanionCaps c = companion();
+        if (c == null || level == null || point == null) return point;
+        Method m = projectOut;
+        if (m == null) {
+            m = ReflectionAccessors.findMethodAccepting(c.instance.getClass(), "projectOutOfSubLevel", Level.class, Vec3.class);
+            if (m == null) return point;
+            projectOut = m;
+        }
+        Object v = ReflectionAccessors.invoke(m, c.instance, level, point);
+        return v instanceof Vec3 out && Double.isFinite(out.x) && Double.isFinite(out.z) ? out : point;
+    }
 
     private static final AtomicBoolean SENSORS_WARNED = new AtomicBoolean(false);
 
@@ -991,8 +1084,35 @@ public final class SableBridge {
         @Nullable final Class<?> gimbalClass;
         @Nullable final Class<?> altitudeClass;
         @Nullable final Class<?> velocityClass;
-        SensorCaps(Class<?> g, Class<?> a, Class<?> v) {
-            this.gimbalClass = g; this.altitudeClass = a; this.velocityClass = v;
+        @Nullable final Class<?> opticalClass;
+
+        @Nullable final Method gimbalXAngle;
+        @Nullable final Method gimbalZAngle;
+
+        @Nullable final Method altWorldHeight;
+        @Nullable final Method altNormalHeight;
+        @Nullable final Method altAirPressure;
+        @Nullable final Method altSignal;
+
+        @Nullable final Method velAdjusted;
+        @Nullable final Method velNormal;
+        @Nullable final Method velRedstone;
+
+        @Nullable final Method optRayDistance;
+        @Nullable final Method optHitDistance;
+        @Nullable final Method optHitBlock;
+        @Nullable final Method optRange;
+
+        SensorCaps(Class<?> g, Class<?> a, Class<?> v, Class<?> o,
+                   Method gx, Method gz,
+                   Method aw, Method an, Method ap, Method as,
+                   Method va, Method vn, Method vr,
+                   Method ord, Method ohd, Method ohb, Method orr) {
+            this.gimbalClass = g; this.altitudeClass = a; this.velocityClass = v; this.opticalClass = o;
+            this.gimbalXAngle = gx; this.gimbalZAngle = gz;
+            this.altWorldHeight = aw; this.altNormalHeight = an; this.altAirPressure = ap; this.altSignal = as;
+            this.velAdjusted = va; this.velNormal = vn; this.velRedstone = vr;
+            this.optRayDistance = ord; this.optHitDistance = ohd; this.optHitBlock = ohb; this.optRange = orr;
         }
     }
 
@@ -1003,12 +1123,28 @@ public final class SableBridge {
         SensorCaps s = SENSORS;
         if (s != null) return s;
         try {
-            // FQNs verified against SimulatedCompatHelper:70-72.
             Class<?> g = ReflectionAccessors.findClass("dev.simulated_team.simulated.content.blocks.gimbal_sensor.GimbalSensorBlockEntity");
             Class<?> a = ReflectionAccessors.findClass("dev.simulated_team.simulated.content.blocks.altitude_sensor.AltitudeSensorBlockEntity");
             Class<?> v = ReflectionAccessors.findClass("dev.simulated_team.simulated.content.blocks.velocity_sensor.VelocitySensorBlockEntity");
-            s = new SensorCaps(g, a, v);
+            Class<?> o = ReflectionAccessors.findClass("dev.simulated_team.simulated.content.blocks.lasers.optical_sensor.OpticalSensorBlockEntity");
+
+            s = new SensorCaps(g, a, v, o,
+                    (g != null) ? ReflectionAccessors.method(g, "getXAngle") : null,
+                    (g != null) ? ReflectionAccessors.method(g, "getZAngle") : null,
+                    (a != null) ? ReflectionAccessors.method(a, "getWorldHeight") : null,
+                    (a != null) ? ReflectionAccessors.method(a, "getNormalHeight") : null,
+                    (a != null) ? ReflectionAccessors.method(a, "getAirPressure") : null,
+                    (a != null) ? ReflectionAccessors.method(a, "getSignal") : null,
+                    (v != null) ? ReflectionAccessors.method(v, "getAdjustedVelocity") : null,
+                    (v != null) ? ReflectionAccessors.method(v, "getCurrentNormal") : null,
+                    (v != null) ? ReflectionAccessors.method(v, "getRedstoneStrength") : null,
+                    (o != null) ? ReflectionAccessors.method(o, "getRayDistance") : null,
+                    (o != null) ? ReflectionAccessors.method(o, "getHitBlockDistance") : null,
+                    (o != null) ? ReflectionAccessors.method(o, "getHitBlock") : null,
+                    (o != null) ? ReflectionAccessors.method(o, "getLaserRange") : null);
             SENSORS = s;
+            DebugLogging.fccDebug("[FCC/Bridge] sensors gimbal={} altitude={} velocity={} optical={}",
+                    g != null, a != null, v != null, o != null);
             return s;
         } catch (LinkageError | RuntimeException ex) {
             if (SENSORS_WARNED.compareAndSet(false, true))
@@ -1020,11 +1156,9 @@ public final class SableBridge {
     @Nullable public static Class<?> gimbalSensorClass()   { SensorCaps s = sensors(); return s == null ? null : s.gimbalClass; }
     @Nullable public static Class<?> altitudeSensorClass() { SensorCaps s = sensors(); return s == null ? null : s.altitudeClass; }
     @Nullable public static Class<?> velocitySensorClass() { SensorCaps s = sensors(); return s == null ? null : s.velocityClass; }
+    @Nullable public static Class<?> opticalSensorClass()  { SensorCaps s = sensors(); return s == null ? null : s.opticalClass; }
     @Nullable public static Class<?> navTableClass()       { NavTableCaps n = nav();   return n == null ? null : n.navClass; }
 
-    // predicate-based matchers (use class token when available; fall back to BE-type registry key)
-
-    /** [11] */
     public static boolean matchesGimbalSensor(BlockEntity be) {
         Class<?> cls = gimbalSensorClass();
         if (cls != null) return cls.isInstance(be);
@@ -1057,11 +1191,235 @@ public final class SableBridge {
         return rl != null && rl.getNamespace().equals("simulated") && rl.getPath().equals("nav_table");
     }
 
-    // =====================================================================
-    // Sensor / on-contraption block discovery
-    // =====================================================================
+    public record GimbalReading(double xAngleDeg, double zAngleDeg) {}
 
-    /** [12] */
+    public record AltitudeReading(double worldHeight, double normalHeight, double airPressure, int signal) {}
+
+    public record VelocityReading(double alongNormal, Vector3d normal, int signal) {}
+
+    public record OpticalReading(double distance, double range, boolean hit, @Nullable String hitBlockName) {}
+
+    @Nullable
+    public static GimbalReading readGimbal(@Nullable BlockEntity be) {
+        SensorCaps s = sensors();
+        if (be == null || s == null || s.gimbalClass == null || !s.gimbalClass.isInstance(be)) return null;
+        Double x = asDouble(ReflectionAccessors.invoke(s.gimbalXAngle, be));
+        Double z = asDouble(ReflectionAccessors.invoke(s.gimbalZAngle, be));
+        if (x == null && z == null) return null;
+        return new GimbalReading(x == null ? 0.0 : x, z == null ? 0.0 : z);
+    }
+
+    @Nullable
+    public static AltitudeReading readAltitude(@Nullable BlockEntity be) {
+        SensorCaps s = sensors();
+        if (be == null || s == null || s.altitudeClass == null || !s.altitudeClass.isInstance(be)) return null;
+        Double world = asDouble(ReflectionAccessors.invoke(s.altWorldHeight, be));
+        Double normal = asDouble(ReflectionAccessors.invoke(s.altNormalHeight, be));
+        Double pressure = asDouble(ReflectionAccessors.invoke(s.altAirPressure, be));
+        Double signal = asDouble(ReflectionAccessors.invoke(s.altSignal, be));
+        if (world == null && normal == null && pressure == null) return null;
+        return new AltitudeReading(
+                world == null ? Double.NaN : world,
+                normal == null ? Double.NaN : normal,
+                pressure == null ? Double.NaN : pressure,
+                signal == null ? 0 : (int) Math.round(signal));
+    }
+
+    @Nullable
+    public static VelocityReading readVelocity(@Nullable BlockEntity be) {
+        SensorCaps s = sensors();
+        if (be == null || s == null || s.velocityClass == null || !s.velocityClass.isInstance(be)) return null;
+        Double along = asDouble(ReflectionAccessors.invoke(s.velAdjusted, be));
+        if (along == null) return null;
+        Vector3d normal = new Vector3d();
+        Object n = ReflectionAccessors.invoke(s.velNormal, be);
+        if (n instanceof Vector3dc vc) normal.set(vc.x(), vc.y(), vc.z());
+        Double signal = asDouble(ReflectionAccessors.invoke(s.velRedstone, be));
+        return new VelocityReading(along, normal, signal == null ? 0 : (int) Math.round(signal));
+    }
+
+    @Nullable
+    public static OpticalReading readOptical(@Nullable BlockEntity be) {
+        SensorCaps s = sensors();
+        if (be == null || s == null || s.opticalClass == null || !s.opticalClass.isInstance(be)) return null;
+        Double ray = asDouble(ReflectionAccessors.invoke(s.optRayDistance, be));
+        Double hitDist = asDouble(ReflectionAccessors.invoke(s.optHitDistance, be));
+        Double range = asDouble(ReflectionAccessors.invoke(s.optRange, be));
+        if (ray == null && hitDist == null) return null;
+        Object block = ReflectionAccessors.invoke(s.optHitBlock, be);
+        String blockName = null;
+        if (block instanceof net.minecraft.world.level.block.Block b) {
+            net.minecraft.resources.ResourceLocation rl =
+                    net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(b);
+            if (rl != null) blockName = rl.toString();
+        }
+        double distance = hitDist != null && hitDist > 0.0 ? hitDist : (ray == null ? Double.NaN : ray);
+        return new OpticalReading(distance, range == null ? Double.NaN : range, blockName != null, blockName);
+    }
+
+    private static final AtomicBoolean SWIVEL_WARNED = new AtomicBoolean(false);
+
+    private static final class SwivelCaps {
+        @Nullable final Class<?> swivelClass;
+        @Nullable final Field targetAngle;
+        @Nullable final Method getTargetAngle;
+        @Nullable final Method updateServo;
+        @Nullable final Method isAssembled;
+        SwivelCaps(Class<?> c, Field ta, Method gta, Method us, Method ia) {
+            this.swivelClass = c; this.targetAngle = ta; this.getTargetAngle = gta;
+            this.updateServo = us; this.isAssembled = ia;
+        }
+    }
+
+    private static volatile @Nullable SwivelCaps SWIVEL;
+
+    @Nullable
+    private static SwivelCaps swivel() {
+        SwivelCaps s = SWIVEL;
+        if (s != null) return s;
+        try {
+            Class<?> c = ReflectionAccessors.findClass(
+                    "dev.simulated_team.simulated.content.blocks.swivel_bearing.SwivelBearingBlockEntity");
+            s = new SwivelCaps(c,
+                    (c != null) ? ReflectionAccessors.field(c, "targetAngleDegrees") : null,
+                    (c != null) ? ReflectionAccessors.method(c, "getTargetAngleDegrees") : null,
+                    (c != null) ? ReflectionAccessors.method(c, "updateServoCoefficients") : null,
+                    (c != null) ? ReflectionAccessors.method(c, "isAssembled") : null);
+            SWIVEL = s;
+            DebugLogging.fccDebug("[FCC/Bridge] swivel bearing class={} writable={}",
+                    c != null, s.targetAngle != null);
+            return s;
+        } catch (LinkageError | RuntimeException ex) {
+            if (SWIVEL_WARNED.compareAndSet(false, true))
+                CreateStats.LOGGER.warn("[FCC/Bridge] swivel bearing bootstrap failed: {}", ex.toString());
+            return null;
+        }
+    }
+
+    public static boolean matchesSwivelBearing(@Nullable BlockEntity be) {
+        if (be == null) return false;
+        SwivelCaps s = swivel();
+        if (s != null && s.swivelClass != null) return s.swivelClass.isInstance(be);
+        net.minecraft.resources.ResourceLocation rl =
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(be.getType());
+        return rl != null && rl.getNamespace().equals("simulated") && rl.getPath().equals("swivel_bearing");
+    }
+
+    @Nullable
+    public static Double readSwivelTargetAngle(@Nullable BlockEntity be) {
+        SwivelCaps s = swivel();
+        if (be == null || s == null || s.swivelClass == null || !s.swivelClass.isInstance(be)) return null;
+        return asDouble(ReflectionAccessors.invoke(s.getTargetAngle, be));
+    }
+
+    public static boolean isSwivelAssembled(@Nullable BlockEntity be) {
+        SwivelCaps s = swivel();
+        if (be == null || s == null || s.swivelClass == null || !s.swivelClass.isInstance(be)) return false;
+        Object result = ReflectionAccessors.invoke(s.isAssembled, be);
+        return result instanceof Boolean b && b;
+    }
+
+    @Nullable
+    public static Double swivelKineticSpeed(@Nullable BlockEntity be) {
+        if (be == null) return null;
+        SwivelCaps s = swivel();
+        if (s == null || s.swivelClass == null || !s.swivelClass.isInstance(be)) return null;
+        Method getSpeed = ReflectionAccessors.method(be.getClass(), "getSpeed");
+        return asDouble(ReflectionAccessors.invoke(getSpeed, be));
+    }
+
+    public static boolean writeSwivelTargetAngle(@Nullable BlockEntity be, double degrees) {
+        SwivelCaps s = swivel();
+        if (be == null || s == null || s.swivelClass == null || s.targetAngle == null) return false;
+        if (!s.swivelClass.isInstance(be)) return false;
+        if (!Double.isFinite(degrees)) return false;
+        try {
+            s.targetAngle.setDouble(be, degrees);
+        } catch (IllegalAccessException | IllegalArgumentException ex) {
+            return false;
+        }
+        ReflectionAccessors.invoke(s.updateServo, be);
+        return true;
+    }
+
+    private static final AtomicBoolean ANY_PROP_WARNED = new AtomicBoolean(false);
+
+    private static final class AnyPropCaps {
+        @Nullable final Class<?> propellerInterface;
+        @Nullable final Method getBlockDirection;
+        @Nullable final Method getThrust;
+        @Nullable final Method getAirflow;
+        @Nullable final Method isActive;
+        AnyPropCaps(Class<?> i, Method d, Method t, Method a, Method act) {
+            this.propellerInterface = i; this.getBlockDirection = d; this.getThrust = t;
+            this.getAirflow = a; this.isActive = act;
+        }
+    }
+
+    private static volatile @Nullable AnyPropCaps ANY_PROP;
+
+    @Nullable
+    private static AnyPropCaps anyProp() {
+        AnyPropCaps a = ANY_PROP;
+        if (a != null) return a;
+        try {
+            Class<?> i = ReflectionAccessors.findClass(
+                    "dev.ryanhcode.sable.api.block.propeller.BlockEntityPropeller");
+            a = new AnyPropCaps(i,
+                    (i != null) ? ReflectionAccessors.method(i, "getBlockDirection") : null,
+                    (i != null) ? ReflectionAccessors.method(i, "getThrust") : null,
+                    (i != null) ? ReflectionAccessors.method(i, "getAirflow") : null,
+                    (i != null) ? ReflectionAccessors.method(i, "isActive") : null);
+            ANY_PROP = a;
+            DebugLogging.fccDebug("[FCC/Bridge] generic propeller interface={} direction={}",
+                    i != null, a.getBlockDirection != null);
+            return a;
+        } catch (LinkageError | RuntimeException ex) {
+            if (ANY_PROP_WARNED.compareAndSet(false, true))
+                CreateStats.LOGGER.warn("[FCC/Bridge] generic propeller bootstrap failed: {}", ex.toString());
+            return null;
+        }
+    }
+
+    public static boolean matchesAnyPropeller(@Nullable BlockEntity be) {
+        if (be == null) return false;
+        AnyPropCaps a = anyProp();
+        if (a != null && a.propellerInterface != null) return a.propellerInterface.isInstance(be);
+        net.minecraft.resources.ResourceLocation rl =
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(be.getType());
+        return rl != null && rl.getNamespace().equals("aeronautics") && rl.getPath().contains("propeller");
+    }
+
+    @Nullable
+    public static net.minecraft.core.Direction propellerBlockDirection(@Nullable BlockEntity be) {
+        AnyPropCaps a = anyProp();
+        if (be == null || a == null || a.propellerInterface == null) return null;
+        if (!a.propellerInterface.isInstance(be)) return null;
+        Object result = ReflectionAccessors.invoke(a.getBlockDirection, be);
+        return result instanceof net.minecraft.core.Direction direction ? direction : null;
+    }
+
+    @Nullable
+    public static Double propellerThrust(@Nullable BlockEntity be) {
+        AnyPropCaps a = anyProp();
+        if (be == null || a == null || a.propellerInterface == null) return null;
+        if (!a.propellerInterface.isInstance(be)) return null;
+        return asDouble(ReflectionAccessors.invoke(a.getThrust, be));
+    }
+
+    public static boolean matchesOpticalSensor(BlockEntity be) {
+        SensorCaps s = sensors();
+        if (s != null && s.opticalClass != null) return s.opticalClass.isInstance(be);
+        net.minecraft.resources.ResourceLocation rl =
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(be.getType());
+        return rl != null && rl.getNamespace().equals("simulated") && rl.getPath().equals("optical_sensor");
+    }
+
+    @Nullable
+    private static Double asDouble(@Nullable Object value) {
+        return (value instanceof Number n) ? n.doubleValue() : null;
+    }
+
     public static List<BlockPos> findBlocksOfType(@Nullable Level level, @Nullable BlockPos centerPos,
                                                   @Nullable Class<?> beClass, int chunkRadius) {
         if (level == null || centerPos == null || beClass == null) return List.of();
@@ -1083,14 +1441,12 @@ public final class SableBridge {
                 }
             }
         } catch (RuntimeException | LinkageError ex) {
-            // Defensive: never let a chunk-iteration glitch break sensor discovery.
             DebugLogging.fccDebug("[FCC/Bridge] findBlocksOfType failed", ex);
             return List.of();
         }
         return out;
     }
 
-    /** [13] */
     @Nullable
     public static BlockEntity getBlockEntityOnContraption(@Nullable Level level, @Nullable BlockPos pos) {
         if (level == null || pos == null) return null;

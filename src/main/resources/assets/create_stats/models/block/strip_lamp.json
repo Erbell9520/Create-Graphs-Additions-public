@@ -3,7 +3,7 @@
   "textures": {
     "cap": "create_stats:block/lamp_cap",
     "enamel": "create_stats:block/lamp_enamel",
-    "diffuser": "create_stats:block/lamp_diffuser",
+    "gland": "create_stats:block/lamp_gland",
     "particle": "create_stats:block/lamp_cap"
   },
   "elements": [
@@ -353,77 +353,209 @@
       }
     },
     {
-      "__comment": "glass",
+      "__comment": "gland",
       "from": [
-        2.2,
-        2.4,
-        6.2
+        6.8,
+        1.2,
+        4.0
       ],
       "to": [
-        13.8,
-        4.1,
-        9.8
+        9.2,
+        2.2,
+        5.8
       ],
       "faces": {
         "north": {
           "uv": [
             0,
             0,
-            12,
-            2
+            2,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#gland"
         },
         "south": {
           "uv": [
             0,
             0,
-            12,
-            2
+            2,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#gland"
         },
         "east": {
           "uv": [
             0,
             0,
-            12,
-            2
+            2,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#gland"
         },
         "west": {
           "uv": [
             0,
             0,
-            12,
-            2
+            2,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#gland"
         },
         "up": {
           "uv": [
             0,
             0,
-            12,
-            4
+            2,
+            2
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#gland"
         },
         "down": {
           "uv": [
             0,
             0,
-            12,
+            2,
+            2
+          ],
+          "texture": "#gland"
+        }
+      }
+    },
+    {
+      "__comment": "clip_a",
+      "from": [
+        5.0,
+        2.4,
+        6.0
+      ],
+      "to": [
+        5.9,
+        4.4,
+        10.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
             4
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#cap"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            4
+          ],
+          "texture": "#cap"
+        }
+      }
+    },
+    {
+      "__comment": "clip_b",
+      "from": [
+        10.1,
+        2.4,
+        6.0
+      ],
+      "to": [
+        11.0,
+        4.4,
+        10.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cap"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            4
+          ],
+          "texture": "#cap"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            4
+          ],
+          "texture": "#cap"
         }
       }
     }

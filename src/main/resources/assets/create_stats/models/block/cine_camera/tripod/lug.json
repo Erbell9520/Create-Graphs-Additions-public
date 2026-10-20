@@ -1,0 +1,78 @@
+{
+ "credit": "gen_cine_camera.py --ship",
+ "textures": {
+  "atlas": "create_stats:block/cine_camera/tripod_atlas",
+  "particle": "create_stats:block/cine_camera/tripod_atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    7.4,
+    9.6,
+    2.5
+   ],
+   "to": [
+    8.6,
+    11.4,
+    5.0
+   ],
+   "name": "hinge lug",
+   "faces": {
+    "north": {
+     "uv": [
+      12.125,
+      1.75,
+      12.25,
+      2.0
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      12.375,
+      1.75,
+      12.5,
+      2.0
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      5.625,
+      1.75,
+      5.875,
+      2.0
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      6.0,
+      1.75,
+      6.25,
+      2.0
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      12.625,
+      1.75,
+      12.75,
+      2.0
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      12.875,
+      1.75,
+      13.0,
+      2.0
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

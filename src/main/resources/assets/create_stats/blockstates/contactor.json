@@ -1,0 +1,114 @@
+{
+  "variants": {
+    "facing=north,spin=0": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90
+    },
+    "facing=north,spin=1": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90
+    },
+    "facing=north,spin=2": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90
+    },
+    "facing=north,spin=3": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90
+    },
+    "facing=south,spin=0": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,spin=1": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,spin=2": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,spin=3": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,spin=0": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,spin=1": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,spin=2": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,spin=3": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east,spin=0": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,spin=1": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,spin=2": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,spin=3": {
+      "model": "create_stats:block/contactor/base",
+      "x": 90,
+      "y": 90
+    },
+    "facing=up,spin=0": {
+      "model": "create_stats:block/contactor/base"
+    },
+    "facing=up,spin=1": {
+      "model": "create_stats:block/contactor/base",
+      "y": 270
+    },
+    "facing=up,spin=2": {
+      "model": "create_stats:block/contactor/base",
+      "y": 180
+    },
+    "facing=up,spin=3": {
+      "model": "create_stats:block/contactor/base",
+      "y": 90
+    },
+    "facing=down,spin=0": {
+      "model": "create_stats:block/contactor/base",
+      "x": 180
+    },
+    "facing=down,spin=1": {
+      "model": "create_stats:block/contactor/base",
+      "x": 180,
+      "y": 90
+    },
+    "facing=down,spin=2": {
+      "model": "create_stats:block/contactor/base",
+      "x": 180,
+      "y": 180
+    },
+    "facing=down,spin=3": {
+      "model": "create_stats:block/contactor/base",
+      "x": 180,
+      "y": 270
+    }
+  }
+}

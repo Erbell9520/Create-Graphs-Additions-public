@@ -1,0 +1,56 @@
+{
+  "parent": "create_stats:root",
+  "display": {
+    "icon": {
+      "id": "create_stats:pendant_lamp"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.lamp.title",
+      "fallback": "Who Left the Lights On?"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.lamp.description",
+      "fallback": "Place a lamp. Dad asks whether the electric bill comes out of YOUR pocket."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "lamp": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:caged_bulkhead_lamp",
+                  "create_stats:high_bay_lamp",
+                  "create_stats:flood_lamp",
+                  "create_stats:vapour_tight_lamp",
+                  "create_stats:well_glass_lamp",
+                  "create_stats:emergency_lamp",
+                  "create_stats:strip_lamp",
+                  "create_stats:panel_lamp",
+                  "create_stats:dome_lamp",
+                  "create_stats:wall_sconce",
+                  "create_stats:pendant_lamp",
+                  "create_stats:filament_bulb",
+                  "create_stats:bankers_lamp"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "lamp"
+    ]
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_stats:cake_batter"
+    },
+    {
+      "item": "create_stats:blueberry"
+    },
+    {
+      "item": "create_stats:blueberry"
+    },
+    {
+      "item": "create_stats:blueberry"
+    },
+    {
+      "item": "create_stats:blueberry"
+    }
+  ],
+  "results": [
+    {
+      "amount": 1000,
+      "id": "create_stats:blueberry_cake_batter"
+    }
+  ]
+}

@@ -4,52 +4,75 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** [1] */
+// pooled solve. the old pairwise diffusion halved every hop and was iteration order dependent
 public final class FeGridSolver {
+    public record Result(int collected, int delivered, int stored, int capacity, int demand, int shed,
+                         int charged, int discharged, int reserve, int reserveCapacity, int spilled) {
+        public static final Result EMPTY = new Result(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    /** What one solve moved, for goggles, GUIs and the grid data source. */
-    public record Result(int collected, int delivered, int stored, int capacity, int demand, int shed) {
-
-        public static final Result EMPTY = new Result(0, 0, 0, 0, 0, 0);
-
-        /** Net FE per tick across the grid boundary. Positive means the grid is filling. */
         public int net() {
-            return collected - delivered;
+            return collected - delivered - charged;
         }
 
-        /** [2] */
+        public int generated() {
+            return Math.max(0, collected - discharged) + charged;
+        }
+
+        public int consumed() {
+            return delivered + charged;
+        }
+
+        public int reserveNet() {
+            return charged - discharged;
+        }
+
         public int shortfall() {
             return Math.max(0, demand - delivered);
         }
 
-        /** [3] */
+        public int available() {
+            return reserve + stored;
+        }
+
         public int enduranceTicks() {
-            final int drain = -net();
+            final int drain = -reserveNet();
             if (drain <= 0) {
                 return Integer.MAX_VALUE;
             }
-            return stored / drain;
+            return available() / drain;
         }
     }
+
+    public static final int NO_CEILING = Integer.MAX_VALUE;
 
     private FeGridSolver() {
     }
 
-    /**
-     * Runs one solve over {@code nodes}. {@code cursor} rotates the fair-share starting point so no
-     * machine is permanently last in line; callers pass an incrementing value.
-     */
     public static Result solve(List<? extends FeGridNode> nodes, int cursor) {
         return solve(nodes, cursor, null);
     }
 
-    /** [4] */
+    public static Result solve(List<? extends FeGridNode> nodes, int cursor, boolean cascade) {
+        return solve(nodes, cursor, null, cascade);
+    }
+
     public static Result solve(List<? extends FeGridNode> nodes, int cursor, @Nullable Map<Long, Integer> flowOut) {
+        return solve(nodes, cursor, flowOut, true);
+    }
+
+    public static Result solve(List<? extends FeGridNode> nodes, int cursor,
+                               @Nullable Map<Long, Integer> flowOut, boolean cascade) {
+        return solve(nodes, cursor, flowOut, cascade, NO_CEILING);
+    }
+
+    public static Result solve(List<? extends FeGridNode> nodes, int cursor,
+                               @Nullable Map<Long, Integer> flowOut, boolean cascade, int ceiling) {
         if (nodes.isEmpty()) {
             return Result.EMPTY;
         }
@@ -61,83 +84,85 @@ public final class FeGridSolver {
             capacity += node.bufferCapacity();
         }
 
-        // [5]
         final List<FeGridNode> generators = new ArrayList<>();
         final List<FeGridNode> storage = new ArrayList<>();
         final List<FeGridNode> loads = new ArrayList<>();
+        final Set<IEnergyStorage> claimedHandlers =
+                java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        final Set<Long> claimedPools = new HashSet<>();
         for (FeGridNode node : nodes) {
             final IEnergyStorage attached = node.attachedStorage();
-            if (attached == null) {
+            if (attached == null || !claimedHandlers.add(attached)) {
                 continue;
             }
-            if (attached.canExtract() && attached.canReceive()) {
-                storage.add(node);
-            } else if (attached.canExtract()) {
-                generators.add(node);
-            } else if (attached.canReceive()) {
-                loads.add(node);
+            switch (FeNodeRole.of(attached, node.transferRate()).kind()) {
+                case GENERATOR -> generators.add(node);
+                case LOAD -> loads.add(node);
+
+                case STORAGE -> {
+                    if (claimTank(attached, claimedPools)) {
+                        storage.add(node);
+                    }
+                }
+                case NONE -> {
+                }
             }
         }
 
-        // Measured before anything moves, so it reflects what the machines wanted this tick rather
-        // than what is left of their appetite after being partly served.
-        final int loadDemand = simulateDemand(loads);
+        final List<FeGridNode> dischargeOrder = cascade ? orderedByRank(storage, false) : storage;
+        final List<FeGridNode> chargeOrder = cascade ? orderedByRank(storage, true) : storage;
 
-        // [6]
-        final int intake = Math.max(0, capacity - pool) + loadDemand;
+        int reserve = 0;
+        int reserveCapacity = 0;
+        for (FeGridNode node : storage) {
+            final IEnergyStorage tank = node.attachedStorage();
+            if (tank == null) {
+                continue;
+            }
+            reserve = FeRates.plus(reserve, Math.max(0, tank.getEnergyStored()));
+            reserveCapacity = FeRates.plus(reserveCapacity,
+                    Math.max(0, tank.getMaxEnergyStored()));
+        }
 
-        // Phase 1: collect from generators.
-        int collected = collectInto(generators, intake, null, flowOut);
+        final Map<Long, Integer> asked = new HashMap<>();
+
+        int intakeLeft = ceiling >= NO_CEILING ? NO_CEILING : Math.max(0, ceiling);
+        int outflowLeft = intakeLeft;
+
+        final int loadDemand = simulateDemand(loads, false);
+
+        final int servable = simulateDemand(loads, true);
+
+        int collected = spreadInto(generators,
+                Math.min(Math.max(0, servable - pool), intakeLeft), flowOut, asked);
         pool += collected;
+        intakeLeft -= collected;
 
-        // [7]
-        final Set<Long> discharged = new HashSet<>();
-        if (pool < loadDemand) {
-            final int fromStorage = collectInto(storage,
-                    Math.min(loadDemand - pool, Math.max(0, intake - collected)), discharged, flowOut);
-            collected += fromStorage;
-            pool += fromStorage;
+        final Set<Long> dischargedNodes = new HashSet<>();
+        int discharged = 0;
+        if (pool < servable) {
+            discharged = collectInto(dischargeOrder, Math.min(servable - pool, intakeLeft),
+                    dischargedNodes, flowOut, asked);
+            collected += discharged;
+            pool += discharged;
+            intakeLeft -= discharged;
         }
 
-        // Phase 3: serve the machines.
-        int delivered = distribute(loads, pool, cursor, flowOut);
+        int delivered = distribute(loads, Math.min(pool, outflowLeft), cursor, flowOut);
         pool -= delivered;
+        outflowLeft -= delivered;
 
-        // [8]
-        int toStorage = 0;
-        if (pool >= capacity && !storage.isEmpty() && !generators.isEmpty()) {
-            for (FeGridNode sink : storage) {
-                if (discharged.contains(sink.nodeKey())) {
-                    continue;
-                }
-                final IEnergyStorage target = sink.attachedStorage();
-                if (target == null) {
-                    continue;
-                }
-                int budget = sink.transferRate();
-                for (FeGridNode from : generators) {
-                    if (budget <= 0) {
-                        break;
-                    }
-                    final IEnergyStorage origin = from.attachedStorage();
-                    if (origin == null) {
-                        continue;
-                    }
-                    final int moved = transfer(origin, target, Math.min(budget, from.transferRate()));
-                    budget -= moved;
-                    toStorage += moved;
-                    if (flowOut != null && moved > 0) {
-                        flowOut.merge(sink.nodeKey(), moved, Integer::sum);
-                        flowOut.merge(from.nodeKey(), -moved, Integer::sum);
-                    }
-                }
-            }
-        }
-        collected += toStorage;
-        delivered += toStorage;
+        int charged = chargeStorage(chargeOrder, generators, dischargedNodes, asked, flowOut,
+                Math.min(intakeLeft, outflowLeft));
+        intakeLeft -= charged;
+        outflowLeft -= charged;
 
-        // Phase 3: settle. The rounding remainder rides on the first nodes that still have room,
-        // so integer division loses nothing.
+        final int toppedUp = spreadInto(generators,
+                Math.min(Math.max(0, capacity - pool), intakeLeft), flowOut, asked);
+        collected += toppedUp;
+        pool += toppedUp;
+        intakeLeft -= toppedUp;
+
         int unplaced = pool;
         final int even = unplaced / nodes.size();
         for (FeGridNode node : nodes) {
@@ -157,28 +182,192 @@ public final class FeGridSolver {
             }
         }
 
-        return new Result(collected, delivered, pool - unplaced, capacity, loadDemand, 0);
+        if (unplaced > 0 && !storage.isEmpty()) {
+            for (FeGridNode sink : chargeOrder) {
+                if (unplaced <= 0) {
+                    break;
+                }
+                final IEnergyStorage target = sink.attachedStorage();
+                if (target == null) {
+                    continue;
+                }
+                final int tucked = target.receiveEnergy(Math.min(unplaced, sink.transferRate()), false);
+                if (tucked > 0) {
+                    charged += tucked;
+                    unplaced -= tucked;
+                    if (flowOut != null) {
+                        flowOut.merge(sink.nodeKey(), tucked, Integer::sum);
+                    }
+                }
+            }
+        }
+
+        return new Result(collected, delivered, pool - unplaced, capacity, loadDemand, 0,
+                charged, discharged, reserve, reserveCapacity, unplaced);
     }
 
-    /** Total the given nodes' attached blocks would accept this tick, capped by node transfer rate. */
-    private static int simulateDemand(List<FeGridNode> targets) {
+    private static int chargeStorage(List<FeGridNode> sinks, List<FeGridNode> sources,
+                                     Set<Long> dischargedNodes, Map<Long, Integer> asked,
+                                     @Nullable Map<Long, Integer> flowOut, int ceilingLeft) {
+        if (sinks.isEmpty() || sources.isEmpty() || ceilingLeft <= 0) {
+            return 0;
+        }
+        int charged = 0;
+        for (FeGridNode sink : sinks) {
+            if (charged >= ceilingLeft) {
+                break;
+            }
+            if (dischargedNodes.contains(sink.nodeKey())) {
+                continue;
+            }
+            final IEnergyStorage target = sink.attachedStorage();
+            if (target == null) {
+                continue;
+            }
+
+            int budget = Math.min(Math.min(Math.min(sink.transferRate(), ceilingLeft - charged),
+                    sink.deliveryAllowance()), target.receiveEnergy(sink.transferRate(), true));
+            for (FeGridNode from : sources) {
+                if (budget <= 0) {
+                    break;
+                }
+                final IEnergyStorage origin = from.attachedStorage();
+                if (origin == null) {
+                    continue;
+                }
+
+                final int allowance = remainingAllowance(from, asked);
+                if (allowance <= 0) {
+                    continue;
+                }
+                final int limit = Math.min(budget, allowance);
+                final int moved = transfer(origin, target, limit);
+                book(asked, from.nodeKey(), limit);
+                sink.bookDelivery(moved);
+                budget -= moved;
+                charged += moved;
+                if (flowOut != null && moved > 0) {
+                    flowOut.merge(sink.nodeKey(), moved, Integer::sum);
+                    flowOut.merge(from.nodeKey(), -moved, Integer::sum);
+                }
+            }
+        }
+        return charged;
+    }
+
+    private static boolean claimTank(IEnergyStorage handler, Set<Long> claimedPools) {
+        if (!(handler instanceof FeReserve pooled)) {
+            return true;
+        }
+        final long key = pooled.reservePoolKey();
+        return key == FeReserve.NOT_POOLED || claimedPools.add(key);
+    }
+
+    private static int remainingAllowance(FeGridNode node, Map<Long, Integer> asked) {
+        return Math.max(0, node.transferRate() - asked.getOrDefault(node.nodeKey(), 0));
+    }
+
+    private static void book(Map<Long, Integer> asked, long key, int amount) {
+        if (amount > 0) {
+            asked.merge(key, amount, Integer::sum);
+        }
+    }
+
+    public static Result observe(List<? extends FeGridNode> nodes) {
+        if (nodes.isEmpty()) {
+            return Result.EMPTY;
+        }
+        int stored = 0;
+        int capacity = 0;
+        int reserve = 0;
+        int reserveCapacity = 0;
+        int demand = 0;
+
+        final Set<IEnergyStorage> claimedHandlers =
+                java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        final Set<Long> claimedPools = new HashSet<>();
+        for (FeGridNode node : nodes) {
+            stored += node.storedEnergy();
+            capacity += node.bufferCapacity();
+            final IEnergyStorage attached = node.attachedStorage();
+            if (attached == null || !claimedHandlers.add(attached)) {
+                continue;
+            }
+            switch (FeNodeRole.of(attached, node.transferRate()).kind()) {
+                case STORAGE -> {
+                    if (claimTank(attached, claimedPools)) {
+                        reserve = FeRates.plus(reserve, Math.max(0, attached.getEnergyStored()));
+                        reserveCapacity = FeRates.plus(reserveCapacity,
+                                Math.max(0, attached.getMaxEnergyStored()));
+                    }
+                }
+                case LOAD -> demand += attached.receiveEnergy(node.transferRate(), true);
+                default -> {
+                }
+            }
+        }
+        return new Result(0, 0, stored, capacity, demand, 0, 0, 0, reserve, reserveCapacity, 0);
+    }
+
+    private static int simulateDemand(List<FeGridNode> targets, boolean wired) {
         int demand = 0;
         for (FeGridNode node : targets) {
             final IEnergyStorage attached = node.attachedStorage();
             if (attached != null) {
-                demand += attached.receiveEnergy(node.transferRate(), true);
+                final int ask = wired
+                        ? Math.min(node.transferRate(), Math.max(0, node.deliveryAllowance()))
+                        : node.transferRate();
+                if (ask > 0) {
+                    demand = FeRates.plus(demand, attached.receiveEnergy(ask, true));
+                }
             }
         }
         return demand;
     }
 
-    private static int collectInto(List<FeGridNode> from, int budget) {
-        return collectInto(from, budget, null, null);
+    private static int spreadInto(List<FeGridNode> from, int budget, @Nullable Map<Long, Integer> flowOut,
+                                  Map<Long, Integer> asked) {
+        if (budget <= 0 || from.isEmpty()) {
+            return 0;
+        }
+        int eligible = 0;
+        for (FeGridNode node : from) {
+            final IEnergyStorage attached = node.attachedStorage();
+            if (attached != null && attached.canExtract() && remainingAllowance(node, asked) > 0) {
+                eligible++;
+            }
+        }
+        int collected = 0;
+        if (eligible > 1) {
+            final int share = Math.max(1, budget / eligible);
+            for (FeGridNode node : from) {
+                final int remaining = budget - collected;
+                if (remaining <= 0) {
+                    break;
+                }
+                final IEnergyStorage attached = node.attachedStorage();
+                if (attached == null || !attached.canExtract()) {
+                    continue;
+                }
+                final int allowance = Math.min(Math.min(remainingAllowance(node, asked), share), remaining);
+                if (allowance <= 0) {
+                    continue;
+                }
+                book(asked, node.nodeKey(), allowance);
+                final int drawn = attached.extractEnergy(allowance, false);
+                if (drawn > 0) {
+                    collected += drawn;
+                    if (flowOut != null) {
+                        flowOut.merge(node.nodeKey(), -drawn, Integer::sum);
+                    }
+                }
+            }
+        }
+        return collected + collectInto(from, budget - collected, null, flowOut, asked);
     }
 
-    /** [9] */
     private static int collectInto(List<FeGridNode> from, int budget, @Nullable Set<Long> touched,
-                                   @Nullable Map<Long, Integer> flowOut) {
+                                   @Nullable Map<Long, Integer> flowOut, Map<Long, Integer> asked) {
         int collected = 0;
         for (FeGridNode node : from) {
             final int remaining = budget - collected;
@@ -189,7 +378,12 @@ public final class FeGridSolver {
             if (attached == null || !attached.canExtract()) {
                 continue;
             }
-            final int drawn = attached.extractEnergy(Math.min(node.transferRate(), remaining), false);
+            final int allowance = Math.min(remainingAllowance(node, asked), remaining);
+            if (allowance <= 0) {
+                continue;
+            }
+            book(asked, node.nodeKey(), allowance);
+            final int drawn = attached.extractEnergy(allowance, false);
             if (drawn > 0) {
                 collected += drawn;
                 if (touched != null) {
@@ -203,7 +397,6 @@ public final class FeGridSolver {
         return collected;
     }
 
-    /** [10] */
     private static int transfer(IEnergyStorage from, IEnergyStorage to, int limit) {
         if (limit <= 0) {
             return 0;
@@ -212,39 +405,58 @@ public final class FeGridSolver {
         if (offered <= 0) {
             return 0;
         }
-        final int wanted = to.receiveEnergy(offered, true);
-        if (wanted <= 0) {
+        final int taken = to.receiveEnergy(offered, false);
+        if (taken <= 0) {
             return 0;
         }
-        final int drawn = from.extractEnergy(wanted, false);
-        if (drawn <= 0) {
-            return 0;
+        final int drawn = from.extractEnergy(taken, false);
+        if (drawn >= taken) {
+            return taken;
         }
-        // Clamp to what the sink actually took, so a handler that reneges on its own simulate
-        // cannot make this report a gain.
-        return Math.min(drawn, to.receiveEnergy(drawn, false));
+
+        if (to.canExtract()) {
+            to.extractEnergy(taken - drawn, false);
+        }
+        return Math.max(0, drawn);
     }
 
-    /** What one branch solve moved, and how the tiers fared. */
     public record BranchResult(int delivered, int served, int shed) {
         public static final BranchResult EMPTY = new BranchResult(0, 0, 0);
     }
 
-    /** [11] */
+    // separate path on purpose. sorting + the flat body still hands the low tier a slice
     public static BranchResult serveByPriority(List<? extends FeGridNode> loads, int pool, int cursor) {
+        return serveByPriority(loads, pool, cursor, null);
+    }
+
+    public static BranchResult serveByPriority(List<? extends FeGridNode> loads, int pool, int cursor,
+                                               @Nullable Map<Long, Integer> flowOut) {
+        return serveByPriority(loads, pool, cursor, flowOut, null);
+    }
+
+    public static BranchResult serveByPriority(List<? extends FeGridNode> loads, int pool, int cursor,
+                                               @Nullable Map<Long, Integer> flowOut,
+                                               @Nullable Map<Long, Integer> allowance) {
+        return serveByPriority(loads, pool, cursor, flowOut, allowance, FeServePolicy.DEFAULT);
+    }
+
+    public static BranchResult serveByPriority(List<? extends FeGridNode> loads, int pool, int cursor,
+                                               @Nullable Map<Long, Integer> flowOut,
+                                               @Nullable Map<Long, Integer> allowance,
+                                               FeServePolicy policy) {
         if (loads.isEmpty() || pool <= 0) {
-            markAll(loads, false);
+            markAll(loads, false, policy);
             return BranchResult.EMPTY;
         }
-        // Bucket by tier. Ordinal order is serve order, so a plain array indexed by ordinal keeps
-        // the tiers in the right sequence without sorting.
+
         final FePriority[] tiers = FePriority.values();
         final List<List<FeGridNode>> byTier = new ArrayList<>(tiers.length);
         for (int i = 0; i < tiers.length; i++) {
             byTier.add(new ArrayList<>());
         }
         for (FeGridNode node : loads) {
-            byTier.get(priorityOf(node).ordinal()).add(node);
+            final int tier = Math.max(0, Math.min(tiers.length - 1, policy.tierOrdinalOf(node)));
+            byTier.get(tier).add(node);
         }
 
         int remaining = pool;
@@ -258,22 +470,21 @@ public final class FeGridSolver {
             if (group.isEmpty()) {
                 continue;
             }
-            final int movedHere = remaining > 0 ? distribute(group, remaining, cursor) : 0;
+            final int movedHere = remaining > 0
+                    ? distribute(group, remaining, cursor, flowOut, allowance) : 0;
             remaining -= movedHere;
             delivered += movedHere;
 
             if (movedHere > 0) {
                 anyServed = true;
                 for (FeGridNode node : group) {
-                    setShed(node, false);
+                    policy.markShed(node, false);
                 }
                 served += group.size();
             } else {
-                // Nothing reached this tier. It is only a shed if something above it was served;
-                // otherwise the whole branch is simply dark.
                 final boolean isShed = anyServed;
                 for (FeGridNode node : group) {
-                    setShed(node, isShed);
+                    policy.markShed(node, isShed);
                 }
                 if (isShed) {
                     shed += group.size();
@@ -283,41 +494,71 @@ public final class FeGridSolver {
         return new BranchResult(delivered, served, shed);
     }
 
-    /** [12] */
     public static BranchResult serveFlat(List<? extends FeGridNode> loads, int pool, int cursor) {
-        markAll(loads, false);
+        return serveFlat(loads, pool, cursor, null);
+    }
+
+    public static BranchResult serveFlat(List<? extends FeGridNode> loads, int pool, int cursor,
+                                         @Nullable Map<Long, Integer> flowOut) {
+        return serveFlat(loads, pool, cursor, flowOut, FeServePolicy.DEFAULT);
+    }
+
+    public static BranchResult serveFlat(List<? extends FeGridNode> loads, int pool, int cursor,
+                                         @Nullable Map<Long, Integer> flowOut,
+                                         FeServePolicy policy) {
+        markAll(loads, false, policy);
         if (loads.isEmpty() || pool <= 0) {
             return BranchResult.EMPTY;
         }
-        final int moved = distribute(loads, pool, cursor);
+        final int moved = distribute(loads, pool, cursor, flowOut);
         return new BranchResult(moved, moved > 0 ? loads.size() : 0, 0);
     }
 
-    /** [13] */
-    private static FePriority priorityOf(FeGridNode node) {
-        return node.attachedStorage() instanceof FeConsumer fe ? fe.priority() : FePriority.DEFAULT;
+    public static int reserveRankOf(FeGridNode node) {
+        return node.attachedStorage() instanceof FeReserve reserve
+                ? FeReserve.clamp(reserve.reserveRank()) : FeReserve.DEFAULT_RANK;
     }
 
-    private static void setShed(FeGridNode node, boolean shed) {
-        if (node.attachedStorage() instanceof FeConsumer fe) {
-            fe.setLoadShed(shed);
+    private static List<FeGridNode> orderedByRank(List<FeGridNode> storage, boolean coreFirst) {
+        if (storage.size() < 2) {
+            return storage;
         }
+        final List<FeGridNode> ordered = new ArrayList<>(storage);
+        ordered.sort((a, b) -> {
+            final int rankA = reserveRankOf(a);
+            final int rankB = reserveRankOf(b);
+            if (rankA != rankB) {
+                return coreFirst ? Integer.compare(rankA, rankB) : Integer.compare(rankB, rankA);
+            }
+            return Long.compare(a.nodeKey(), b.nodeKey());
+        });
+        return ordered;
     }
 
-    private static void markAll(List<? extends FeGridNode> loads, boolean shed) {
+    private static void markAll(List<? extends FeGridNode> loads, boolean shed, FeServePolicy policy) {
         for (FeGridNode node : loads) {
-            setShed(node, shed);
+            policy.markShed(node, shed);
         }
     }
 
-    /** [14] */
     private static int distribute(List<? extends FeGridNode> targets, int pool, int cursor) {
         return distribute(targets, pool, cursor, null);
     }
 
-    /** Same distribute, additionally recording each target's positive flow when {@code flowOut} is supplied. */
     private static int distribute(List<? extends FeGridNode> targets, int pool, int cursor,
                                   @Nullable Map<Long, Integer> flowOut) {
+        return distribute(targets, pool, cursor, flowOut, null);
+    }
+
+    public static int deliver(List<? extends FeGridNode> targets, int pool, int cursor,
+                              @Nullable Map<Long, Integer> flowOut,
+                              @Nullable Map<Long, Integer> allowance) {
+        return distribute(targets, pool, cursor, flowOut, allowance);
+    }
+
+    private static int distribute(List<? extends FeGridNode> targets, int pool, int cursor,
+                                  @Nullable Map<Long, Integer> flowOut,
+                                  @Nullable Map<Long, Integer> allowance) {
         if (targets.isEmpty() || pool <= 0) {
             return 0;
         }
@@ -333,15 +574,21 @@ public final class FeGridSolver {
             if (attached == null) {
                 continue;
             }
-            final int offer = Math.min(Math.min(fairShare, node.transferRate()), remaining);
+            final int cap = capFor(node, allowance);
+
+            final int room = Math.min(Math.min(node.transferRate(), cap), node.deliveryAllowance());
+            final int offer = Math.min(Math.min(fairShare, room), remaining);
             if (offer <= 0) {
                 continue;
             }
             final int taken = attached.receiveEnergy(offer, false);
             given[index] = taken;
             remaining -= taken;
-            if (flowOut != null && taken > 0) {
-                flowOut.merge(node.nodeKey(), taken, Integer::sum);
+            if (taken > 0) {
+                node.bookDelivery(taken);
+                if (flowOut != null) {
+                    flowOut.merge(node.nodeKey(), taken, Integer::sum);
+                }
             }
         }
         for (int i = 0; i < targets.size() && remaining > 0; i++) {
@@ -351,16 +598,31 @@ public final class FeGridSolver {
             if (attached == null) {
                 continue;
             }
-            final int offer = Math.min(node.transferRate() - given[index], remaining);
+            final int cap = capFor(node, allowance);
+
+            final int room = Math.min(Math.min(node.transferRate(), cap) - given[index],
+                    node.deliveryAllowance());
+            final int offer = Math.min(room, remaining);
             if (offer <= 0) {
                 continue;
             }
             final int taken = attached.receiveEnergy(offer, false);
             remaining -= taken;
-            if (flowOut != null && taken > 0) {
-                flowOut.merge(node.nodeKey(), taken, Integer::sum);
+            if (taken > 0) {
+                node.bookDelivery(taken);
+                if (flowOut != null) {
+                    flowOut.merge(node.nodeKey(), taken, Integer::sum);
+                }
             }
         }
         return pool - remaining;
+    }
+
+    private static int capFor(FeGridNode node, @Nullable Map<Long, Integer> allowance) {
+        if (allowance == null) {
+            return NO_CEILING;
+        }
+        final Integer cap = allowance.get(node.nodeKey());
+        return cap == null ? NO_CEILING : Math.max(0, cap);
     }
 }

@@ -1,188 +1,275 @@
 package com.createstats.efficiency;
 
-import net.minecraft.nbt.CompoundTag;
-
-public final class EfficiencyGrader
-{
+public final class EfficiencyGrader {
     public static final float KAPPA = 0.6f;
-    private static final float ALPHA = 0.025f;
-    private static final float BETA_1 = 200.0f;
-    private static final float BETA_2 = 2.0f;
-    private static final float DT = 40.0f;
-    private static final float BETA_A = 3.5f;
-    private static final float BETA_B = 1.8f;
-    private static final float U_PEAK = 0.7575757f;
-    private static final float BETA_NORM;
-    private static final float H0 = 0.08f;
-    private static final float SIGMA_0 = 0.020000001f;
-    private static final float TAU = 6000.0f;
-    
+
+    public static final float ALPHA_UP = 0.0125f;
+
+    public static final float ALPHA_DOWN = 0.030f;
+
+    public static final float BETA_TRANSIENT = 32.0f;
+
+    public static final float PSI_TRANSIENT_CAP = 6.0f;
+
+    public static final float BETA_OVERSTRESS = 1.0f;
+
+    public static final float UPTIME_TAU = 300.0f;
+
+    public static final int WARMUP_OBSERVATIONS = 15;
+
+    public static final int DEFAULT_INTERVAL_TICKS = 40;
+
+    public static final float MAX_STEP_SECONDS = 10.0f;
+
+    private static final float TICKS_PER_SECOND = 20.0f;
+
     private EfficiencyGrader() {
     }
-    
-    public static EfficiencyScore calculate(NetworkDataSnapshot snap, ODEState state) {
-        if (snap.capacitySU <= 0.0f) {
-            return EfficiencyScore.noNetwork();
+
+    public static EfficiencyScore calculate(EfficiencyInputs in, ODEState state) {
+        return calculate(in, state, DEFAULT_INTERVAL_TICKS);
+    }
+
+    public static EfficiencyScore calculate(EfficiencyInputs in, ODEState state, int elapsedTicks) {
+        return evaluate(in, state, elapsedTicks).score();
+    }
+
+    public static Evaluation evaluate(EfficiencyInputs in, ODEState state, int elapsedTicks) {
+        if (in == null || !in.hasNetwork()) {
+            return new Evaluation(EfficiencyScore.noNetwork(), null);
         }
-        final float u = snap.stressSU / snap.capacitySU;
-        final float phiU = computePhiU(u);
-        final float phiH = computePhiH(u);
-        final float phiS = computePhiS(snap);
-        final float uptimeTarget = snap.isOverstressed ? 0.0f : 1.0f;
-        final float decay = EfficiencyGrader.DT / EfficiencyGrader.TAU;
-        state.uptimeMemory += decay * (uptimeTarget - state.uptimeMemory);
-        state.uptimeMemory = Math.max(0.0f, Math.min(1.0f, state.uptimeMemory));
-        final float uMem = state.uptimeMemory;
-        final float eEq = computeEquilibrium(phiU, phiH, phiS, uMem);
+        final EfficiencyTrace trace = new EfficiencyTrace();
+        return new Evaluation(step(in, state, elapsedTicks, trace), trace);
+    }
+
+    public record Evaluation(EfficiencyScore score, EfficiencyTrace trace) {
+    }
+
+    private static EfficiencyScore step(EfficiencyInputs in, ODEState state, int elapsedTicks,
+                                        EfficiencyTrace trace) {
+        final float rawDt = Math.max(1.0f, elapsedTicks) / TICKS_PER_SECOND;
+        final float dt = Math.min(MAX_STEP_SECONDS, rawDt);
+
+        final float u = in.utilization();
+        final float peakU = in.peakUtilization();
+
+        trace.capacitySU = in.capacitySU();
+        trace.stressSU = in.stressSU();
+        trace.peakStressSU = in.peakStressSU();
+        trace.u = u;
+        trace.peakU = peakU;
+        trace.rpmCv = in.rpmCv();
+        trace.rpmKnown = in.rpmKnown();
+        trace.stressCv = in.stressCv();
+        trace.stressCvKnown = in.stressCvKnown();
+        trace.overstressed = in.overstressed();
+        trace.longestOverstressRunSeconds = in.longestOverstressRunSeconds();
+        trace.resilienceKnown = in.resilienceKnown();
+        trace.overstressRate = in.overstressRate();
+        trace.elapsedTicks = elapsedTicks;
+        trace.dtSeconds = dt;
+        trace.stepClamped = rawDt > MAX_STEP_SECONDS;
+        trace.previousU = state.previousU;
+        trace.ePrev = state.currentE;
+        trace.uptimeMemoryBefore = state.uptimeMemory;
+        trace.computedAtTick = in.computedAtTick();
+
+        final int n = EfficiencyDimension.values().length;
+        final float[] phi = new float[n];
+        final boolean[] known = new boolean[n];
+
+        phi[EfficiencyDimension.UTILIZATION.ordinal()] = EfficiencyKernels.load(u);
+        known[EfficiencyDimension.UTILIZATION.ordinal()] = true;
+
+        phi[EfficiencyDimension.HEADROOM.ordinal()] = EfficiencyKernels.reserve(peakU);
+        known[EfficiencyDimension.HEADROOM.ordinal()] = true;
+
+        phi[EfficiencyDimension.STABILITY.ordinal()] = EfficiencyKernels.rhythm(in.rpmCv());
+        known[EfficiencyDimension.STABILITY.ordinal()] = in.rpmKnown();
+
+        phi[EfficiencyDimension.UPTIME.ordinal()] = advanceUptime(in, state, dt);
+        known[EfficiencyDimension.UPTIME.ordinal()] = true;
+        trace.uptimeMemoryAfter = state.uptimeMemory;
+
+        phi[EfficiencyDimension.SMOOTHNESS.ordinal()] = EfficiencyKernels.smoothness(in.stressCv());
+        known[EfficiencyDimension.SMOOTHNESS.ordinal()] = in.stressCvKnown();
+
+        phi[EfficiencyDimension.RESILIENCE.ordinal()] =
+                EfficiencyKernels.resilience(in.longestOverstressRunSeconds());
+        known[EfficiencyDimension.RESILIENCE.ordinal()] = in.resilienceKnown();
+
+        final float eEq = computeEquilibrium(phi, known, trace);
+        final float observability = observabilityOf(known);
+
+        System.arraycopy(phi, 0, trace.phi, 0, n);
+        trace.knownMask = maskOf(known);
+        trace.equilibrium = eEq;
+        trace.observability = observability;
+
+        final float psi = computePenalty(in, state, u, dt, trace);
+
+        final float alpha = (eEq >= state.currentE) ? ALPHA_UP : ALPHA_DOWN;
+        final float relaxBlend = 1.0f - (float) Math.exp(-alpha * dt);
+        float blend = relaxBlend;
+        if (state.observations < WARMUP_OBSERVATIONS) {
+            blend = Math.max(blend, 1.0f / (state.observations + 1.0f));
+        }
+        final float eRelaxed = state.currentE + blend * (eEq - state.currentE);
+        final float ePenalised = eRelaxed - psi * dt;
+        float e = clamp01(ePenalised / 100.0f) * 100.0f;
+
+        trace.alpha = alpha;
+        trace.rising = eEq >= state.currentE;
+        trace.relaxBlend = blend;
+        trace.warmStart = blend > relaxBlend;
+        trace.eRelaxed = eRelaxed;
+        trace.eBeforeClamp = ePenalised;
+        trace.eNew = e;
+        trace.observations = state.observations + 1;
+
+        state.currentE = e;
+        state.previousU = u;
+        state.observations = Math.min(Integer.MAX_VALUE - 1, state.observations + 1);
+
+        final int gradeIndex = GradeScale.resolve(e, state.gradeIndex);
+        state.gradeIndex = gradeIndex;
+
+        return new EfficiencyScore(
+                e,
+                GradeScale.letterAt(gradeIndex),
+                GradeScale.colorAt(gradeIndex),
+                phi,
+                maskOf(known),
+                observability,
+                state.warmupProgress(),
+                eEq,
+                in.computedAtTick());
+    }
+
+    private static float advanceUptime(EfficiencyInputs in, ODEState state, float dt) {
+        if (!state.uptimeSeeded) {
+            if (in.overstressRateKnown()) {
+                state.uptimeMemory = clamp01(1.0f - in.overstressRate());
+            }
+            state.uptimeSeeded = true;
+        }
+        final float target = in.overstressed() ? 0.0f : 1.0f;
+        final float blend = 1.0f - (float) Math.exp(-dt / UPTIME_TAU);
+        state.uptimeMemory = clamp01(state.uptimeMemory + blend * (target - state.uptimeMemory));
+        return state.uptimeMemory;
+    }
+
+    private static float computePenalty(EfficiencyInputs in, ODEState state, float u, float dt,
+                                        EfficiencyTrace trace) {
+        float swing = 0.0f;
+        float swingRaw = 0.0f;
         float duDt = 0.0f;
         if (state.previousU >= 0.0f) {
-            duDt = (u - state.previousU) / EfficiencyGrader.DT;
+            duDt = (u - state.previousU) / dt;
+            swingRaw = BETA_TRANSIENT * duDt * duDt;
+            swing = Math.min(PSI_TRANSIENT_CAP, swingRaw);
         }
-        final float psi = EfficiencyGrader.BETA_1 * duDt * duDt + EfficiencyGrader.BETA_2 * (snap.isOverstressed ? 1.0f : 0.0f);
-        float E = state.currentE;
-        E = E + EfficiencyGrader.ALPHA * (eEq - E) - psi;
-        E = Math.max(0.0f, Math.min(100.0f, E));
-        state.currentE = E;
-        state.previousU = u;
-        final float[] dimScores = new float[EfficiencyDimension.values().length];
-        dimScores[EfficiencyDimension.UTILIZATION.ordinal()] = phiU;
-        dimScores[EfficiencyDimension.HEADROOM.ordinal()] = phiH;
-        dimScores[EfficiencyDimension.STABILITY.ordinal()] = phiS;
-        dimScores[EfficiencyDimension.UPTIME.ordinal()] = uMem;
-        final String grade = gradeFromScore(E);
-        final int color = gradeColor(E);
-        return new EfficiencyScore(E, grade, color, dimScores, snap.computedAtTick);
+        final float severity = in.overstressed() ? EfficiencyKernels.overstressSeverity(u) : 0.0f;
+        final float overstress = BETA_OVERSTRESS * severity;
+
+        trace.duDt = duDt;
+        trace.swingRaw = swingRaw;
+        trace.swingApplied = swing;
+        trace.severity = severity;
+        trace.overstressPenalty = overstress;
+        trace.psi = swing + overstress;
+        trace.penaltyPoints = trace.psi * dt;
+        return trace.psi;
     }
-    
-    public static float computePhiU(float u) {
-        if (u <= 0.0f || u >= 1.0f) {
+
+    public static float computeEquilibrium(float[] phi, boolean[] known) {
+        return computeEquilibrium(phi, known, null);
+    }
+
+    private static float computeEquilibrium(float[] phi, boolean[] known, EfficiencyTrace trace) {
+        final EfficiencyDimension[] dims = EfficiencyDimension.values();
+        float totalW = 0.0f;
+        for (int i = 0; i < dims.length; i++) {
+            if (known[i]) {
+                totalW += dims[i].getWeight();
+            }
+        }
+        if (trace != null) {
+            trace.totalWeight = totalW;
+        }
+        if (totalW <= 0.0f) {
             return 0.0f;
         }
-        return Math.min(1.0f, EfficiencyGrader.BETA_NORM * (float)(Math.pow(u, EfficiencyGrader.BETA_A - 1.0f) * Math.pow(1.0f - u, EfficiencyGrader.BETA_B - 1.0f)));
-    }
-    
-    public static float computePhiH(float u) {
-        final float h = Math.max(0.0f, 1.0f - u);
-        return 1.0f - (float)Math.exp(-h / EfficiencyGrader.H0);
-    }
-    
-    public static float computePhiS(NetworkDataSnapshot snap) {
-        if (snap.rpmAvg < 1.0f) {
-            return 0.0f;
+        if (Math.abs(KAPPA) < 0.001f) {
+            float logSum = 0.0f;
+            for (int i = 0; i < dims.length; i++) {
+                if (known[i]) {
+                    logSum += (dims[i].getWeight() / totalW) * safeLog(phi[i]);
+                }
+            }
+            return 100.0f * clamp01((float) Math.exp(logSum));
         }
-        final float cv = snap.rpmStdDev / snap.rpmAvg;
-        return (float)Math.exp(-cv * cv / EfficiencyGrader.SIGMA_0);
-    }
-    
-    public static float computeEquilibrium(float phiU, float phiH, float phiS, float uMem) {
-        final float kappa = EfficiencyGrader.KAPPA;
-        if (Math.abs(kappa) < 0.001f) {
-            final float logSum = EfficiencyDimension.UTILIZATION.getWeight() * safeLog(phiU) + EfficiencyDimension.HEADROOM.getWeight() * safeLog(phiH) + EfficiencyDimension.STABILITY.getWeight() * safeLog(phiS) + EfficiencyDimension.UPTIME.getWeight() * safeLog(uMem);
-            return 100.0f * (float)Math.exp(logSum);
+        float sum = 0.0f;
+        for (int i = 0; i < dims.length; i++) {
+            if (!known[i]) {
+                continue;
+            }
+            final float w = dims[i].getWeight() / totalW;
+            final float term = w * safePow(phi[i], KAPPA);
+            sum += term;
+            if (trace != null) {
+                trace.weightApplied[i] = w;
+                trace.term[i] = term;
+            }
         }
-        final float sum = EfficiencyDimension.UTILIZATION.getWeight() * safePow(phiU, kappa) + EfficiencyDimension.HEADROOM.getWeight() * safePow(phiH, kappa) + EfficiencyDimension.STABILITY.getWeight() * safePow(phiS, kappa) + EfficiencyDimension.UPTIME.getWeight() * safePow(uMem, kappa);
-        final float mean = (float)Math.pow(Math.max(0.0f, sum), 1.0f / kappa);
-        return 100.0f * Math.max(0.0f, Math.min(1.0f, mean));
+        if (trace != null) {
+            trace.meanSum = sum;
+        }
+        final float mean = (float) Math.pow(Math.max(0.0f, sum), 1.0f / KAPPA);
+        return 100.0f * clamp01(mean);
     }
-    
+
+    public static float observabilityOf(boolean[] known) {
+        final EfficiencyDimension[] dims = EfficiencyDimension.values();
+        float w = 0.0f;
+        for (int i = 0; i < dims.length; i++) {
+            if (known[i]) {
+                w += dims[i].getWeight();
+            }
+        }
+        return clamp01(w / Math.max(1.0E-6f, EfficiencyDimension.weightSum()));
+    }
+
+    private static int maskOf(boolean[] known) {
+        int mask = 0;
+        for (int i = 0; i < known.length; i++) {
+            if (known[i]) {
+                mask |= 1 << i;
+            }
+        }
+        return mask;
+    }
+
     private static float safePow(float base, float exp) {
-        if (base <= 0.0f) {
+        return base <= 0.0f ? 0.0f : (float) Math.pow(base, exp);
+    }
+
+    private static float safeLog(float x) {
+        return (float) Math.log(Math.max(1.0E-10f, x));
+    }
+
+    private static float clamp01(float v) {
+        if (Float.isNaN(v)) {
             return 0.0f;
         }
-        return (float)Math.pow(base, exp);
+        return Math.max(0.0f, Math.min(1.0f, v));
     }
-    
-    private static float safeLog(float x) {
-        return (float)Math.log(Math.max(1.0E-10f, x));
-    }
-    
+
     public static String gradeFromScore(float score) {
-        if (score >= 95.0f) {
-            return "A+";
-        }
-        if (score >= 90.0f) {
-            return "A";
-        }
-        if (score >= 85.0f) {
-            return "A-";
-        }
-        if (score >= 80.0f) {
-            return "B+";
-        }
-        if (score >= 75.0f) {
-            return "B";
-        }
-        if (score >= 70.0f) {
-            return "B-";
-        }
-        if (score >= 65.0f) {
-            return "C+";
-        }
-        if (score >= 60.0f) {
-            return "C";
-        }
-        if (score >= 55.0f) {
-            return "C-";
-        }
-        if (score >= 50.0f) {
-            return "D+";
-        }
-        if (score >= 45.0f) {
-            return "D";
-        }
-        if (score >= 31.0f) {
-            return "D-";
-        }
-        return "F";
+        return GradeScale.letterAt(GradeScale.indexFor(score));
     }
-    
+
     public static int gradeColor(float score) {
-        if (score >= 85.0f) {
-            return -16711800;
-        }
-        if (score >= 70.0f) {
-            return -3355648;
-        }
-        if (score >= 55.0f) {
-            return -30720;
-        }
-        if (score >= 40.0f) {
-            return -48128;
-        }
-        return -65536;
-    }
-    
-    static {
-        final float fPeak = (float)(Math.pow(EfficiencyGrader.U_PEAK, EfficiencyGrader.BETA_A - 1.0f) * Math.pow(1.0f - EfficiencyGrader.U_PEAK, EfficiencyGrader.BETA_B - 1.0f));
-        BETA_NORM = 1.0f / fPeak;
-    }
-    
-    public static class ODEState
-    {
-        public float currentE;
-        public float previousU;
-        public float uptimeMemory;
-        
-        public ODEState() {
-            this.currentE = 50.0f;
-            this.previousU = -1.0f;
-            this.uptimeMemory = 1.0f;
-        }
-        
-        public CompoundTag save() {
-            final CompoundTag tag = new CompoundTag();
-            tag.putFloat("E", this.currentE);
-            tag.putFloat("PrevU", this.previousU);
-            tag.putFloat("Uptime", this.uptimeMemory);
-            return tag;
-        }
-        
-        public static ODEState load(CompoundTag tag) {
-            final ODEState s = new ODEState();
-            s.currentE = tag.getFloat("E");
-            s.previousU = tag.getFloat("PrevU");
-            s.uptimeMemory = (tag.contains("Uptime") ? tag.getFloat("Uptime") : 1.0f);
-            return s;
-        }
+        return GradeScale.colorAt(GradeScale.indexFor(score));
     }
 }

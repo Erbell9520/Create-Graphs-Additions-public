@@ -12,7 +12,7 @@ public final class ClientCogHandler
 {
     private ClientCogHandler() {
     }
-    
+
     public static void openDashboard(TimeSeriesStore store) {
         if (store != null && store.getSampleCount() > 0) {
             Minecraft.getInstance().setScreen((Screen)new DashboardScreen(store));

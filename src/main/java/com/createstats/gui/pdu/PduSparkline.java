@@ -3,9 +3,7 @@ package com.createstats.gui.pdu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 
-/** [1] */
 public final class PduSparkline {
-
     private PduSparkline() {
     }
 
@@ -22,14 +20,13 @@ public final class PduSparkline {
             final int px = x + Math.round((w - 1) * (i / (float) (n - 1)));
             final int py = y + h - 1 - Math.round((h - 2) * Mth.clamp(ring.at(i) / max, 0.0f, 1.0f));
             if (prevX >= 0) {
-                // A faint fill under each segment, so the line reads as an area at a glance.
                 g.fill(px - 1, py, px, y + h - 1, PduTheme.withAlpha(colour, 0x22));
                 line(g, prevX, prevY, px, py, colour);
             }
             prevX = px;
             prevY = py;
         }
-        // A dot on the newest sample, so the eye lands on now.
+
         g.fill(prevX - 1, prevY - 1, prevX + 1, prevY + 1, colour);
     }
 

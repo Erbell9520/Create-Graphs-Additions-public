@@ -1,0 +1,37 @@
+{
+  "parent": "create_stats:home/coffee",
+  "display": {
+    "icon": {
+      "id": "create_stats:toast"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.toast.title",
+      "fallback": "One Mixed Toast, One Ayran"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.toast.description",
+      "fallback": "Eat a Toast. The only correct order at any kiosk."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "toast": {
+      "trigger": "minecraft:consume_item",
+      "conditions": {
+        "item": {
+          "items": [
+            "create_stats:toast"
+          ]
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "toast"
+    ]
+  ]
+}

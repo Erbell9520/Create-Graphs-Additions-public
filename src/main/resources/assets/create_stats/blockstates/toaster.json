@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/toaster"
+    },
+    "facing=east": {
+      "model": "create_stats:block/toaster",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/toaster",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/toaster",
+      "y": 270
+    }
+  }
+}

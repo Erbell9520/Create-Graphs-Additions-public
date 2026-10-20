@@ -1,0 +1,42 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "element_0": "create_stats:block/toaster_element_0",
+    "particle": "create_stats:block/toaster_element_0"
+  },
+  "elements": [
+    {
+      "__comment": "panel",
+      "from": [
+        -0.06,
+        -3.0,
+        -3.2
+      ],
+      "to": [
+        0.06,
+        3.0,
+        3.2
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#element_0"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#element_0"
+        }
+      }
+    }
+  ]
+}

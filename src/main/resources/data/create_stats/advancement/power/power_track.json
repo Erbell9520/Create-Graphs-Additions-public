@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:power_track"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.power_track.title",
+      "fallback": "Marmaray"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.power_track.description",
+      "fallback": "Get some Power Track. Next stop: under the Bosphorus."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "track": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:power_track"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "track"
+    ]
+  ]
+}

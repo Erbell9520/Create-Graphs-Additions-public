@@ -91,8 +91,8 @@ public class StressometerHudState {
                 this.widgets.add(widget.copy());
             }
         }
-        // P1.10 fix: only seed defaults for fresh state (other == null). When copying an
-        // explicitly empty layout (e.g. for an undo snapshot), preserve emptiness.
+        // only seed defaults for fresh state, an empty undo snapshot is empty on purpose
+
         if (other == null && this.widgets.isEmpty()) {
             this.applyPreset(this.compact ? LayoutPreset.COMPACT_ROW : LayoutPreset.FULL_PANEL);
         }
@@ -416,16 +416,12 @@ public class StressometerHudState {
         this.syncLegacyFlagsFromWidgets();
     }
 
-    /**
-     * Clone an existing widget with a fresh, unique id and offset bounds. Used by Ctrl+D in the studio.
-     * Returns the new widget (selected), or null if source not found.
-     */
     public PartWidget duplicateWidget(String widgetId, int dx, int dy, int screenWidth, int screenHeight) {
         if (widgetId == null || widgetId.isEmpty()) return null;
         final PartWidget src = this.getWidget(widgetId);
         if (src == null) return null;
         final PartWidget dup = src.copy();
-        // Mint a new unique id (random short suffix) so the duplicate doesn't collide with the original.
+
         String newId;
         int guard = 0;
         do {
@@ -433,7 +429,7 @@ public class StressometerHudState {
             guard++;
         } while (this.getWidget(newId) != null && guard < 8);
         dup.setId(newId);
-        // Offset bounds based on resolved pixel position.
+
         final Bounds.ResolvedBounds b = src.resolveBounds(screenWidth, screenHeight, this);
         dup.setBoundsFromPixels(b.x() + dx, b.y() + dy, b.width(), b.height(), screenWidth, screenHeight);
         this.widgets.add(dup);
@@ -920,8 +916,8 @@ public class StressometerHudState {
             return PART_ALIASES.get(id);
         }
 
-        // P4.8: append-only legacy id -> Part alias table.
-        // Register future renames here so old saved layouts keep loading.
+        // append only. renames go here or old layouts stop loading
+
         private static final java.util.Map<String, Part> PART_ALIASES = new java.util.concurrent.ConcurrentHashMap<String, Part>();
         public static void alias(String legacyId, Part target) {
             if (legacyId == null || legacyId.isEmpty() || target == null) {
@@ -1102,7 +1098,7 @@ public class StressometerHudState {
         }
 
         public String getId() { return this.id; }
-        /** Package-private setter used by StressometerHudState.duplicateWidget for unique-id minting. */
+
         void setId(String id) { this.id = (id != null && !id.isEmpty()) ? id : this.id; }
         public Part getPart() { return this.part; }
         public SourceCategory getSourceCategory() { return this.sourceCategory; }
@@ -1121,7 +1117,7 @@ public class StressometerHudState {
         public void setTextScale(float scale) { this.textScale = Math.max(0.0f, Math.min(1.5f, scale)); }
         public int getPaddingOffset() { return this.paddingOffset; }
         public void setPaddingOffset(int offset) { this.paddingOffset = Math.max(-4, Math.min(8, offset)); }
-        /** "" / "classic" → default look. Other values dispatch a variant in the renderer. */
+
         public String getRenderVariant() { return this.renderVariant; }
         public void setRenderVariant(String variant) { this.renderVariant = limit(variant != null ? variant : "", 32); }
         public float getEffectiveTextScale(float globalScale) { return this.textScale > 0.01f ? this.textScale : globalScale; }

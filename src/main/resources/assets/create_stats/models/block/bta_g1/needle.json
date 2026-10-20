@@ -1,0 +1,293 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "shell": "create_stats:block/bta_g1_shell",
+    "alu": "create_stats:block/bta_g1_alu",
+    "brass": "create_stats:block/bta_g1_brass",
+    "leather": "create_stats:block/bta_g1_leather",
+    "desk": "create_stats:block/bta_g1_desk",
+    "cluster": "create_stats:block/bta_g1_cluster",
+    "front": "create_stats:block/bta_g1_front",
+    "side": "create_stats:block/bta_g1_side",
+    "rear": "create_stats:block/bta_g1_rear",
+    "visor": "create_stats:block/bta_g1_visor",
+    "flank": "create_stats:block/bta_g1_flank",
+    "back": "create_stats:block/bta_g1_back",
+    "enamel_red": "create_stats:block/bta_g1_enamel_red",
+    "enamel_black": "create_stats:block/bta_g1_enamel_black",
+    "needle": "create_stats:block/bta_g1_needle",
+    "lit": "create_stats:block/bta_g1_lit",
+    "glass": "create_stats:block/bta_g1_glass",
+    "wheel_flat": "create_stats:block/bta_g1_wheel_flat",
+    "particle": "create_stats:block/bta_g1_shell"
+  },
+  "elements": [
+    {
+      "name": "needle_tail",
+      "from": [
+        7.75,
+        7.2,
+        8.15
+      ],
+      "to": [
+        8.25,
+        8,
+        8.55
+      ],
+      "faces": {
+        "north": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            8,
+            8.25,
+            8.8
+          ]
+        },
+        "south": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            8,
+            8.25,
+            8.8
+          ]
+        },
+        "east": {
+          "texture": "#needle",
+          "uv": [
+            7.45,
+            8,
+            7.85,
+            8.8
+          ]
+        },
+        "west": {
+          "texture": "#needle",
+          "uv": [
+            8.15,
+            8,
+            8.55,
+            8.8
+          ]
+        },
+        "up": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            8.15,
+            8.25,
+            8.55
+          ]
+        },
+        "down": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            7.45,
+            8.25,
+            7.85
+          ]
+        }
+      }
+    },
+    {
+      "name": "needle_base",
+      "from": [
+        7.5,
+        8,
+        8.15
+      ],
+      "to": [
+        8.5,
+        9.6,
+        8.55
+      ],
+      "faces": {
+        "north": {
+          "texture": "#needle",
+          "uv": [
+            7.5,
+            6.4,
+            8.5,
+            8
+          ]
+        },
+        "south": {
+          "texture": "#needle",
+          "uv": [
+            7.5,
+            6.4,
+            8.5,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#needle",
+          "uv": [
+            7.45,
+            6.4,
+            7.85,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#needle",
+          "uv": [
+            8.15,
+            6.4,
+            8.55,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#needle",
+          "uv": [
+            7.5,
+            8.15,
+            8.5,
+            8.55
+          ]
+        },
+        "down": {
+          "texture": "#needle",
+          "uv": [
+            7.5,
+            7.45,
+            8.5,
+            7.85
+          ]
+        }
+      }
+    },
+    {
+      "name": "needle_tip",
+      "from": [
+        7.75,
+        9.6,
+        8.15
+      ],
+      "to": [
+        8.25,
+        10.6,
+        8.55
+      ],
+      "faces": {
+        "north": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            5.4,
+            8.25,
+            6.4
+          ]
+        },
+        "south": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            5.4,
+            8.25,
+            6.4
+          ]
+        },
+        "east": {
+          "texture": "#needle",
+          "uv": [
+            7.45,
+            5.4,
+            7.85,
+            6.4
+          ]
+        },
+        "west": {
+          "texture": "#needle",
+          "uv": [
+            8.15,
+            5.4,
+            8.55,
+            6.4
+          ]
+        },
+        "up": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            8.15,
+            8.25,
+            8.55
+          ]
+        },
+        "down": {
+          "texture": "#needle",
+          "uv": [
+            7.75,
+            7.45,
+            8.25,
+            7.85
+          ]
+        }
+      }
+    },
+    {
+      "name": "needle_cap",
+      "from": [
+        7.5,
+        7.5,
+        8.55
+      ],
+      "to": [
+        8.5,
+        8.5,
+        9.05
+      ],
+      "faces": {
+        "south": {
+          "texture": "#brass",
+          "uv": [
+            7.5,
+            7.5,
+            8.5,
+            8.5
+          ]
+        },
+        "east": {
+          "texture": "#brass",
+          "uv": [
+            6.95,
+            7.5,
+            7.45,
+            8.5
+          ]
+        },
+        "west": {
+          "texture": "#brass",
+          "uv": [
+            8.55,
+            7.5,
+            9.05,
+            8.5
+          ]
+        },
+        "up": {
+          "texture": "#brass",
+          "uv": [
+            7.5,
+            8.55,
+            8.5,
+            9.05
+          ]
+        },
+        "down": {
+          "texture": "#brass",
+          "uv": [
+            7.5,
+            6.95,
+            8.5,
+            7.45
+          ]
+        }
+      }
+    }
+  ]
+}

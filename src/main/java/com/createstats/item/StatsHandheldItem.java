@@ -25,7 +25,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class StatsHandheldItem extends Item {
-
     private static final String TAG_KEY = "StatsHandheldLink";
 
     public StatsHandheldItem(Item.Properties properties) {

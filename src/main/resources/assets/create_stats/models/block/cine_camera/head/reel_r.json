@@ -1,0 +1,33 @@
+{
+ "credit": "gen_cine_camera.py --ship",
+ "textures": {
+  "reel": "create_stats:block/cine_camera/reel",
+  "particle": "create_stats:block/cine_camera/head_atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    6.1,
+    15.8,
+    8.9
+   ],
+   "to": [
+    6.15,
+    20.8,
+    13.9
+   ],
+   "name": "reel",
+   "faces": {
+    "west": {
+     "uv": [
+      0,
+      0,
+      5,
+      5
+     ],
+     "texture": "#reel"
+    }
+   }
+  }
+ ]
+}

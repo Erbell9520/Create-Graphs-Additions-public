@@ -1,7 +1,6 @@
 package com.createstats.train.manifest;
 
 public enum ManifestCargoKind {
-
     ITEM("item", "Item", 1, "items"),
     FLUID("fluid", "Fluid", 1000, "mB");
 

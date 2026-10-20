@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:home/coffee",
+  "display": {
+    "icon": {
+      "id": "create_stats:water_cooler"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.water_cooler.title",
+      "fallback": "The Water Guy Is Here!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.water_cooler.description",
+      "fallback": "Place a Water Cooler. The water jug man only ever rings while you are out."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "cooler": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:water_cooler"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "cooler"
+    ]
+  ]
+}

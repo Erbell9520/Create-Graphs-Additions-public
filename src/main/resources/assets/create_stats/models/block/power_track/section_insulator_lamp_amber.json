@@ -1,0 +1,50 @@
+{
+  "textures": {
+    "particle": "create_stats:block/power_track/lens_amber",
+    "lens": "create_stats:block/power_track/lens_amber",
+    "steel": "create_stats:block/power_track/steel"
+  },
+  "elements": [
+    {
+      "name": "lit_lens",
+      "from": [
+        2.475,
+        14.375,
+        6.725
+      ],
+      "to": [
+        5.525,
+        16.625,
+        9.275
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.475,
+            6.875,
+            9.525,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "south": {
+          "uv": [
+            6.475,
+            6.875,
+            9.525,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    }
+  ]
+}

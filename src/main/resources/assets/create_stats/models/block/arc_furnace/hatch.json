@@ -1,0 +1,288 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "clamp": "create_stats:block/arc_clamp",
+    "clamp_top": "create_stats:block/arc_clamp_top",
+    "hatch": "create_stats:block/arc_hatch",
+    "hatch_inner": "create_stats:block/arc_hatch_inner",
+    "particle": "create_stats:block/arc_body"
+  },
+  "elements": [
+    {
+      "from": [
+        -4.0,
+        0,
+        -0.38
+      ],
+      "to": [
+        4.0,
+        5.0,
+        0.38
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            8,
+            12,
+            13
+          ],
+          "texture": "#hatch"
+        },
+        "south": {
+          "uv": [
+            4,
+            8,
+            12,
+            13
+          ],
+          "texture": "#hatch_inner"
+        },
+        "up": {
+          "uv": [
+            4,
+            7,
+            12,
+            8
+          ],
+          "texture": "#hatch"
+        },
+        "down": {
+          "uv": [
+            4,
+            7,
+            12,
+            8
+          ],
+          "texture": "#hatch"
+        },
+        "east": {
+          "uv": [
+            0,
+            8,
+            1,
+            13
+          ],
+          "texture": "#hatch"
+        },
+        "west": {
+          "uv": [
+            0,
+            8,
+            1,
+            13
+          ],
+          "texture": "#hatch"
+        }
+      },
+      "__comment": "leaf"
+    },
+    {
+      "from": [
+        -2.6,
+        3.4,
+        -1.07
+      ],
+      "to": [
+        -2.0,
+        4.0,
+        -0.38
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#clamp"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        }
+      },
+      "__comment": "handle standoff"
+    },
+    {
+      "from": [
+        2.0,
+        3.4,
+        -1.07
+      ],
+      "to": [
+        2.6,
+        4.0,
+        -0.38
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#clamp"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        }
+      },
+      "__comment": "handle standoff"
+    },
+    {
+      "from": [
+        -3.2,
+        3.3,
+        -1.68
+      ],
+      "to": [
+        3.2,
+        4.1,
+        -1.07
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#clamp_top"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#clamp"
+        }
+      },
+      "__comment": "handle bar"
+    }
+  ]
+}

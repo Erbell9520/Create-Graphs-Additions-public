@@ -7,7 +7,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
 public class DeliveryOrderLineView {
-
     private final UUID lineId;
     private final ManifestCargoKind cargoKind;
     private final ManifestOperation operation;

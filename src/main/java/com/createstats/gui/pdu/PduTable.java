@@ -2,10 +2,12 @@ package com.createstats.gui.pdu;
 
 import com.createstats.blockentity.PowerDistributionUnitBE.BranchDevice;
 import com.createstats.gui.pdu.PduTableModel.DeviceRow;
+import com.createstats.gui.pdu.PduTableModel.Filter;
 import com.createstats.gui.pdu.PduTableModel.GroupRow;
 import com.createstats.gui.pdu.PduTableModel.Group;
 import com.createstats.gui.pdu.PduTableModel.Row;
 import com.createstats.gui.pdu.PduTableModel.Sort;
+import com.createstats.gui.pdu.PduTableModel.Status;
 import com.createstats.power.FeLock;
 import com.createstats.power.FePriority;
 import net.minecraft.Util;
@@ -20,40 +22,38 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 
-/** [1] */
 public final class PduTable {
-
-    /** The screen fields these so it can apply the confirmation guard and send the validated packets. */
     public interface Callback {
         void requestSetTier(BranchDevice device, FePriority tier);
 
         void requestSetLock(BranchDevice device, FeLock lock);
+
+        void requestSort(Sort column);
     }
 
-    /** Sentinel for "roster is empty", so the rebuild check never dereferences a missing first element. */
     private static final Object EMPTY_TOKEN = new Object();
     private static final int OVERSCAN = 2;
+
+    public static final int HEADER_H = 11;
 
     private List<Row> rows = List.of();
     private int[] groupOf = new int[0];
     private int[] nextHeaderOf = new int[0];
     private int peakDraw = 1;
 
-    // Rebuild detection. The first device's identity plus the size catches a sync (which recreates
-    // every record), and the control fields catch a search, group or sort change.
     private Object lastToken;
     private int lastSize = -1;
     private Group lastGroup;
     private Sort lastSort;
     private boolean lastReversed;
-    private String lastSearch = "\u0000";
-    private boolean lastShedOnly;
-    private FePriority lastTierFilter;
+    private Filter lastFilter;
 
     private final LinkedHashSet<BlockPos> selection = new LinkedHashSet<>();
     private BlockPos cursorPos;
     private BlockPos anchorPos;
     private boolean focused;
+
+    private boolean headerFocused;
 
     private int scroll;
     private int contentHeight;
@@ -63,44 +63,44 @@ public final class PduTable {
     private long lastWheelMs;
     private float wheelAccel = 1.0f;
 
+    private PduRect bounds = new PduRect(0, 0, 0, 0);
+
     private PduRect area = new PduRect(0, 0, 0, 0);
     private int rowH = 16;
-    // Column geometry, recomputed each frame into fields so no record is allocated in the hot path.
-    private int pipX;
-    private int nameX;
-    private int nameW;
-    private int tierX;
-    private int tierW;
-    private int drawColX;
-    private int drawColW;
-    private int reasonX;
-    private int reasonW;
-    private int lockX;
+    private PduLoadColumns cols = PduLoadColumns.of(0, 0);
+    private Sort sort = Sort.DRAW;
+    private boolean reversed;
 
-    // data
-
-    /** Rebuilds the model only when the roster or the controls actually change. */
     public void setData(List<BranchDevice> roster, Group group, Sort sort, boolean reversed,
                         String search, boolean shedOnly) {
-        setData(roster, group, sort, reversed, search, shedOnly, null);
+        setData(roster, group, sort, reversed, new Filter(search, shedOnly, null, Filter.ANY_LEG));
     }
 
-    /** Rebuilds the model only when the roster or the controls actually change. */
     public void setData(List<BranchDevice> roster, Group group, Sort sort, boolean reversed,
                         String search, boolean shedOnly, FePriority tierFilter) {
+        setData(roster, group, sort, reversed, new Filter(search, shedOnly, tierFilter, Filter.ANY_LEG));
+    }
+
+    public void setData(List<BranchDevice> roster, Group group, Sort sort, boolean reversed,
+                        Filter filter) {
+        this.sort = sort;
+        this.reversed = reversed;
         final Object token = roster.isEmpty() ? EMPTY_TOKEN : roster.get(0);
         final boolean rosterChanged = roster.size() != lastSize || token != lastToken;
         final boolean controlsChanged = group != lastGroup || sort != lastSort
-                || reversed != lastReversed || !search.equals(lastSearch) || shedOnly != lastShedOnly
-                || tierFilter != lastTierFilter;
+                || reversed != lastReversed || !filter.equals(lastFilter);
         if (!rosterChanged && !controlsChanged) {
             return;
         }
-        rows = PduTableModel.build(roster, group, sort, reversed, search, shedOnly, tierFilter);
+        rows = PduTableModel.build(roster, group, sort, reversed, filter);
         rebuildIndices();
         peakDraw = 1;
         for (BranchDevice d : roster) {
-            peakDraw = Math.max(peakDraw, d.draw());
+            // both figures on one peak or the tick sits left of a bar it's bigger than
+
+            if (!d.isStorage()) {
+                peakDraw = Math.max(peakDraw, Math.max(d.draw(), d.cost()));
+            }
         }
         pruneSelectionAndCursor();
         lastSize = roster.size();
@@ -108,9 +108,7 @@ public final class PduTable {
         lastGroup = group;
         lastSort = sort;
         lastReversed = reversed;
-        lastSearch = search;
-        lastShedOnly = shedOnly;
-        lastTierFilter = tierFilter;
+        lastFilter = filter;
     }
 
     private void rebuildIndices() {
@@ -153,15 +151,13 @@ public final class PduTable {
         return -1;
     }
 
-    // queries
-
     public boolean isFocused() {
         return focused;
     }
 
     public void setFocused(boolean focused) {
         this.focused = focused;
-        // Give the keyboard something to land on the moment the table takes focus.
+
         if (focused && cursorPos == null) {
             final int first = firstDeviceRow();
             if (first >= 0) {
@@ -170,8 +166,23 @@ public final class PduTable {
         }
     }
 
+    public void setHeaderFocused(boolean headerFocused) {
+        this.headerFocused = headerFocused;
+    }
+
     public int selectionSize() {
         return selection.size();
+    }
+
+    public int selectedLoadCount() {
+        int n = 0;
+        for (Row r : rows) {
+            if (r instanceof DeviceRow d && !d.device().isStorage()
+                    && selection.contains(d.device().pos())) {
+                n++;
+            }
+        }
+        return n;
     }
 
     public boolean hasSelection() {
@@ -183,7 +194,6 @@ public final class PduTable {
         anchorPos = null;
     }
 
-    /** Selects exactly this device, for a cross highlight click from the wiring diagram. */
     public void selectOnly(BlockPos pos) {
         selection.clear();
         selection.add(pos);
@@ -191,7 +201,6 @@ public final class PduTable {
         cursorPos = pos;
     }
 
-    /** Selects every device currently in the table, after filter and search, for a keyboard bulk edit. */
     public void selectAllVisible() {
         selection.clear();
         for (Row r : rows) {
@@ -203,12 +212,10 @@ public final class PduTable {
         anchorPos = cursorPos;
     }
 
-    /** Whether a position is in the selection, so the diagram can highlight what the table has selected. */
     public boolean isSelected(BlockPos pos) {
         return selection.contains(pos);
     }
 
-    /** The single selected device, or null unless exactly one is selected. Drives the inspector. */
     public BranchDevice singleSelected() {
         if (selection.size() != 1) {
             return null;
@@ -218,7 +225,6 @@ public final class PduTable {
         return i < 0 ? null : ((DeviceRow) rows.get(i)).device();
     }
 
-    /** Every selected device, in row order, for the bulk bar. Allocated only when a selection exists. */
     public List<BranchDevice> selectedDevices() {
         final List<BranchDevice> out = new ArrayList<>(selection.size());
         for (Row r : rows) {
@@ -229,44 +235,129 @@ public final class PduTable {
         return out;
     }
 
-    /** The device under the cursor, or null, for the hover tooltip the screen draws over everything. */
+    public List<BranchDevice> selectedLoads() {
+        final List<BranchDevice> out = new ArrayList<>(selection.size());
+        for (Row r : rows) {
+            if (r instanceof DeviceRow d && !d.device().isStorage()
+                    && selection.contains(d.device().pos())) {
+                out.add(d.device());
+            }
+        }
+        return out;
+    }
+
+    public int visibleDeviceCount() {
+        return PduTableModel.deviceCount(rows);
+    }
+
     public BranchDevice deviceAt(double mx, double my) {
-        if (!area.contains(mx, my) || rows.isEmpty()) {
+        if (!area.contains(mx, my) || rows.isEmpty() || overStickyHeader(my)) {
             return null;
         }
         final int i = (int) ((my - area.y() + scroll) / rowH);
         return i >= 0 && i < rows.size() && rows.get(i) instanceof DeviceRow d ? d.device() : null;
     }
 
-    // draw
+    public PduRect bounds() {
+        return bounds;
+    }
 
-    public void draw(GuiGraphics g, Font font, PduRect bounds, int rowHeight, int mouseX, int mouseY,
+    public PduLoadColumns columns() {
+        return cols;
+    }
+
+    public int rowCount() {
+        return rows.size();
+    }
+
+    public PduRect rowRect(int i) {
+        return new PduRect(area.x(), area.y() + i * rowH - scroll, area.w() - scrollbarInset(), rowH);
+    }
+
+    public BranchDevice deviceOnRow(int i) {
+        return i >= 0 && i < rows.size() && rows.get(i) instanceof DeviceRow d ? d.device() : null;
+    }
+
+    public void draw(GuiGraphics g, Font font, PduRect outer, int rowHeight, int mouseX, int mouseY,
                      float partialTick) {
-        this.area = bounds;
+        this.bounds = outer;
+        this.area = new PduRect(outer.x(), outer.y() + HEADER_H, outer.w(),
+                Math.max(0, outer.h() - HEADER_H));
         this.rowH = rowHeight;
-        computeColumns();
+        cols = PduLoadColumns.of(area.x(), area.w() - scrollbarInset());
         contentHeight = rows.size() * rowH;
         clampScroll();
 
+        drawColumnHeader(g, font, mouseX, mouseY);
+
         if (rows.isEmpty()) {
             final String msg = "No devices match";
-            g.drawString(font, msg, bounds.centerX() - font.width(msg) / 2, bounds.centerY() - 4,
+            g.drawString(font, msg, area.centerX() - font.width(msg) / 2, area.centerY() - 4,
                     PduTheme.TEXT_FAINT, false);
             return;
         }
 
-        g.enableScissor(bounds.x(), bounds.y(), bounds.right(), bounds.bottom());
+        g.enableScissor(area.x(), area.y(), area.right(), area.bottom());
         final int topRow = Mth.clamp(scroll / rowH, 0, rows.size() - 1);
         final int first = Math.max(0, topRow - OVERSCAN);
-        final int last = Math.min(rows.size() - 1, (scroll + bounds.h()) / rowH + OVERSCAN);
+        final int last = Math.min(rows.size() - 1, (scroll + area.h()) / rowH + OVERSCAN);
         for (int i = first; i <= last; i++) {
-            final int y = bounds.y() + i * rowH - scroll;
+            final int y = area.y() + i * rowH - scroll;
             drawRow(g, font, i, y, mouseX, mouseY);
         }
         g.disableScissor();
 
         drawStickyHeader(g, font, topRow);
         drawScrollbar(g, mouseX, mouseY, partialTick);
+    }
+
+    private void drawColumnHeader(GuiGraphics g, Font font, int mouseX, int mouseY) {
+        final int y = bounds.y();
+        g.fill(bounds.x(), y, bounds.right(), y + HEADER_H, PduTheme.BG_DEEP);
+        g.fill(bounds.x(), y + HEADER_H - 1, bounds.right(), y + HEADER_H, PduTheme.STROKE);
+        final boolean overHeader = mouseY >= y && mouseY < y + HEADER_H
+                && mouseX >= bounds.x() && mouseX < bounds.right();
+        final Sort hovered = overHeader ? cols.columnAt(mouseX) : null;
+
+        for (Sort column : Sort.values()) {
+            if (column == Sort.LEG && !cols.legShown()) {
+                continue;
+            }
+            final int[] box = cols.boundsOf(column);
+            final boolean active = column == sort;
+            final int colour = active ? PduTheme.TEXT
+                    : column == hovered ? PduTheme.TEXT_DIM : PduTheme.TEXT_FAINT;
+            final String label = column.label();
+
+            final boolean rightAligned = column == Sort.DRAW || column == Sort.LEG;
+            final int arrowW = active ? 7 : 0;
+            final int textX = rightAligned
+                    ? box[0] + box[1] - font.width(label)
+                    : box[0] + arrowW;
+            g.drawString(font, trim(font, label, box[1] - arrowW), textX, y + 1, colour, false);
+            if (active) {
+                final int ax = rightAligned ? textX - arrowW : box[0];
+                drawSortArrow(g, ax + 1, y + 4, !reversed, PduTheme.ACCENT);
+                g.fill(box[0], y + HEADER_H - 2, box[0] + box[1], y + HEADER_H - 1, PduTheme.ACCENT);
+            }
+            if (headerFocused && active) {
+                PduTheme.outline(g, box[0] - 1, y, box[1] + 2, HEADER_H - 1, PduTheme.STROKE_HOT);
+            }
+        }
+
+        PduGlyphs.drawLock(g, cols.lockX(), y + 1, FeLock.NONE, false);
+    }
+
+    private static void drawSortArrow(GuiGraphics g, int x, int y, boolean down, int colour) {
+        if (down) {
+            g.fill(x, y, x + 5, y + 1, colour);
+            g.fill(x + 1, y + 1, x + 4, y + 2, colour);
+            g.fill(x + 2, y + 2, x + 3, y + 3, colour);
+        } else {
+            g.fill(x + 2, y, x + 3, y + 1, colour);
+            g.fill(x + 1, y + 1, x + 4, y + 2, colour);
+            g.fill(x, y + 2, x + 5, y + 3, colour);
+        }
     }
 
     private void drawRow(GuiGraphics g, Font font, int i, int y, int mouseX, int mouseY) {
@@ -282,55 +373,156 @@ public final class PduTable {
         g.fill(area.x(), y, rowRight, y + rowH, PduTheme.BG_DEEP);
         g.fill(area.x(), y + rowH - 1, rowRight, y + rowH, PduTheme.STROKE);
         PduCard.drawHeading(g, font, header.label(), area.x() + 4, y + (rowH - 8) / 2);
-        final String meta = String.format(Locale.ROOT, "%d/%d   %s FE/t",
-                header.served(), header.total(), compact(header.totalDraw()));
-        g.drawString(font, meta, rowRight - 4 - font.width(meta), y + (rowH - 8) / 2,
-                header.served() < header.total() ? PduTheme.WARN : PduTheme.TEXT_DIM, false);
+        final String meta;
+        final int metaColour;
+        if (header.storage()) {
+            meta = String.format(Locale.ROOT, "%d %s   %d%%   %s%s FE/t",
+                    header.total(), header.total() == 1 ? "tank" : "tanks",
+                    Math.round(header.fill() * 100.0f),
+                    header.totalDraw() > 0 ? "+" : "", compact(header.totalDraw()));
+            metaColour = header.totalDraw() > 0 ? PduTheme.OK
+                    : header.totalDraw() < 0 ? PduTheme.INFO : PduTheme.TEXT_DIM;
+        } else {
+            meta = String.format(Locale.ROOT, "%d/%d   %s FE/t",
+                    header.served(), header.total(), compact(header.totalDraw()));
+            metaColour = header.served() < header.total() ? PduTheme.WARN : PduTheme.TEXT_DIM;
+        }
+        g.drawString(font, meta, rowRight - 4 - font.width(meta), y + (rowH - 8) / 2, metaColour, false);
     }
 
     private void drawDeviceRow(GuiGraphics g, Font font, BranchDevice d, int y, int rowRight,
                                int mouseX, int mouseY) {
         final boolean selected = selection.contains(d.pos());
         final boolean isCursor = focused && d.pos().equals(cursorPos);
-        final boolean hovered = mouseX >= area.x() && mouseX < rowRight && mouseY >= y && mouseY < y + rowH;
+        final boolean hovered = mouseX >= area.x() && mouseX < rowRight && mouseY >= y && mouseY < y + rowH
+                && !overStickyHeader(mouseY);
 
+        if (d.isStorage()) {
+            drawStorageRow(g, font, d, y, rowRight, selected, hovered, isCursor);
+            return;
+        }
+
+        final Status status = Status.of(d);
         g.fill(area.x(), y, rowRight, y + rowH, selected || hovered ? PduTheme.BG_RAISED : PduTheme.BG_PANEL);
-        if (d.shed() && d.lock() != FeLock.FORCE_OFF) {
+        if (status == Status.SHED) {
             g.fill(area.x(), y, rowRight, y + rowH, PduTheme.withAlpha(PduTheme.WARN, 0x16));
+        } else if (status == Status.BREAKER) {
+            g.fill(area.x(), y, rowRight, y + rowH, PduTheme.withAlpha(PduTheme.CRIT, 0x14));
         }
         if (selected) {
             g.fill(area.x(), y, area.x() + 2, y + rowH, PduTheme.ACCENT);
         }
 
         final int midText = y + (rowH - 8) / 2;
-        final int pipColour = PduGlyphs.drawPip(g, pipX, y + (rowH - 6) / 2, d);
+        final int pipColour = PduGlyphs.drawPip(g, cols.pipX(), y + (rowH - 6) / 2, d);
 
-        final int nameColour = d.shed() || d.lock() == FeLock.FORCE_OFF ? PduTheme.TEXT_DIM : PduTheme.TEXT;
-        // [2]
-        g.fill(nameX, midText - 1, nameX + 3, midText + 8, PduLegRow.colour(d.leg()));
-        g.drawString(font, trim(font, d.label(), nameW - 6), nameX + 6, midText, nameColour, false);
+        final int nameColour = status.isDark() ? PduTheme.TEXT_DIM : PduTheme.TEXT;
 
-        // Tier chip, clickable to cycle.
-        final String tierLabel = d.priority().getDisplayName();
-        final boolean tierHover = hovered && mouseX >= tierX && mouseX < tierX + tierW;
-        PduChip.draw(g, font, tierX, y + (rowH - PduChip.HEIGHT) / 2, tierLabel,
+        g.fill(cols.nameX(), midText - 1, cols.nameX() + 3, midText + 8, PduLegRow.colour(d.leg()));
+        g.drawString(font, trim(font, d.label(), cols.nameW() - 6), cols.nameX() + 6, midText,
+                nameColour, false);
+
+        final boolean tierHover = hovered && mouseX >= cols.tierX() && mouseX < cols.tierX() + cols.tierW();
+        PduChip.draw(g, font, cols.tierX(), y + (rowH - PduChip.HEIGHT) / 2, tierLabel(font, d),
                 PduGlyphs.tierColour(d.priority()), tierHover, false);
 
-        // Draw, right aligned, with a proportional bar behind it.
-        final int barW = Math.min(drawColW, Math.round(drawColW * (d.draw() / (float) peakDraw)));
-        g.fill(drawColX, y + rowH - 3, drawColX + barW, y + rowH - 2,
+        drawDrawColumn(g, font, d, y, midText);
+        drawStateColumn(g, font, d, status, midText, pipColour);
+
+        if (cols.legShown()) {
+            final String leg = legShortName(d.leg());
+            g.drawString(font, leg, cols.legX() + cols.legW() - font.width(leg), midText,
+                    PduTheme.TEXT_FAINT, false);
+        }
+
+        final boolean lockHover = hovered && mouseX >= cols.lockX() && mouseX < cols.lockX() + 10;
+        PduGlyphs.drawLock(g, cols.lockX(), y + (rowH - 8) / 2, d.lock(), lockHover);
+
+        if (isCursor) {
+            PduTheme.outline(g, area.x() + 1, y, rowRight - area.x() - 1, rowH, PduTheme.STROKE_HOT);
+        }
+    }
+
+    private void drawDrawColumn(GuiGraphics g, Font font, BranchDevice d, int y, int midText) {
+        final int barY = y + rowH - 3;
+        final int w = cols.drawW();
+        final int x = cols.drawX();
+        final int barW = Math.min(w, Math.round(w * (d.draw() / (float) peakDraw)));
+        g.fill(x, barY, x + barW, barY + 1,
                 PduTheme.withAlpha(d.shed() ? PduTheme.WARN : PduTheme.INFO, 0x55));
+        if (d.cost() != d.draw()) {
+            final int costX = x + Math.min(w - 1, Math.round(w * (d.cost() / (float) peakDraw)));
+            g.fill(costX, barY - 1, costX + 1, barY + 2, PduTheme.withAlpha(PduTheme.TEXT_DIM, 0xAA));
+        }
         final String draw = String.format(Locale.ROOT, "%,d", d.draw());
         final int unitW = font.width(" FE/t");
-        g.drawString(font, "FE/t", drawColX + drawColW - font.width("FE/t"), midText, PduTheme.TEXT_FAINT, false);
-        g.drawString(font, draw, drawColX + drawColW - unitW - font.width(draw), midText, PduTheme.TEXT_DIM, false);
+        g.drawString(font, "FE/t", x + w - font.width("FE/t"), midText, PduTheme.TEXT_FAINT, false);
+        g.drawString(font, draw, x + w - unitW - font.width(draw), midText, PduTheme.TEXT_DIM, false);
+    }
 
-        // Full reason text, ellipsised, coloured to match the pip.
-        g.drawString(font, trim(font, d.reason().description(), reasonW), reasonX, midText, pipColour, false);
+    // the full sentence never fit. "Shed: gener..." for all five reasons, which exist because they need five different fixes
+    private void drawStateColumn(GuiGraphics g, Font font, BranchDevice d, Status status, int midText,
+                                 int pipColour) {
+        final String shown = cols.stateWordsShown() ? d.reason().shortLabel() : d.reason().shortFlag();
+        g.drawString(font, trim(font, shown, cols.stateW()), cols.stateX(), midText,
+                status == Status.RUNNING ? PduTheme.TEXT_DIM : pipColour, false);
+    }
 
-        // Lock icon button.
-        final boolean lockHover = hovered && mouseX >= lockX && mouseX < lockX + 10;
-        PduGlyphs.drawLock(g, lockX, y + (rowH - 8) / 2, d.lock(), lockHover);
+    private String tierLabel(Font font, BranchDevice d) {
+        final String full = d.priority().getDisplayName();
+        return PduChip.width(font, full) <= cols.tierW() ? full : d.priority().getShortName();
+    }
+
+    private static String legShortName(int leg) {
+        return PduLegRow.isBack(leg) ? "Back" : "L" + (leg + 1);
+    }
+
+    private void drawStorageRow(GuiGraphics g, Font font, BranchDevice d, int y, int rowRight,
+                                boolean selected, boolean hovered, boolean isCursor) {
+        g.fill(area.x(), y, rowRight, y + rowH,
+                selected || hovered ? PduTheme.BG_RAISED : PduTheme.BG_PANEL);
+        if (selected) {
+            g.fill(area.x(), y, area.x() + 2, y + rowH, PduTheme.ACCENT);
+        }
+
+        final int midText = y + (rowH - 8) / 2;
+        final int flow = d.draw();
+        final int accent = flow > 0 ? PduTheme.OK : flow < 0 ? PduTheme.INFO : PduTheme.TEXT_DIM;
+
+        PduGlyphs.drawPip(g, cols.pipX(), y + (rowH - 6) / 2, d);
+
+        g.fill(cols.nameX(), midText - 1, cols.nameX() + 3, midText + 8, PduLegRow.colour(d.leg()));
+        g.drawString(font, trim(font, d.label(), cols.nameW() - 6), cols.nameX() + 6, midText,
+                PduTheme.TEXT, false);
+
+        PduChip.draw(g, font, cols.tierX(), y + (rowH - PduChip.HEIGHT) / 2,
+                PduChip.width(font, "STORAGE") <= cols.tierW() ? "STORAGE" : "TANK",
+                PduTheme.INFO, false, false);
+
+        final int fillW = Math.round(cols.drawW() * d.fill());
+        g.fill(cols.drawX(), y + rowH - 3, cols.drawX() + fillW, y + rowH - 2,
+                PduTheme.withAlpha(PduTheme.INFO, 0x55));
+        final String value = flow == 0 ? "idle"
+                : String.format(Locale.ROOT, "%s%,d", flow > 0 ? "+" : "", flow);
+        final int unitW = font.width(" FE/t");
+        if (flow != 0) {
+            g.drawString(font, "FE/t", cols.drawX() + cols.drawW() - font.width("FE/t"), midText,
+                    PduTheme.TEXT_FAINT, false);
+            g.drawString(font, value, cols.drawX() + cols.drawW() - unitW - font.width(value), midText,
+                    accent, false);
+        } else {
+            g.drawString(font, value, cols.drawX() + cols.drawW() - font.width(value), midText,
+                    PduTheme.TEXT_FAINT, false);
+        }
+
+        final String pct = Math.round(d.fill() * 100.0f) + "%";
+        g.drawString(font, trim(font, pct, cols.stateW()), cols.stateX(), midText, accent, false);
+
+        if (cols.legShown()) {
+            final String leg = legShortName(d.leg());
+            g.drawString(font, leg, cols.legX() + cols.legW() - font.width(leg), midText,
+                    PduTheme.TEXT_FAINT, false);
+        }
 
         if (isCursor) {
             PduTheme.outline(g, area.x() + 1, y, rowRight - area.x() - 1, rowH, PduTheme.STROKE_HOT);
@@ -345,19 +537,40 @@ public final class PduTable {
         if (h < 0 || !(rows.get(h) instanceof GroupRow header)) {
             return;
         }
-        int stickyY = area.y();
-        final int nextH = nextHeaderOf[h];
-        if (nextH < rows.size()) {
-            // The next group's header shoves this one up as it arrives, the classic sticky push.
-            final int nextScreenY = area.y() + nextH * rowH - scroll;
-            if (nextScreenY < area.y() + rowH) {
-                stickyY = nextScreenY - rowH;
-            }
-        }
-        drawGroupRow(g, font, header, stickyY, area.right() - scrollbarInset());
+        drawGroupRow(g, font, header, stickyY(), area.right() - scrollbarInset());
     }
 
-    // scrollbar
+    private int stickyY() {
+        if (groupOf.length == 0) {
+            return area.y();
+        }
+        final int topRow = Mth.clamp(scroll / rowH, 0, rows.size() - 1);
+        final int h = groupOf[topRow];
+        if (h < 0) {
+            return area.y();
+        }
+        final int nextH = nextHeaderOf[h];
+        if (nextH < rows.size()) {
+            final int nextScreenY = area.y() + nextH * rowH - scroll;
+            if (nextScreenY < area.y() + rowH) {
+                return nextScreenY - rowH;
+            }
+        }
+        return area.y();
+    }
+
+    private boolean overStickyHeader(double my) {
+        if (rows.isEmpty() || groupOf.length == 0) {
+            return false;
+        }
+        final int topRow = Mth.clamp(scroll / rowH, 0, rows.size() - 1);
+        if (groupOf[topRow] < 0) {
+            return false;
+        }
+
+        final int y = stickyY();
+        return my >= y && my < y + rowH && y + rowH > area.y();
+    }
 
     private int scrollbarInset() {
         return contentHeight > area.h() ? 7 : 0;
@@ -392,14 +605,12 @@ public final class PduTable {
         return area.y() + Math.round(travel * (scroll / (float) maxScroll));
     }
 
-    // input
-
     public boolean mouseScrolled(double mouseX, double mouseY, double dy) {
         if (!area.contains(mouseX, mouseY) || contentHeight <= area.h()) {
             return false;
         }
         final long now = Util.getMillis();
-        // Acceleration: a fast flick scrolls further per notch than a slow deliberate one.
+
         wheelAccel = now - lastWheelMs < 140 ? Math.min(wheelAccel + 0.6f, 4.0f) : 1.0f;
         lastWheelMs = now;
         setScroll(scroll - (int) Math.round(dy * rowH * 1.5f * wheelAccel));
@@ -408,10 +619,20 @@ public final class PduTable {
 
     public boolean mouseClicked(double mouseX, double mouseY, int button, boolean shift, boolean ctrl,
                                 Callback cb) {
-        if (!area.contains(mouseX, mouseY)) {
+        if (!bounds.contains(mouseX, mouseY)) {
             return false;
         }
-        // Scrollbar first: it overlaps the list's right edge.
+
+        if (mouseY < area.y()) {
+            if (button == 0) {
+                final Sort column = cols.columnAt(mouseX);
+                if (column != null) {
+                    cb.requestSort(column);
+                }
+            }
+            return true;
+        }
+
         if (button == 0 && contentHeight > area.h() && mouseX >= area.right() - 6) {
             final int thumbY = thumbTop();
             final int thumbH = thumbHeight();
@@ -419,7 +640,6 @@ public final class PduTable {
                 draggingThumb = true;
                 thumbGrabOffset = (int) (mouseY - thumbY);
             } else {
-                // Track click pages toward the cursor.
                 setScroll(scroll + (mouseY < thumbY ? -area.h() : area.h()));
             }
             return true;
@@ -429,12 +649,19 @@ public final class PduTable {
         if (mouseX >= rowRight) {
             return true;
         }
+
+        if (overStickyHeader(mouseY)) {
+            if (button == 0) {
+                final int topRow = Mth.clamp(scroll / rowH, 0, rows.size() - 1);
+                selectGroup(groupOf[topRow]);
+            }
+            return true;
+        }
         final int i = (int) ((mouseY - area.y() + scroll) / rowH);
         if (i < 0 || i >= rows.size()) {
             return true;
         }
         if (rows.get(i) instanceof GroupRow) {
-            // A header click selects that whole group, the fastest way to a bulk action.
             if (button == 0) {
                 selectGroup(i);
             }
@@ -442,14 +669,15 @@ public final class PduTable {
         }
         final BranchDevice d = ((DeviceRow) rows.get(i)).device();
         if (button == 0 || button == 1) {
-            // [3]
-            if (mouseX >= tierX && mouseX < tierX + tierW) {
-                cb.requestSetTier(d, button == 0 ? d.priority().next() : prevTier(d.priority()));
-                return true;
-            }
-            if (mouseX >= lockX - 3 && mouseX < lockX + 13) {
-                cb.requestSetLock(d, button == 0 ? d.lock().next() : d.lock().next().next());
-                return true;
+            if (!d.isStorage()) {
+                if (mouseX >= cols.tierX() && mouseX < cols.tierX() + cols.tierW()) {
+                    cb.requestSetTier(d, button == 0 ? d.priority().next() : prevTier(d.priority()));
+                    return true;
+                }
+                if (mouseX >= cols.lockX() - 3 && mouseX < cols.lockX() + 13) {
+                    cb.requestSetLock(d, button == 0 ? d.lock().next() : d.lock().next().next());
+                    return true;
+                }
             }
             if (button == 0) {
                 selectAt(i, shift, ctrl);
@@ -535,8 +763,6 @@ public final class PduTable {
         }
     }
 
-    // selection
-
     private void selectAt(int rowIndex, boolean shift, boolean ctrl) {
         final BlockPos pos = ((DeviceRow) rows.get(rowIndex)).device().pos();
         if (shift && anchorPos != null) {
@@ -567,6 +793,9 @@ public final class PduTable {
     }
 
     private void selectGroup(int headerIndex) {
+        if (headerIndex < 0 || headerIndex >= rows.size()) {
+            return;
+        }
         selection.clear();
         for (int i = headerIndex + 1; i < rows.size() && rows.get(i) instanceof DeviceRow d; i++) {
             selection.add(d.device().pos());
@@ -595,7 +824,7 @@ public final class PduTable {
             return;
         }
         int target = Mth.clamp(cur + rowsDelta, 0, rows.size() - 1);
-        // Land on a device row, not a header.
+
         while (target > 0 && target < rows.size() && !(rows.get(target) instanceof DeviceRow)) {
             target += rowsDelta > 0 ? 1 : -1;
         }
@@ -619,7 +848,7 @@ public final class PduTable {
 
     private void ensureVisible(int rowIndex) {
         final int rowTop = rowIndex * rowH;
-        // Keep one row of clearance at the top so the sticky header never covers the cursor row.
+
         if (rowTop - rowH < scroll) {
             setScroll(rowTop - rowH);
         } else if (rowTop + rowH > scroll + area.h()) {
@@ -632,16 +861,14 @@ public final class PduTable {
         return i < 0 ? null : ((DeviceRow) rows.get(i)).device();
     }
 
-    /** [4] */
+    // filter batteries out, a multi select with a tank sends a tier packet for a tank
     private List<BranchDevice> keyboardTargets() {
         if (selectionSize() > 1) {
-            return selectedDevices();
+            return selectedLoads();
         }
-        final BranchDevice c = cursorDevice();
-        return c == null ? List.of() : List.of(c);
+        final BranchDevice cursor = cursorDevice();
+        return cursor == null || cursor.isStorage() ? List.of() : List.of(cursor);
     }
-
-    // row index helpers
 
     private int firstDeviceRow() {
         for (int i = 0; i < rows.size(); i++) {
@@ -682,27 +909,6 @@ public final class PduTable {
     private static FePriority prevTier(FePriority tier) {
         final FePriority[] values = FePriority.values();
         return values[(tier.ordinal() + values.length - 1) % values.length];
-    }
-
-    // layout
-
-    private void computeColumns() {
-        final int pad = 4;
-        final int pipW = 10;
-        final int lockW = 12;
-        tierW = 52;
-        drawColW = 74;
-        final int gap = 6;
-        pipX = area.x() + pad;
-        final int fixed = pipW + tierW + drawColW + lockW + gap * 4;
-        final int flex = Math.max(40, area.w() - 2 * pad - fixed);
-        nameW = Math.max(40, Math.round(flex * 0.44f));
-        reasonW = Math.max(24, flex - nameW);
-        nameX = pipX + pipW;
-        tierX = nameX + nameW + gap;
-        drawColX = tierX + tierW + gap;
-        reasonX = drawColX + drawColW + gap;
-        lockX = reasonX + reasonW + gap;
     }
 
     private void setScroll(int value) {

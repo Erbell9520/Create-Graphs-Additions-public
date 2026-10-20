@@ -16,7 +16,6 @@ public record FccGuiControlEntry(
         double inputMax,
         double neutralValue
 ) {
-
     public void encode(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(id);
         buf.writeUtf(label == null ? "" : label, 128);

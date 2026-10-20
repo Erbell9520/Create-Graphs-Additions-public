@@ -1,7 +1,6 @@
 package com.createstats.train.manifest;
 
 public enum DeliveryOrderHistoryType {
-
     COMPLETED("completed", "Completed"),
     MANUAL_COMPLETE("manual_complete", "Marked Complete"),
     AUTO_RESET("auto_reset", "Cycle Reset"),

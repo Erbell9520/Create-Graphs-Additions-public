@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SmartGearshiftBE extends SplitShaftBlockEntity {
-
     private static final float MAX_STAGE_RPM = 256.0f;
     private static final float MODIFIER_NEUTRAL = 1.0f;
     private static final float MODIFIER_EPSILON = 0.0001f;
@@ -46,10 +45,10 @@ public class SmartGearshiftBE extends SplitShaftBlockEntity {
 
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // [1]
         Direction inputFace = getEffectiveInputFacing();
         if (inputFace != null && face != inputFace) {
-            // [2]
+            // clamp live, stale stage modifier can overspeed during a flip
+
             float src = Math.abs(getTheoreticalSpeed());
             if (src > 0.0f) {
                 return Math.min(currentModifier, MAX_STAGE_RPM / src);
@@ -59,7 +58,6 @@ public class SmartGearshiftBE extends SplitShaftBlockEntity {
         return 1.0f;
     }
 
-    /** [3] */
     private Direction getEffectiveInputFacing() {
         if (hasSource()) {
             Direction live = getSourceFacing();
@@ -84,11 +82,8 @@ public class SmartGearshiftBE extends SplitShaftBlockEntity {
             Direction liveInput = getSourceFacing();
             if (liveInput != null) {
                 if (lastKnownInputFacing == null) {
-                    // First orientation (or after a clean stop): adopt the live source side.
                     lastKnownInputFacing = liveInput;
                 } else if (liveInput != lastKnownInputFacing) {
-                    // Source side flipped: the input was removed and a source now drives the old
-                    // output side. Re-orient and re-target the ratio for the new input/output.
                     lastKnownInputFacing = liveInput;
                     recomputeModifierForCurrentSource();
                 }
@@ -161,10 +156,6 @@ public class SmartGearshiftBE extends SplitShaftBlockEntity {
         }
     }
 
-    /**
-     * Re-target the ratio for the current (possibly newly-flipped) source. Guarded so a stalled or
-     * overstressed source (speed 0) never wipes the configured ratio.
-     */
     private void recomputeModifierForCurrentSource() {
         if (level == null || level.isClientSide()) {
             return;

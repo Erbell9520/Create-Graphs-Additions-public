@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/fire_sensor"
+    },
+    "facing=east": {
+      "model": "create_stats:block/fire_sensor",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/fire_sensor",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/fire_sensor",
+      "y": 270
+    },
+    "facing=down": {
+      "model": "create_stats:block/fire_sensor",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "create_stats:block/fire_sensor",
+      "x": 270
+    }
+  }
+}

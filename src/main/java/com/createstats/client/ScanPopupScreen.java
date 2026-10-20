@@ -47,7 +47,7 @@ public class ScanPopupScreen extends Screen
     private int localIntervalTicks;
     private boolean draggingRadius;
     private boolean draggingInterval;
-    
+
     public ScanPopupScreen(StatsDisplayPanelBE panel, Screen parentScreen) {
         super(Component.literal("Block Scanner"));
         this.scrollOffset = 0;
@@ -63,7 +63,7 @@ public class ScanPopupScreen extends Screen
         this.localUnlocked = ss.isRadiusUnlocked();
         this.localIntervalTicks = ss.getAutoIntervalTicks();
     }
-    
+
     protected void init() {
         this.popW = 280;
         this.popH = Math.min(this.height - 20, Math.max(240, this.height * 3 / 4));
@@ -77,7 +77,7 @@ public class ScanPopupScreen extends Screen
         this.BORDER = theme.border;
         this.WARN = theme.warn;
     }
-    
+
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         g.fill(0, 0, this.width, this.height, -2013265920);
         g.fill(this.popX, this.popY, this.popX + this.popW, this.popY + this.popH, this.BG);
@@ -222,7 +222,7 @@ public class ScanPopupScreen extends Screen
             g.fill(this.popX + this.popW - 5, barY, this.popX + this.popW - 2, barY + barH, this.DIM);
         }
     }
-    
+
     private void renderSourceRow(GuiGraphics g, int x, int y, int w, ScanSettings.DiscoveredSource ds, boolean enabled, boolean expanded, int mx, int my, long gameTick) {
         final int bgColor = enabled ? (ds.active ? 536905728 : 541344768) : 541327360;
         g.fill(x, y + 1, x + w, y + 24 - 1, bgColor);
@@ -251,20 +251,20 @@ public class ScanPopupScreen extends Screen
         final int arrowY = y + 14;
         g.drawString(this.font, arrow + " " + ds.channels.size() + " ch", arrowX, arrowY, this.DIM);
     }
-    
+
     private void renderChannelRow(GuiGraphics g, int x, int y, int w, ScanSettings.ChannelSnapshot ch) {
         g.drawString(this.font, "\u2022 " + ch.label, x, y + 1, this.DIM);
         final String val = this.formatValue(ch.latestValue);
         g.drawString(this.font, val, x + w - this.font.width(val), y + 1, -7811841);
     }
-    
+
     private void drawToggle(GuiGraphics g, int x, int y, int w, int h, String label, boolean active, boolean hovered) {
         final int bg = active ? -14531550 : (hovered ? -13421773 : -14540254);
         g.fill(x, y, x + w, y + h, bg);
         this.border(g, x, y, w, h, active ? this.ACCENT : (hovered ? this.TEXT : this.DIM));
         g.drawCenteredString(this.font, label, x + w / 2, y + 3, active ? this.ACCENT : this.TEXT);
     }
-    
+
     private void drawSlider(GuiGraphics g, int x, int y, int w, int h, int mx, int my, float fraction, String label, boolean dragging) {
         g.fill(x, y + 3, x + w, y + h - 3, -13421773);
         final int fillW = (int)(w * Math.max(0.0f, Math.min(1.0f, fraction)));
@@ -273,14 +273,14 @@ public class ScanPopupScreen extends Screen
         g.fill(thumbX, y, thumbX + 5, y + h, dragging ? -1 : this.ACCENT);
         g.drawString(this.font, label, x + w + 4, y, this.TEXT);
     }
-    
+
     private void border(GuiGraphics g, int x, int y, int w, int h, int color) {
         g.fill(x, y, x + w, y + 1, color);
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y, x + 1, y + h, color);
         g.fill(x + w - 1, y, x + w, y + h, color);
     }
-    
+
     public boolean mouseClicked(double mx, double my, int button) {
         if (button != 0) {
             return super.mouseClicked(mx, my, button);
@@ -360,7 +360,7 @@ public class ScanPopupScreen extends Screen
         }
         return super.mouseClicked(mx, my, button);
     }
-    
+
     private boolean handleSourceListClick(int mx, int my, int x, int listTop, int w) {
         final ScanSettings ss = this.panel.getScanSettings();
         final List<ScanSettings.DiscoveredSource> sources = this.getSortedSources(ss);
@@ -393,7 +393,7 @@ public class ScanPopupScreen extends Screen
         }
         return false;
     }
-    
+
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         final int imx = (int)mx;
         final int margin = 8;
@@ -413,7 +413,7 @@ public class ScanPopupScreen extends Screen
         }
         return super.mouseDragged(mx, my, button, dx, dy);
     }
-    
+
     public boolean mouseReleased(double mx, double my, int button) {
         if (this.draggingRadius || this.draggingInterval) {
             this.draggingRadius = false;
@@ -423,7 +423,7 @@ public class ScanPopupScreen extends Screen
         }
         return super.mouseReleased(mx, my, button);
     }
-    
+
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
         if (mx >= this.popX && mx <= this.popX + this.popW && my >= this.popY && my <= this.popY + this.popH) {
             this.scrollOffset -= (int)(scrollY * 16.0);
@@ -432,7 +432,7 @@ public class ScanPopupScreen extends Screen
         }
         return super.mouseScrolled(mx, my, scrollX, scrollY);
     }
-    
+
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 256) {
             this.onClose();
@@ -440,15 +440,15 @@ public class ScanPopupScreen extends Screen
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
-    
+
     public void onClose() {
         Minecraft.getInstance().setScreen(this.parentScreen);
     }
-    
+
     public boolean isPauseScreen() {
         return false;
     }
-    
+
     private void pushSettings() {
         final ScanSettings temp = new ScanSettings();
         temp.setScanMode(this.localMode);
@@ -457,36 +457,36 @@ public class ScanPopupScreen extends Screen
         temp.setAutoIntervalTicks(this.localIntervalTicks);
         PacketDistributor.sendToServer(ScanControlPacket.updateSettings(this.panel.getBlockPos(), temp));
     }
-    
+
     private void updateRadiusFromMouse(int mx, int sliderX, int sliderW) {
         final float frac = Math.max(0.0f, Math.min(1.0f, (mx - sliderX) / (float)sliderW));
         final int maxRad = this.localUnlocked ? 512 : 64;
         this.localRadius = Math.max(4, Math.min(maxRad, 4 + (int)(frac * (maxRad - 4))));
     }
-    
+
     private void updateIntervalFromMouse(int mx, int sliderX, int sliderW) {
         final float frac = Math.max(0.0f, Math.min(1.0f, (mx - sliderX) / (float)sliderW));
         this.localIntervalTicks = Math.max(20, Math.min(1200, 20 + (int)(frac * 1180.0f)));
     }
-    
+
     private boolean hovered(int mx, int my, int x, int y, int w, int h) {
         return mx >= x && mx < x + w && my >= y && my < y + h;
     }
-    
+
     private static double distSq(BlockPos a, BlockPos b) {
         final double dx = a.getX() - b.getX();
         final double dy = a.getY() - b.getY();
         final double dz = a.getZ() - b.getZ();
         return dx * dx + dy * dy + dz * dz;
     }
-    
+
     private String relativePos(BlockPos src, BlockPos panel) {
         final int dx = src.getX() - panel.getX();
         final int dy = src.getY() - panel.getY();
         final int dz = src.getZ() - panel.getZ();
         return "@(" + ((dx >= 0) ? "+" : "") + dx + ", " + ((dy >= 0) ? "+" : "") + dy + ", " + ((dz >= 0) ? "+" : "") + dz;
     }
-    
+
     private String formatValue(float v) {
         if (Math.abs(v) >= 1000000.0f) {
             return String.format("%.1fM", v / 1000000.0f);
@@ -499,7 +499,7 @@ public class ScanPopupScreen extends Screen
         }
         return String.format("%.1f", v);
     }
-    
+
     private List<ScanSettings.DiscoveredSource> getSortedSources(ScanSettings ss) {
         final List<ScanSettings.DiscoveredSource> sources = new ArrayList<ScanSettings.DiscoveredSource>(ss.getDiscoveredSources().values());
         sources.sort((a, b) -> {

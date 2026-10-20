@@ -1,0 +1,148 @@
+{
+ "credit": "gen_staff_redesign.py, sample jacob, written 16 units low (SurveyorStaffRenderer lifts it back)",
+ "textures": {
+  "atlas": "create_stats:item/surveyor_staff/jacob/atlas",
+  "vane_object": "create_stats:item/surveyor_staff/jacob/vane_object",
+  "particle": "create_stats:item/surveyor_staff/jacob/atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    5.5,
+    15.7,
+    -2.4
+   ],
+   "to": [
+    10.5,
+    27.7,
+    -1.4
+   ],
+   "name": "vane plate",
+   "faces": {
+    "north": {
+     "uv": [
+      0,
+      0,
+      5,
+      12
+     ],
+     "texture": "#vane_object"
+    },
+    "south": {
+     "uv": [
+      0,
+      0,
+      5,
+      12
+     ],
+     "texture": "#vane_object"
+    },
+    "east": {
+     "uv": [
+      3.25,
+      0.0,
+      3.375,
+      1.5
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      3.5,
+      0.0,
+      3.625,
+      1.5
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      9.0,
+      3.5,
+      9.625,
+      3.625
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      9.75,
+      3.5,
+      10.375,
+      3.625
+     ],
+     "texture": "#atlas"
+    }
+   }
+  },
+  {
+   "from": [
+    7.93,
+    21.7,
+    -1.96
+   ],
+   "to": [
+    8.07,
+    25.7,
+    -1.84
+   ],
+   "name": "hair",
+   "faces": {
+    "north": {
+     "uv": [
+      0.0,
+      2.0,
+      0.125,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      0.25,
+      2.0,
+      0.375,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      0.5,
+      2.0,
+      0.625,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      0.75,
+      2.0,
+      0.875,
+      2.5
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      11.5,
+      4.25,
+      11.625,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      11.75,
+      4.25,
+      11.875,
+      4.375
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

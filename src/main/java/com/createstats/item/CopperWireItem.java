@@ -26,21 +26,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
-/** [1] */
 public class CopperWireItem extends Item {
-
-    /** The grade of wire this stack strings. Set per registered item, not per stack. */
     private final com.createstats.power.WireTier tier;
 
-    /** First-clicked terminal per player, cleared on logout via {@link #clearPending(UUID)}. */
     private static final Map<UUID, PduStudWiring.Endpoint> PENDING = new HashMap<>();
+
+    private static final Map<UUID, com.createstats.power.CouplerSockets.End> PENDING_SOCKET =
+            new HashMap<>();
 
     public CopperWireItem(Properties properties) {
         this(properties, com.createstats.power.WireTier.COPPER);
     }
 
-    /** The grade this wire strings. */
     public com.createstats.power.WireTier tier() {
         return tier;
     }
@@ -51,11 +50,34 @@ public class CopperWireItem extends Item {
     }
 
     public static void clearPending(UUID playerId) {
+        PENDING_SOCKET.remove(playerId);
         PENDING.remove(playerId);
     }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
+        final Player holder = context.getPlayer();
+        return useWith(context, tier, CopperWireItem::spendOwnWire,
+                holder != null && holder.isShiftKeyDown());
+    }
+
+    private static void spendOwnWire(Player player, ItemStack stack) {
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+    }
+
+    public static PduStudWiring.Endpoint pendingOf(UUID playerId) {
+        return PENDING.get(playerId);
+    }
+
+    @org.jetbrains.annotations.Nullable
+    public static com.createstats.power.CouplerSockets.End pendingSocketOf(UUID playerId) {
+        return PENDING_SOCKET.get(playerId);
+    }
+
+    public static InteractionResult useWith(UseOnContext context, com.createstats.power.WireTier tier,
+                                            BiConsumer<Player, ItemStack> stock, boolean strip) {
         final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
         final Player player = context.getPlayer();
@@ -64,42 +86,134 @@ public class CopperWireItem extends Item {
         }
         final net.minecraft.world.level.block.Block block = level.getBlockState(pos).getBlock();
         if (block instanceof PowerDistributionUnitBlock) {
-            return useOnPanel(context, level, pos, player);
+            return useOnPanel(context, level, pos, player, tier, stock, strip);
         }
-        // A Power Connector, or a machine that is its own connector (the FE Fluid Pump), are both
-        // terminals a wire can land on and chain through.
-        if (!(block instanceof PowerConnectorBlock)
-                && !(block instanceof com.createstats.block.FluidPumpBlock)
-                && !(block instanceof com.createstats.block.FeMotorBlock)) {
+        if (block instanceof com.createstats.block.BatteryControllerBlock) {
+            return useOnBatteryController(context, level, pos, player, tier, stock, strip);
+        }
+        if (block instanceof com.createstats.block.DiagnosticJunctionBlock junction
+                && junction.kind() == com.createstats.block.DiagnosticJunctionBlock.Kind.WIRE) {
+            return useOnDiagnosticJunction(context, level, pos, player, tier, stock, strip);
+        }
+        if (block instanceof com.createstats.block.MainBreakerBlock) {
+            return useOnMainBreaker(context, level, pos, player, tier, stock, strip);
+        }
+        if (block instanceof com.createstats.block.ContactorBlock) {
+            return useOnContactor(context, level, pos, player, tier, stock, strip);
+        }
+        if (block instanceof com.createstats.block.StormCoilBlock) {
+            return useOnStormCoil(context, level, pos, player, tier, stock, strip);
+        }
+
+        if (block instanceof com.createstats.block.DiagnosticJunctionBlock) {
+            return InteractionResult.PASS;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof com.createstats.power.FeWireTerminal terminal)) {
+            return InteractionResult.PASS;
+        }
+
+        if (!takesWireOn(level, pos, level.getBlockState(pos), context.getClickedFace())) {
+            return InteractionResult.PASS;
+        }
+
+        if (block instanceof com.createstats.block.WaterCoolerBlock
+                && level.getBlockState(pos).getValue(com.createstats.block.WaterCoolerBlock.HALF)
+                != net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER) {
             return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (!(level.getBlockEntity(pos) instanceof com.createstats.power.FeWireTerminal terminal)) {
-            return InteractionResult.PASS;
-        }
 
-        // Sneak: strip all wires off this terminal.
-        if (player.isShiftKeyDown()) {
+        if (strip) {
             final int removed = terminal.links().size();
             terminal.dropWiresAndUnlinkAll();
-            PENDING.remove(player.getUUID());
+            clearPending(player.getUUID());
             actionBar(player, removed > 0
                     ? Component.translatable("message.create_stats.copper_wire.stripped", removed)
                     : Component.translatable("message.create_stats.copper_wire.nothing_to_strip"));
             return InteractionResult.CONSUME;
         }
 
-        return connect(context, player, level,
-                PduStudWiring.Endpoint.connector(pos.asLong()), terminal.links().size());
+        if (com.createstats.compat.ForeignSpoolHandler.hasPendingBridge(player)) {
+            return com.createstats.compat.ForeignSpoolHandler.finishBridge(context, player, level,
+                    terminal, tier, stock);
+        }
+        return connect(context, player, level, PduStudWiring.Endpoint.connector(pos.asLong()),
+                terminal.links().size(), terminal.maxLinks(), tier, stock);
     }
 
-    /** [2] */
-    private InteractionResult useOnPanel(UseOnContext context, Level level, BlockPos pos, Player player) {
-        if (context.getClickedFace() != Direction.UP) {
+    @org.jetbrains.annotations.Nullable
+    private static Direction wireFaceOf(Level level, BlockPos pos,
+                                        net.minecraft.world.level.block.state.BlockState state) {
+        final net.minecraft.world.level.block.Block block = state.getBlock();
+        if (block instanceof com.createstats.block.CoffeeMachineBlock) {
+            return com.createstats.block.CoffeeMachineBlock.wireFace(state);
+        }
+        if (block instanceof com.createstats.block.WaterCoolerBlock) {
+            return com.createstats.block.WaterCoolerBlock.wireFace(state);
+        }
+        if (block instanceof com.createstats.block.AirFryerBlock) {
+            return com.createstats.block.AirFryerBlock.wireFace(state);
+        }
+        if (block instanceof com.createstats.block.BulkWasherBlock) {
+            return com.createstats.block.BulkWasherBlock.wireFace(state);
+        }
+        if (block instanceof com.createstats.block.ToasterBlock) {
+            return com.createstats.block.ToasterBlock.wireFace(state);
+        }
+        if (block instanceof com.createstats.block.BreadSlicerBlock) {
+            return com.createstats.block.BreadSlicerBlock.wireFace(state);
+        }
+        if (block instanceof com.createstats.block.OvenBlock) {
+            return com.createstats.block.OvenBlock.wireFace(state);
+        }
+
+        if (block instanceof com.createstats.block.SparkCrownBlock) {
+            return com.createstats.block.SparkCrownBlock.wireFace(state);
+        }
+        if (level.getBlockEntity(pos)
+                instanceof com.createstats.blockentity.AnnouncementComputerBE brain) {
+            return brain.backFace();
+        }
+        return null;
+    }
+
+    private static boolean takesWireOn(Level level, BlockPos pos,
+                                       net.minecraft.world.level.block.state.BlockState state,
+                                       Direction face) {
+        if (state.getBlock() instanceof com.createstats.block.UniversalPowerCouplerBlock) {
+            return com.createstats.power.CouplerSockets.endOn(state, face) != null;
+        }
+        final Direction only = wireFaceOf(level, pos, state);
+        return only == null || face == only;
+    }
+
+    // the coupler's two ends look alike and are one block apart. say which one
+    private static Component attachedMessage(Level level, BlockPos pos,
+                                             net.minecraft.world.level.block.state.BlockState state,
+                                             Direction face) {
+        if (!(state.getBlock() instanceof com.createstats.block.UniversalPowerCouplerBlock)) {
+            return Component.translatable("message.create_stats.copper_wire.attached");
+        }
+        return Component.translatable(
+                com.createstats.power.CouplerSockets.endOn(state, face)
+                        == com.createstats.power.CouplerSockets.End.FOREIGN
+                        ? "message.create_stats.coupler.seam_socket_attached"
+                        : "message.create_stats.coupler.grid_socket_attached");
+    }
+
+    private static InteractionResult useOnPanel(UseOnContext context, Level level, BlockPos pos,
+                                                Player player, com.createstats.power.WireTier tier,
+                                                BiConsumer<Player, ItemStack> stock, boolean strip) {
+        final net.minecraft.world.level.block.state.BlockState clickedState = level.getBlockState(pos);
+        final boolean cabinet = clickedState.getBlock() instanceof com.createstats.block.PduCabinetBlock;
+        if (context.getClickedFace() != (cabinet ? clickedState.getValue(HorizontalDirectionalBlock.FACING).getOpposite() : Direction.UP)) {
             return InteractionResult.PASS;
         }
+        final BlockPos clickedPos = pos;
+        if (cabinet) pos = com.createstats.block.PduCabinetBlock.controllerPos(clickedState, pos);
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
@@ -109,16 +223,17 @@ public class CopperWireItem extends Item {
         final Direction facing = panel.getBlockState().hasProperty(HorizontalDirectionalBlock.FACING)
                 ? panel.getBlockState().getValue(HorizontalDirectionalBlock.FACING) : Direction.NORTH;
         final Vec3 hit = context.getClickLocation();
-        final int stud = PduStuds.pick(facing, hit.x - pos.getX(), hit.z - pos.getZ());
+        final int stud = cabinet
+                ? com.createstats.block.PduCabinetBlock.pickedStud(clickedState, clickedPos, hit, context.getClickedFace())
+                : PduStuds.pick(facing, hit.x - pos.getX(), hit.z - pos.getZ());
         if (!PduStudWiring.isStudIndex(stud)) {
             actionBar(player, Component.translatable("message.create_stats.copper_wire.no_stud"));
             return InteractionResult.CONSUME;
         }
 
-        // Sneak: strip every wire off this one stud, which is how a leg is taken apart.
-        if (player.isShiftKeyDown()) {
+        if (strip) {
             final int removed = panel.dropStudWires(stud);
-            PENDING.remove(player.getUUID());
+            clearPending(player.getUUID());
             actionBar(player, removed > 0
                     ? Component.translatable("message.create_stats.copper_wire.stud_stripped",
                             removed, stud + 1)
@@ -126,68 +241,308 @@ public class CopperWireItem extends Item {
             return InteractionResult.CONSUME;
         }
 
-        return connect(context, player, level,
-                PduStudWiring.Endpoint.stud(pos.asLong(), stud), panel.studLinkCount(stud));
+        if (com.createstats.compat.ForeignSpoolHandler.refuseBridgeFromStud(player)) {
+            return InteractionResult.CONSUME;
+        }
+        return connect(context, player, level, PduStudWiring.Endpoint.stud(pos.asLong(), stud),
+                panel.studLinkCount(stud), panel.maxLinksPerStud(), tier, stock);
     }
 
-    /**
-     * The two-click flow itself, for whichever kind of terminal was clicked.
-     *
-     * @param here     the terminal under the cursor
-     * @param hereLoad how many wires it already carries, so a full one is refused on the first click
-     *                 rather than after the player has walked to the second
-     */
-    private InteractionResult connect(UseOnContext context, Player player, Level level,
-                                      PduStudWiring.Endpoint here, int hereLoad) {
+    private static InteractionResult useOnBatteryController(UseOnContext context, Level level,
+                                                            BlockPos pos, Player player,
+                                                            com.createstats.power.WireTier tier,
+                                                            BiConsumer<Player, ItemStack> stock,
+                                                            boolean strip) {
+        if (context.getClickedFace() != Direction.UP) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!(level.getBlockEntity(pos) instanceof com.createstats.blockentity.BatteryControllerBE controller)) {
+            return InteractionResult.PASS;
+        }
+        final Direction facing = controller.getBlockState().hasProperty(HorizontalDirectionalBlock.FACING)
+                ? controller.getBlockState().getValue(HorizontalDirectionalBlock.FACING) : Direction.NORTH;
+        final Vec3 hit = context.getClickLocation();
+        final int port = com.createstats.power.BatteryControllerPorts.pick(
+                facing, hit.x - pos.getX(), hit.z - pos.getZ());
+        if (!com.createstats.power.BatteryControllerPorts.isPortIndex(port)) {
+            actionBar(player, Component.translatable("message.create_stats.copper_wire.no_stud"));
+            return InteractionResult.CONSUME;
+        }
+
+        if (strip) {
+            final int removed = controller.dropStudWires(port);
+            clearPending(player.getUUID());
+            actionBar(player, removed > 0
+                    ? Component.translatable("message.create_stats.copper_wire.port_stripped", removed,
+                            com.createstats.power.BatteryControllerPorts.describe(port))
+                    : Component.translatable("message.create_stats.copper_wire.nothing_to_strip"));
+            return InteractionResult.CONSUME;
+        }
+
+        if (com.createstats.compat.ForeignSpoolHandler.refuseBridgeFromStud(player)) {
+            return InteractionResult.CONSUME;
+        }
+        return connect(context, player, level, PduStudWiring.Endpoint.stud(pos.asLong(), port),
+                controller.studLinkCount(port), controller.maxLinksPerStud(), tier, stock);
+    }
+
+    // stud panel, two studs two circuits. a plain terminal can't say which one you hit
+    private static InteractionResult useOnMainBreaker(UseOnContext context, Level level, BlockPos pos,
+                                                      Player player,
+                                                      com.createstats.power.WireTier tier,
+                                                      BiConsumer<Player, ItemStack> stock,
+                                                      boolean strip) {
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!(level.getBlockEntity(pos) instanceof com.createstats.blockentity.MainBreakerBE breaker)) {
+            return InteractionResult.PASS;
+        }
+        final Vec3 hit = context.getClickLocation();
+        final int stud = com.createstats.power.MainBreakerStuds.pickIndex(
+                level.getBlockState(pos).getValue(com.createstats.block.MainBreakerBlock.FACING),
+                hit.x - pos.getX(), hit.y - pos.getY(), hit.z - pos.getZ());
+        if (!com.createstats.power.MainBreakerStuds.isStudIndex(stud)) {
+            actionBar(player, Component.translatable("message.create_stats.main_breaker.no_stud"));
+            return InteractionResult.CONSUME;
+        }
+
+        if (strip) {
+            final int removed = breaker.dropStudWires(stud);
+            clearPending(player.getUUID());
+            actionBar(player, removed > 0
+                    ? Component.translatable("message.create_stats.main_breaker.stripped", removed,
+                            studName(stud))
+                    : Component.translatable("message.create_stats.copper_wire.nothing_to_strip"));
+            return InteractionResult.CONSUME;
+        }
+
+        if (com.createstats.compat.ForeignSpoolHandler.refuseBridgeFromStud(player)) {
+            return InteractionResult.CONSUME;
+        }
+        return connect(context, player, level, PduStudWiring.Endpoint.stud(pos.asLong(), stud),
+                breaker.studLinkCount(stud), breaker.maxLinksPerStud(), tier, stock);
+    }
+
+    private static InteractionResult useOnContactor(UseOnContext context, Level level, BlockPos pos,
+                                                    Player player, com.createstats.power.WireTier tier,
+                                                    BiConsumer<Player, ItemStack> stock, boolean strip) {
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!(level.getBlockEntity(pos) instanceof com.createstats.blockentity.ContactorBE contactor)) {
+            return InteractionResult.PASS;
+        }
+        final Vec3 hit = context.getClickLocation();
+        final int stud = com.createstats.contactor.ContactorStuds.pick(level.getBlockState(pos),
+                new Vec3(hit.x - pos.getX(), hit.y - pos.getY(), hit.z - pos.getZ()));
+        if (!com.createstats.contactor.ContactorLogic.isStud(stud)) {
+            actionBar(player, Component.translatable("message.create_stats.contactor.no_stud"));
+            return InteractionResult.CONSUME;
+        }
+        if (strip) {
+            final int removed = contactor.dropStudWires(stud);
+            clearPending(player.getUUID());
+            actionBar(player, removed > 0
+                    ? Component.translatable("message.create_stats.contactor.stripped", removed,
+                            com.createstats.contactor.ContactorLogic.studName(stud))
+                    : Component.translatable("message.create_stats.copper_wire.nothing_to_strip"));
+            return InteractionResult.CONSUME;
+        }
+        if (com.createstats.compat.ForeignSpoolHandler.refuseBridgeFromStud(player)) {
+            return InteractionResult.CONSUME;
+        }
+        return connect(context, player, level, PduStudWiring.Endpoint.stud(pos.asLong(), stud),
+                contactor.studLinkCount(stud), contactor.maxLinksPerStud(), tier, stock);
+    }
+
+    private static InteractionResult useOnStormCoil(UseOnContext context, Level level, BlockPos pos, Player player,
+                                                    com.createstats.power.WireTier tier,
+                                                    BiConsumer<Player, ItemStack> stock, boolean strip) {
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!(level.getBlockEntity(pos) instanceof com.createstats.blockentity.StormCoilBE coil)) {
+            return InteractionResult.PASS;
+        }
+        final Vec3 hit = context.getClickLocation();
+        final int stud = com.createstats.stormcoil.StormCoilStuds.pick(
+                com.createstats.block.StormCoilBlock.turns(level.getBlockState(pos)),
+                hit.x - pos.getX(), hit.y - pos.getY(), hit.z - pos.getZ());
+        if (!com.createstats.stormcoil.StormCoilStuds.isStud(stud)) {
+            actionBar(player, Component.translatable("message.create_stats.storm_coil.no_stud"));
+            return InteractionResult.CONSUME;
+        }
+        if (strip) {
+            final int removed = coil.dropStudWires(stud);
+            clearPending(player.getUUID());
+            actionBar(player, removed > 0
+                    ? Component.translatable("message.create_stats.storm_coil.stripped", removed, coilStudName(stud))
+                    : Component.translatable("message.create_stats.copper_wire.nothing_to_strip"));
+            return InteractionResult.CONSUME;
+        }
+        if (com.createstats.compat.ForeignSpoolHandler.refuseBridgeFromStud(player)) {
+            return InteractionResult.CONSUME;
+        }
+        return connect(context, player, level, PduStudWiring.Endpoint.stud(pos.asLong(), stud),
+                coil.studLinkCount(stud), coil.maxLinksPerStud(), tier, stock);
+    }
+
+    private static Component coilStudName(int stud) {
+        return Component.translatable(stud == com.createstats.stormcoil.StormCoilStuds.OUT
+                ? "message.create_stats.storm_coil.stud.out"
+                : "message.create_stats.storm_coil.stud.in");
+    }
+
+    private static Component studName(int stud) {
+        return Component.translatable(stud == com.createstats.power.MainBreakerStuds.Stud.OUTPUT.index()
+                ? "message.create_stats.main_breaker.stud.output"
+                : "message.create_stats.main_breaker.stud.input");
+    }
+
+    private static InteractionResult useOnDiagnosticJunction(UseOnContext context, Level level,
+                                                             BlockPos pos, Player player,
+                                                             com.createstats.power.WireTier tier,
+                                                             BiConsumer<Player, ItemStack> stock,
+                                                             boolean strip) {
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!(level.getBlockEntity(pos) instanceof com.createstats.blockentity.DiagnosticJunctionBE junction)) {
+            return InteractionResult.PASS;
+        }
+        final Direction facing = junction.getBlockState().hasProperty(com.createstats.block.DiagnosticJunctionBlock.FACING)
+                ? junction.getBlockState().getValue(com.createstats.block.DiagnosticJunctionBlock.FACING) : Direction.NORTH;
+        final Vec3 hit = context.getClickLocation();
+        final int stud = com.createstats.power.DiagnosticJunctionStuds.pick(facing,
+                hit.x - pos.getX(), hit.y - pos.getY(), hit.z - pos.getZ());
+        if (!com.createstats.power.DiagnosticJunctionStuds.isStudIndex(stud)) {
+            actionBar(player, Component.translatable("message.create_stats.copper_wire.no_stud"));
+            return InteractionResult.CONSUME;
+        }
+
+        if (strip) {
+            final int removed = junction.dropStudWires(stud);
+            clearPending(player.getUUID());
+            actionBar(player, removed > 0
+                    ? Component.translatable("message.create_stats.copper_wire.stud_stripped", removed, stud + 1)
+                    : Component.translatable("message.create_stats.copper_wire.nothing_to_strip"));
+            return InteractionResult.CONSUME;
+        }
+
+        if (com.createstats.compat.ForeignSpoolHandler.hasPendingBridge(player)) {
+            return com.createstats.compat.ForeignSpoolHandler.finishBridge(context, player, level,
+                    junction, tier, stock);
+        }
+        return connect(context, player, level, PduStudWiring.Endpoint.stud(pos.asLong(), stud),
+                junction.studLinkCount(stud), 1, tier, stock);
+    }
+
+    private static InteractionResult connect(UseOnContext context, Player player, Level level,
+                                             PduStudWiring.Endpoint here, int hereLoad, int hereMax,
+                                             com.createstats.power.WireTier tier,
+                                             BiConsumer<Player, ItemStack> stock) {
         final PduStudWiring.Endpoint pending = PENDING.get(player.getUUID());
         if (pending == null) {
-            if (hereLoad >= PowerConnectorBE.maxLinks()) {
+            if (hereLoad >= hereMax) {
                 actionBar(player, Component.translatable("message.create_stats.copper_wire.full"));
                 return InteractionResult.CONSUME;
             }
+
+            final com.createstats.power.CouplerSockets.End socket =
+                    com.createstats.power.CouplerSockets.endOn(
+                            level.getBlockState(BlockPos.of(here.pos())), context.getClickedFace());
+
+            if (socket != null
+                    && level.getBlockEntity(BlockPos.of(here.pos()))
+                            instanceof com.createstats.blockentity.UniversalPowerCouplerBE coupler) {
+                final Component taken = coupler.refuseSocket(socket);
+                if (taken != null) {
+                    actionBar(player, taken);
+                    return InteractionResult.CONSUME;
+                }
+            }
             PENDING.put(player.getUUID(), here);
+            if (socket == null) {
+                PENDING_SOCKET.remove(player.getUUID());
+            } else {
+                PENDING_SOCKET.put(player.getUUID(), socket);
+            }
             level.playSound(null, BlockPos.of(here.pos()), SoundEvents.CHAIN_HIT, SoundSource.BLOCKS, 0.6f, 1.4f);
-            actionBar(player, here.isStud()
+            final net.minecraft.world.level.block.entity.BlockEntity hereBe =
+                    level.getBlockEntity(BlockPos.of(here.pos()));
+            final boolean controller = here.isStud()
+                    && hereBe instanceof com.createstats.blockentity.BatteryControllerBE;
+
+            final boolean breaker = here.isStud()
+                    && hereBe instanceof com.createstats.blockentity.MainBreakerBE;
+
+            final boolean contactor = here.isStud()
+                    && hereBe instanceof com.createstats.blockentity.ContactorBE;
+
+            final boolean coil = here.isStud()
+                    && hereBe instanceof com.createstats.blockentity.StormCoilBE;
+            actionBar(player, controller
+                    ? Component.translatable("message.create_stats.copper_wire.port_attached",
+                            com.createstats.power.BatteryControllerPorts.describe(here.stud()))
+                    : breaker
+                    ? Component.translatable("message.create_stats.main_breaker.attached", studName(here.stud()))
+                    : contactor
+                    ? Component.translatable("message.create_stats.contactor.attached",
+                            com.createstats.contactor.ContactorLogic.studName(here.stud()))
+                    : coil
+                    ? Component.translatable("message.create_stats.storm_coil.attached", coilStudName(here.stud()))
+                    : here.isStud()
                     ? Component.translatable("message.create_stats.copper_wire.stud_attached", here.stud() + 1)
-                    : Component.translatable("message.create_stats.copper_wire.attached"));
+                    : attachedMessage(level, BlockPos.of(here.pos()),
+                            level.getBlockState(BlockPos.of(here.pos())), context.getClickedFace()));
             return InteractionResult.CONSUME;
         }
 
         final BlockPos pendingPos = BlockPos.of(pending.pos());
         final BlockPos herePos = BlockPos.of(here.pos());
-        // Whatever was clicked first has to still be there, and still be what it was.
+
         final com.createstats.power.FeWireTerminal firstTerminal = pending.isStud() ? null
                 : level.getBlockEntity(pendingPos) instanceof com.createstats.power.FeWireTerminal t ? t : null;
-        final PowerDistributionUnitBE firstPanel = !pending.isStud() ? null
-                : level.getBlockEntity(pendingPos) instanceof PowerDistributionUnitBE p ? p : null;
+
+        final com.createstats.power.FeStudPanel firstPanel = !pending.isStud() ? null
+                : level.getBlockEntity(pendingPos) instanceof com.createstats.power.FeStudPanel p ? p : null;
         if (!pending.sameAs(here) && firstTerminal == null && firstPanel == null) {
-            PENDING.remove(player.getUUID());
+            clearPending(player.getUUID());
             actionBar(player, Component.translatable("message.create_stats.copper_wire.lost_first"));
             return InteractionResult.CONSUME;
         }
 
-        // [3]
         final boolean alreadyLinked = firstTerminal != null
                 ? firstTerminal.links().contains(herePos)
                 : firstPanel != null && firstPanel.isLinkedToConnector(herePos);
         final int pendingLoad = firstTerminal != null
                 ? firstTerminal.links().size()
                 : firstPanel != null ? firstPanel.studLinkCount(pending.stud()) : 0;
+        final int pendingMax = firstTerminal != null
+                ? firstTerminal.maxLinks()
+                : firstPanel != null ? firstPanel.maxLinksPerStud()
+                : com.createstats.power.ConnectorTier.ADVANCED.maxLinks();
         final PduStudWiring.Verdict verdict = PduStudWiring.check(pending, here,
                 pendingPos.distSqr(herePos), PowerConnectorBE.wireRange(), alreadyLinked,
-                pendingLoad, hereLoad, PowerConnectorBE.maxLinks());
+                pendingLoad, hereLoad, pendingMax, hereMax);
         switch (verdict) {
             case SAME_POINT -> {
-                PENDING.remove(player.getUUID());
+                clearPending(player.getUUID());
                 actionBar(player, Component.translatable("message.create_stats.copper_wire.cancelled"));
                 return InteractionResult.CONSUME;
             }
             case BOTH_STUDS -> {
-                actionBar(player, Component.translatable("message.create_stats.copper_wire.stud_to_stud"));
+                actionBar(player, pendingPos.equals(herePos)
+                        ? Component.translatable("message.create_stats.copper_wire.stud_to_stud")
+                        : Component.translatable("message.create_stats.copper_wire.panel_to_panel"));
                 return InteractionResult.CONSUME;
             }
             case BAD_STUD -> {
-                PENDING.remove(player.getUUID());
+                clearPending(player.getUUID());
                 actionBar(player, Component.translatable("message.create_stats.copper_wire.no_stud"));
                 return InteractionResult.CONSUME;
             }
@@ -197,8 +552,14 @@ public class CopperWireItem extends Item {
                 return InteractionResult.CONSUME;
             }
             case ALREADY_LINKED -> {
-                PENDING.remove(player.getUUID());
-                actionBar(player, Component.translatable("message.create_stats.copper_wire.already_linked"));
+                clearPending(player.getUUID());
+
+                final boolean contactor = level.getBlockEntity(pendingPos)
+                        instanceof com.createstats.blockentity.ContactorBE
+                        || level.getBlockEntity(herePos) instanceof com.createstats.blockentity.ContactorBE;
+                actionBar(player, Component.translatable(contactor
+                        ? "message.create_stats.contactor.one_per_terminal"
+                        : "message.create_stats.copper_wire.already_linked"));
                 return InteractionResult.CONSUME;
             }
             case FULL -> {
@@ -206,28 +567,56 @@ public class CopperWireItem extends Item {
                 return InteractionResult.CONSUME;
             }
             default -> {
-                // Falls through to the link below.
             }
         }
 
-        // One end is a stud and the other is a connector, or both are connectors. Anything else was
-        // refused above, so exactly one of these two shapes is left.
+        final Component wrongSocket = socketMismatch(level, pendingPos,
+                PENDING_SOCKET.get(player.getUUID()), herePos,
+                com.createstats.power.CouplerSockets.endOn(level.getBlockState(herePos),
+                        context.getClickedFace()));
+        final Component objection = wrongSocket != null ? wrongSocket
+                : firstObjection(level, pendingPos, herePos);
+        if (objection != null) {
+            clearPending(player.getUUID());
+            actionBar(player, objection);
+            return InteractionResult.CONSUME;
+        }
+
         final Component done;
         if (pending.isStud() || here.isStud()) {
             final PduStudWiring.Endpoint studEnd = pending.isStud() ? pending : here;
             final PduStudWiring.Endpoint wireEnd = pending.isStud() ? here : pending;
-            if (!(level.getBlockEntity(BlockPos.of(studEnd.pos())) instanceof PowerDistributionUnitBE panel)
-                    || !(level.getBlockEntity(BlockPos.of(wireEnd.pos())) instanceof PowerConnectorBE connector)) {
-                PENDING.remove(player.getUUID());
+            final net.minecraft.world.level.block.entity.BlockEntity studBe = level.getBlockEntity(BlockPos.of(studEnd.pos()));
+
+            if (!(level.getBlockEntity(BlockPos.of(wireEnd.pos()))
+                    instanceof com.createstats.power.FeWireTerminal terminal)) {
+                clearPending(player.getUUID());
                 actionBar(player, Component.translatable("message.create_stats.copper_wire.lost_first"));
                 return InteractionResult.CONSUME;
             }
-            panel.linkStud(studEnd.stud(), connector, tier);
-            done = Component.translatable("message.create_stats.copper_wire.stud_linked", studEnd.stud() + 1);
+            if (!(studBe instanceof com.createstats.power.FeStudPanel panel)) {
+                clearPending(player.getUUID());
+                actionBar(player, Component.translatable("message.create_stats.copper_wire.lost_first"));
+                return InteractionResult.CONSUME;
+            }
+            panel.linkStud(studEnd.stud(), terminal, tier);
+
+            done = studBe instanceof com.createstats.blockentity.BatteryControllerBE
+                    ? Component.translatable("message.create_stats.copper_wire.port_linked",
+                            com.createstats.power.BatteryControllerPorts.describe(studEnd.stud()))
+                    : studBe instanceof com.createstats.blockentity.MainBreakerBE
+                    ? Component.translatable("message.create_stats.main_breaker.linked",
+                            studName(studEnd.stud()))
+                    : studBe instanceof com.createstats.blockentity.ContactorBE
+                    ? Component.translatable("message.create_stats.contactor.linked",
+                            com.createstats.contactor.ContactorLogic.studName(studEnd.stud()))
+                    : studBe instanceof com.createstats.blockentity.StormCoilBE
+                    ? Component.translatable("message.create_stats.storm_coil.linked", coilStudName(studEnd.stud()))
+                    : Component.translatable("message.create_stats.copper_wire.stud_linked", studEnd.stud() + 1);
         } else {
             if (!(level.getBlockEntity(pendingPos) instanceof com.createstats.power.FeWireTerminal first)
                     || !(level.getBlockEntity(herePos) instanceof com.createstats.power.FeWireTerminal second)) {
-                PENDING.remove(player.getUUID());
+                clearPending(player.getUUID());
                 actionBar(player, Component.translatable("message.create_stats.copper_wire.lost_first"));
                 return InteractionResult.CONSUME;
             }
@@ -235,13 +624,51 @@ public class CopperWireItem extends Item {
             second.addLink(first.terminalPos(), tier);
             done = Component.translatable("message.create_stats.copper_wire.linked");
         }
-        PENDING.remove(player.getUUID());
-        if (!player.getAbilities().instabuild) {
-            context.getItemInHand().shrink(1);
-        }
+        clearPending(player.getUUID());
+        stock.accept(player, context.getItemInHand());
         level.playSound(null, herePos, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.8f, 1.1f);
         actionBar(player, done);
         return InteractionResult.CONSUME;
+    }
+
+    @org.jetbrains.annotations.Nullable
+    public static Component socketMismatch(
+            Level level, BlockPos first,
+            @org.jetbrains.annotations.Nullable com.createstats.power.CouplerSockets.End firstSocket,
+            BlockPos second,
+            @org.jetbrains.annotations.Nullable com.createstats.power.CouplerSockets.End secondSocket) {
+        final Component fromFirst = socketSuits(level, firstSocket, second);
+        return fromFirst != null ? fromFirst : socketSuits(level, secondSocket, first);
+    }
+
+    @org.jetbrains.annotations.Nullable
+    private static Component socketSuits(
+            Level level,
+            @org.jetbrains.annotations.Nullable com.createstats.power.CouplerSockets.End socket,
+            BlockPos far) {
+        if (socket == null) {
+            return null;
+        }
+        final boolean foreignFar =
+                com.createstats.blockentity.UniversalPowerCouplerBE.isSeamTarget(level, far);
+        if (socket == com.createstats.power.CouplerSockets.End.FOREIGN) {
+            return foreignFar ? null
+                    : Component.translatable("message.create_stats.copper_wire.seam_only");
+        }
+        return foreignFar
+                ? Component.translatable("message.create_stats.coupler.grid_wants_ours") : null;
+    }
+
+    @org.jetbrains.annotations.Nullable
+    public static Component firstObjection(Level level, BlockPos first, BlockPos second) {
+        final Component fromFirst =
+                level.getBlockEntity(first) instanceof com.createstats.power.FeWireTerminal a
+                        ? a.refuseLink(level, second) : null;
+        if (fromFirst != null) {
+            return fromFirst;
+        }
+        return level.getBlockEntity(second) instanceof com.createstats.power.FeWireTerminal b
+                ? b.refuseLink(level, first) : null;
     }
 
     private static void actionBar(Player player, Component message) {
@@ -250,12 +677,14 @@ public class CopperWireItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        // Keyed off this item's own id rather than a fixed copper key, or every grade of wire would
-        // describe itself as copper.
-        final String key = getDescriptionId();
-        tooltip.add(Component.translatable(key + ".tooltip").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable(key + ".tooltip.usage").withStyle(ChatFormatting.DARK_GRAY));
-        tooltip.add(Component.translatable("tooltip.create_stats.wire_rate", tier.multiplier())
-                .withStyle(ChatFormatting.DARK_AQUA));
+        final java.util.List<Component> detail = new java.util.ArrayList<>(1);
+
+        if (com.createstats.compat.ForeignSpools.anyForeignWireLoaded()) {
+            detail.add(com.createstats.util.CreateStatsTooltipHelper.note("tooltip.create_stats.wire_bridge"));
+        }
+        com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, getDescriptionId(),
+                List.of(com.createstats.util.CreateStatsTooltipHelper.spec("tooltip.create_stats.wire_rate",
+                        com.createstats.power.FeRates.perTick(com.createstats.power.FeRates.wire(tier)))),
+                detail);
     }
 }

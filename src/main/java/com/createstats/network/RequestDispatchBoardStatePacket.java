@@ -12,11 +12,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RequestDispatchBoardStatePacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<RequestDispatchBoardStatePacket> TYPE = 
+    public static final CustomPacketPayload.Type<RequestDispatchBoardStatePacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "request_dispatch_board_state"));
-    
-    public static final StreamCodec<FriendlyByteBuf, RequestDispatchBoardStatePacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, RequestDispatchBoardStatePacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), RequestDispatchBoardStatePacket::new);
 
     private final BlockPos pos;
@@ -48,14 +47,18 @@ public class RequestDispatchBoardStatePacket implements CustomPacketPayload {
             if (!(be instanceof DispatchBoardBE clickedBoard)) {
                 return;
             }
-            // Resolve to controller for data refresh and response
+
             DispatchBoardBE controller = clickedBoard.getControllerBE();
             if (!controller.isPlayerInInteractionRange(player)) {
                 return;
             }
-            controller.refreshSummary();
+
+            controller.refreshSummaryIfStale();
+            controller.refreshRosterForScreenIfStale();
+
             PacketDistributor.sendToPlayer(player,
-                new DispatchBoardStatePacket(controller.getBlockPos(), controller.getManifest(), controller.getCargoView(), controller.getDeliveryBoard()));
+                new DispatchBoardStatePacket(packet.pos, controller.getManifest(), controller.getCargoView(),
+                    controller.getDeliveryBoard(), controller.getStationRoster()));
         });
     }
 }

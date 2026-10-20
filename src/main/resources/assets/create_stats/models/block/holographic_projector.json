@@ -1,71 +1,69 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "top":      "create_stats:block/holographic_projector_top",
-    "side":     "create_stats:block/holographic_projector_side",
-    "bottom":   "create_stats:block/holographic_projector_bottom",
-    "front":    "create_stats:block/holographic_projector_front",
-    "particle": "create_stats:block/holographic_projector_side"
+    "rail": "create_stats:block/holographic_projector_rail",
+    "particle": "create_stats:block/holographic_projector_rail"
   },
   "elements": [
     {
-      "__comment": "Heavy base plate, full-width anchor (0-3 px)",
-      "from": [0, 0, 0],
-      "to":   [16, 3, 16],
+      "__comment": "Recessed foot. Inset 1px at each end and 0.5px on each side so the body overhangs it and casts a real shadow gap.",
+      "from": [1, 0, 7.5],
+      "to": [15, 1, 8.5],
       "faces": {
-        "north": { "uv": [0, 13, 16, 16], "texture": "#side", "cullface": "north" },
-        "south": { "uv": [0, 13, 16, 16], "texture": "#side", "cullface": "south" },
-        "east":  { "uv": [0, 13, 16, 16], "texture": "#side", "cullface": "east"  },
-        "west":  { "uv": [0, 13, 16, 16], "texture": "#side", "cullface": "west"  },
-        "up":    { "uv": [0, 0, 16, 16],  "texture": "#side" },
-        "down":  { "uv": [0, 0, 16, 16],  "texture": "#bottom", "cullface": "down" }
+        "north": {
+          "uv": [1, 4, 15, 5],
+          "texture": "#rail"
+        },
+        "south": {
+          "uv": [1, 4, 15, 5],
+          "texture": "#rail"
+        },
+        "east": {
+          "uv": [2, 5, 3, 6],
+          "texture": "#rail"
+        },
+        "west": {
+          "uv": [2, 5, 3, 6],
+          "texture": "#rail"
+        },
+        "down": {
+          "uv": [1, 6, 15, 7],
+          "texture": "#rail",
+          "cullface": "down"
+        }
       }
     },
     {
-      "__comment": "Column body, 12×12 housing (y 3-9)",
-      "from": [2, 3, 2],
-      "to":   [14, 9, 14],
+      "__comment": "Housing body. Spans the full block length so adjacent rails read as one continuous strip; the emitter slot lives on its top face.",
+      "from": [0, 1, 7],
+      "to": [16, 2, 9],
       "faces": {
-        "north": { "uv": [2, 3, 14, 9], "texture": "#side" },
-        "south": { "uv": [2, 3, 14, 9], "texture": "#side" },
-        "east":  { "uv": [2, 3, 14, 9], "texture": "#side" },
-        "west":  { "uv": [2, 3, 14, 9], "texture": "#side" },
-        "up":    { "uv": [2, 2, 14, 14], "texture": "#top"  }
-      }
-    },
-    {
-      "__comment": "Front indicator nub, directional hardpoint (facing = north face)",
-      "from": [4, 3, 0],
-      "to":   [12, 8, 2],
-      "faces": {
-        "north": { "uv": [4, 3, 12, 8], "texture": "#front", "cullface": "north" },
-        "east":  { "uv": [0, 3,  2, 8], "texture": "#side"  },
-        "west":  { "uv": [0, 3,  2, 8], "texture": "#side"  },
-        "up":    { "uv": [4, 0, 12, 2], "texture": "#side"  }
-      }
-    },
-    {
-      "__comment": "Emitter collar ring, 10×10, 2 px tall (y 9-11), teal stripe on sides",
-      "from": [3, 9, 3],
-      "to":   [13, 11, 13],
-      "faces": {
-        "north": { "uv": [3,  9, 13, 11], "texture": "#side" },
-        "south": { "uv": [3,  9, 13, 11], "texture": "#side" },
-        "east":  { "uv": [3,  9, 13, 11], "texture": "#side" },
-        "west":  { "uv": [3,  9, 13, 11], "texture": "#side" },
-        "up":    { "uv": [3,  3, 13, 13], "texture": "#top"  }
-      }
-    },
-    {
-      "__comment": "Emitter lens dome, 6×6, 3 px tall (y 9-12), shows active state via #top",
-      "from": [5, 9, 5],
-      "to":   [11, 12, 11],
-      "faces": {
-        "north": { "uv": [5, 5, 11, 8], "texture": "#top" },
-        "south": { "uv": [5, 5, 11, 8], "texture": "#top" },
-        "east":  { "uv": [5, 5, 11, 8], "texture": "#top" },
-        "west":  { "uv": [5, 5, 11, 8], "texture": "#top" },
-        "up":    { "uv": [5, 5, 11, 11], "texture": "#top" }
+        "up": {
+          "uv": [0, 0, 16, 2],
+          "texture": "#rail"
+        },
+        "north": {
+          "uv": [0, 3, 16, 4],
+          "texture": "#rail"
+        },
+        "south": {
+          "uv": [0, 3, 16, 4],
+          "texture": "#rail"
+        },
+        "east": {
+          "uv": [0, 5, 2, 6],
+          "texture": "#rail",
+          "cullface": "east"
+        },
+        "west": {
+          "uv": [0, 5, 2, 6],
+          "texture": "#rail",
+          "cullface": "west"
+        },
+        "down": {
+          "uv": [0, 6, 16, 7],
+          "texture": "#rail"
+        }
       }
     }
   ]

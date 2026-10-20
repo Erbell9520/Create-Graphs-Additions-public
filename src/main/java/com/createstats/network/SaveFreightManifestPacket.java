@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import com.createstats.blockentity.FreightManifestClipboardBE;
+import com.createstats.train.manifest.DeliveryOrderBoardView;
 import com.createstats.train.manifest.FreightManifest;
 import com.createstats.train.manifest.FreightManifestLine;
 import com.createstats.train.manifest.FreightManifestSavedData;
+import com.createstats.train.manifest.FreightManifestStationResolver;
 import com.createstats.train.manifest.FreightManifestValidationResult;
 import com.createstats.train.manifest.FreightManifestLogic;
+import com.createstats.train.manifest.FreightStationCargoView;
 import com.createstats.train.manifest.FreightStationLink;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -24,13 +27,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class SaveFreightManifestPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<SaveFreightManifestPacket> TYPE = 
+    public static final CustomPacketPayload.Type<SaveFreightManifestPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "save_freight_manifest"));
-    
-    public static final StreamCodec<RegistryFriendlyByteBuf, SaveFreightManifestPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, SaveFreightManifestPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), SaveFreightManifestPacket::new);
 
     private final BlockPos pos;
@@ -50,7 +53,7 @@ public class SaveFreightManifestPacket implements CustomPacketPayload {
         this.pos = buf.readBlockPos();
         this.expectedVersion = buf.readVarInt();
         int size = buf.readVarInt();
-        if (size > FreightManifestLogic.MAX_LINES) {
+        if (size < 0 || size > FreightManifestLogic.MAX_LINES) {
             throw new IllegalArgumentException(
                 "Freight manifest line count " + size + " exceeds maximum of " + FreightManifestLogic.MAX_LINES);
         }
@@ -80,15 +83,23 @@ public class SaveFreightManifestPacket implements CustomPacketPayload {
             if (player == null) {
                 return;
             }
+
+            FreightStationLink link = null;
+            boolean accepted = false;
+            try {
             if (player.distanceToSqr(packet.pos.getX() + 0.5, packet.pos.getY() + 0.5, packet.pos.getZ() + 0.5) > 64.0) {
+                player.displayClientMessage(Component.literal("Too far from the clipboard to publish. Your draft was kept.")
+                    .withStyle(ChatFormatting.RED), false);
                 return;
             }
             BlockEntity be = player.level().getBlockEntity(packet.pos);
             if (!(be instanceof FreightManifestClipboardBE clipboard)) {
+                player.displayClientMessage(Component.literal("The clipboard is gone. Nothing was published.")
+                    .withStyle(ChatFormatting.RED), false);
                 return;
             }
 
-            FreightStationLink link = clipboard.getStationLink();
+            link = clipboard.getStationLink();
             if (!link.isLinked() || link.getStationDimension() == null || link.getStationId() == null) {
                 player.displayClientMessage(Component.translatable("message.create_stats.freight_manifest.not_linked").withStyle(ChatFormatting.RED), false);
                 return;
@@ -106,12 +117,16 @@ public class SaveFreightManifestPacket implements CustomPacketPayload {
                 return;
             }
 
-            UUID stationId = link.getStationId();
-            FreightManifestSavedData savedData = FreightManifestSavedData.get(stationLevel);
-            FreightManifest current = savedData.getManifest(stationId);
-            if (current == null) {
-                current = new FreightManifest();
+            UUID stationId = FreightManifestStationResolver.resolveLiveStationId(stationLevel, link);
+            if (stationId == null) {
+                player.displayClientMessage(Component.literal(
+                    "Linked station is unavailable. Load its chunk or relink the clipboard to a station.")
+                    .withStyle(ChatFormatting.RED), false);
+                return;
             }
+            FreightManifestSavedData savedData = FreightManifestSavedData.get(stationLevel);
+
+            FreightManifest current = FreightManifestStationResolver.captureStationView(stationLevel, link).manifest();
 
             if (current.getOwnerId() != null && !current.getOwnerId().equals(player.getUUID()) && !player.hasPermissions(2)) {
                 player.displayClientMessage(Component.translatable("message.create_stats.freight_manifest.no_permission").withStyle(ChatFormatting.RED), false);
@@ -120,6 +135,9 @@ public class SaveFreightManifestPacket implements CustomPacketPayload {
 
             if (current.getVersion() != packet.expectedVersion) {
                 player.displayClientMessage(Component.translatable("message.create_stats.freight_manifest.version_conflict")
+                    .withStyle(ChatFormatting.RED), false);
+                player.displayClientMessage(Component.literal(
+                    "Your draft was kept. Reopen the clipboard to load the current orders before editing again.")
                     .withStyle(ChatFormatting.RED), false);
                 return;
             }
@@ -130,7 +148,17 @@ public class SaveFreightManifestPacket implements CustomPacketPayload {
             current.setLines(packet.lines);
             current.bumpVersion();
             savedData.putManifest(stationId, current, stationLevel.getGameTime());
+            accepted = true;
             player.displayClientMessage(Component.translatable("message.create_stats.freight_manifest.saved").withStyle(ChatFormatting.GOLD), false);
+            } finally {
+                FreightManifestStationResolver.StationView view = link != null
+                    ? FreightManifestStationResolver.captureStationView(player.server, link)
+                    : new FreightManifestStationResolver.StationView(new FreightManifest(),
+                        FreightStationCargoView.unavailable("Clipboard out of reach."),
+                        DeliveryOrderBoardView.empty(player.level().getGameTime(), "Clipboard out of reach."));
+                PacketDistributor.sendToPlayer(player, new FreightManifestClipboardStatePacket(packet.pos,
+                    view.manifest(), view.cargoView(), view.deliveryBoard(), true, accepted));
+            }
         });
     }
 }

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/security_locker"
+    },
+    "facing=east": {
+      "model": "create_stats:block/security_locker",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/security_locker",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/security_locker",
+      "y": 270
+    }
+  }
+}

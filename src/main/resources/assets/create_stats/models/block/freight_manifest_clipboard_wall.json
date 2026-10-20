@@ -1,35 +1,350 @@
 {
-  "parent": "block/block",
+  "parent": "minecraft:block/block",
   "ambientocclusion": false,
   "textures": {
-    "board": "create_stats:block/freight_manifest_clipboard",
-    "clip": "create_stats:block/freight_manifest_clip",
-    "particle": "#board"
+    "back": "create_stats:block/freight_manifest_back",
+    "brass": "create_stats:block/freight_manifest_brass",
+    "face": "create_stats:block/freight_manifest_face",
+    "iron": "create_stats:block/freight_manifest_iron",
+    "sheet": "create_stats:block/freight_manifest_sheet",
+    "particle": "create_stats:block/freight_manifest_iron"
   },
   "elements": [
     {
-      "from": [3, 1, 14.75],
-      "to": [13, 15, 15.75],
+      "from": [
+        3,
+        3,
+        14
+      ],
+      "to": [
+        13,
+        13,
+        16
+      ],
       "faces": {
-        "down":  { "texture": "#board", "uv": [3, 14.75, 13, 15.75] },
-        "up":    { "texture": "#board", "uv": [3, 14.75, 13, 15.75] },
-        "north": { "texture": "#board", "uv": [3, 1, 13, 15] },
-        "south": { "texture": "#board", "uv": [3, 1, 13, 15] },
-        "west":  { "texture": "#board", "uv": [14.75, 1, 15.75, 15] },
-        "east":  { "texture": "#board", "uv": [14.75, 1, 15.75, 15] }
-      }
+        "north": {
+          "uv": [
+            3,
+            1,
+            13,
+            11
+          ],
+          "texture": "#face"
+        },
+        "south": {
+          "uv": [
+            3,
+            1,
+            13,
+            11
+          ],
+          "texture": "#back"
+        },
+        "east": {
+          "uv": [
+            7,
+            1,
+            9,
+            11
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            7,
+            1,
+            9,
+            11
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            3,
+            7,
+            13,
+            9
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            3,
+            7,
+            13,
+            9
+          ],
+          "texture": "#iron"
+        }
+      },
+      "__comment": "board"
     },
     {
-      "from": [5, 12, 12.5],
-      "to": [11, 16, 14.75],
+      "from": [
+        4,
+        4,
+        13.5
+      ],
+      "to": [
+        12,
+        12,
+        14
+      ],
       "faces": {
-        "down":  { "texture": "#clip", "uv": [5, 12.5, 11, 14.75] },
-        "up":    { "texture": "#clip", "uv": [5, 12.5, 11, 14.75] },
-        "north": { "texture": "#clip", "uv": [5, 0, 11, 4] },
-        "south": { "texture": "#clip", "uv": [5, 0, 11, 4] },
-        "west":  { "texture": "#clip", "uv": [12.5, 0, 14.75, 4] },
-        "east":  { "texture": "#clip", "uv": [12.5, 0, 14.75, 4] }
-      }
+        "north": {
+          "uv": [
+            4,
+            2,
+            12,
+            10
+          ],
+          "texture": "#sheet"
+        },
+        "east": {
+          "uv": [
+            13,
+            2,
+            14,
+            10
+          ],
+          "texture": "#sheet"
+        },
+        "west": {
+          "uv": [
+            13,
+            2,
+            14,
+            10
+          ],
+          "texture": "#sheet"
+        },
+        "up": {
+          "uv": [
+            4,
+            11,
+            12,
+            12
+          ],
+          "texture": "#sheet"
+        },
+        "down": {
+          "uv": [
+            4,
+            11,
+            12,
+            12
+          ],
+          "texture": "#sheet"
+        }
+      },
+      "__comment": "the manifest sheet, half a texel proud so it casts its own edge"
+    },
+    {
+      "from": [
+        4,
+        11,
+        12.5
+      ],
+      "to": [
+        12,
+        13,
+        14.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            8,
+            2
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            8,
+            2
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            6,
+            2,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            6,
+            2,
+            8
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            2,
+            8,
+            4
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            4,
+            8,
+            6
+          ],
+          "texture": "#brass"
+        }
+      },
+      "__comment": "spring clip"
+    },
+    {
+      "from": [
+        3,
+        3,
+        12.5
+      ],
+      "to": [
+        13,
+        4,
+        14.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            8,
+            10,
+            9
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            8,
+            10,
+            9
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            13,
+            2,
+            14
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            13,
+            2,
+            14
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            9,
+            10,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            11,
+            10,
+            13
+          ],
+          "texture": "#brass"
+        }
+      },
+      "__comment": "pencil rail"
+    },
+    {
+      "from": [
+        6,
+        13,
+        14
+      ],
+      "to": [
+        10,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            2,
+            10,
+            3
+          ],
+          "texture": "#iron"
+        },
+        "south": {
+          "uv": [
+            6,
+            2,
+            10,
+            3
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            0,
+            2,
+            2,
+            3
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            14,
+            2,
+            16,
+            3
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            6,
+            14,
+            10,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ],
+          "texture": "#iron"
+        }
+      },
+      "__comment": "hanger bracket"
     }
   ]
 }

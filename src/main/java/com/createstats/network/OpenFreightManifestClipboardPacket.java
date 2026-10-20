@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class OpenFreightManifestClipboardPacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<OpenFreightManifestClipboardPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "open_freight_manifest_clipboard"));
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenFreightManifestClipboardPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), OpenFreightManifestClipboardPacket::new);
 

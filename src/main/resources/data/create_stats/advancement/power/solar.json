@@ -1,0 +1,46 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:solar_panel"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.solar.title",
+      "fallback": "The Sun Is Free"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.solar.description",
+      "fallback": "Place a solar panel. Finally, something that does not come with a bill."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "solar": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:solar_panel",
+                  "create_stats:reinforced_solar_panel",
+                  "create_stats:photovoltaic_array"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "solar"
+    ]
+  ]
+}

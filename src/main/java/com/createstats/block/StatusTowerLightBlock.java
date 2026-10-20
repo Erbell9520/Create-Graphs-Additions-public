@@ -2,17 +2,17 @@ package com.createstats.block;
 
 import com.createstats.blockentity.StatusTowerLightBE;
 import com.createstats.registry.ModBlockEntities;
+import com.createstats.registry.ModBlocks;
 import com.createstats.util.ClientScreenAccess;
 import com.simibubi.create.AllItems;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -30,50 +30,55 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.world.item.Item;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class StatusTowerLightBlock extends Block implements EntityBlock {
+    public static final EnumProperty<Segment> SEGMENT = EnumProperty.create("segment", Segment.class);
 
-    public static final EnumProperty<VisualState> VISUAL = EnumProperty.create("visual", VisualState.class);
-    public static final EnumProperty<VisualState> GLOW = EnumProperty.create("glow", VisualState.class);
-    private static final VoxelShape SHAPE = Shapes.or(
-            Block.box(5.0, 0.0, 5.0, 11.0, 2.0, 11.0),
-            Block.box(7.0, 2.0, 7.0, 9.0, 16.0, 9.0)
-    );
+    public static final EnumProperty<Glow> GLOW = EnumProperty.create("glow", Glow.class);
+
+    public static final int MAX_STACK = 4;
+
+    private static final VoxelShape BASE_SHAPE = Shapes.or(
+            Block.box(3.2, 0.0, 3.2, 12.8, 0.9, 12.8),
+            Block.box(4.4, 0.9, 4.4, 11.6, 16.0, 11.6));
+    private static final VoxelShape COLUMN_SHAPE = Block.box(4.4, 0.0, 4.4, 11.6, 16.0, 11.6);
 
     public StatusTowerLightBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(VISUAL, VisualState.OFF).setValue(GLOW, VisualState.OFF));
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(SEGMENT, Segment.SINGLE)
+                .setValue(GLOW, Glow.OFF));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(new Property[] {VISUAL, GLOW});
+        builder.add(SEGMENT, GLOW);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState();
+        return this.defaultBlockState()
+                .setValue(SEGMENT, segmentAt(context.getLevel(), context.getClickedPos()));
     }
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
+        return state.getValue(SEGMENT).hasBase() ? BASE_SHAPE : COLUMN_SHAPE;
     }
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        final BlockPos belowPos = pos.below();
-        return !level.getBlockState(belowPos).isAir();
+        if (isTower(level.getBlockState(pos.below()))) {
+            return towerHeightBelow(level, pos) < MAX_STACK;
+        }
+        return !level.getBlockState(pos.below()).isAir();
     }
 
     @Override
@@ -82,7 +87,47 @@ public class StatusTowerLightBlock extends Block implements EntityBlock {
         if (direction == Direction.DOWN && !state.canSurvive(level, currentPos)) {
             return Blocks.AIR.defaultBlockState();
         }
+        if (direction.getAxis().isVertical()) {
+            return state.setValue(SEGMENT, segmentAt(level, currentPos));
+        }
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+    }
+
+    private static Segment segmentAt(LevelReader level, BlockPos pos) {
+        final boolean below = isTower(level.getBlockState(pos.below()));
+        final boolean above = isTower(level.getBlockState(pos.above()));
+        if (below && above) {
+            return Segment.MIDDLE;
+        }
+        if (below) {
+            return Segment.TOP;
+        }
+        if (above) {
+            return Segment.BASE;
+        }
+        return Segment.SINGLE;
+    }
+
+    public static boolean isTower(BlockState state) {
+        return state.getBlock() instanceof StatusTowerLightBlock;
+    }
+
+    private static int towerHeightBelow(LevelReader level, BlockPos pos) {
+        int height = 0;
+        BlockPos cursor = pos.below();
+        while (height < MAX_STACK + 1 && isTower(level.getBlockState(cursor))) {
+            height++;
+            cursor = cursor.below();
+        }
+        return height;
+    }
+
+    public static BlockPos towerBase(BlockGetter level, BlockPos pos) {
+        BlockPos cursor = pos;
+        for (int guard = 0; guard < MAX_STACK && isTower(level.getBlockState(cursor.below())); guard++) {
+            cursor = cursor.below();
+        }
+        return cursor;
     }
 
     @Override
@@ -109,7 +154,8 @@ public class StatusTowerLightBlock extends Block implements EntityBlock {
 
     @Override
     public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return this.getRedstonePower(level, pos);
+        final BlockEntity be = level.getBlockEntity(pos);
+        return be instanceof StatusTowerLightBE tower && tower.isCriticalPowered() ? 15 : 0;
     }
 
     @Override
@@ -117,12 +163,27 @@ public class StatusTowerLightBlock extends Block implements EntityBlock {
         return 0;
     }
 
-    private int getRedstonePower(BlockGetter level, BlockPos pos) {
-        final BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof StatusTowerLightBE towerLight && towerLight.isCriticalPowered()) {
-            return 15;
+    @Override
+    public boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof StatusTowerLightBE tower)) {
+            return 0;
         }
-        return 0;
+        int worst = tower.comparatorLevel();
+        if (state.getValue(SEGMENT).hasBase()) {
+            BlockPos cursor = pos.above();
+            for (int i = 0; i < MAX_STACK && isTower(level.getBlockState(cursor)); i++) {
+                if (level.getBlockEntity(cursor) instanceof StatusTowerLightBE above) {
+                    worst = Math.max(worst, above.comparatorLevel());
+                }
+                cursor = cursor.above();
+            }
+        }
+        return worst;
     }
 
     @Nullable
@@ -137,21 +198,50 @@ public class StatusTowerLightBlock extends Block implements EntityBlock {
         if (type != ModBlockEntities.STATUS_TOWER_LIGHT.get()) {
             return null;
         }
-        if (level.isClientSide()) {
-            return (lvl, pos, st, be) -> ((StatusTowerLightBE) be).clientTick();
-        }
-        return (lvl, pos, st, be) -> ((StatusTowerLightBE) be).tick();
+
+        return level.isClientSide() ? null : (lvl, pos, st, be) -> ((StatusTowerLightBE) be).tick();
     }
 
-    public enum VisualState implements StringRepresentable {
-        OFF("off"),
-        GREEN("green"),
-        YELLOW("yellow"),
-        RED("red");
+    public static int getLightLevel(BlockState state) {
+        return state.hasProperty(GLOW) ? state.getValue(GLOW).lightLevel() : 0;
+    }
+
+    public enum Glow implements StringRepresentable {
+        OFF("off", 0),
+        DIM("dim", 5),
+        MID("mid", 9),
+        HOT("hot", 13);
+
+        private final String serializedName;
+        private final int lightLevel;
+
+        Glow(String serializedName, int lightLevel) {
+            this.serializedName = serializedName;
+            this.lightLevel = lightLevel;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return this.serializedName;
+        }
+
+        public int lightLevel() {
+            return this.lightLevel;
+        }
+    }
+
+    public enum Segment implements StringRepresentable {
+        SINGLE("single"),
+
+        BASE("base"),
+
+        MIDDLE("middle"),
+
+        TOP("top");
 
         private final String serializedName;
 
-        VisualState(String serializedName) {
+        Segment(String serializedName) {
             this.serializedName = serializedName;
         }
 
@@ -159,15 +249,14 @@ public class StatusTowerLightBlock extends Block implements EntityBlock {
         public String getSerializedName() {
             return this.serializedName;
         }
-    }
 
-    public static int getLightLevel(BlockState state) {
-        return switch (state.getValue(GLOW)) {
-            case GREEN -> 9;
-            case YELLOW -> 12;
-            case RED -> 14;
-            case OFF -> 0;
-        };
+        public boolean hasBase() {
+            return this == SINGLE || this == BASE;
+        }
+
+        public boolean hasCap() {
+            return this == SINGLE || this == TOP;
+        }
     }
 
     @Override

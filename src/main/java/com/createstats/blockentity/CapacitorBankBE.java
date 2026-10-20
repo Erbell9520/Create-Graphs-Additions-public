@@ -27,31 +27,36 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** [1] */
 public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation {
-
-    /** Number of LED segments on the block face, and the top of the blockstate level property. */
     public static final int LED_SEGMENTS = 8;
 
     private int energy;
-    /** Minimum ticks between charge syncs, so a fast-charging bank cannot flood the network. */
+
     private static final int SYNC_INTERVAL_TICKS = 4;
 
-    /** This block's share of its bank's capacity, mirrored to the client so the face reads right. */
     private int syncedCapacity = 1024;
     private int lastSyncedEnergy = -1;
     private int ticksSinceSync = SYNC_INTERVAL_TICKS;
-    /** Smoothed FE per tick across the whole bank. Positive charging, negative discharging. */
-    private int chargeRate;
-    private int lastGroupEnergy = -1;
-    private int lastSyncedRate = Integer.MIN_VALUE;
-    /** Last LED level written to the blockstate, for the anti-strobe deadband in {@link #tick()}. */
+
+    private int chargeIn;
+    private int chargeOut;
+
+    private float chargeInFiltered;
+    private float chargeOutFiltered;
+
+    private int inAccumulator;
+    private int outAccumulator;
+
+    private int lastSyncedIn = -1;
+    private int lastSyncedOut = -1;
+
     private int lastLedLevel = -1;
-    /** Shared with every member of the pool; rebuilt lazily when stale. */
+
+    private int reserveRank = com.createstats.power.FeReserve.DEFAULT_RANK;
+
     @Nullable
     private BankGroup group;
 
-    /** [2] */
     private static final class BankGroup {
         private final List<CapacitorBankBE> members;
         private long builtTick;
@@ -62,7 +67,7 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         }
     }
 
-    private final IEnergyStorage energyView = new IEnergyStorage() {
+    private final class BankEnergyView implements IEnergyStorage, com.createstats.power.FeReserve {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
             return distribute(Math.min(maxReceive, transferRate()), simulate);
@@ -92,7 +97,20 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         public boolean canReceive() {
             return true;
         }
-    };
+
+        @Override
+        public int reserveRank() {
+            return groupReserveRank();
+        }
+
+        @Override
+        public long reservePoolKey() {
+            final List<CapacitorBankBE> members = group();
+            return members.isEmpty() ? worldPosition.asLong() : members.get(0).getBlockPos().asLong();
+        }
+    }
+
+    private final IEnergyStorage energyView = new BankEnergyView();
 
     public CapacitorBankBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -102,7 +120,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return energyView;
     }
 
-    /** This block's own charge, which is what drives its LEDs. */
     public int storedEnergy() {
         return energy;
     }
@@ -115,7 +132,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return total;
     }
 
-    /** [3] */
     public int groupCapacity() {
         if (level != null && level.isClientSide()) {
             int total = 0;
@@ -131,7 +147,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return FeBankMerge.capacity(group().size(), blockCapacity(), mergeExponent());
     }
 
-    /** This block's share of the bank's capacity, which is what its own charge is measured against. */
     public int ownCapacity() {
         if (level != null && level.isClientSide()) {
             return syncedCapacity;
@@ -145,7 +160,45 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return group().size();
     }
 
-    // pooling
+    public int groupReserveRank() {
+        int lowest = com.createstats.power.FeReserve.MAX_RANK;
+        for (CapacitorBankBE bank : group()) {
+            lowest = Math.min(lowest, com.createstats.power.FeReserve.clamp(bank.reserveRank));
+        }
+        return lowest;
+    }
+
+    public int ownReserveRank() {
+        return com.createstats.power.FeReserve.clamp(reserveRank);
+    }
+
+    public void setReserveRank(int rank) {
+        final int clamped = com.createstats.power.FeReserve.clamp(rank);
+        for (CapacitorBankBE bank : group()) {
+            if (bank.reserveRank != clamped) {
+                bank.reserveRank = clamped;
+                bank.setChanged();
+                if (level != null && !level.isClientSide()) {
+                    level.sendBlockUpdated(bank.getBlockPos(), bank.getBlockState(), bank.getBlockState(), 2);
+                }
+            }
+        }
+    }
+
+    // wraps like FePriority#next, one control reaches every value
+    public int cycleReserveRank() {
+        final int next = groupReserveRank() >= com.createstats.power.FeReserve.MAX_RANK
+                ? com.createstats.power.FeReserve.MIN_RANK : groupReserveRank() + 1;
+        setReserveRank(next);
+        return next;
+    }
+
+    public int cycleReserveRankBack() {
+        final int next = groupReserveRank() <= com.createstats.power.FeReserve.MIN_RANK
+                ? com.createstats.power.FeReserve.MAX_RANK : groupReserveRank() - 1;
+        setReserveRank(next);
+        return next;
+    }
 
     private List<CapacitorBankBE> group() {
         final long now = level != null ? level.getGameTime() : 0L;
@@ -155,7 +208,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return rebuildGroup(now);
     }
 
-    /** [4] */
     private List<CapacitorBankBE> rebuildGroup(long now) {
         final List<CapacitorBankBE> found = new ArrayList<>();
         if (level == null) {
@@ -164,7 +216,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
             return found;
         }
 
-        // 1. The entire connected cluster, which every member sees identically.
         final Map<BlockPos, CapacitorBankBE> cluster = new HashMap<>();
         final Deque<CapacitorBankBE> queue = new ArrayDeque<>();
         queue.add(this);
@@ -182,11 +233,9 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
             }
         }
 
-        // 2. Split it into banks bounded by the configured footprint and height.
         final List<List<BlockPos>> banks = FeBankMerge.partition(
                 new ArrayList<>(cluster.keySet()), maxFootprint(), maxHeight());
 
-        // 3. Hand every bank to its own members, and keep the one containing this block.
         List<CapacitorBankBE> mine = null;
         for (List<BlockPos> bank : banks) {
             final List<CapacitorBankBE> members = new ArrayList<>(bank.size());
@@ -215,13 +264,12 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return mine;
     }
 
-    /** [5] */
+    // only the controller draws the face, the gauge spans the whole build
     public boolean isRenderController() {
         final List<CapacitorBankBE> members = group();
         return !members.isEmpty() && members.get(0) == this;
     }
 
-    /** Lowest corner of the merged structure, in world space. */
     public BlockPos structureMin() {
         BlockPos min = worldPosition;
         for (CapacitorBankBE bank : group()) {
@@ -232,7 +280,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return min;
     }
 
-    /** Highest corner of the merged structure, in world space (inclusive). */
     public BlockPos structureMax() {
         BlockPos max = worldPosition;
         for (CapacitorBankBE bank : group()) {
@@ -243,7 +290,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return max;
     }
 
-    /** [6] */
     public boolean isSolidBox() {
         final BlockPos min = structureMin();
         final BlockPos max = structureMax();
@@ -253,13 +299,11 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return volume == group().size();
     }
 
-    /** Charge of the whole merged bank, 0..1. What the face gauge and its colour are driven from. */
     public float groupFillFraction() {
         final int capacity = groupCapacity();
         return capacity <= 0 ? 0.0f : Math.max(0.0f, Math.min(1.0f, groupEnergy() / (float) capacity));
     }
 
-    /** This block's index within its bank, bottom up. Drives which share of capacity it holds. */
     private int indexInGroup() {
         final List<CapacitorBankBE> members = group();
         for (int i = 0; i < members.size(); i++) {
@@ -270,7 +314,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return 0;
     }
 
-    /** [7] */
     public com.createstats.block.CapacitorBankBlock.Segment segment() {
         if (level == null) {
             return com.createstats.block.CapacitorBankBlock.Segment.SINGLE;
@@ -301,7 +344,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return com.createstats.block.CapacitorBankBlock.Segment.SINGLE;
     }
 
-    /** Fills the pool from the bottom block up. Returns FE actually stored. */
     private int distribute(int amount, boolean simulate) {
         final List<CapacitorBankBE> members = group();
         final int[] energies = readEnergies(members);
@@ -310,17 +352,18 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         final int placed = com.createstats.power.FeStackFill.fillBottomUp(energies, capacities, amount);
         if (!simulate && placed > 0) {
             writeEnergies(members, energies);
+            this.inAccumulator += placed;
         }
         return placed;
     }
 
-    /** Empties the pool from the top block down. Returns FE actually removed. */
     private int drain(int amount, boolean simulate) {
         final List<CapacitorBankBE> members = group();
         final int[] energies = readEnergies(members);
         final int taken = com.createstats.power.FeStackFill.drainTopDown(energies, amount);
         if (!simulate && taken > 0) {
             writeEnergies(members, energies);
+            this.outAccumulator += taken;
         }
         return taken;
     }
@@ -343,10 +386,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         }
     }
 
-    // tick: drive the LEDs
-
-    /** [8] */
-    /** [9] */
     public void tick() {
         if (level == null || level.isClientSide()) {
             return;
@@ -356,43 +395,48 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
             energy = capacity;
             setChanged();
         }
-        // [10]
+
         if (isRenderController()) {
-            final int nowEnergy = groupEnergy();
-            if (lastGroupEnergy >= 0) {
-                // Light smoothing: the raw per-tick delta is spiky because the grid solve delivers
-                // in bursts, and a readout that flickers is worse than one that lags slightly.
-                chargeRate = Math.round(chargeRate * 0.75f + (nowEnergy - lastGroupEnergy) * 0.25f);
+            int rawIn = 0;
+            int rawOut = 0;
+            for (CapacitorBankBE bank : group()) {
+                rawIn += bank.inAccumulator;
+                rawOut += bank.outAccumulator;
+                bank.inAccumulator = 0;
+                bank.outAccumulator = 0;
             }
-            lastGroupEnergy = nowEnergy;
+
+            chargeInFiltered = chargeInFiltered * 0.75f + rawIn * 0.25f;
+            chargeOutFiltered = chargeOutFiltered * 0.75f + rawOut * 0.25f;
+            chargeIn = roundUpAwayFromZero(chargeInFiltered);
+            chargeOut = roundUpAwayFromZero(chargeOutFiltered);
         }
 
-        // [11]
         final int bucket = Math.max(1, capacity / 32);
         final boolean chargeMoved = Math.abs(energy - lastSyncedEnergy) >= bucket
                 || (energy == 0) != (lastSyncedEnergy == 0)
                 || (energy >= capacity) != (lastSyncedEnergy >= capacity)
-                // The face shows a live FE/t, so a bank sitting at a steady charge still has to
-                // push updates when the throughput through it changes.
-                || (isRenderController() && chargeRate != lastSyncedRate);
+
+                || (isRenderController()
+                        && (rateMoved(chargeIn, lastSyncedIn) || rateMoved(chargeOut, lastSyncedOut)));
         if (ticksSinceSync < SYNC_INTERVAL_TICKS) {
             ticksSinceSync++;
         }
         if (syncedCapacity != capacity || (chargeMoved && ticksSinceSync >= SYNC_INTERVAL_TICKS)) {
             syncedCapacity = capacity;
             lastSyncedEnergy = energy;
-            lastSyncedRate = chargeRate;
+            lastSyncedIn = chargeIn;
+            lastSyncedOut = chargeOut;
             ticksSinceSync = 0;
             setChanged();
-            // Flag 2: clients only. Neighbours have no reason to re-evaluate redstone because a
-            // battery ticked up.
+
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
         }
         final BlockState state = getBlockState();
         if (!state.hasProperty(CapacitorBankBlock.LEVEL) || !state.hasProperty(CapacitorBankBlock.SEGMENT)) {
             return;
         }
-        // [12]
+
         final float scaled = groupFillFraction() * LED_SEGMENTS;
         int lit = Mth.clamp(Math.round(scaled), 0, LED_SEGMENTS);
         if (lastLedLevel >= 0 && Math.abs(scaled - lastLedLevel) < 0.65f) {
@@ -408,7 +452,6 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         syncReadout(energy / 64);
     }
 
-    /** LED segments lit for this block, 0 to 8. Any charge at all lights at least one. */
     public int ledLevel() {
         final int capacity = ownCapacity();
         if (energy <= 0 || capacity <= 0) {
@@ -418,12 +461,50 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         return Math.max(1, Math.min(LED_SEGMENTS, scaled));
     }
 
-
-    /** Last readout actually sent, and how long ago, so a still block costs nothing. */
     private int lastSyncedReadout = Integer.MIN_VALUE;
     private int ticksSinceReadoutSync;
 
-    /** [13] */
+    private int managedSettlePct = -1;
+    private int managedFullTicks = -1;
+    private long managedUntil = Long.MIN_VALUE;
+
+    private boolean syncedManaged;
+    private int syncedManagedSettle = -1;
+    private int syncedManagedFull = -1;
+
+    public void acceptManagerOutlook(int settlePct, int fullInTicks, long untilTick) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        final List<CapacitorBankBE> members = group();
+        for (CapacitorBankBE bank : members.isEmpty() ? List.of(this) : members) {
+            bank.managedSettlePct = settlePct;
+            bank.managedFullTicks = fullInTicks;
+            bank.managedUntil = untilTick;
+        }
+    }
+
+    public boolean isManaged() {
+        if (level != null && level.isClientSide()) {
+            return syncedManaged;
+        }
+        return level != null && level.getGameTime() <= managedUntil;
+    }
+
+    public int managedSettlePct() {
+        if (level != null && level.isClientSide()) {
+            return syncedManagedSettle;
+        }
+        return isManaged() ? managedSettlePct : -1;
+    }
+
+    public int managedFullInTicks() {
+        if (level != null && level.isClientSide()) {
+            return syncedManagedFull;
+        }
+        return isManaged() ? managedFullTicks : -1;
+    }
+
     private void syncReadout(int shown) {
         ticksSinceReadoutSync++;
         final int bucket = Math.max(1, Math.abs(shown) / 32);
@@ -438,14 +519,20 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         }
     }
 
-    // persistence
-
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("Energy", energy);
         tag.putInt("Cap", syncedCapacity);
-        tag.putInt("Rate", chargeRate);
+        tag.putInt("InRate", chargeIn);
+        tag.putInt("OutRate", chargeOut);
+
+        tag.putInt("Rate", chargeIn - chargeOut);
+        tag.putInt("Rank", reserveRank);
+
+        tag.putBoolean("Mgr", isManaged());
+        tag.putInt("MgrSet", managedSettlePct());
+        tag.putInt("MgrFull", managedFullInTicks());
     }
 
     @Override
@@ -455,19 +542,39 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         if (tag.contains("Cap")) {
             syncedCapacity = Math.max(1, tag.getInt("Cap"));
         }
-        chargeRate = tag.getInt("Rate");
+        if (tag.contains("InRate") || tag.contains("OutRate")) {
+            chargeIn = Math.max(0, tag.getInt("InRate"));
+            chargeOut = Math.max(0, tag.getInt("OutRate"));
+        } else {
+            final int net = tag.getInt("Rate");
+            chargeIn = Math.max(0, net);
+            chargeOut = Math.max(0, -net);
+        }
+        chargeInFiltered = chargeIn;
+        chargeOutFiltered = chargeOut;
+
+        reserveRank = tag.contains("Rank")
+                ? com.createstats.power.FeReserve.clamp(tag.getInt("Rank"))
+                : com.createstats.power.FeReserve.DEFAULT_RANK;
+        syncedManaged = tag.getBoolean("Mgr");
+        syncedManagedSettle = tag.contains("MgrSet") ? tag.getInt("MgrSet") : -1;
+        syncedManagedFull = tag.contains("MgrFull") ? tag.getInt("MgrFull") : -1;
     }
 
-    /** [14] */
-    public int chargeRatePerTick() {
+    public int chargeFePerTick() {
         final List<CapacitorBankBE> members = group();
-        return members.isEmpty() ? chargeRate : members.get(0).chargeRate;
+        return members.isEmpty() ? chargeIn : members.get(0).chargeIn;
     }
 
-    /**
-     * Ticks until the bank is full (while charging) or empty (while discharging), or -1 when it is
-     * holding steady and neither answer means anything.
-     */
+    public int dischargeFePerTick() {
+        final List<CapacitorBankBE> members = group();
+        return members.isEmpty() ? chargeOut : members.get(0).chargeOut;
+    }
+
+    public int chargeRatePerTick() {
+        return chargeFePerTick() - dischargeFePerTick();
+    }
+
     public int enduranceTicks() {
         final int rate = chargeRatePerTick();
         if (rate > 0) {
@@ -479,6 +586,33 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
             return stored <= 0 ? -1 : stored / -rate;
         }
         return -1;
+    }
+
+    public int runtimeTicks() {
+        final int rate = chargeRatePerTick();
+        if (rate >= 0) {
+            return -1;
+        }
+        final int stored = groupEnergy();
+        return stored <= 0 ? 0 : stored / -rate;
+    }
+
+    private static int roundUpAwayFromZero(float v) {
+        if (v > 0.0f) {
+            return (int) Math.ceil(v - 0.001f);
+        }
+        return v < 0.0f ? (int) Math.floor(v + 0.001f) : 0;
+    }
+
+    private static boolean rateMoved(int now, int synced) {
+        if (now == synced) {
+            return false;
+        }
+
+        if ((now == 0) != (synced == 0)) {
+            return true;
+        }
+        return Math.abs(now - synced) >= Math.max(1, Math.abs(now) / 16);
     }
 
     @Override
@@ -502,14 +636,10 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
     @Override
     public void setRemoved() {
         super.setRemoved();
-        // Force the rest of the pool to re-flood rather than keep a reference to a dead block.
+
         group = null;
     }
 
-    /**
-     * The controller draws the whole structure's face, so its render box has to cover every member
-     * or the readout vanishes as soon as the controller block itself leaves the frustum.
-     */
     public net.minecraft.world.phys.AABB getRenderBoundingBox() {
         final BlockPos min = structureMin();
         final BlockPos max = structureMax();
@@ -518,28 +648,59 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
                 max.getX() + 1.0, max.getY() + 1.0, max.getZ() + 1.0);
     }
 
-    /** [15] */
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         final int stored = groupEnergy();
         final int capacity = groupCapacity();
         final int stacked = groupSize();
-        final float pct = capacity > 0 ? stored * 100.0f / capacity : 0.0f;
 
-        tooltip.add(Component.literal("    ").append(
-                Component.literal("Capacitor Bank").withStyle(ChatFormatting.GRAY)));
+        final int in = chargeFePerTick();
+        final int out = dischargeFePerTick();
+
+        tooltip.add(com.createstats.power.FeGoggle.title("Capacitor Bank"));
+        tooltip.add(com.createstats.power.FeGoggle.stored(stored, capacity));
+        tooltip.add(com.createstats.power.FeGoggle.chargeFlow(in - out));
+
+        if (in > 0 && out > 0) {
+            tooltip.add(com.createstats.power.FeGoggle.dim(String.format(Locale.ROOT,
+                    "In %,d FE/t, out %,d FE/t", in, out)));
+        }
+        if (isManaged()) {
+            final int fullIn = managedFullInTicks();
+            final int settle = managedSettlePct();
+            tooltip.add(com.createstats.power.FeGoggle.dim(fullIn > 0
+                    ? "Managed by a Battery Controller: full in ~" + com.createstats.power.FeGoggle.time(fullIn)
+                    : settle >= 0 ? "Managed by a Battery Controller: settles near " + settle + "%"
+                    : "Managed by a Battery Controller"));
+        } else {
+            final int endTicks = enduranceTicks();
+            if (endTicks > 0) {
+                tooltip.add(com.createstats.power.FeGoggle.dim((in > out ? "Full in ~" : "Empty in ~")
+                        + com.createstats.power.FeGoggle.time(endTicks)));
+            }
+        }
+
+        if (isPlayerSneaking && stacked > 1) {
+            tooltip.add(com.createstats.power.FeGoggle.dim(
+                    String.format(Locale.ROOT, "Pooled across %d blocks, fills bottom up", stacked)));
+        }
+
+        final int rank = groupReserveRank();
         tooltip.add(Component.literal("    ").append(Component
-                .literal(String.format(Locale.ROOT, "Charge: %,d / %,d FE (%.0f%%)", stored, capacity, pct))
-                .withStyle(pct < 20.0f ? ChatFormatting.RED : pct < 60.0f ? ChatFormatting.YELLOW : ChatFormatting.GREEN)));
-        if (stacked > 1) {
+                .literal(com.createstats.power.FeReserve.describe(rank))
+                .withStyle(rank == com.createstats.power.FeReserve.MIN_RANK
+                        ? ChatFormatting.GOLD : ChatFormatting.GRAY)));
+        if (isPlayerSneaking) {
             tooltip.add(Component.literal("    ").append(Component
-                    .literal(String.format(Locale.ROOT, "Pooled across %d blocks, fills bottom up", stacked))
-                    .withStyle(ChatFormatting.DARK_AQUA)));
+                    .literal(com.createstats.train.power.CarriedReadout.active()
+                            ? "Carried: rank is set on the ground"
+                            : "Wrench to change rank")
+                    .withStyle(ChatFormatting.DARK_GRAY)));
+        } else {
+            tooltip.add(com.createstats.power.FeGoggle.more());
         }
         return true;
     }
-
-    // config
 
     public static int blockCapacity() {
         try {
@@ -577,7 +738,7 @@ public class CapacitorBankBE extends BlockEntity implements com.simibubi.create.
         try {
             return ModConfiguration.COMMON.capacitorBankTransferRate.get();
         } catch (RuntimeException ignored) {
-            return 8192;
+            return 32768;
         }
     }
 }

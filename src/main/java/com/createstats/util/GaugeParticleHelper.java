@@ -10,7 +10,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public final class GaugeParticleHelper {
-
     private static final float PARTICLE_START_RPM = 128.0f;
     private static final float PARTICLE_BURST_RPM = 256.0f;
     private static final float RANDOM_OFFSET = 0.25f;

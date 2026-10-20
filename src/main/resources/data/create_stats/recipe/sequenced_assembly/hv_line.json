@@ -1,0 +1,90 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:sturdy_sheet"
+  },
+  "loops": 2,
+  "results": [
+    {
+      "chance": 92.0,
+      "count": 2,
+      "id": "create_stats:hv_line"
+    },
+    {
+      "chance": 5.0,
+      "id": "create_stats:refined_copper_sheet"
+    },
+    {
+      "chance": 3.0,
+      "id": "create:sturdy_sheet"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_stats:incomplete_hv_line"
+        },
+        {
+          "item": "create_stats:refined_copper_sheet"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_stats:incomplete_hv_line"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_stats:incomplete_hv_line"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_stats:incomplete_hv_line"
+        }
+      ]
+    },
+    {
+      "type": "create:filling",
+      "ingredients": [
+        {
+          "item": "create_stats:incomplete_hv_line"
+        },
+        {
+          "type": "neoforge:single",
+          "amount": 100,
+          "fluid": "create_stats:insulating_resin"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_stats:incomplete_hv_line"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_stats:incomplete_hv_line"
+        },
+        {
+          "item": "create_stats:shielded_wire"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_stats:incomplete_hv_line"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_stats:incomplete_hv_line"
+  }
+}

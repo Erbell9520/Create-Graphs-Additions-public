@@ -25,10 +25,10 @@ public final class InstrumentRenderPrimitives
     public static final int BRASS = 0xFFC78B2A;
     public static final int BRASS_DARK = 0xFF6E5527;
     public static final int IRON = 0xFF2E3338;
-    
+
     private InstrumentRenderPrimitives() {
     }
-    
+
     public static void drawFamilyFrame(NativeImage image, int x, int y, int w, int h, DisplayTheme theme, InstrumentStyleFamily family, InstrumentEffectPreset effect, InstrumentStyleOptions options) {
         final int base = darken(theme.graphBg, 0.95f);
         TextureGraphRenderer.fillRect(image, x, y, w, h, base);
@@ -87,7 +87,7 @@ public final class InstrumentRenderPrimitives
             drawRivet(image, x + w - 5, y + h - 5, rivetR);
         }
     }
-    
+
     public static void drawMetricCard(NativeImage image, int x, int y, int w, int h, String label, String value, DisplayTheme theme, int accentColor, boolean highContrastText) {
         final int bg = darken(theme.graphBg, 0.9f);
         TextureGraphRenderer.fillRect(image, x, y, w, h, bg);
@@ -97,7 +97,7 @@ public final class InstrumentRenderPrimitives
         final int scale = (w >= 92 && h >= 28) ? 2 : 1;
         BitmapFont.drawCentered(image, truncate(value, Math.max(4, w / (6 * scale))), x + 2, y + h / 2 - BitmapFont.textHeight(scale) / 2 + 3, Math.max(0, w - 4), accentColor, scale);
     }
-    
+
     public static void drawValuePlate(NativeImage image, int x, int y, int w, int h, String label, String value, DisplayTheme theme, int accentColor, boolean highContrastText) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(theme.graphBg, 0.86f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, accentColor);
@@ -105,13 +105,13 @@ public final class InstrumentRenderPrimitives
         final int scale = (w >= 120 && h >= 36) ? 2 : 1;
         BitmapFont.drawCentered(image, truncate(value, Math.max(4, w / (6 * scale))), x + 2, y + h / 2 - BitmapFont.textHeight(scale) / 2 + 4, Math.max(0, w - 4), accentColor, scale);
     }
-    
+
     public static void drawBadge(NativeImage image, int x, int y, int w, int h, String text, int color) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(color, 0.7f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, color);
         BitmapFont.drawCentered(image, truncate(text, Math.max(4, w / 6)), x + 1, y + (h - BitmapFont.textHeight(1)) / 2, Math.max(0, w - 2), -1, 1);
     }
-    
+
     public static void drawLampRow(NativeImage image, int x, int y, int w, String[] labels, boolean[] states, int[] colors, DisplayTheme theme, long tick) {
         if (labels.length == 0) {
             return;
@@ -125,7 +125,7 @@ public final class InstrumentRenderPrimitives
             BitmapFont.drawCentered(image, truncate(labels[i], 6), cx - 12, y + 15, 24, theme.dim, 1);
         }
     }
-    
+
     public static void drawShutterIndicator(NativeImage image, int x, int y, int w, int h, String label, String text, boolean active, DisplayTheme theme, int accentColor) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(IRON, 0.92f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, theme.border);
@@ -141,14 +141,14 @@ public final class InstrumentRenderPrimitives
         TextureGraphRenderer.fillRect(image, slotX + 1 + openingW, slotY + 1, Math.max(1, slotW - 2 - openingW), slotH - 2, darken(IRON, 0.78f));
         BitmapFont.drawCentered(image, truncate(text, Math.max(4, slotW / 6)), slotX + 2, slotY + (slotH - BitmapFont.textHeight(1)) / 2, Math.max(0, slotW - 4), active ? -1 : theme.dim, 1);
     }
-    
+
     public static void drawTracker(NativeImage image, int x, int y, int w, int h, StatsDisplayPanelBE.DataChannel channel, int slotIndex, StatsDisplayPanelBE be, StatsDisplaySettings settings, int accentColor, long tick) {
         final float normalized = normalizeChannel(channel, settings);
         final float yellow = clamp01(settings.getAnalogZoneYellow());
         final float red = clamp01(settings.getAnalogZoneRed());
         BrassTrackerRenderer.drawHorizontalTexture(image, x, y, w, h, be.getBlockPos(), slotIndex, normalized, yellow, red, accentColor, yellow, ALERT_AMBER, red, DANGER_RED, accentColor, channel != null && channel.isAlertTriggered(), tick);
     }
-    
+
     public static void drawSparkline(NativeImage image, int x, int y, int w, int h, TimeSeriesStore store, DisplayTheme theme, int lineColor, String label) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(theme.graphBg, 0.88f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, theme.border);
@@ -186,33 +186,33 @@ public final class InstrumentRenderPrimitives
         }
         TextureGraphRenderer.fillCircle(image, prevX, prevY, 2, lineColor);
     }
-    
+
     public static void drawCenteredMessage(NativeImage image, int x, int y, int w, int h, String title, String message, DisplayTheme theme) {
         final int titleScale = (w >= 220) ? 2 : 1;
         BitmapFont.drawCentered(image, title, x, y + h / 2 - BitmapFont.textHeight(titleScale) - 4, w, theme.text, titleScale);
         BitmapFont.drawCentered(image, message, x, y + h / 2 + 4, w, theme.dim, 1);
     }
-    
+
     public static void drawFooterDots(NativeImage image, int pageIdx, int totalPages, int x, int y, int w, int h, DisplayTheme theme) {
         TextureGraphRenderer.fillRect(image, x, y, w, h, darken(theme.graphBg, 0.9f));
         TextureGraphRenderer.drawBorder(image, x, y, w, h, 1, theme.border);
         TextureGraphRenderer.renderPageDots(image, pageIdx, totalPages, x + 4, y + 1, Math.max(0, w - 8), Math.max(0, h - 2), theme);
     }
-    
+
     public static float latestValue(StatsDisplayPanelBE.DataChannel channel, float fallback) {
         if (channel == null || channel.getStore().getSampleCount() == 0) {
             return fallback;
         }
         return channel.getStore().getLatestValue();
     }
-    
+
     public static String formatChannelValue(StatsDisplayPanelBE.DataChannel channel) {
         if (channel == null || channel.getStore().getSampleCount() == 0) {
             return "--";
         }
         return channel.getStore().getMetricType().formatValue(channel.getStore().getLatestValue());
     }
-    
+
     public static float normalizeChannel(StatsDisplayPanelBE.DataChannel channel, StatsDisplaySettings settings) {
         if (channel == null || channel.getStore().getSampleCount() == 0) {
             return 0.0f;
@@ -239,7 +239,7 @@ public final class InstrumentRenderPrimitives
         }
         return clamp01((value - min) / range);
     }
-    
+
     public static int accentForChannel(StatsDisplayPanelBE.DataChannel channel, DisplayTheme theme, StatsDisplaySettings settings) {
         if (channel == null) {
             return theme.accent;
@@ -256,7 +256,7 @@ public final class InstrumentRenderPrimitives
         }
         return theme.accent;
     }
-    
+
     public static int familyAccent(InstrumentStyleFamily family, DisplayTheme theme) {
         return switch (family) {
             case MECHANICAL_BRASS -> BRASS;
@@ -266,7 +266,7 @@ public final class InstrumentRenderPrimitives
             default -> theme.accent;
         };
     }
-    
+
     public static String truncate(String value, int maxChars) {
         if (value == null) {
             return "";
@@ -276,7 +276,7 @@ public final class InstrumentRenderPrimitives
         }
         return value.substring(0, Math.max(1, maxChars - 2)) + "..";
     }
-    
+
     public static String formatCompact(float value) {
         final float abs = Math.abs(value);
         if (abs >= 1000000.0f) {
@@ -293,32 +293,32 @@ public final class InstrumentRenderPrimitives
         }
         return String.format("%.2f", value);
     }
-    
+
     public static int brighten(int color, float factor) {
         return scaleRgb(color, factor);
     }
-    
+
     public static int darken(int color, float factor) {
         return scaleRgb(color, factor);
     }
-    
+
     private static void drawRivet(NativeImage image, int cx, int cy, int radius) {
         TextureGraphRenderer.fillCircle(image, cx, cy, radius + 1, IRON);
         TextureGraphRenderer.fillCircle(image, cx, cy, radius, BRASS);
     }
-    
+
     private static float clamp01(float value) {
         if (Float.isNaN(value) || Float.isInfinite(value)) {
             return 0.0f;
         }
         return Math.max(0.0f, Math.min(1.0f, value));
     }
-    
+
     private static int mapToY(float value, float min, float max, int y, int h) {
         final float norm = (value - min) / Math.max(0.001f, max - min);
         return y + h - 1 - Math.round(clamp01(norm) * Math.max(1, h - 2));
     }
-    
+
     private static int scaleRgb(int color, float factor) {
         final int a = color >>> 24;
         final int alpha = (a == 0) ? 255 : a;

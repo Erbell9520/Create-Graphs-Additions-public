@@ -1,0 +1,50 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "arc": "create_stats:block/contactor/arc",
+    "particle": "create_stats:block/contactor/phenolic"
+  },
+  "elements": [
+    {
+      "__comment": "arc",
+      "from": [
+        10.5,
+        2.4,
+        10.1
+      ],
+      "to": [
+        12.5,
+        2.5,
+        10.45
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            5.0,
+            14.5,
+            7.0,
+            14.85
+          ],
+          "texture": "#arc",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "down": {
+          "uv": [
+            8.5,
+            10.0,
+            10.5,
+            10.35
+          ],
+          "texture": "#arc",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    }
+  ]
+}

@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 public class HandheldLinkData {
-
     public enum TargetType {
         NONE(""),
         STATS_DISPLAY("Stats Display"),

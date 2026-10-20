@@ -5,7 +5,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.nbt.CompoundTag;
 
 public class FreightStationCargoView {
-
     private final boolean trainPresent;
     private final String trainName;
     private final String statusMessage;

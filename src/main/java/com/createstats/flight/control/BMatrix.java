@@ -4,16 +4,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/** [1] */
 public final class BMatrix {
-
     private final Matrix6xN matrix;
-    private final double[] verticalAuthorityPerRpm;   // length = cols, signed (positive = lifts)
-    private final double[] rowNorms;                  // length = 6
-    private final long fingerprint;                   // structural hash; 0 means none
+    private final double[] verticalAuthorityPerRpm;
+    private final double[] rowNorms;
+    private final long fingerprint;
     private final boolean gravityFallbackUsed;
     private final List<Diagnostic> perPropDiagnostics;
-    @Nullable private final String unable;            // non-null if matrix is degenerate / unusable
+    @Nullable private final String unable;
 
     public BMatrix(Matrix6xN matrix,
                    double[] verticalAuthorityPerRpm,
@@ -46,7 +44,6 @@ public final class BMatrix {
     @Nullable public String unable() { return unable; }
     public boolean usable() { return unable == null && matrix.cols() > 0; }
 
-    /** [2] */
     public double maxLiftAuthority(double maxAbsRpm) {
         double s = 0.0;
         for (double v : verticalAuthorityPerRpm) {
@@ -55,7 +52,6 @@ public final class BMatrix {
         return s;
     }
 
-    /** [3] */
     public double maxRowAuthority(int row, double maxAbsRpm) {
         double s = 0.0;
         for (int c = 0; c < matrix.cols(); c++) {
@@ -64,7 +60,6 @@ public final class BMatrix {
         return s * maxAbsRpm;
     }
 
-    /** Per-prop diagnostic, fingerprint-stable index = column index in {@link #matrix()}. */
     public record Diagnostic(int col,
                               boolean valid,
                               @Nullable String reason,

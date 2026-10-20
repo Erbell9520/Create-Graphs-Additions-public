@@ -1,0 +1,77 @@
+{
+  "__generator": "gen_powered_door.py",
+  "textures": {
+    "glass": "create_stats:block/powered_door/zinc_glass",
+    "particle": "create_stats:block/powered_door/zinc_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        8,
+        14,
+        1
+      ],
+      "to": [
+        11,
+        29,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            1,
+            8,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            8,
+            1,
+            11,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            1,
+            1,
+            3,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            1,
+            1,
+            3,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            8,
+            1,
+            11,
+            3
+          ],
+          "texture": "#glass"
+        },
+        "down": {
+          "uv": [
+            8,
+            1,
+            11,
+            3
+          ],
+          "texture": "#glass"
+        }
+      }
+    }
+  ]
+}

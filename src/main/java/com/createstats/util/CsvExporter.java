@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 public class CsvExporter
 {
     private static final DateTimeFormatter TIMESTAMP_FORMAT;
-    
+
     public static void export(TimeSeriesStore store, BlockPos recorderPos) {
         try {
             final Path exportDir = Paths.get("create_stats", "exports");
@@ -36,7 +36,7 @@ public class CsvExporter
             CreateStats.LOGGER.error("Failed to export stats CSV", (Throwable)e);
         }
     }
-    
+
     static {
         TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     }

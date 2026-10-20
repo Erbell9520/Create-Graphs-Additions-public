@@ -7,13 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduLegRowTest {
-
     @Test
     @DisplayName("a stud with nothing on it is never dressed up as a fault")
     void unwiredBeatsEverything() {
-        // Deliberately with every alarm flag set: an empty stud reports empty, not tripped.
         assertEquals(PduLegRow.State.UNWIRED, PduLegRow.stateOf(false, false, true, true));
         assertFalse(PduLegRow.State.UNWIRED.isAlarm());
     }
@@ -96,6 +93,35 @@ class PduLegRowTest {
         final java.util.Set<Integer> seen = new java.util.HashSet<>();
         for (int leg = 0; leg < com.createstats.power.PduStuds.COUNT; leg++) {
             assertTrue(seen.add(PduLegRow.colour(leg)), "leg " + leg + " reuses a colour");
+        }
+    }
+
+    @Test
+    @DisplayName("a leg feeding a board says so, because a quiet board leg is not a fault")
+    void aBoardLegSaysItIsABoardLeg() {
+        final String line = PduLegRow.detail(PduLegRow.State.LIVE, 1024, 4096, 1, false, true, false);
+        assertTrue(line.startsWith("Board on this leg."), line);
+
+        assertTrue(line.contains("of "), line);
+    }
+
+    @Test
+    @DisplayName("a held board leg explains the hold rather than looking broken")
+    void aHeldBoardLegExplainsItself() {
+        final String line = PduLegRow.detail(PduLegRow.State.LIVE, 0, 4096, 1, false, true, true);
+        assertTrue(line.contains("No spare to export"), line);
+
+        assertTrue(line.contains("critical still runs"), line);
+    }
+
+    @Test
+    @DisplayName("a real fault still wins over the board wording")
+    void faultsOutrankTheBoardWording() {
+        for (PduLegRow.State state : new PduLegRow.State[]{
+                PduLegRow.State.TRIPPED, PduLegRow.State.OPEN, PduLegRow.State.UNWIRED}) {
+            assertEquals(PduLegRow.detail(state, 0, 4096, 1, false),
+                    PduLegRow.detail(state, 0, 4096, 1, false, true, true),
+                    state + " must read the same whether or not a board is behind it");
         }
     }
 }

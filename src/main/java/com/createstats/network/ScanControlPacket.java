@@ -17,31 +17,31 @@ public class ScanControlPacket implements CustomPacketPayload
     private final Action action;
     private ScanSettings settings;
     private String sourceId;
-    
+
     public static final CustomPacketPayload.Type<ScanControlPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "scan_control"));
     public static final StreamCodec<FriendlyByteBuf, ScanControlPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), ScanControlPacket::new);
-    
+
     private ScanControlPacket(BlockPos pos, Action action) {
         this.pos = pos;
         this.action = action;
     }
-    
+
     public static ScanControlPacket triggerScan(BlockPos pos) {
         return new ScanControlPacket(pos, Action.TRIGGER_SCAN);
     }
-    
+
     public static ScanControlPacket updateSettings(BlockPos pos, ScanSettings settings) {
         final ScanControlPacket pkt = new ScanControlPacket(pos, Action.UPDATE_SETTINGS);
         pkt.settings = settings;
         return pkt;
     }
-    
+
     public static ScanControlPacket toggleSource(BlockPos pos, String sourceId) {
         final ScanControlPacket pkt = new ScanControlPacket(pos, Action.TOGGLE_SOURCE);
         pkt.sourceId = sourceId;
         return pkt;
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeEnum((Enum)this.action);
@@ -56,7 +56,7 @@ public class ScanControlPacket implements CustomPacketPayload
             }
         }
     }
-    
+
     public ScanControlPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.action = (Action)buf.readEnum((Class)Action.class);
@@ -71,12 +71,12 @@ public class ScanControlPacket implements CustomPacketPayload
             }
         }
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(ScanControlPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();
@@ -118,11 +118,11 @@ public class ScanControlPacket implements CustomPacketPayload
             }
         });
     }
-    
+
     public enum Action
     {
-        TRIGGER_SCAN, 
-        UPDATE_SETTINGS, 
+        TRIGGER_SCAN,
+        UPDATE_SETTINGS,
         TOGGLE_SOURCE;
     }
 }

@@ -19,7 +19,7 @@ public class AlarmSettings
     private int textRange;
     private boolean redstoneEnabled;
     private int scanRadius;
-    
+
     public AlarmSettings() {
         this.sound = AlarmSound.BELL;
         this.particle = AlarmParticle.SMOKE;
@@ -34,133 +34,135 @@ public class AlarmSettings
         this.textVisibility = AlertVisibility.NEARBY_ONLY;
         this.textRange = 48;
         this.redstoneEnabled = true;
-        this.scanRadius = 1;
+        // 8 not 1. radius 1 watched nothing unless it was buried in the panel. new alarms only
+
+        this.scanRadius = 8;
     }
-    
+
     public AlarmSound getSound() {
         return this.sound;
     }
-    
+
     public void setSound(AlarmSound s) {
         this.sound = s;
     }
-    
+
     public void cycleSound() {
         this.sound = this.sound.next();
     }
-    
+
     public AlarmParticle getParticle() {
         return this.particle;
     }
-    
+
     public void setParticle(AlarmParticle p) {
         this.particle = p;
     }
-    
+
     public void cycleParticle() {
         this.particle = this.particle.next();
     }
-    
+
     public float getVolume() {
         return this.volume;
     }
-    
+
     public void setVolume(float v) {
         this.volume = Math.max(0.0f, Math.min(1.0f, v));
     }
-    
+
     public float getPitch() {
         return this.pitch;
     }
-    
+
     public void setPitch(float p) {
         this.pitch = Math.max(0.5f, Math.min(2.0f, p));
     }
-    
+
     public int getSoundIntervalTicks() {
         return this.soundIntervalTicks;
     }
-    
+
     public void setSoundIntervalTicks(int t) {
         this.soundIntervalTicks = Math.max(20, Math.min(600, t));
     }
-    
+
     public float getSoundIntervalSeconds() {
         return this.soundIntervalTicks / 20.0f;
     }
-    
+
     public int getHearingRange() {
         return this.hearingRange;
     }
-    
+
     public void setHearingRange(int r) {
         this.hearingRange = Math.max(8, Math.min(128, r));
     }
-    
+
     public int getParticleCount() {
         return this.particleCount;
     }
-    
+
     public void setParticleCount(int c) {
         this.particleCount = Math.max(0, Math.min(20, c));
     }
-    
+
     public boolean isScreenAlert() {
         return this.screenAlert;
     }
-    
+
     public void setScreenAlert(boolean a) {
         this.screenAlert = a;
     }
-    
+
     public String getAlertMessage() {
         return this.alertMessage;
     }
-    
+
     public void setAlertMessage(String m) {
         this.alertMessage = ((m != null) ? m : "");
     }
-    
+
     public AlertVisibility getSoundVisibility() {
         return this.soundVisibility;
     }
-    
+
     public void setSoundVisibility(AlertVisibility v) {
         this.soundVisibility = v;
     }
-    
+
     public AlertVisibility getTextVisibility() {
         return this.textVisibility;
     }
-    
+
     public void setTextVisibility(AlertVisibility v) {
         this.textVisibility = v;
     }
-    
+
     public int getTextRange() {
         return this.textRange;
     }
-    
+
     public void setTextRange(int r) {
         this.textRange = Math.max(8, Math.min(256, r));
     }
-    
+
     public boolean isRedstoneEnabled() {
         return this.redstoneEnabled;
     }
-    
+
     public void setRedstoneEnabled(boolean e) {
         this.redstoneEnabled = e;
     }
-    
+
     public int getScanRadius() {
         return this.scanRadius;
     }
-    
+
     public void setScanRadius(int r) {
         this.scanRadius = Math.max(1, Math.min(8, r));
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         tag.putString("Sound", this.sound.name());
@@ -179,7 +181,7 @@ public class AlarmSettings
         tag.putInt("ScanRadius", this.scanRadius);
         return tag;
     }
-    
+
     public static AlarmSettings load(CompoundTag tag) {
         final AlarmSettings s = new AlarmSettings();
         try {
@@ -230,83 +232,83 @@ public class AlarmSettings
         }
         return s;
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeNbt(this.save());
     }
-    
+
     public static AlarmSettings decode(FriendlyByteBuf buf) {
         final CompoundTag tag = buf.readNbt();
         return (tag != null) ? load(tag) : new AlarmSettings();
     }
-    
+
     public enum AlarmSound
     {
-        BELL("Bell"), 
-        NOTE_PLING("Note Pling"), 
-        ANVIL("Anvil Land"), 
-        RAID_HORN("Raid Horn"), 
-        WITHER_SPAWN("Wither Spawn"), 
+        BELL("Bell"),
+        NOTE_PLING("Note Pling"),
+        ANVIL("Anvil Land"),
+        RAID_HORN("Raid Horn"),
+        WITHER_SPAWN("Wither Spawn"),
         NONE("Silent");
-        
+
         private final String displayName;
-        
+
         private AlarmSound(String d) {
             this.displayName = d;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }
-        
+
         public AlarmSound next() {
             final AlarmSound[] v = values();
             return v[(this.ordinal() + 1) % v.length];
         }
     }
-    
+
     public enum AlarmParticle
     {
-        SMOKE("Smoke"), 
-        FLAME("Flame"), 
-        SOUL_FIRE("Soul Fire"), 
-        REDSTONE("Redstone Dust"), 
-        SPARK("Electric Spark"), 
+        SMOKE("Smoke"),
+        FLAME("Flame"),
+        SOUL_FIRE("Soul Fire"),
+        REDSTONE("Redstone Dust"),
+        SPARK("Electric Spark"),
         NONE("None");
-        
+
         private final String displayName;
-        
+
         private AlarmParticle(String d) {
             this.displayName = d;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }
-        
+
         public AlarmParticle next() {
             final AlarmParticle[] v = values();
             return v[(this.ordinal() + 1) % v.length];
         }
     }
-    
+
     public enum AlertVisibility
     {
-        ALL_PLAYERS("All Players"), 
-        NEARBY_ONLY("Nearby Only"), 
-        OWNER_ONLY("Owner Only"), 
+        ALL_PLAYERS("All Players"),
+        NEARBY_ONLY("Nearby Only"),
+        OWNER_ONLY("Owner Only"),
         NOBODY("Nobody");
-        
+
         private final String displayName;
-        
+
         private AlertVisibility(String d) {
             this.displayName = d;
         }
-        
+
         public String getDisplayName() {
             return this.displayName;
         }
-        
+
         public AlertVisibility next() {
             final AlertVisibility[] v = values();
             return v[(this.ordinal() + 1) % v.length];

@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "start_off": "create_stats:block/air_fryer_start_off",
+    "particle": "create_stats:block/air_fryer_start_off"
+  },
+  "elements": [
+    {
+      "__comment": "start",
+      "from": [
+        -0.65,
+        -0.72,
+        -0.16
+      ],
+      "to": [
+        0.65,
+        0.72,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#start_off"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#start_off"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#start_off"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#start_off"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#start_off"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#start_off"
+        }
+      }
+    }
+  ]
+}

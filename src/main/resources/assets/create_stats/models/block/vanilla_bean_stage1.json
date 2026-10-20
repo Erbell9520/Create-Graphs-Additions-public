@@ -1,0 +1,109 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "create_stats:block/vanilla_bean_stage1",
+    "pod": "create_stats:block/vanilla_bean_stage1"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        5,
+        9
+      ],
+      "to": [
+        11,
+        12,
+        15
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#pod"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#pod"
+        },
+        "north": {
+          "uv": [
+            9,
+            4,
+            15,
+            11
+          ],
+          "texture": "#pod"
+        },
+        "south": {
+          "uv": [
+            9,
+            4,
+            15,
+            11
+          ],
+          "texture": "#pod"
+        },
+        "west": {
+          "uv": [
+            9,
+            4,
+            15,
+            11
+          ],
+          "texture": "#pod"
+        },
+        "east": {
+          "uv": [
+            9,
+            4,
+            15,
+            11
+          ],
+          "texture": "#pod"
+        }
+      }
+    },
+    {
+      "from": [
+        8,
+        12,
+        12
+      ],
+      "to": [
+        8,
+        16,
+        16
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pod"
+        },
+        "east": {
+          "uv": [
+            16,
+            0,
+            12,
+            4
+          ],
+          "texture": "#pod"
+        }
+      }
+    }
+  ]
+}

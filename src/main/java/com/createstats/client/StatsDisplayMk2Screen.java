@@ -14,10 +14,8 @@ import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-/** [1] */
 @OnlyIn(Dist.CLIENT)
 public class StatsDisplayMk2Screen extends Screen {
-
     private enum Step {
         SOURCES("Sources"),
         CONTENT("Content"),
@@ -32,7 +30,6 @@ public class StatsDisplayMk2Screen extends Screen {
         }
     }
 
-    // Studio palette (ARGB).
     private static final int DIM = 0xC0070A0E;
     private static final int ROOT_BG = 0xFF12161C;
     private static final int PANEL = 0xFF1A212B;
@@ -50,7 +47,6 @@ public class StatsDisplayMk2Screen extends Screen {
     private String focusedSourceId;
     private int sourceScroll;
 
-    // Layout (computed in init()).
     private int rootX;
     private int rootY;
     private int rootW;
@@ -75,7 +71,6 @@ public class StatsDisplayMk2Screen extends Screen {
     private static final int RAIL_H = 22;
     private static final int STEP_GAP = 6;
 
-    // Source list geometry captured during render for hit testing.
     private int listX;
     private int listY;
     private int listW;
@@ -126,18 +121,15 @@ public class StatsDisplayMk2Screen extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        // Intentionally empty: in 1.21 the vanilla background path runs the blur shader over the world.
-        // We dim the world ourselves in render() instead. See ui-preferences memory note.
+        // empty on purpose, 1.21 blurs the world here. we dim ourselves in render()
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        // Dim the world behind the studio (no blur).
         g.fill(0, 0, this.width, this.height, DIM);
-        // FE Dependent Mode panel in the free screen corner (self-gating).
+
         com.createstats.power.client.FeStatusWidget.draw(g, this.font, this.width - 130, 8, 120, this.panel.feConsumer());
 
-        // Root panel.
         fillPanel(g, this.rootX, this.rootY, this.rootW, this.rootH, ROOT_BG, BORDER_HI);
 
         drawHeader(g);
@@ -153,7 +145,6 @@ public class StatsDisplayMk2Screen extends Screen {
         final int titleW = this.font.width("STATS DISPLAY ");
         g.drawString(this.font, "Mk II", this.headerX + titleW, this.headerY + 2, TEXT, false);
 
-        // Status chip on the right.
         final boolean live = !this.panel.getActiveChannels().isEmpty();
         final String status = live ? "LIVE" : "NO DATA";
         final int chipColor = live ? OK : TEXT_DIM;
@@ -291,7 +282,6 @@ public class StatsDisplayMk2Screen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            // Step rail.
             final Step[] steps = Step.values();
             for (int i = 0; i < steps.length; i++) {
                 final int x = this.railX + i * (this.stepBtnW + STEP_GAP);
@@ -300,7 +290,7 @@ public class StatsDisplayMk2Screen extends Screen {
                     return true;
                 }
             }
-            // Source rows.
+
             if (this.step == Step.SOURCES && !this.lastSources.isEmpty()) {
                 int y = this.listY - this.sourceScroll;
                 for (final SourceEntry entry : this.lastSources) {
@@ -335,8 +325,6 @@ public class StatsDisplayMk2Screen extends Screen {
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
-
-    // helpers
 
     private List<SourceEntry> collectSources() {
         final LinkedHashMap<String, SourceEntry> map = new LinkedHashMap<>();

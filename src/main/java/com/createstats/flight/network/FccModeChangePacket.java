@@ -12,10 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/**
- * C→S typed mode/parameter change request. Server validates: matching open menu,
- * sensor capability, finite + clamped doubles.
- */
 public record FccModeChangePacket(
     int containerId,
     FlightMode mode,
@@ -24,7 +20,6 @@ public record FccModeChangePacket(
     double climbRate,
     double descendFloor
 ) implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<FccModeChangePacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "fcc_mode_change"));
 

@@ -19,7 +19,6 @@ import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public final class FactoryLogicControllerTextureManager {
-
     private static final Map<BlockPos, TextureEntry> TEXTURES = new HashMap<>();
     private static final int TEX_WIDTH = 160;
     private static final int TEX_HEIGHT = 128;

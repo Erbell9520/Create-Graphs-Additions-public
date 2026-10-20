@@ -14,14 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Reads fuel-reserve channels from a linked {@link StatsDisplayPanelBE} on the
- * client (panels are vanilla-synced to nearby players), aggregating them into
- * a tidy snapshot for the OTOMOBIL helmet HUD.
- */
 @OnlyIn(Dist.CLIENT)
 public final class HelmetFuelSnapshot {
-
     public enum FuelKind {
         DIESEL("Diesel", 0xFFFFC34D),
         GASOLINE("Gasoline", 0xFFFF8B47),
@@ -74,7 +68,6 @@ public final class HelmetFuelSnapshot {
             return panelPresent && !entries.isEmpty();
         }
 
-        /** 0..1 normalized fill ratio, or 0 if capacity unknown. */
         public float fillPct() {
             return totalCapacityMb > 0.5f
                 ? Math.min(1.0f, totalMb / totalCapacityMb)
@@ -87,7 +80,6 @@ public final class HelmetFuelSnapshot {
     private static final Snapshot EMPTY_LINKED_NO_PANEL =
         new Snapshot(true, false, List.of(), 0.0f, 0.0f, FuelKind.UNKNOWN);
 
-    /** [1] */
     private static final long READ_INTERVAL_NANOS = 200_000_000L;
     private static long cachedReadNanos = Long.MIN_VALUE;
     @Nullable
@@ -122,7 +114,6 @@ public final class HelmetFuelSnapshot {
             return EMPTY_LINKED_NO_PANEL;
         }
 
-        // [2]
         java.util.LinkedHashMap<String, Float> contentBySource = new java.util.LinkedHashMap<>();
         java.util.HashMap<String, String> labelBySource = new java.util.HashMap<>();
         java.util.HashMap<String, FuelKind> kindBySource = new java.util.HashMap<>();
@@ -143,10 +134,9 @@ public final class HelmetFuelSnapshot {
                 if (prev == null || amount > prev) capacityBySource.put(source, amount);
                 continue;
             }
-            if (isMeta) continue; // "Reserve Fuel %", "Mismatch", "Reserve Links" etc.
+            if (isMeta) continue;
             if (amount <= 0.5f) continue;
-            // Keep only the largest content reading per source: the engine fuel tank and its
-            // reserve mirror describe the same fluid, so we must not add them together.
+
             Float prev = contentBySource.get(source);
             if (prev == null || amount > prev) {
                 contentBySource.put(source, amount);
@@ -166,11 +156,9 @@ public final class HelmetFuelSnapshot {
             kindWeights[kind.ordinal()] += Math.round(amt);
         }
 
-        // Capacity sums across distinct sources (one MAX'd value each).
         float totalCapacity = 0.0f;
         for (Float v : capacityBySource.values()) totalCapacity += v;
 
-        // Sort by amount descending.
         entries.sort((a, b) -> Float.compare(b.amountMb, a.amountMb));
 
         FuelKind dominant = FuelKind.UNKNOWN;
@@ -189,8 +177,6 @@ public final class HelmetFuelSnapshot {
     }
 
     private static boolean matchesFuelText(String text) {
-        // Retained for potential future "strict fuel-only" mode; currently unused
-        // because the helmet trusts any FLUID_MB content channel on the linked panel.
         if (text == null) return false;
         String lower = text.toLowerCase(Locale.ROOT);
         return lower.contains("reserve")
@@ -206,7 +192,6 @@ public final class HelmetFuelSnapshot {
             || lower.endsWith("fuel");
     }
 
-    /** [3] */
     private static boolean looksLikeCapacityOrMeta(String text) {
         if (text == null) return false;
         String lower = text.toLowerCase(Locale.ROOT);
@@ -220,13 +205,11 @@ public final class HelmetFuelSnapshot {
             || lower.endsWith("%");
     }
 
-    /** Narrower test: only "capacity"-named channels carry tank size in mB. */
     private static boolean looksLikeCapacityChannel(String text) {
         if (text == null) return false;
         return text.toLowerCase(Locale.ROOT).contains("capacity");
     }
 
-    /** [4] */
     private static String sourceKey(@Nullable String id, @Nullable String label) {
         if (id != null && id.startsWith("src_")) {
             int next = id.indexOf('_', 4);

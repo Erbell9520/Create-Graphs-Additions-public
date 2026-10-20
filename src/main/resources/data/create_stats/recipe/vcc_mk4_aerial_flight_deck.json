@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "create_stats:vcc_mk4_aerial"
+    },
+    {
+      "item": "create_stats:vcc_mk4_aerial"
+    }
+  ],
+  "result": {
+    "id": "create_stats:vcc_mk4_aerial_flight_deck",
+    "count": 1
+  }
+}

@@ -15,30 +15,30 @@ public class CalculatorStatePacket implements CustomPacketPayload
 {
     private final BlockPos pos;
     private final CompoundTag stateTag;
-    
+
     public static final CustomPacketPayload.Type<CalculatorStatePacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "calculator_state"));
     public static final StreamCodec<FriendlyByteBuf, CalculatorStatePacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), CalculatorStatePacket::new);
-    
+
     public CalculatorStatePacket(BlockPos pos, CompoundTag stateTag) {
         this.pos = pos;
         this.stateTag = stateTag;
     }
-    
+
     public CalculatorStatePacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.stateTag = buf.readNbt();
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeNbt(this.stateTag);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(CalculatorStatePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();

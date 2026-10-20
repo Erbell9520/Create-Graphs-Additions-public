@@ -36,9 +36,9 @@ import com.createstats.display.HologramSettings;
 import java.util.LinkedHashMap;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-public class HolographicProjectorBE extends BlockEntity implements IAutoDataReceiver, RangeAttachment, com.createstats.power.IFeConsumer
+public class HolographicProjectorBE extends BlockEntity implements IAutoDataReceiver, RangeAttachment, com.createstats.power.IFeConsumer,
+        com.createstats.util.CopyableSettings
 {
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_HOLOGRAPHIC_PROJECTOR));
 
@@ -67,7 +67,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
     @org.jetbrains.annotations.Nullable
     private UUID ownerUUID;
     private AntennaTier antennaTier;
-    
+
     public HolographicProjectorBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super((BlockEntityType)type, pos, state);
         this.channels = new LinkedHashMap<String, DataChannel>();
@@ -88,16 +88,16 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         this.scanCooldown = 0;
         this.antennaTier = AntennaTier.NONE;
     }
-    
+
     public DataChannel getOrCreateChannel(String channelId, String defaultLabel) {
         return this.channels.computeIfAbsent(channelId, id -> new DataChannel(id, defaultLabel));
     }
-    
+
     @Nullable
     public DataChannel getChannel(String channelId) {
         return this.channels.get(channelId);
     }
-    
+
     public List<DataChannel> getActiveChannels() {
         final List<DataChannel> active = new ArrayList<DataChannel>();
         for (DataChannel ch : this.channels.values()) {
@@ -107,11 +107,11 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         }
         return active;
     }
-    
+
     public Map<String, DataChannel> getAllChannels() {
         return this.channels;
     }
-    
+
     @Nullable
     public DataChannel getCurrentDisplayChannel() {
         for (DataChannel ch : this.channels.values()) {
@@ -121,7 +121,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         }
         return null;
     }
-    
+
     public SourceConfig registerOrUpdateSource(BlockPos sourcePos, String sourceType) {
         return this.registerOrUpdateSource(sourcePos, sourceType, false);
     }
@@ -162,11 +162,11 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         this.setChanged();
         return config2;
     }
-    
+
     public LinkedHashMap<String, SourceConfig> getSourceRegistry() {
         return this.sourceRegistry;
     }
-    
+
     public void onAutoData(BlockPos sourcePos, String sourceType, String metricId, String label, float value, MetricType type) {
         this.onAutoDataInternal(sourcePos, sourceType, metricId, label, value, type, false);
     }
@@ -219,7 +219,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
     private static boolean isStockpileSemanticChannel(String channelId) {
         return channelId.endsWith("_auto_fill_pct") || channelId.endsWith("_auto_stock_level") || channelId.endsWith("_auto_stock_capacity") || channelId.endsWith("_auto_min_level") || channelId.endsWith("_auto_upper_thresh") || channelId.endsWith("_auto_lower_thresh");
     }
-    
+
     public void onReceiveData(BlockPos sourcePos, String sourceType, int line, float value, MetricType detectedType, String rawText) {
         final SourceConfig src = this.registerOrUpdateSource(sourcePos, sourceType);
         final String channelId = "src_" + src.getSourceId() + "_line" + line;
@@ -236,7 +236,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public void setSourceType(String sourceType) {
         if (!this.sourceType.equals(sourceType)) {
             this.sourceType = sourceType;
@@ -244,15 +244,15 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
             this.setChanged();
         }
     }
-    
+
     public String getSourceType() {
         return this.sourceType;
     }
-    
+
     public boolean isScanEnabled() {
         return this.scanEnabled;
     }
-    
+
     public void setScanEnabled(boolean enabled) {
         this.scanEnabled = enabled;
         this.scanCooldown = 0;
@@ -288,13 +288,12 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
-    
+
     public void tick() {
         if (this.level == null || this.level.isClientSide()) {
             return;
         }
-        // FE Dependent Mode gate: a dead projector collapses its hologram (ACTIVE off) and
-        // drops any redstone output until the buffer is charged again.
+
         final boolean fePowered = this.feConsumer.serviceTick(this.hasData);
         com.createstats.power.FePowerFx.handleTransition(this.level, this.worldPosition, this.feConsumer);
         if (!fePowered) {
@@ -326,7 +325,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         }
         if (this.scanEnabled && --this.scanCooldown <= 0) {
             this.scanCooldown = 100;
-            // FE burst: one nearby-block scan. Skipped (and retried next cooldown) if unaffordable.
+
             if (this.feConsumer.spendBurst()) {
                 this.scanNearbyBlocks();
             }
@@ -344,8 +343,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
             }
         }
     }
-    
-    /** Hard cutoff visual: hologram implodes (ACTIVE false), redstone drops, one sync. */
+
     private void applyUnpoweredState() {
         if (!this.hasData && this.cachedRedstonePower == 0) {
             return;
@@ -364,14 +362,14 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
 
     public void onRemoved() {
     }
-    
+
     public void setRemoved() {
         super.setRemoved();
         if (this.level != null && this.level.isClientSide()) {
             ProjectorTextureManager.cleanup(this.worldPosition);
         }
     }
-    
+
     private void scanNearbyBlocks() {
         if (this.level == null) {
             return;
@@ -387,7 +385,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
             }
         }
     }
-    
+
     private void autoReadFromNearby(BlockPos sourcePos, BlockEntity sourceBE) {
         try {
             final String className = sourceBE.getClass().getSimpleName();
@@ -437,7 +435,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         }
         catch (Exception ex) {}
     }
-    
+
     private int calculateRedstonePower() {
         if (this.redstoneChannelId == null || this.redstoneChannelId.isEmpty()) {
             return 0;
@@ -458,86 +456,143 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         }
         return Math.round(Math.max(0.0f, Math.min(15.0f, (value - min) / range * 15.0f)));
     }
-    
+
     public boolean isRedstoneEnabled() {
         return this.redstoneEnabled;
     }
-    
+
     public void setRedstoneEnabled(boolean e) {
         this.redstoneEnabled = e;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public String getRedstoneChannelId() {
         return this.redstoneChannelId;
     }
-    
+
     public void setRedstoneChannelId(String id) {
         this.redstoneChannelId = id;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public float getRedstoneThreshold() {
         return this.redstoneThreshold;
     }
-    
+
     public void setRedstoneThreshold(float t) {
         this.redstoneThreshold = t;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public boolean isRedstoneAbove() {
         return this.redstoneAbove;
     }
-    
+
     public void setRedstoneAbove(boolean a) {
         this.redstoneAbove = a;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public int getRedstoneMode() {
         return this.redstoneMode;
     }
-    
+
     public void setRedstoneMode(int m) {
         this.redstoneMode = m;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public int getRedstonePower() {
         return this.cachedRedstonePower;
     }
-    
+
     public HologramSettings getHologramSettings() {
         return this.hologramSettings;
     }
-    
+
     public void setHologramSettings(HologramSettings settings) {
         this.hologramSettings = settings;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
+    @Override
+    public String settingsKey() {
+        return "create_stats:holographic_projector";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put("HologramSettings", this.hologramSettings.save());
+        tag.putBoolean("RedstoneEnabled", this.redstoneEnabled);
+        tag.putString("RedstoneChannel", this.redstoneChannelId);
+        tag.putFloat("RedstoneThreshold", this.redstoneThreshold);
+        tag.putBoolean("RedstoneAbove", this.redstoneAbove);
+        tag.putInt("RedstoneMode", this.redstoneMode);
+        tag.putBoolean("ScanEnabled", this.scanEnabled);
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @Nullable net.minecraft.world.entity.player.Player player, boolean simulate) {
+        if (!tag.contains("HologramSettings")) {
+            return false;
+        }
+        if (!this.mayConfigure(player)) {
+            if (!simulate) {
+                com.createstats.util.CopyableSettings.deny(player,
+                        net.minecraft.network.chat.Component.translatable("create_stats.clipboard.owned"));
+            }
+            return false;
+        }
+
+        if (!simulate && !this.alreadyHolds(tag, registries)) {
+            this.applyProjectorSettings(tag);
+        }
+        return true;
+    }
+
+    protected void applyProjectorSettings(CompoundTag tag) {
+        this.setHologramSettings(HologramSettings.load(tag.getCompound("HologramSettings")));
+        this.setRedstoneEnabled(tag.getBoolean("RedstoneEnabled"));
+        this.setRedstoneChannelId(tag.getString("RedstoneChannel"));
+        this.setRedstoneThreshold(tag.getFloat("RedstoneThreshold"));
+        this.setRedstoneAbove(!tag.contains("RedstoneAbove") || tag.getBoolean("RedstoneAbove"));
+        this.setRedstoneMode(tag.getInt("RedstoneMode"));
+        this.setScanEnabled(tag.getBoolean("ScanEnabled"));
+        this.setChanged();
+        if (this.level != null && !this.level.isClientSide()) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
+    }
+
+    public boolean mayConfigure(@Nullable net.minecraft.world.entity.player.Player player) {
+        if (this.ownerUUID == null) {
+            return true;
+        }
+        return player != null && (this.ownerUUID.equals(player.getUUID()) || player.hasPermissions(2));
+    }
+
     public boolean hasData() {
         return this.hasData;
     }
-    
+
     public float getDataArrivalPulse() {
         return this.dataArrivalPulse;
     }
-    
+
     public AABB getRenderBoundingBox() {
         final int w = this.hologramSettings.getHologramWidth();
         final int h = this.hologramSettings.getHologramHeight();
         final float half = Math.max(w, h) / 2.0f + 1.0f;
         return new AABB(this.worldPosition).expandTowards(0.0, (double)(h + 2), 0.0).inflate((double)half);
     }
-    
+
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         this.feConsumer.save(tag);
@@ -598,7 +653,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
             tag.putUUID("OwnerUUID", this.ownerUUID);
         }
     }
-    
+
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         this.feConsumer.load(tag);
@@ -625,8 +680,8 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
             this.hologramSettings = HologramSettings.load(tag.getCompound("HologramSettings"));
         }
         this.dataArrivalPulse = tag.getFloat("DataPulse");
-        // Derive hasData from actual loaded channels rather than the persisted flag so that
-        // stale saves (e.g. after a crash) cannot leave the projector in a dishonest state.
+        // from the real channels, not the saved flag. crashes leave the flag lying
+
         this.hasData = !this.getActiveChannels().isEmpty();
         this.sourceType = tag.getString("SourceType");
         this.redstoneEnabled = tag.getBoolean("RedstoneEnabled");
@@ -637,35 +692,35 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         this.scanEnabled = tag.getBoolean("ScanEnabled");
         this.antennaTier = AntennaTier.byName(tag.getString("AntennaTier"));
         this.ownerUUID = tag.hasUUID("OwnerUUID") ? tag.getUUID("OwnerUUID") : null;
-        // Warm the redstone cache immediately so that connected circuits see the correct
-        // power level as soon as the chunk loads, not only after the first tick.
+        // warm the redstone cache on load, not after the first tick
+
         if (this.redstoneEnabled) {
             this.cachedRedstonePower = this.calculateRedstonePower();
         }
     }
-    
+
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
         this.saveSyncAdditional(tag, registries);
         return tag;
     }
-    
+
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return (Packet<ClientGamePacketListener>)ClientboundBlockEntityDataPacket.create((BlockEntity)this);
     }
-    
+
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider registries) {
         final CompoundTag tag = pkt.getTag();
         if (tag != null) {
             this.handleUpdateTag(tag, registries);
         }
     }
-    
+
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
         this.loadAdditional(tag, registries);
     }
-    
+
     public void loadChannelData(CompoundTag tag) {
         if (tag.contains("Channels", 9)) {
             this.channels.clear();
@@ -684,41 +739,41 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
         }
         this.hasData = !this.getActiveChannels().isEmpty();
     }
-    
+
     public static class DataChannel
     {
         private final String id;
         private String label;
         private TimeSeriesStore store;
         private String lastText;
-        
+
         public DataChannel(String id, String label) {
             this.lastText = "";
             this.id = id;
             this.label = label;
             this.store = TimeSeriesStore.forPanel();
         }
-        
+
         public String getId() {
             return this.id;
         }
-        
+
         public String getLabel() {
             return this.label;
         }
-        
+
         public void setLabel(String label) {
             this.label = label;
         }
-        
+
         public TimeSeriesStore getStore() {
             return this.store;
         }
-        
+
         public String getLastText() {
             return this.lastText;
         }
-        
+
         public CompoundTag save() {
             final CompoundTag tag = new CompoundTag();
             tag.putString("Id", this.id);
@@ -736,7 +791,7 @@ public class HolographicProjectorBE extends BlockEntity implements IAutoDataRece
             tag.putString("LastText", this.lastText);
             return tag;
         }
-        
+
         public static DataChannel load(CompoundTag tag) {
             final String id = tag.getString("Id");
             final String label = tag.getString("Label");

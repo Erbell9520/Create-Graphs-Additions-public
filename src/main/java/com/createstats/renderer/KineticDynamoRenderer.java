@@ -14,10 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.mojang.math.Axis;
 import org.joml.Matrix4f;
 
-/** [1] */
 public class KineticDynamoRenderer implements BlockEntityRenderer<KineticDynamoBE> {
-
-    /** [2] */
     private static final ResourceLocation SHAFT =
             ResourceLocation.fromNamespaceAndPath("create", "textures/block/axis.png");
     private static final ResourceLocation SHAFT_END =
@@ -41,9 +38,11 @@ public class KineticDynamoRenderer implements BlockEntityRenderer<KineticDynamoB
         if (be.getLevel() == null) {
             return;
         }
-        // [3]
+
         final float speed = be.getSpeed();
-        final float angle = (be.getLevel().getGameTime() + partialTicks) * speed * 0.3f % 360.0f;
+
+        final double time = com.createstats.client.AnimationClock.time(be.getLevel(), partialTicks);
+        final float angle = (float) (time * speed * 0.3 % 360.0);
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.0, 0.5);
@@ -60,21 +59,18 @@ public class KineticDynamoRenderer implements BlockEntityRenderer<KineticDynamoB
         poseStack.popPose();
     }
 
-    /** [4] */
     private void drawShaft(MultiBufferSource buffers, Matrix4f mat, int light) {
         final VertexConsumer vc = buffers.getBuffer(RenderType.entityCutoutNoCull(SHAFT));
         box(vc, mat, 6, -5, 6, 10, 2, 10, light, Direction.UP, Direction.DOWN);
-        // The end grain is a different texture on a shaft, so the cut end gets its own quad.
+
         final VertexConsumer end = buffers.getBuffer(RenderType.entityCutoutNoCull(SHAFT_END));
         box(end, mat, 6, -5.01f, 6, 10, -5.0f, 10, light, Direction.UP);
     }
 
-    /** The exposed rotor of the open frame grade, with corner ribs so the spin is visible. */
     private void drawArmature(MultiBufferSource buffers, Matrix4f mat, int light) {
         final VertexConsumer core = buffers.getBuffer(RenderType.entityCutoutNoCull(ARMATURE));
         box(core, mat, 5.5f, 2, 5.5f, 10.5f, 12.5f, 10.5f, light);
-        // Ribs stand a half pixel proud on all four sides. Without them the drum is a smooth column
-        // and turning it changes nothing on screen.
+
         box(core, mat, 5.0f, 3, 7.4f, 11.0f, 11.5f, 8.6f, light);
         box(core, mat, 7.4f, 3, 5.0f, 8.6f, 11.5f, 11.0f, light);
 
@@ -84,7 +80,6 @@ public class KineticDynamoRenderer implements BlockEntityRenderer<KineticDynamoB
         }
     }
 
-    /** [5] */
     private void drawFan(MultiBufferSource buffers, Matrix4f mat, int light,
                          float y0, float y1, float reach) {
         final VertexConsumer vc = buffers.getBuffer(RenderType.entityCutoutNoCull(FAN));
@@ -97,7 +92,6 @@ public class KineticDynamoRenderer implements BlockEntityRenderer<KineticDynamoB
         box(vc, mat, 7.2f, lo, 16.0f - reach, 8.8f, hi, 6.5f, light);
     }
 
-    /** [6] */
     private void box(VertexConsumer vc, Matrix4f mat, float x0, float y0, float z0,
                      float x1, float y1, float z1, int light, Direction... skip) {
         final float[] min = {Math.min(x0, x1) * PX, Math.min(y0, y1) * PX, Math.min(z0, z1) * PX};
@@ -144,20 +138,17 @@ public class KineticDynamoRenderer implements BlockEntityRenderer<KineticDynamoB
         };
     }
 
-    /** Widened downward, because the shaft stub deliberately hangs below its own block. */
     @Override
     public net.minecraft.world.phys.AABB getRenderBoundingBox(KineticDynamoBE be) {
         return new net.minecraft.world.phys.AABB(be.getBlockPos()).inflate(0.5);
     }
 
-    /** Always: the rotor turns whether or not the block is generating, so long as the shaft does. */
     @Override
     public boolean shouldRenderOffScreen(KineticDynamoBE be) {
         return false;
     }
 
     static {
-        // [7]
         assert DynamoTier.values().length == 3 : "a grade was added without deciding what moves on it";
     }
 }

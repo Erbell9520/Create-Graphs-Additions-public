@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "#create_stats:biofuel/green",
+    "#create_stats:biofuel/fibre",
+    "#create_stats:biofuel/crop",
+    "#create_stats:biofuel/plank",
+    "#create_stats:biofuel/packed",
+    "#create_stats:biofuel/dense",
+    "#create_stats:biofuel/log",
+    "#create_stats:biofuel/bale"
+  ]
+}

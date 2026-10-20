@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "create_stats:block/rotary_dimmer_dial"
+    },
+    "facing=down": {
+      "model": "create_stats:block/rotary_dimmer_dial",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "create_stats:block/rotary_dimmer_dial",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/rotary_dimmer_dial",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/rotary_dimmer_dial",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "create_stats:block/rotary_dimmer_dial",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

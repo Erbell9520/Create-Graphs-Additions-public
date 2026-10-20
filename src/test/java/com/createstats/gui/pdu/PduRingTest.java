@@ -6,9 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduRingTest {
-
     @Test
     void fillsInOrderBeforeWrapping() {
         final PduRing ring = new PduRing(4);
@@ -36,8 +34,8 @@ class PduRingTest {
         ring.push(1);
         ring.push(2);
         ring.push(3);
-        ring.push(4); // overwrites the 1
-        ring.push(5); // overwrites the 2
+        ring.push(4);
+        ring.push(5);
         assertEquals(3, ring.at(0), "oldest held is now 3");
         assertEquals(4, ring.at(1));
         assertEquals(5, ring.at(2));
@@ -50,7 +48,7 @@ class PduRingTest {
         ring.push(100);
         ring.push(5);
         ring.push(5);
-        ring.push(5); // pushes the 100 out
+        ring.push(5);
         assertEquals(5, ring.max(), "the 100 has rolled off");
     }
 

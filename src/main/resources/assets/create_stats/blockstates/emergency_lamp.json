@@ -1,0 +1,212 @@
+{
+  "variants": {
+    "facing=up,lit=false,spin=0": {
+      "model": "create_stats:block/emergency_lamp"
+    },
+    "facing=up,lit=false,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1"
+    },
+    "facing=up,lit=false,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2"
+    },
+    "facing=up,lit=false,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3"
+    },
+    "facing=up,lit=true,spin=0": {
+      "model": "create_stats:block/emergency_lamp"
+    },
+    "facing=up,lit=true,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1"
+    },
+    "facing=up,lit=true,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2"
+    },
+    "facing=up,lit=true,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3"
+    },
+    "facing=down,lit=false,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 180
+    },
+    "facing=down,lit=false,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 180
+    },
+    "facing=down,lit=false,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 180
+    },
+    "facing=down,lit=false,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 180
+    },
+    "facing=down,lit=true,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 180
+    },
+    "facing=down,lit=true,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 180
+    },
+    "facing=down,lit=true,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 180
+    },
+    "facing=down,lit=true,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 180
+    },
+    "facing=north,lit=false,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90
+    },
+    "facing=north,lit=false,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90
+    },
+    "facing=north,lit=false,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90
+    },
+    "facing=north,lit=false,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90
+    },
+    "facing=north,lit=true,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90
+    },
+    "facing=north,lit=true,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90
+    },
+    "facing=north,lit=true,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90
+    },
+    "facing=north,lit=true,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90
+    },
+    "facing=south,lit=false,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lit=false,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lit=false,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lit=false,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lit=true,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lit=true,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lit=true,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lit=true,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,lit=false,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lit=false,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lit=false,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lit=false,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lit=true,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lit=true,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lit=true,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lit=true,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east,lit=false,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lit=false,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lit=false,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lit=false,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lit=true,spin=0": {
+      "model": "create_stats:block/emergency_lamp",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lit=true,spin=1": {
+      "model": "create_stats:block/emergency_lamp_spin1",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lit=true,spin=2": {
+      "model": "create_stats:block/emergency_lamp_spin2",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lit=true,spin=3": {
+      "model": "create_stats:block/emergency_lamp_spin3",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

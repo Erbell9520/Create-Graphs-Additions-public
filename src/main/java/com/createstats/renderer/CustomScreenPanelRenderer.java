@@ -569,9 +569,6 @@ public final class CustomScreenPanelRenderer {
                 be.getSettings().setAerolineDirectorEnabled(true);
             }
             if (battleTacticalV2Scene) {
-                // Phase 1: route to dedicated Battle Tactical V2 renderer; bypasses the
-                // shared source-family dispatch so the legacy battle.bridge composition
-                // (BATTLE_SCREEN_COMPOSITION) remains untouched for existing worlds.
                 SpecializedPanelRenderer.renderBattleTacticalV2Texture(scratch,
                         be,
                         sourceId,

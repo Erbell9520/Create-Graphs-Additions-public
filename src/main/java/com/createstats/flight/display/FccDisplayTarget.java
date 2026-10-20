@@ -13,12 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Display target that lets a Gimbal / Altitude / Velocity / Nav Table sensor be
- * linked to the Flight Control Computer via the Display Link tool.
- */
 public class FccDisplayTarget extends DisplayTarget {
-
     @Override
     public void acceptText(int line, List<MutableComponent> text, DisplayLinkContext context) {
         FlightControlComputerBE fcc = resolveFcc(context);
@@ -53,8 +48,6 @@ public class FccDisplayTarget extends DisplayTarget {
     }
 
     public void reset(DisplayLinkContext context) {
-        // Display link broken or removed, no automatic clear of sensor binding.
-        // The FCC will detect the sensor offline via SensorDiscovery hysteresis.
     }
 
     @Nullable
@@ -63,7 +56,7 @@ public class FccDisplayTarget extends DisplayTarget {
         if (level == null) return null;
         BlockPos pos = ctx.getTargetPos();
         if (pos == null) return null;
-        // Use the null/exception-safe chunk lookup to avoid crashes on unloaded chunks.
+
         BlockEntity be = SableBridge.getBlockEntityOnContraption(level, pos);
         return be instanceof FlightControlComputerBE fcc ? fcc : null;
     }

@@ -21,7 +21,7 @@ public class ScanSettings
     private long lastScanTick;
     private final Set<String> disabledSources;
     private final LinkedHashMap<String, DiscoveredSource> discoveredSources;
-    
+
     public ScanSettings() {
         this.scanMode = ScanMode.MANUAL;
         this.scanRadius = 8;
@@ -31,67 +31,67 @@ public class ScanSettings
         this.disabledSources = new HashSet<String>();
         this.discoveredSources = new LinkedHashMap<String, DiscoveredSource>();
     }
-    
+
     public ScanMode getScanMode() {
         return this.scanMode;
     }
-    
+
     public void setScanMode(ScanMode mode) {
         this.scanMode = mode;
     }
-    
+
     public int getScanRadius() {
         return this.scanRadius;
     }
-    
+
     public void setScanRadius(int radius) {
         final int max = this.radiusUnlocked ? 512 : 64;
         this.scanRadius = Math.max(4, Math.min(max, radius));
     }
-    
+
     public boolean isRadiusUnlocked() {
         return this.radiusUnlocked;
     }
-    
+
     public void setRadiusUnlocked(boolean unlocked) {
         this.radiusUnlocked = unlocked;
         if (!unlocked && this.scanRadius > 64) {
             this.scanRadius = 64;
         }
     }
-    
+
     public int getAutoIntervalTicks() {
         return this.autoIntervalTicks;
     }
-    
+
     public void setAutoIntervalTicks(int ticks) {
         this.autoIntervalTicks = Math.max(20, Math.min(1200, ticks));
     }
-    
+
     public float getAutoIntervalSeconds() {
         return this.autoIntervalTicks / 20.0f;
     }
-    
+
     public void setAutoIntervalSeconds(float seconds) {
         this.setAutoIntervalTicks(Math.round(seconds * 20.0f));
     }
-    
+
     public long getLastScanTick() {
         return this.lastScanTick;
     }
-    
+
     public void setLastScanTick(long tick) {
         this.lastScanTick = tick;
     }
-    
+
     public Set<String> getDisabledSources() {
         return this.disabledSources;
     }
-    
+
     public boolean isSourceEnabled(String sourceId) {
         return !this.disabledSources.contains(sourceId);
     }
-    
+
     public void setSourceEnabled(String sourceId, boolean enabled) {
         if (enabled) {
             this.disabledSources.remove(sourceId);
@@ -100,7 +100,7 @@ public class ScanSettings
             this.disabledSources.add(sourceId);
         }
     }
-    
+
     public void toggleSource(String sourceId) {
         if (this.disabledSources.contains(sourceId)) {
             this.disabledSources.remove(sourceId);
@@ -109,15 +109,15 @@ public class ScanSettings
             this.disabledSources.add(sourceId);
         }
     }
-    
+
     public LinkedHashMap<String, DiscoveredSource> getDiscoveredSources() {
         return this.discoveredSources;
     }
-    
+
     public void clearDiscoveredSources() {
         this.discoveredSources.clear();
     }
-    
+
     public DiscoveredSource getOrCreateSource(String sourceId, BlockPos pos, String sourceType) {
         final DiscoveredSource existing = this.discoveredSources.get(sourceId);
         if (existing != null) {
@@ -129,7 +129,7 @@ public class ScanSettings
         this.discoveredSources.put(sourceId, created);
         return created;
     }
-    
+
     public List<DiscoveredSource> getEnabledSources() {
         final List<DiscoveredSource> list = new ArrayList<DiscoveredSource>();
         for (DiscoveredSource ds : this.discoveredSources.values()) {
@@ -139,7 +139,7 @@ public class ScanSettings
         }
         return list;
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         tag.putString("Mode", this.scanMode.name());
@@ -161,7 +161,7 @@ public class ScanSettings
         tag.put("Sources", (Tag)srcList);
         return tag;
     }
-    
+
     public static ScanSettings load(CompoundTag tag) {
         final ScanSettings s = new ScanSettings();
         try {
@@ -197,14 +197,14 @@ public class ScanSettings
         }
         return s;
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeEnum((Enum)this.scanMode);
         buf.writeVarInt(this.scanRadius);
         buf.writeBoolean(this.radiusUnlocked);
         buf.writeVarInt(this.autoIntervalTicks);
     }
-    
+
     public static ScanSettings decode(FriendlyByteBuf buf) {
         final ScanSettings s = new ScanSettings();
         s.scanMode = (ScanMode)buf.readEnum((Class)ScanMode.class);
@@ -213,13 +213,13 @@ public class ScanSettings
         s.autoIntervalTicks = buf.readVarInt();
         return s;
     }
-    
+
     public enum ScanMode
     {
-        MANUAL, 
+        MANUAL,
         AUTO;
     }
-    
+
     public static class DiscoveredSource
     {
         public final String sourceId;
@@ -228,7 +228,7 @@ public class ScanSettings
         public boolean active;
         public long lastSeenTick;
         public final List<ChannelSnapshot> channels;
-        
+
         public DiscoveredSource(String sourceId, BlockPos pos, String sourceType) {
             this.channels = new ArrayList<ChannelSnapshot>();
             this.sourceId = sourceId;
@@ -237,7 +237,7 @@ public class ScanSettings
             this.active = true;
             this.lastSeenTick = 0L;
         }
-        
+
         public CompoundTag save() {
             final CompoundTag tag = new CompoundTag();
             tag.putString("Id", this.sourceId);
@@ -252,7 +252,7 @@ public class ScanSettings
             tag.put("Ch", (Tag)chList);
             return tag;
         }
-        
+
         public static DiscoveredSource load(CompoundTag tag) {
             final DiscoveredSource ds = new DiscoveredSource(tag.getString("Id"), BlockPos.of(tag.getLong("Pos")), tag.getString("Type"));
             ds.active = tag.getBoolean("Active");
@@ -266,19 +266,19 @@ public class ScanSettings
             return ds;
         }
     }
-    
+
     public static class ChannelSnapshot
     {
         public final String channelId;
         public String label;
         public float latestValue;
-        
+
         public ChannelSnapshot(String channelId, String label, float latestValue) {
             this.channelId = channelId;
             this.label = label;
             this.latestValue = latestValue;
         }
-        
+
         public CompoundTag save() {
             final CompoundTag tag = new CompoundTag();
             tag.putString("Id", this.channelId);
@@ -286,7 +286,7 @@ public class ScanSettings
             tag.putFloat("V", this.latestValue);
             return tag;
         }
-        
+
         public static ChannelSnapshot load(CompoundTag tag) {
             return new ChannelSnapshot(tag.getString("Id"), tag.getString("L"), tag.getFloat("V"));
         }

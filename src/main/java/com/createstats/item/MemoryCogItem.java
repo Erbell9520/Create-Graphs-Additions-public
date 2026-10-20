@@ -16,11 +16,11 @@ public class MemoryCogItem extends Item
     public MemoryCogItem(Item.Properties properties) {
         super(properties);
     }
-    
+
     public boolean isFoil(ItemStack stack) {
         return MemoryCogData.hasData(stack);
     }
-    
+
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         if (MemoryCogData.hasData(stack)) {

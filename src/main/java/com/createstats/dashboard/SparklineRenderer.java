@@ -14,7 +14,7 @@ public final class SparklineRenderer
 {
     private SparklineRenderer() {
     }
-    
+
     public static void render(NativeImage image, DashboardZone zone, StatsDisplayPanelBE.DataChannel channel, int channelColorIndex, DisplayTheme theme) {
         final int x = zone.x;
         final int y = zone.y;

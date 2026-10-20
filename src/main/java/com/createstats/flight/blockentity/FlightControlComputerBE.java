@@ -79,14 +79,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-/** [1] */
 public class FlightControlComputerBE extends BlockEntity implements MenuProvider, IHaveGoggleInformation, com.createstats.power.IFeConsumer {
-
-    /** Bump when on-disk NBT layout changes. */
     public static final int CURRENT_NBT_VERSION = 13;
     private static final int DIAGRAM_METADATA_VERSION = 1;
 
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_FCC));
 
@@ -94,7 +90,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return feConsumer;
     }
 
-    /** Number of binding rows. Each row owns 2 inventory slots: propeller card + governor card. */
     public static final int ROW_COUNT = FlightConfig.MAX_PROPELLER_BINDINGS;
     public static final int SLOT_COUNT = ROW_COUNT * 2;
     public static final int MIN_VISIBLE_CARD_ROWS = 5;
@@ -112,15 +107,9 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
 
     @Nullable private UUID fccUuid;
 
-    /** [2] */
     private final ItemStackHandler inventory;
     private final ItemStackHandler linkedControllerInventory;
 
-    /**
-     * Derived cache of valid bindings (refreshed on inventory change). The server-tick
-     * runtime and telemetry builder read this via {@link #getBindings()} every tick;
-     * must NOT be persisted.
-     */
     private final List<FccBinding> bindings = new ArrayList<>();
     private final List<FccDevice> devices = new ArrayList<>();
     private final List<FccGroup> groups = new ArrayList<>();
@@ -135,7 +124,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     private double lastVehicleAutoTargetDistance = Double.NaN;
     private double lastVehicleAutoSteeringInput = 0.0;
     private long lastVehicleAutoDebugLogTick = Long.MIN_VALUE;
-    // Auto-drive diagnostic cadence: log 4 times a second while debugging the ground follower.
+
     private static final long VEHICLE_AUTO_DEBUG_LOG_TICKS = 5L;
     private long vehicleAutoStuckSinceTick = Long.MIN_VALUE;
     private long vehicleAutoReverseUnstickUntilTick = Long.MIN_VALUE;
@@ -183,15 +172,14 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     private final int[] lastVehicleWheelRpm = new int[VEHICLE_WHEEL_TELEMETRY_COUNT];
     private final int[] lastVehicleWheelSteer = new int[VEHICLE_WHEEL_TELEMETRY_COUNT];
     private final int[] lastVehicleWheelActualRpm = new int[VEHICLE_WHEEL_TELEMETRY_COUNT];
-    // [3]
+
     private int lastVehicleSteerModeOrdinal = -1;
     private static final long GOVERNOR_COMMAND_SYNC_TICKS = 2L;
     private long lastGovernorCommandSyncTick = Long.MIN_VALUE;
     private final Map<BlockPos, Integer> lastSentGovernorTargets = new LinkedHashMap<>();
 
-    /** [4] */
     private final BlockPos[] lastBoundGovernors = new BlockPos[ROW_COUNT];
-    /** Row index for each entry in {@link #bindings}; lets calibration results map back to sparse rows. */
+
     private final List<Integer> bindingRows = new ArrayList<>();
     private final boolean[] redstonePairRows = new boolean[ROW_COUNT];
     private final Map<Integer, FccRedstoneTransmitter> redstoneTransmitters = new LinkedHashMap<>();
@@ -273,7 +261,8 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     private static final double VEHICLE_AUTO_APPROACH_SPEED = 7.0;
     private static final double VEHICLE_AUTO_CRAWL_SPEED = 3.0;
     private static final double VEHICLE_AUTO_SPEED_GAIN = 0.12;
-    // [5]
+    // heavy vehicles only yaw while rolling. keep a floor speed through turns or it never comes round
+
     private static final double VEHICLE_AUTO_TURN_FLOOR_LATERAL_ACCEL = 3.6;
     private static final double VEHICLE_AUTO_TURN_FLOOR_SPEED_MIN = 4.0;
     private static final double VEHICLE_AUTO_TURN_FLOOR_SPEED_MAX = 6.5;
@@ -403,27 +392,23 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     private long lastPathfinderProgressReportTick = Long.MIN_VALUE;
     private String lastPathfinderProgressStatus = "";
     private boolean pathfinderSystemsEnabled = true;
-    /** Last valid heading computed from wheels, telemetry, or velocity. Used as fallback when stopped. */
+
     private double lastKnownHeadingDeg = Double.NaN;
-    /** Redstone-link channel identities (TBD record in Phase 13). For now stored as raw NBT. */
+
     private final List<CompoundTag> burnerLinks = new ArrayList<>();
     private NoseAxis noseAxis = NoseAxis.POS_Z;
     private FlightMode mode = FlightMode.OFF;
-    /** Mode-scoped parameters: targetAlt, climbRate, descendFloor, ... Filled by Phase 11. */
+
     private CompoundTag modeParams = new CompoundTag();
-    /** Hash of structural inputs to the B matrix. Set by Phase 4 builder; 0 if invalid. */
+
     private long assemblyFingerprint = 0L;
 
-    /** Server-only tick counter for cadence gates. Not persisted. */
     private long serverTickCount = 0L;
-    /** E-Manuel override commands: per-binding RPM override. Length = bindings.size(). Not persisted. */
+
     private final List<Integer> emanuelOverrideRpm = new ArrayList<>();
-    /** E-Manuel override active flags: per-binding. Length = bindings.size(). Not persisted. */
+
     private final List<Boolean> emanuelOverrideActive = new ArrayList<>();
-    /**
-     * Set true on construction and on {@link #loadAdditional}, the next server tick
-     * will rebuild {@link #bindings} from the inventory before any flight logic runs.
-     */
+
     private boolean derivedDirty = true;
     private boolean workbenchReconcileDirty = true;
     @Nullable private com.createstats.flight.control.SensorDiscovery sensors;
@@ -448,7 +433,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 if (stack.isEmpty()) return true;
                 int row = slot / 2;
                 if (isRedstonePairRow(row)) return true;
-                // Even slots = propeller card, odd slots = governor card.
+
                 if (slot % 2 == 0) return stack.getItem() instanceof PropellerCardItem;
                 return stack.getItem() instanceof GovernorCardItem;
             }
@@ -486,9 +471,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         };
     }
 
-    // identity
-
-    /** [6] */
     public UUID getOrCreateUuid() {
         if (fccUuid == null) {
             fccUuid = UUID.randomUUID();
@@ -502,9 +484,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return fccUuid;
     }
 
-    // inventory + derived bindings
-
-    /** The card-slot inventory. Used by {@code FlightControlComputerMenu}. */
     public ItemStackHandler getInventory() {
         return inventory;
     }
@@ -513,10 +492,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return linkedControllerInventory;
     }
 
-    /**
-     * Returns the cached list of valid bindings, derived from the card slots on the
-     * last call to {@link #refreshDerivedBindings()}. Server-side only.
-     */
     public List<FccBinding> getBindings() {
         return Collections.unmodifiableList(bindings);
     }
@@ -895,7 +870,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                     break;
                 }
             }
-            // Also collect payload link groups so Reset clears bomb bay / drop assignments.
+
             if (payloadGroupMatches(group, true) || payloadGroupMatches(group, false)) {
                 diagramGroupIds.add(group.id());
             }
@@ -1831,8 +1806,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         for (int controlIndex = 0; controlIndex < controls.size(); controlIndex++) {
             FccCompositeControl control = controls.get(controlIndex);
             if (!control.systemOwned()) continue;
-            // Diagram zone switches are managed by dedicated metadata repair; rewriting
-            // them as thrust/yaw controls causes endless recreate/rename churn.
+
             if (isDiagramZoneSwitchControl(control)) continue;
             boolean differentialYaw = hasDifferentialYawRoutes(control, groupLabels);
             boolean thrustControl = isThrustControl(control);
@@ -2073,8 +2047,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                     systemOwned = true;
                 } else {
                     String token = normalizeDiagramToken(control.label());
-                    // Only infer system roles when the control has at least one route
-                    // matching expected output types, to avoid promoting user-named controls.
+
                     boolean hasThrustRoutes = control.routes().stream()
                             .anyMatch(r -> r.outputType() == FccOutputType.RPM_SCALE || r.outputType() == FccOutputType.RPM_DELTA);
                     if (hasThrustRoutes && (token.equals("thrustlever") || token.equals("throttle"))) {
@@ -2706,7 +2679,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         };
     }
 
-    /** [7] */
     public void refreshDerivedBindings() {
         if (level == null || level.isClientSide) return;
         bindings.clear();
@@ -2714,7 +2686,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         duplicateBindingRowMask = 0;
         net.minecraft.resources.ResourceLocation myDim = level.dimension().location();
 
-        // Collect old governors for set-difference release.
         java.util.Set<BlockPos> oldGovs = new java.util.HashSet<>();
         for (BlockPos p : lastBoundGovernors) if (p != null) oldGovs.add(p);
         java.util.Set<BlockPos> newGovs = new java.util.HashSet<>();
@@ -2736,7 +2707,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             BlockPos propPos = (propData != null && propData.isLinked()) ? propData.getLinkedPos() : null;
             BlockPos govPos  = (govData  != null && govData.isLinked())  ? govData.getLinkedPos()  : null;
 
-            // [8]
             if (propPos != null && govPos != null) {
                 net.minecraft.resources.ResourceLocation pd = propData.getDimension();
                 net.minecraft.resources.ResourceLocation gd = govData.getDimension();
@@ -2785,7 +2755,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             }
         }
 
-        // Release governors that are no longer referenced by any row (set difference).
         for (BlockPos p : oldGovs) {
             if (!newGovs.contains(p)) releaseGovernor(p);
         }
@@ -2795,7 +2764,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             refreshRedstoneTransmitters(serverLevel);
         }
 
-        // Phase 10: any change to derived bindings is GUI-relevant.
         broadcastSnapshot();
     }
 
@@ -3045,11 +3013,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         }
     }
 
-    /**
-     * Drops every card in the slot inventory at the FCC's position. called from
-     * {@link FlightControlComputerBlock#onRemove} when the block's actually destroyed
-     * (not during contraption assembly).
-     */
     public void dropContents() {
         if (level == null || level.isClientSide) return;
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
@@ -3081,8 +3044,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     public int getPathfinderRouteWaypointIndex() { return pathfinderRouteWaypointIndex; }
     public double getPathfinderRouteDistance() { return pathfinderRouteDistance; }
     public int getPathfinderRouteHazardFlags() { return pathfinderRouteHazardFlags; }
-
-    // manual sensor position setters (C→S via FccSensorBindPacket)
 
     public void setManualGimbalPos(@Nullable BlockPos pos) {
         gimbalPos = pos;
@@ -3288,7 +3249,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return blockEntity instanceof PathfinderComputerBE computer ? computer : null;
     }
 
-    /** Sync VISUAL_STATE blockstate property with the current flight mode / sensor health. */
     private void syncVisualState() {
         if (level == null || level.isClientSide) return;
         BlockState cur = getBlockState();
@@ -3312,12 +3272,8 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         }
     }
 
-    // tick
+    // ---------------------------- Tick ----------------------------
 
-    /**
-     * Server-side tick entry point. Phase 2: heartbeat counter only. No flight logic.
-     * Avoids per-tick logging or {@code setChanged()} spam.
-     */
     @Nullable private java.util.Set<SensorRequirement> lastEmittedAvail = null;
 
     public void serverTick() {
@@ -3336,8 +3292,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         }
         ServerLevel serverLevel = (ServerLevel) level;
 
-        // FE Dependent Mode gate: dead avionics stop commanding hardware, but telemetry keeps
-        // flowing so cockpit HUDs show NO POWER instead of a stale-signal banner.
         com.createstats.power.FePowerFx.chargeFromNeighbors(level, getBlockPos(), feConsumer);
         final boolean fePowered = feConsumer.serviceTick(mode != FlightMode.OFF);
         final int feTransition = feConsumer.pollTransition();
@@ -3366,14 +3320,11 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             syncPathfinderRemotePause();
         }
 
-        // [9]
         if (mode != FlightMode.OFF && sensors.isWarmedUp()) {
             java.util.Set<SensorRequirement> avail = sensors.validatedSet();
             if (!mode.isAvailable(avail)) {
                 sensorLossPersistTicks++;
                 if (sensorLossPersistTicks >= SENSOR_LOSS_HYSTERESIS_TICKS) {
-                    // Lock-out: never fall back to a legacy HOVER-family mode. STANDBY only
-                    // requires GIMBAL, if GIMBAL is also gone, OFF is the only safe target.
                     FlightMode safe = avail.contains(SensorRequirement.GIMBAL)
                         ? FlightMode.STANDBY
                         : FlightMode.OFF;
@@ -3391,7 +3342,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             sensorLossPersistTicks = 0;
         }
 
-        // Phase 10: snapshot when sensor availability changes (GUI redraws greyed states).
         if (sensors != null) {
             java.util.Set<SensorRequirement> nowAvail = sensors.validatedSet();
             if (lastEmittedAvail == null || !lastEmittedAvail.equals(nowAvail)) {
@@ -3399,7 +3349,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 broadcastSnapshot();
             }
         }
-        // Sync VISUAL_STATE blockstate so the block model variant matches actual mode.
+
         syncVisualState();
         if (workbenchReconcileDirty) {
             boolean cockpitChanged = runWorkbenchReconcilePass();
@@ -3442,13 +3392,11 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                     workbenchHandled, redstoneTransmitters.size(), lastWarning);
         }
 
-        // Telemetry every 4 ticks while menu open, after cockpit runtime updates live values.
         if ((serverTickCount & 3) == 0) {
             broadcastTelemetry();
         }
     }
 
-    /** Read-only sensor discovery state. May be null before first server tick. */
     @Nullable
     public com.createstats.flight.control.SensorDiscovery sensors() { return sensors; }
 
@@ -3920,7 +3868,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             rearSteerSigned = 0.0;
         }
 
-        // In CRAB mode, mid wheels also steer (same direction as front for sideways crab)
         boolean midSteerable = steeringMode == VehicleSteeringMode.CRAB;
         double midSteerSigned = midSteerable ? frontSteerSigned : 0.0;
 
@@ -4015,7 +3962,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return applied;
     }
 
-    // [10]
     private double vehicleMinTurnRadiusBlocks() {
         double wheelbase = vehicleWheelbaseBlocks();
         double track = vehicleTrackWidthBlocks();
@@ -4024,7 +3970,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return clampDouble(base, 3.0, 8.0);
     }
 
-    // [11]
     private double pathfinderPurePursuitSteering(double headingErrorDeg, double lookahead) {
         return com.createstats.flight.runtime.PurePursuit.steer(headingErrorDeg, lookahead,
             vehicleMinTurnRadiusBlocks(), VEHICLE_AUTO_STEER_DEADZONE_DEG);
@@ -4141,7 +4086,8 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             targetSpeed = autoTargetSpeedForDistance(distance);
         }
         if (target.source() == VehicleAutoDriveSource.PATHFINDER) {
-            // [12]
+            // the old crawl cap stalled exactly when it had to turn and it spiralled off. trust the planner's corner speed
+
             if (distance > VEHICLE_AUTO_CRAWL_RADIUS) {
                 double turnFloor = clampDouble(
                     Math.sqrt(VEHICLE_AUTO_TURN_FLOOR_LATERAL_ACCEL * vehicleMinTurnRadiusBlocks()),
@@ -4852,8 +4798,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             double speedForThrottle = Double.isFinite(forwardSpeed) ? Math.max(0.0, forwardSpeed) : currentSpeed;
             double throttle = clampDouble((VEHICLE_AUTO_STRAIGHT_ESCAPE_TARGET_SPEED - speedForThrottle) * VEHICLE_AUTO_SPEED_GAIN,
                 0.22, 0.46);
-            // Steer toward the route target rather than driving blindly straight, so the vehicle
-            // doesn't loop back into the same obstacle after the reverse phase.
+
             double escapeSteering = Math.abs(headingError) <= VEHICLE_AUTO_STEER_DEADZONE_DEG ? 0.0
                 : clampDouble(headingError / VEHICLE_AUTO_STEER_FULL_ERROR_DEG, -1.0, 1.0);
             updateVehicleAutoDebug(String.format(java.util.Locale.ROOT,
@@ -5512,14 +5457,12 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return (float) (Double.isFinite(heading) ? wrapDegrees(heading) : 0.0);
     }
 
-    /** Returns the vehicle's total world speed in m/s, or NaN if unavailable. */
     public double pathfinderVehicleSpeedMs() {
         org.joml.Vector3d velocity = SableBridge.linearVelocityWorld(this);
         if (velocity == null) return Double.NaN;
         return Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z);
     }
 
-    /** Returns true when FRONT_LEFT_WHEEL and FRONT_RIGHT_WHEEL zones are configured and reachable. */
     public boolean pathfinderHasFrontWheelZones() {
         return averageVehicleZoneWorldPosition("FRONT_LEFT_WHEEL", "FRONT_RIGHT_WHEEL") != null;
     }
@@ -5553,7 +5496,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             "Pathfinder Auto Drive", "Pathfinder Drive", "Pathfinder Mode", "Pathfinder Auto");
     }
 
-    /** Returns true when any auto-drive mode is active (master switch, pathfinder, or nav-table). */
     public boolean isAnyAutoDriveActive() {
         return isVehicleControlActive(AUTO_DRIVE_LABEL, "Auto Drive", "Self Drive", "Self Driving")
             || isPathfinderModeActive() || isNavTableModeActive();
@@ -5584,8 +5526,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 return heading;
             }
         }
-        // Vehicle is stationary and wheel zones are unset, reuse last known heading to avoid
-        // resetting the scan window to south (0°) on every stop.
+
         return Double.isFinite(lastKnownHeadingDeg) ? lastKnownHeadingDeg : 0.0;
     }
 
@@ -5822,9 +5763,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         if (steerable) {
             int strength = clampSignal((int) Math.round(Math.abs(steerSigned) * 15.0));
             if (strength > 0) {
-                // Both wheels on the same axle get the same turn direction.
-                // steerSigned > 0 = turn right → leftSignal drives the wheel right.
-                // Inverted wheels swap their steering direction to match physical mount.
                 if (steerSigned > 0.0) {
                     leftSignal = strength;
                 } else {
@@ -6085,7 +6023,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 be = serverLevel.getBlockEntity(governorPos);
             }
             if (be instanceof com.createstats.flight.blockentity.RpmGovernorBE governor) {
-                // [13]
                 sum += governor.getAppliedRpm();
                 count++;
             }
@@ -6328,16 +6265,12 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return isRpmRoute(route.outputType()) && looksLiftLabel(group.label());
     }
 
-    // phase 10: GUI sync API
-
     @Nullable private String lastWarning = null;
 
-    /** [14] */
     private int sensorLossPersistTicks = 0;
-    /** ~3 server ticks (~150 ms) of continuous sensor loss before fallback fires. */
+
     private static final int SENSOR_LOSS_HYSTERESIS_TICKS = 3;
 
-    /** [15] */
     public void requestModeChange(FlightMode newMode, NoseAxis newNose,
                                   double tAlt, double cRate, double dFloor) {
         if (level == null || level.isClientSide) return;
@@ -6347,7 +6280,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             noseAxis = newNose;
             changed = true;
         }
-        // Build gate: autonomous nav modes are intentionally disabled.
+
         if (newMode != null && !newMode.isEnabledInCurrentBuild()) {
             if (lastWarning == null || !lastWarning.equals("Mode disabled in this build")) {
                 lastWarning = "Mode disabled in this build";
@@ -6355,7 +6288,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             }
             newMode = null;
         }
-        // Mode change is gated on sensor availability; OFF is always allowed.
+
         if (newMode != null && newMode != mode) {
             java.util.Set<SensorRequirement> avail = sensors != null
                 ? sensors.validatedSet()
@@ -6367,13 +6300,12 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 modeAccepted = true;
             } else {
                 lastWarning = "Mode unavailable: missing sensor(s)";
-                changed = true; // warning visible to player
+                changed = true;
             }
         } else if (newMode != null && newMode == mode) {
-            // No actual mode change, clear stale warning if request matches current.
             if (lastWarning != null) { lastWarning = null; changed = true; }
         }
-        // Persist params only when they actually differ (avoid spurious setChanged + reset).
+
         double oldT = getTargetAlt(), oldC = getClimbRate(), oldD = getDescendFloor();
         boolean paramsChanged = (oldT != tAlt) || (oldC != cRate) || (oldD != dFloor);
         if (paramsChanged) {
@@ -6393,17 +6325,10 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     public double getClimbRate()    { return modeParams.contains("ClimbRate")   ? modeParams.getDouble("ClimbRate")   : 1.0; }
     public double getDescendFloor() { return modeParams.contains("DescendFloor") ? modeParams.getDouble("DescendFloor") : worldPosition.getY() - 32; }
 
-    // phase 14: safety surface
-
-    /** Last warning recorded via {@link #recordSafetyWarning} or sensor downgrade. */
     @Nullable private String lastWarningSeen = null;
-    /** Last gameTime a chat alert was broadcast (rate-limit). */
+
     private long lastSafetyAlertTick = Long.MIN_VALUE;
 
-    /**
-     * The server-tick runtime calls this to surface a one-line warning to the GUI without
-     * changing mode. Deduped, repeated identical messages do not re-trigger snapshot broadcasts.
-     */
     public void recordSafetyWarning(String msg) {
         if (msg == null || msg.isEmpty()) return;
         if (msg.equals(lastWarning)) return;
@@ -6413,7 +6338,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         broadcastSnapshot();
     }
 
-    /** [16] */
     public void clearSafetyWarning(@Nullable String expectedMsg) {
         if (expectedMsg == null) return;
         if (!expectedMsg.equals(lastWarning)) return;
@@ -6422,7 +6346,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         broadcastSnapshot();
     }
 
-    /** [17] */
     public void triggerOverrideStandby(BlockPos governorPos) {
         if (level == null || level.isClientSide) return;
         long now = level.getGameTime();
@@ -6431,8 +6354,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         String reason = "External input detected at governor "
                 + governorPos.getX() + "," + governorPos.getY() + "," + governorPos.getZ()
                 + ", Standby mode enabled.";
-        // Switch to STANDBY first (clears lastWarning internally), then record so the
-        // safety reason persists in the snapshot the GUI sees.
+
         requestModeChange(FlightMode.STANDBY, getNoseAxis(),
                 getTargetAlt(), getClimbRate(), getDescendFloor());
         recordSafetyWarning(reason);
@@ -6440,14 +6362,13 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             lastSafetyAlertTick = now;
             Player nearest = level.getNearestPlayer(
                     worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5,
-                    32.0, /*predicate*/ false);
+                    32.0,  false);
             if (nearest != null) {
                 nearest.displayClientMessage(Component.literal("[FCC] " + reason), false);
             }
         }
     }
 
-    /** Public accessor used by GUI snapshot builders. */
     @Nullable public String getLastWarning() { return lastWarning; }
 
     private void clearCalibrationRows() {
@@ -6495,9 +6416,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return (int) Math.round(Math.max(0.0, Math.min(1.0, ratio)) * 100.0);
     }
 
-    /**
-     * Build a server-side snapshot of GUI-relevant state.
-     */
     public com.createstats.flight.network.FccGuiSnapshot buildSnapshot() {
         ensureAutoAssistTuningControls();
         java.util.EnumSet<SensorRequirement> avail = (sensors != null)
@@ -6524,7 +6442,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 }
             }
         }
-        // Sensor effective positions + manual binding mask.
+
         BlockPos effGimbal  = sensors != null ? sensors.effectiveGimbalPos()   : gimbalPos;
         BlockPos effAlt     = sensors != null ? sensors.effectiveAltitudePos() : altitudeSensorPos;
         BlockPos effVel     = sensors != null ? sensors.effectiveVelocityPos() : velocitySensorPos;
@@ -6536,7 +6454,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             if (sensors.isVelocityManual()) manualMask |= 1 << SensorRequirement.VELOCITY.ordinal();
             if (sensors.isNavTableManual()) manualMask |= 1 << SensorRequirement.NAV_TABLE.ordinal();
         }
-        // Calibration feature removed; report neutral idle state to the GUI.
+
         int calStateOrd = 0;
         int calPct      = 0;
         int calProp     = -1;
@@ -6806,10 +6724,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return flags;
     }
 
-    /**
-     * Build a numeric telemetry packet for the GUI footer / live widgets.
-     * Container id is filled in by the broadcaster.
-     */
     public com.createstats.flight.network.FccTelemetryPacket buildTelemetry(int containerId) {
         double altitude;
         float climb = 0f, heading = 0f, pitch = 0f, roll = 0f;
@@ -7031,7 +6945,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return null;
     }
 
-    /** [18] */
     public void broadcastSnapshot() {
         if (!(level instanceof ServerLevel)) return;
         syncClientVisualState();
@@ -7043,7 +6956,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 subscribers.add(serverPlayer);
             }
         }
-        if (viewers.isEmpty() && subscribers.isEmpty()) return; // no listeners, skip snapshot build
+        if (viewers.isEmpty() && subscribers.isEmpty()) return;
         com.createstats.flight.network.FccGuiSnapshot snap = buildSnapshot();
         for (ServerPlayerWithMenu w : viewers) {
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
@@ -7069,7 +6982,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             serverLevel.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
-
 
     private void broadcastTelemetry() {
         if (!(level instanceof ServerLevel)) return;
@@ -7100,19 +7012,14 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         }
     }
 
-    /**
-     * Apply E-Manuel override commands received from a client.
-     * For each binding with override active, use the override RPM instead of normal cockpit control.
-     */
     public void applyOverrideCommands(FccOverrideCommandPacket packet) {
         int[] rows = packet.bindingRowIndices();
         int[] rpms = packet.overrideRpmCommands();
         boolean[] active = packet.overrideActive();
         if (rows.length != rpms.length || rpms.length != active.length) {
-            return; // malformed packet
+            return;
         }
 
-        // Resize override lists if needed
         while (emanuelOverrideActive.size() < rows.length) {
             emanuelOverrideActive.add(false);
             emanuelOverrideRpm.add(0);
@@ -7122,7 +7029,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             emanuelOverrideRpm.remove(emanuelOverrideRpm.size() - 1);
         }
 
-        // Update override state from packet
         for (int i = 0; i < rows.length; i++) {
             int bindingIndex = rows[i];
             if (bindingIndex >= 0 && bindingIndex < emanuelOverrideActive.size()) {
@@ -7132,20 +7038,15 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         }
     }
 
-    /**
-     * Get the RPM command for a binding, considering E-Manuel overrides.
-     * If override is active, returns the override RPM; otherwise returns -1 to use normal control.
-     */
     public int getEffectiveRpmCommand(int bindingIndex) {
         if (bindingIndex >= 0 && bindingIndex < emanuelOverrideActive.size() && emanuelOverrideActive.get(bindingIndex)) {
             return emanuelOverrideRpm.get(bindingIndex);
         }
-        return -1; // -1 signals: use normal cockpit control
+        return -1;
     }
 
     private record ServerPlayerWithMenu(net.minecraft.server.level.ServerPlayer player, int containerId) {}
 
-    /** Walk online players in this level; collect those whose open menu targets THIS FCC. */
     private List<ServerPlayerWithMenu> openMenuPlayers() {
         if (!(level instanceof ServerLevel sl)) return Collections.emptyList();
         List<ServerPlayerWithMenu> out = new ArrayList<>();
@@ -7158,9 +7059,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return out;
     }
 
-    // governor release on destruction
-
-    /** [19] */
     public void releaseAllOwnedGovernors() {
         if (level == null || level.isClientSide || fccUuid == null) return;
         for (int row = 0; row < ROW_COUNT; row++) {
@@ -7172,14 +7070,12 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         if (sensors != null) sensors.reset();
     }
 
-    // goggle overlay
-
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         tooltip.add(Component.literal("  ").append(
             Component.literal("Flight Control Computer").withStyle(ChatFormatting.GRAY)));
-        // FE Dependent Mode buffer (only shown while the mode is on).
-        if (feConsumer.feModeEnabled()) {
+
+        if (feConsumer.requiresPower()) {
             final int fePct = Math.round(feConsumer.fillPct());
             final ChatFormatting feColor = !feConsumer.isPowered() ? ChatFormatting.RED
                 : feConsumer.isBrownout() ? ChatFormatting.GOLD : ChatFormatting.GREEN;
@@ -7194,7 +7090,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         if (status == null || status.isBlank()) status = "No Pathfinder linked";
         tooltip.add(Component.literal("    ").append(
             Component.literal(status).withStyle(ChatFormatting.WHITE)));
-        // Waypoint progress
+
         int wpCount = pathfinderRouteWaypointCount;
         int wpIndex = pathfinderRouteWaypointIndex;
         if (wpCount > 0) {
@@ -7202,7 +7098,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
                 Component.literal(String.format(java.util.Locale.ROOT, "Waypoint: %d / %d", wpIndex + 1, wpCount))
                     .withStyle(ChatFormatting.AQUA)));
         }
-        // Distance remaining
+
         if (pathfinderRouteDistance > 0.0) {
             tooltip.add(Component.literal("    ").append(
                 Component.literal(String.format(java.util.Locale.ROOT, "Distance: %.0f m", pathfinderRouteDistance))
@@ -7218,8 +7114,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         return true;
     }
 
-    // menuProvider
-
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.create_stats.flight_control_computer");
@@ -7230,7 +7124,7 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         com.createstats.flight.menu.FlightControlComputerMenu m =
             new com.createstats.flight.menu.FlightControlComputerMenu(containerId, playerInventory, this);
-        // [20]
+
         if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(sp,
                 new com.createstats.flight.network.FccGuiSnapshotPacket(containerId, buildSnapshot()));
@@ -7241,11 +7135,8 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
     }
 
     public boolean isPlayerInInteractionRange(Player player) {
-        // [21]
         return com.createstats.flight.bridge.SableBridge.isPlayerInInteractionRangeFor(this, player);
     }
-
-    // NBT
 
     private void loadWorkbenchControlValues(CompoundTag tag) {
         controlValues.clear();
@@ -7294,7 +7185,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         tag.putString("DiagramProfile", diagramProfile.name());
         if (fccUuid != null) tag.putUUID("FccUuid", fccUuid);
 
-        // Persist the card-slot inventory (Phase 9 source of truth for bindings).
         tag.put("Inventory", inventory.serializeNBT(registries));
         tag.putInt("RedstonePairRows", getRedstoneRowMask());
         tag.put("LinkedControllerInventory", linkedControllerInventory.serializeNBT(registries));
@@ -7403,7 +7293,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
         removeAllRedstoneTransmitters();
         removeAllLinkedControllerReceivers();
 
-        // [22]
         if (version < CURRENT_NBT_VERSION && tag.contains("Bindings", Tag.TAG_LIST)) {
             DebugLogging.fccInfo("[FCC@{}] migrating from v{} to v{} - legacy bindings dropped, please re-bind via cards",
                 getBlockPos(), version, CURRENT_NBT_VERSION);
@@ -7509,7 +7398,8 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             }
         }
         if (version < 3) {
-            // [23]
+            // v3 flipped the thrust sign, old calibration would dive the craft. drop it and recalibrate
+
             if (tag.contains("Calibration", Tag.TAG_LIST)) {
                 CreateStats.LOGGER.warn("[FCC@{}] dropping stale CommandK from save v{} (<3): sign convention changed, recalibration required",
                         getBlockPos(), version);
@@ -7543,8 +7433,6 @@ public class FlightControlComputerBE extends BlockEntity implements MenuProvider
             ? tag.getCompound("ModeParams").copy() : new CompoundTag();
         assemblyFingerprint = tag.getLong("AssemblyFingerprint");
 
-        // Bindings are derived; rebuild from the freshly loaded inventory.
-        // Deferred to next serverTick (level may be null here).
         derivedDirty = true;
         workbenchReconcileDirty = true;
     }

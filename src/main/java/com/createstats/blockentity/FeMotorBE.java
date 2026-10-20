@@ -11,6 +11,8 @@ import com.createstats.power.FeWireTerminal;
 import com.createstats.power.MotorTier;
 import com.createstats.power.WireTier;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,32 +33,29 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** [1] */
 public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMember, FeManagedLoad,
-        FeWireTerminal, com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation {
-
-    /** A running reserve, so a momentary grid dip does not stall the shaft. */
+        FeWireTerminal, com.createstats.power.Gateable, com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation {
     private static final int BUFFER = 64000;
 
     private int energy;
 
-    /** The signed speed this motor is sourcing, or zero. What {@link #getGeneratedSpeed()} returns. */
     private int outputSpeed;
-    /** Whether the motor made its rotation this tick: it had the energy, and nothing cut it. */
+
     private boolean running;
-    /** What the motor costs to hold at its rated speed, whether or not the buffer could pay. */
+
     private int ratedDraw;
-    /** What the motor actually spent last tick, which is what the panel shows. */
+
     private int measuredDraw;
 
     private final FeManagedState managed = new FeManagedState();
-    /** Wires strung to this motor's built-in connector, and each grade, keyed by the far position. */
+
     private final List<BlockPos> links = new ArrayList<>();
     private final Map<Long, WireTier> linkTiers = new HashMap<>();
     @Nullable
     private FeWireNetwork network;
+    @Nullable
+    private ScrollValueBehaviour rpmDial;
 
-    /** Receive only: a motor is a load and never a source of FE for anything else. */
     private final IEnergyStorage energyView = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
@@ -101,8 +100,6 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
         super(type, pos, state);
     }
 
-    // grade
-
     private MotorTier tier() {
         return getBlockState().getBlock() instanceof FeMotorBlock motor ? motor.tier() : MotorTier.MK_I;
     }
@@ -112,7 +109,29 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
                 ? getBlockState().getValue(FeMotorBlock.FACING) : Direction.NORTH;
     }
 
-    // kinetic source contract
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+
+        rpmDial = new ScrollValueBehaviour(
+                Component.translatable("block.create_stats.fe_motor.rpm"), this,
+                new com.createstats.block.FeMotorValueBoxTransform());
+        rpmDial.between(0, tier().ratedRpm());
+        rpmDial.withFormatter(v -> v + " RPM");
+        rpmDial.withCallback(v -> onDialChanged());
+        behaviours.add(rpmDial);
+    }
+
+    private int targetRpm() {
+        return rpmDial == null ? 0 : Mth.clamp(rpmDial.getValue(), 0, tier().ratedRpm());
+    }
+
+    private void onDialChanged() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            updateRunning();
+        }
+    }
 
     @Override
     public float getGeneratedSpeed() {
@@ -121,41 +140,41 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
 
     @Override
     public float calculateAddedStressCapacity() {
-        // Create scales this by |generatedSpeed|, so coeff = capacity / rpm delivers the flat rated
-        // capacity at the rated speed. Zero while stopped, so a dead motor claims no capacity.
-        return running ? tier().stressCapacityCoeff() : 0f;
+        final float coeff = running ? tier().stressCapacityCoeff() : 0f;
+        this.lastCapacityProvided = coeff;
+        return coeff;
     }
-
-    // tick
 
     @Override
     public void tick() {
         super.tick();
         if (level == null || level.isClientSide()) {
-            return;   // the shaft spins from the synced network speed; nothing else to do client-side
+            return;
         }
-        // Wire membership, exactly like the pump: build the network from this node when it is missing
-        // or stale, then let the shared solve fill the buffer behind energyHandle().
+
         if (network == null || network.isDirty()) {
             FeWireNetwork.buildFrom(this);
         }
         if (network != null) {
             network.solveOnce(level);
         }
-        // [2]
+
         if (network == null || !network.isPduManaged(level.getGameTime())) {
             setManagedShed(false);
         }
         updateRunning();
+        syncDrawIfDue();
     }
 
-    /** [3] */
     private void updateRunning() {
-        final boolean cut = level.hasNeighborSignal(worldPosition) || managed.isSuppressed();
-        final int cost = tier().feCostPerTick();
-        ratedDraw = cut ? 0 : cost;
+        final boolean cut = level.hasNeighborSignal(worldPosition) || gated || managed.isSuppressed();
+        final int wantRpm = cut ? 0 : targetRpm();
+        final int cost = tier().feCostForRpm(wantRpm);
 
-        final boolean wantRun = !cut && energy >= cost;
+        final boolean ratedCut = level.hasNeighborSignal(worldPosition) || gated || managed.isForcedOff();
+        ratedDraw = tier().feCostForRpm(ratedCut ? 0 : targetRpm());
+
+        final boolean wantRun = wantRpm > 0 && energy >= cost;
         if (wantRun) {
             energy -= cost;
             measuredDraw = cost;
@@ -164,23 +183,32 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
             measuredDraw = 0;
         }
 
-        if (wantRun != running) {
-            running = wantRun;
-            applyOutputSpeed();
-        }
+        running = wantRun;
+        applyOutputSpeed(wantRun ? wantRpm : 0);
     }
 
-    /** Recompute the sourced speed for the current running state, and kick the network if it moved. */
-    private void applyOutputSpeed() {
-        final int desired = running
-                ? Math.round(convertToDirection(tier().ratedRpm(), facing())) : 0;
+    private void applyOutputSpeed(int magnitude) {
+        final int desired = magnitude == 0 ? 0 : Math.round(convertToDirection(magnitude, facing()));
         if (desired != outputSpeed) {
             outputSpeed = desired;
             updateGeneratedRotation();
         }
     }
 
-    // grid membership
+    private int lastSyncedDraw = Integer.MIN_VALUE;
+    private int ticksSinceDrawSync;
+
+    private void syncDrawIfDue() {
+        ticksSinceDrawSync++;
+        final int shown = measuredDraw * 31 + ratedDraw;
+        final int bucket = Math.max(1, Math.abs(shown) / 16);
+        if (Math.abs(shown - lastSyncedDraw) < bucket && ticksSinceDrawSync < 20) {
+            return;
+        }
+        lastSyncedDraw = shown;
+        ticksSinceDrawSync = 0;
+        sendData();
+    }
 
     @Override
     public long nodeKey() {
@@ -201,7 +229,6 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
         return 0;
     }
 
-    /** [4] */
     @Override
     public int transferRate() {
         return tier().feCostPerTick() * 2;
@@ -226,6 +253,12 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
     }
 
     @Override
+    @javax.annotation.Nullable
+    public FeWireNetwork network() {
+        return this.network;
+    }
+
+    @Override
     public void invalidateNetwork() {
         if (network != null) {
             network.markDirty();
@@ -236,8 +269,6 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
     public IEnergyStorage energyHandle() {
         return energyView;
     }
-
-    // built-in connector: a wire terminal, exactly like a Power Connector
 
     @Override
     public BlockPos terminalPos() {
@@ -278,7 +309,10 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
         final Map<WireTier, Integer> refund = new EnumMap<>(WireTier.class);
         for (BlockPos link : new ArrayList<>(links)) {
             refund.merge(tierOf(link), 1, Integer::sum);
-            if (level.getBlockEntity(link) instanceof FeWireTerminal other && other != this) {
+
+            if (level.getBlockEntity(link) instanceof com.createstats.power.FeStudPanel panel) {
+                panel.forgetLinksTo(worldPosition);
+            } else if (level.getBlockEntity(link) instanceof FeWireTerminal other && other != this) {
                 other.removeDeadLink(worldPosition);
             }
         }
@@ -292,7 +326,6 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
         }
     }
 
-    /** Rebuild the network and push the new link list to the wire renderer on any wiring change. */
     private void syncLinks() {
         setChanged();
         invalidateNetwork();
@@ -300,8 +333,6 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
         }
     }
-
-    // managed load
 
     @Override
     public FePriority managedPriority() {
@@ -344,28 +375,40 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
         return ratedDraw;
     }
 
+    public int tierMaxDrawFePerTick() {
+        return tier().feCostPerTick();
+    }
+
     @Override
     public int measuredDrawFePerTick() {
         return measuredDraw;
     }
 
-    // goggle overlay
-
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
         final int rpm = Math.abs(outputSpeed);
-        tooltip.add(gogglePad(Component.translatable(getBlockState().getBlock().getDescriptionId())
-                .withStyle(ChatFormatting.GRAY)));
-        tooltip.add(gogglePad(Component.literal(
-                rpm > 0 ? String.format(Locale.ROOT, "Running: %d RPM", rpm) : "Idle")
-                .withStyle(rpm > 0 ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY)));
-        if (measuredDraw > 0) {
-            tooltip.add(gogglePad(Component.literal(String.format(Locale.ROOT, "Drawing: %,d FE/t", measuredDraw))
-                    .withStyle(ChatFormatting.AQUA)));
+        tooltip.add(com.createstats.power.FeGoggle.title(
+                Component.translatable(getBlockState().getBlock().getDescriptionId())));
+        final int needs = ratedDrawFePerTick();
+        final boolean off = needs <= 0;
+
+        if (managed.isSuppressed()) {
+            tooltip.add(com.createstats.power.FeGoggle.warn("Shed at the panel"));
+        } else {
+            tooltip.add(com.createstats.power.FeGoggle.loadState(off, running, false));
         }
-        tooltip.add(gogglePad(Component.literal(String.format(Locale.ROOT, "Buffer: %,d / %,d FE", energy, BUFFER))
-                .withStyle(ChatFormatting.AQUA)));
+        tooltip.add(com.createstats.power.FeGoggle.dim(
+                rpm > 0 ? String.format(Locale.ROOT, "Running: %d RPM", rpm) : "Idle"));
+        final int dialed = targetRpm();
+        if (dialed != rpm) {
+            tooltip.add(com.createstats.power.FeGoggle.dim(
+                    String.format(Locale.ROOT, "Dial: %d RPM", dialed)));
+        }
+        if (!off) {
+            tooltip.add(com.createstats.power.FeGoggle.supplyDemand(measuredDraw, needs));
+        }
+        tooltip.add(com.createstats.power.FeGoggle.amount("Buffer", energy, bufferCapacity()));
         return true;
     }
 
@@ -373,13 +416,36 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
         return Component.literal("    ").append(line);
     }
 
-    // save
+    @Override
+    public void setGated(boolean gated) {
+        if (this.gated == gated) {
+            return;
+        }
+        this.gated = gated;
+        setChanged();
+    }
+
+    @Override
+    public boolean isGated() {
+        return gated;
+    }
+
+    private boolean gated;
+
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeSafe(tag, registries);
+        tag.putInt("Priority", FePriority.DEFAULT.ordinal());
+    }
 
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
         tag.putInt("Energy", energy);
         tag.putBoolean("Running", running);
+        tag.putBoolean("Gated", gated);
+        tag.putInt("MDraw", measuredDraw);
+        tag.putInt("RDraw", ratedDraw);
         tag.putInt("Priority", managed.priorityOrdinal());
         tag.putInt("Lock", managed.lockOrdinal());
         final long[] linkArr = new long[links.size()];
@@ -397,7 +463,10 @@ public class FeMotorBE extends GeneratingKineticBlockEntity implements FeGridMem
         super.read(tag, registries, clientPacket);
         energy = Mth.clamp(tag.getInt("Energy"), 0, BUFFER);
         running = tag.getBoolean("Running");
-        outputSpeed = running ? Math.round(convertToDirection(tier().ratedRpm(), facing())) : 0;
+        gated = tag.getBoolean("Gated");
+        measuredDraw = Math.max(0, tag.getInt("MDraw"));
+        ratedDraw = Math.max(0, tag.getInt("RDraw"));
+        outputSpeed = running ? Math.round(convertToDirection(targetRpm(), facing())) : 0;
         managed.load(tag.getInt("Priority"), tag.getInt("Lock"));
         links.clear();
         linkTiers.clear();

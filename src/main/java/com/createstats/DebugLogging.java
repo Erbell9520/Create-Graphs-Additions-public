@@ -34,6 +34,12 @@ public final class DebugLogging {
         }
     }
 
+    public static void pa(String message, Object... args) {
+        if (antennaDebugEnabled()) {
+            CreateStats.LOGGER.info(message, args);
+        }
+    }
+
     public static void antennaInfo(String message, Object... args) {
         if (antennaDebugEnabled()) {
             CreateStats.LOGGER.info(message, args);

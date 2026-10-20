@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/power_track/section_insulator"
+    },
+    "facing=east": {
+      "model": "create_stats:block/power_track/section_insulator",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/power_track/section_insulator",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/power_track/section_insulator",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "needle": "create_stats:block/smelter_needle",
+    "particle": "create_stats:block/smelter_body"
+  },
+  "elements": [
+    {
+      "from": [
+        -0.17,
+        -0.3,
+        -0.22
+      ],
+      "to": [
+        0.17,
+        1.3,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#needle"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#needle"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#needle"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#needle"
+        },
+        "up": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#needle"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "texture": "#needle"
+        }
+      },
+      "__comment": "dial needle"
+    }
+  ]
+}

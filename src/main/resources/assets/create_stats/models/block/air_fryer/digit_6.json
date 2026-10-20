@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "digit_6": "create_stats:block/air_fryer_digit_6",
+    "particle": "create_stats:block/air_fryer_digit_6"
+  },
+  "elements": [
+    {
+      "__comment": "digit",
+      "from": [
+        -0.475,
+        -0.85,
+        -0.12
+      ],
+      "to": [
+        0.475,
+        0.85,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#digit_6"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "SSS",
+    "IRI",
+    "SSS"
+  ],
+  "key": {
+    "S": {
+      "item": "create:iron_sheet"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "create:shaft"
+    }
+  },
+  "result": {
+    "id": "create_stats:garage_door_header",
+    "count": 4
+  },
+  "show_notification": true
+}

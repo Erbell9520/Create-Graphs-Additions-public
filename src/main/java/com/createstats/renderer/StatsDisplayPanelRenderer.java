@@ -27,7 +27,7 @@ public class StatsDisplayPanelRenderer implements BlockEntityRenderer<StatsDispl
 {
     public StatsDisplayPanelRenderer(BlockEntityRendererProvider.Context context) {
     }
-    
+
     public void render(StatsDisplayPanelBE be, float partialTick, PoseStack ps, MultiBufferSource buf, int packedLight, int packedOverlay) {
         if (!be.isController()) {
             return;
@@ -55,15 +55,16 @@ public class StatsDisplayPanelRenderer implements BlockEntityRenderer<StatsDispl
         ps.mulPose(Axis.YP.rotationDegrees(yRot));
         ps.translate(-0.5, -0.5, -0.5);
         ps.translate(0.0, 0.0, 3.0 / 16.0 + 0.03125);
-        // [1]
+        // keyed on the controller so the whole wall flickers together
+
         final float brightness = com.createstats.power.client.FePowerVisuals
                 .screenBrightness(be.getControllerBE().getBlockPos(), be.feConsumer());
         this.renderTexturedQuad(ps, buf, textureLoc, mbW, mbH, packedLight, packedOverlay, brightness);
         ps.popPose();
-        // [2]
+
         com.createstats.client.battle.BattleTacticalV2PanelHologram.render(be, ps, buf, packedLight, partialTick);
     }
-    
+
     private void renderTexturedQuad(PoseStack ps, MultiBufferSource buf, ResourceLocation texture, int width, int height, int packedLight, int packedOverlay, float brightness) {
         final int tint = Math.max(0, Math.min(255, Math.round(255.0f * brightness)));
         final VertexConsumer vc = buf.getBuffer(RenderType.entityCutoutNoCull(texture));
@@ -81,7 +82,7 @@ public class StatsDisplayPanelRenderer implements BlockEntityRenderer<StatsDispl
         vc.addVertex(mat, x2, y0, 0.0f).setColor(tint, tint, tint, 255).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
         vc.addVertex(mat, x2, y2, 0.0f).setColor(tint, tint, tint, 255).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
     }
-    
+
     public boolean shouldRenderOffScreen(StatsDisplayPanelBE be) {
         return true;
     }
@@ -90,7 +91,7 @@ public class StatsDisplayPanelRenderer implements BlockEntityRenderer<StatsDispl
     public AABB getRenderBoundingBox(StatsDisplayPanelBE be) {
         return be.getRenderBoundingBox();
     }
-    
+
     public int getViewDistance() {
         return com.createstats.ModConfiguration.cappedViewDistance(64);
     }

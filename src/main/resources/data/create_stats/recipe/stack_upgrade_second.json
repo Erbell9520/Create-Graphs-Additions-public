@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EBE",
+    "CUC",
+    "BPB"
+  ],
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "U": {
+      "item": "create_stats:stack_upgrade_first"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stats:stack_upgrade_second",
+    "count": 1
+  }
+}

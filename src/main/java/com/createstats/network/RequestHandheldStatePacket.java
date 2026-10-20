@@ -31,7 +31,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RequestHandheldStatePacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<RequestHandheldStatePacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "request_handheld_state"));
     public static final StreamCodec<FriendlyByteBuf, RequestHandheldStatePacket> STREAM_CODEC =

@@ -9,6 +9,7 @@ import com.createstats.network.HandheldStatePacket;
 import com.createstats.train.manifest.DeliveryOrderBoardView;
 import com.createstats.train.manifest.FreightManifest;
 import com.createstats.train.manifest.FreightStationCargoView;
+import com.createstats.train.manifest.StationTrainRoster;
 import java.util.List;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.Level;
@@ -24,7 +25,7 @@ public final class ClientPacketHandler
 {
     private ClientPacketHandler() {
     }
-    
+
     public static void handleStatsUpdate(BlockPos pos, TimeSeriesStore store) {
         final Level level = (Level)Minecraft.getInstance().level;
         if (level == null) {
@@ -42,20 +43,25 @@ public final class ClientPacketHandler
         }
     }
 
-    public static void handleFreightManifestClipboardState(BlockPos pos, FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard) {
+    public static void handleFreightManifestClipboardState(BlockPos pos, FreightManifest manifest,
+            FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard,
+            boolean saveReply, boolean saveAccepted) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!(minecraft.screen instanceof FreightManifestClipboardScreen screen) || !screen.isForClipboard(pos)) {
             return;
         }
-        screen.updateLiveState(cargoView, deliveryBoard);
+        screen.updateLiveState(manifest, cargoView, deliveryBoard, saveReply, saveAccepted);
     }
 
-    public static void handleDispatchBoardState(BlockPos pos, FreightManifest manifest, FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard) {
+    public static void handleDispatchBoardState(BlockPos pos, FreightManifest manifest,
+                                                FreightStationCargoView cargoView,
+                                                DeliveryOrderBoardView deliveryBoard,
+                                                StationTrainRoster stationRoster) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!(minecraft.screen instanceof DispatchBoardScreen screen) || !screen.isForBoard(pos)) {
             return;
         }
-        screen.updateLiveState(manifest, cargoView, deliveryBoard);
+        screen.updateLiveState(manifest, cargoView, deliveryBoard, stationRoster);
     }
 
     public static void handleTableAlarmCalendarData(List<TableAlarmCalendarEvent> events) {

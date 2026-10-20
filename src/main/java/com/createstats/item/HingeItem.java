@@ -27,10 +27,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 
-/** [1] */
 public class HingeItem extends Item {
-
-    /** Pending first-click anchor, per player (server-side, transient). */
     private record Pending(UUID subId, Vec3 hit, boolean doorAxis) {}
 
     private record Pick(UUID subId, Vec3 hit) {}
@@ -39,13 +36,12 @@ public class HingeItem extends Item {
 
     private static final double PICK_REACH = 96.0;
     private static final double MAX_PICK_PERP = 24.0;
-    private static final double MAX_LINK_DISTANCE = 8.0; // between the two clicked points (v1)
+    private static final double MAX_LINK_DISTANCE = 8.0;
 
     public HingeItem(Item.Properties properties) {
         super(properties);
     }
 
-    /** Drop any half-finished link when a player leaves, so {@link #PENDING} never leaks. */
     public static void clearPending(UUID playerId) {
         PENDING.remove(playerId);
     }
@@ -64,7 +60,6 @@ public class HingeItem extends Item {
         boolean sneaking = player.isShiftKeyDown();
         HingeJointManager manager = HingeJointManager.get(serverLevel);
 
-        // [2]
         if (sneaking) {
             Pick removeTarget = pickByAnchor(serverLevel, player);
             if (removeTarget != null) {
@@ -82,7 +77,6 @@ public class HingeItem extends Item {
         Pick pick = pick(serverLevel, player);
 
         if (pick == null) {
-            // No ship aimed at: sneak cancels a pending anchor, otherwise hint.
             if (sneaking && PENDING.remove(player.getUUID()) != null) {
                 msg(player, Component.translatable("message.create_stats.hinge.anchor_cleared"), ChatFormatting.YELLOW);
             } else {
@@ -91,7 +85,6 @@ public class HingeItem extends Item {
             return InteractionResultHolder.success(stack);
         }
 
-        // A ship was aimed at. Sneak = fold axis, normal = door (vertical) axis.
         boolean doorAxis = !sneaking;
         Pending pending = PENDING.get(player.getUUID());
 
@@ -134,20 +127,17 @@ public class HingeItem extends Item {
         if (subA == null || subB == null) {
             return false;
         }
-        // Replace any existing hinge between this exact pair, so re-linking never stacks two
-        // conflicting rotary constraints (which would fight each other and thrash the ships).
+        // replace, never stack two hinges on one pair. they fight and thrash the ships
+
         HingeJointManager manager = HingeJointManager.get(level);
         HingeJoint existing = manager.findJointBetween(a.subId, b.subId);
         if (existing != null) {
             manager.removeJoint(existing.jointId);
         }
 
-        // [3]
         Vec3 seam = midpoint(a.hit, b.hit);
         Vector3d seamV = new Vector3d(seam.x, seam.y, seam.z);
 
-        // Swing axis chosen at the first click: door (vertical) or fold (horizontal, perpendicular to
-        // the line between the two ships).
         Vector3d axisWorld;
         if (a.doorAxis) {
             axisWorld = new Vector3d(0, 1, 0);
@@ -181,16 +171,12 @@ public class HingeItem extends Item {
         return true;
     }
 
-    // picking
-
-    /** Precise edge pick first; fall back to the forgiving aim-based pick if the ray misses. */
     @Nullable
     private static Pick pick(ServerLevel level, Player player) {
         Pick precise = pickPreciseEdge(level, player);
         return precise != null ? precise : pickByAnchor(level, player);
     }
 
-    /** [4] */
     @Nullable
     private static Pick pickPreciseEdge(ServerLevel level, Player player) {
         Vec3 realEye = player.getEyePosition(1.0f);
@@ -198,7 +184,6 @@ public class HingeItem extends Item {
         Vec3 bestWorld = null;
         double bestDist = Double.MAX_VALUE;
         for (Object sub : HingeConstraintBridge.allServerSubLevels(level)) {
-            // Broad-phase: skip ships whose centre is far out of reach before paying for a raycast.
             Vector3d com = HingeConstraintBridge.worldAnchor(sub);
             if (com == null || realEye.distanceTo(new Vec3(com.x, com.y, com.z)) > PICK_REACH + 64.0) {
                 continue;
@@ -221,7 +206,7 @@ public class HingeItem extends Item {
                 continue;
             }
             double dist = realEye.distanceTo(hitWorld[0]);
-            // Guard: a rigid transform preserves distance, so a hit beyond reach means a bad conversion.
+
             if (dist <= PICK_REACH + 4.0 && dist < bestDist) {
                 bestDist = dist;
                 bestSub = sub;
@@ -235,7 +220,6 @@ public class HingeItem extends Item {
         return id == null ? null : new Pick(id, bestWorld);
     }
 
-    /** Aim-based pick: the point on the look ray nearest each ship's world centre. */
     @Nullable
     private static Pick pickByAnchor(ServerLevel level, Player player) {
         Vec3 eye = player.getEyePosition(1.0f);
@@ -267,8 +251,6 @@ public class HingeItem extends Item {
         UUID id = HingeConstraintBridge.subLevelId(best);
         return id == null ? null : new Pick(id, bestHit);
     }
-
-    // feedback
 
     private static void feedbackPick(ServerLevel level, Vec3 at) {
         level.playSound(null, at.x, at.y, at.z, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.PLAYERS, 0.7f, 1.4f);

@@ -19,9 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** [1] */
 public class FeMotorRenderer extends KineticBlockEntityRenderer<FeMotorBE> {
-
     public FeMotorRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
@@ -60,16 +58,12 @@ public class FeMotorRenderer extends KineticBlockEntityRenderer<FeMotorBE> {
         final Matrix4f matrix = ms.last().pose();
         final Vec3 from = studAttachPoint(be.getBlockState());
         for (final BlockPos link : be.links()) {
-            // Each pair is drawn once, by the terminal with the smaller packed position.
-            if (link.asLong() <= origin.asLong()) {
+            if (!PowerConnectorRenderer.drawsSpan(be.getLevel(), origin, link)) {
                 continue;
             }
-            // Both ends resolved, so a cable lands on a real terminal at each end rather than
-            // sprouting from the middle of a block at one of them.
-            final Vec3 to = be.getLevel() == null
-                    ? PowerConnectorRenderer.attachPoint(null)
-                    : PowerConnectorRenderer.attachPoint(be.getLevel().getBlockState(link));
-            PowerConnectorRenderer.drawCable(consumer, matrix,
+
+            final Vec3 to = PowerConnectorRenderer.attachPoint(be.getLevel(), link, origin);
+            PowerConnectorRenderer.drawCable(consumer, matrix, be.getLevel(), origin, link,
                     (float) from.x, (float) from.y, (float) from.z,
                     (float) (link.getX() - origin.getX() + to.x),
                     (float) (link.getY() - origin.getY() + to.y),
@@ -78,7 +72,6 @@ public class FeMotorRenderer extends KineticBlockEntityRenderer<FeMotorBE> {
         }
     }
 
-    /** [2] */
     public static Vec3 studAttachPoint(@org.jetbrains.annotations.Nullable BlockState state) {
         if (state == null || !(state.getBlock() instanceof FeMotorBlock)) {
             return new Vec3(0.5, 0.5, 0.5);
@@ -91,5 +84,21 @@ public class FeMotorRenderer extends KineticBlockEntityRenderer<FeMotorBE> {
             case DOWN -> new Vec3(0.8781, 0.3375, 0.2344);
             default -> new Vec3(0.8781, 0.7656, 0.3375);
         };
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen(com.createstats.blockentity.FeMotorBE be) {
+        return true;
+    }
+
+    @Override
+    public net.minecraft.world.phys.AABB getRenderBoundingBox(com.createstats.blockentity.FeMotorBE be) {
+        return PowerConnectorRenderer.wireBounds(be.getBlockPos(), be.links());
+    }
+
+    @Override
+    public int getViewDistance() {
+        return com.createstats.ModConfiguration.cappedViewDistance(
+                64 + com.createstats.blockentity.PowerConnectorBE.wireRange());
     }
 }

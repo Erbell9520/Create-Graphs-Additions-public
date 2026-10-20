@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "tones": "create_stats:block/power_limiter_tones",
+    "particle": "create_stats:block/power_limiter_tones"
+  },
+  "elements": [
+    {
+      "__comment": "lens",
+      "from": [
+        7.48,
+        13.82,
+        5.75
+      ],
+      "to": [
+        8.52,
+        14.04,
+        6.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.5,
+            4.5,
+            1.5,
+            5.5
+          ],
+          "texture": "#tones"
+        },
+        "south": {
+          "uv": [
+            0.5,
+            4.5,
+            1.5,
+            5.5
+          ],
+          "texture": "#tones"
+        },
+        "east": {
+          "uv": [
+            0.5,
+            4.5,
+            1.5,
+            5.5
+          ],
+          "texture": "#tones"
+        },
+        "west": {
+          "uv": [
+            0.5,
+            4.5,
+            1.5,
+            5.5
+          ],
+          "texture": "#tones"
+        },
+        "up": {
+          "uv": [
+            2.5,
+            4.5,
+            3.5,
+            5.5
+          ],
+          "texture": "#tones"
+        },
+        "down": {
+          "uv": [
+            0.5,
+            4.5,
+            1.5,
+            5.5
+          ],
+          "texture": "#tones"
+        }
+      }
+    }
+  ]
+}

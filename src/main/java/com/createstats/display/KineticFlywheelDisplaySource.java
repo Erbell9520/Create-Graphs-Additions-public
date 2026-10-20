@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KineticFlywheelDisplaySource extends DisplaySource implements StatsLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         final BlockEntity be = context.getSourceBlockEntity();
@@ -34,6 +33,14 @@ public class KineticFlywheelDisplaySource extends DisplaySource implements Stats
             stateStr = Component.translatable("create_stats.kinetic_flywheel.display.state.discharging");
         } else if (mode == 1) {
             stateStr = Component.translatable("create_stats.kinetic_flywheel.display.state.charging");
+        } else if (flywheel.isRedstoneHeld()) {
+            stateStr = Component.translatable("create_stats.kinetic_flywheel.display.state.held");
+        } else if (flywheel.isParked()) {
+            stateStr = Component.translatable("create_stats.kinetic_flywheel.display.state.parked");
+        } else if (flywheel.isDepleted()) {
+            stateStr = Component.translatable("create_stats.kinetic_flywheel.display.state.depleted");
+        } else if (flywheel.isWaitingForSurplus()) {
+            stateStr = Component.translatable("create_stats.kinetic_flywheel.display.state.waiting");
         } else if (lowReserve) {
             stateStr = Component.translatable("create_stats.kinetic_flywheel.display.state.low_reserve");
         } else {
@@ -48,7 +55,7 @@ public class KineticFlywheelDisplaySource extends DisplaySource implements Stats
 
         if (maxRows >= 3) {
             lines.add(Component.translatable("create_stats.kinetic_flywheel.display.stored",
-                    String.format("%.0f", flywheel.getStoredRpm())));
+                    String.format("%.0f", Math.abs(flywheel.getOutputRpm()))));
         }
 
         if (maxRows >= 4) {

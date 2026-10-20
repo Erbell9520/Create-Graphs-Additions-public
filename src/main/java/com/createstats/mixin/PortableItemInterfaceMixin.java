@@ -18,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(targets = "com.simibubi.create.content.contraptions.actors.psi.PortableItemInterfaceBlockEntity",
        remap = false)
 public abstract class PortableItemInterfaceMixin {
-
     @Shadow
     protected IItemHandlerModifiable capability;
 

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "SGS",
+    "BTB"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:plates/iron"
+    },
+    "G": {
+      "item": "create:goggles"
+    },
+    "B": {
+      "tag": "c:nuggets/brass"
+    },
+    "T": {
+      "item": "minecraft:tinted_glass"
+    }
+  },
+  "result": {
+    "id": "create_stats:driver_helmet",
+    "count": 1
+  }
+}

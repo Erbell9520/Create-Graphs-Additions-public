@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SES",
+    "PUP",
+    "SES"
+  ],
+  "key": {
+    "S": {
+      "item": "create:sturdy_sheet"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "U": {
+      "item": "create_stats:slot_upgrade_second"
+    }
+  },
+  "result": {
+    "id": "create_stats:slot_upgrade_third",
+    "count": 1
+  }
+}

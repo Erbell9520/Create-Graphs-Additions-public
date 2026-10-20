@@ -54,8 +54,6 @@ public class PilotHelmetSettingsPacket implements CustomPacketPayload {
     }
 
     public PilotHelmetSettingsPacket(FriendlyByteBuf buf) {
-        // Append-only wire format: NV fields are read last and tolerate older
-        // clients/servers that don't include them. Field order MUST match encode().
         this(buf.readVarInt(), buf.readUtf(32), buf.readBoolean(),
             buf.isReadable() ? buf.readVarInt() : 5,
             buf.isReadable(Float.BYTES) ? buf.readFloat() : 1.0f,
@@ -98,7 +96,6 @@ public class PilotHelmetSettingsPacket implements CustomPacketPayload {
             data.setHudScaleFactor(packet.hudScaleFactor);
             data.setNightVisionMode(parseNvMode(packet.nightVisionModeName));
 
-            // [1]
             boolean requestedNV = packet.nightVisionEnabled;
             boolean previousNV = data.isNightVisionEnabled();
             if (requestedNV && !previousNV && hasExternalNightVision(player)) {
@@ -110,7 +107,8 @@ public class PilotHelmetSettingsPacket implements CustomPacketPayload {
                 data.setNightVisionEnabled(requestedNV);
             }
 
-            // [2]
+            // only strip a short effect, a real potion is way longer
+
             if (previousNV && !data.isNightVisionEnabled()) {
                 MobEffectInstance nv = player.getEffect(MobEffects.NIGHT_VISION);
                 if (nv != null && nv.getDuration() < 250) {
@@ -122,12 +120,6 @@ public class PilotHelmetSettingsPacket implements CustomPacketPayload {
         });
     }
 
-    /**
-     * @return true if the player currently has a {@link MobEffects#NIGHT_VISION}
-     * effect whose remaining duration is well beyond the helmet's own 220-tick
-     * refresh cycle (potion 3600t, beacon ≥ 260t). 280t margin avoids false
-     * positives on the exact refresh-tick boundary.
-     */
     private static boolean hasExternalNightVision(ServerPlayer player) {
         MobEffectInstance nv = player.getEffect(MobEffects.NIGHT_VISION);
         return nv != null && nv.getDuration() > 280;

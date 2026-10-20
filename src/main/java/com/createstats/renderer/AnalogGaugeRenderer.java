@@ -22,10 +22,10 @@ public final class AnalogGaugeRenderer
     private static final int NUM_MINOR_PER_MAJ = 4;
     private static final double BASE_ANGLE_RAD = 3.9269908169872414;
     private static final float SWEEP_RAD = 4.712389f;
-    
+
     private AnalogGaugeRenderer() {
     }
-    
+
     public static void renderAnalogGauges(NativeImage image, StatsDisplayPanelBE be, StatsDisplayPanelBE.DataChannel primaryChannel, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final List<ChannelView> channels = collectOrderedChannels(be, primaryChannel, settings);
         if (channels.isEmpty() && primaryChannel != null) {
@@ -288,7 +288,7 @@ public final class AnalogGaugeRenderer
             needle.tick();
         }
     }
-    
+
     public static GaugeLayout layoutGauges(int N, int W, int H) {
         if (N <= 0) {
             return new GaugeLayout(0, 0, 0, new int[0][0]);
@@ -323,7 +323,7 @@ public final class AnalogGaugeRenderer
         }
         return new GaugeLayout(bestCols, bestRows, bestRadius, centers);
     }
-    
+
     public static GaugeColorSet getColorsForTheme(DisplayTheme theme) {
         return switch (theme) {
             default -> throw new IncompatibleClassChangeError();
@@ -335,7 +335,7 @@ public final class AnalogGaugeRenderer
             case CREATE -> new GaugeColorSet(-3630276, -4684277, -7640812, -6653400, -15396338, -1518173, -8754350, -1518173, -8754350, -3630276, -7640812, -12962512, -13882320, -4689101, 1153997628, 1152938803, 1156075568, 818453308, 281582396);
         };
     }
-    
+
     private static void renderSingleGauge(NativeImage image, int cx, int cy, int R, StatsDisplayPanelBE.DataChannel channel, int slotIndex, BlockPos bePos, GaugeColorSet c, StatsDisplaySettings settings, boolean showZones, boolean showGlass, boolean showRivets, boolean showOuterLabel) {
         if (R < 2) {
             return;
@@ -394,7 +394,7 @@ public final class AnalogGaugeRenderer
             }
         }
     }
-    
+
     private static void renderBezel(NativeImage image, int cx, int cy, int R, GaugeColorSet c, boolean showRivets) {
         TextureGraphRenderer.fillCircle(image, cx, cy, R, c.bezelHighlight());
         TextureGraphRenderer.fillCircle(image, cx, cy, (int)(R * 0.95), c.bezelMid());
@@ -411,11 +411,11 @@ public final class AnalogGaugeRenderer
             }
         }
     }
-    
+
     private static void renderDialFace(NativeImage image, int cx, int cy, int R, GaugeColorSet c) {
         TextureGraphRenderer.fillCircle(image, cx, cy, (int)(R * 0.87), c.dialFace());
     }
-    
+
     private static void renderWarningZones(NativeImage image, int cx, int cy, int R, GaugeColorSet c, float yellowThreshold, float redThreshold) {
         final int innerZoneR = (int)(0.72 * R);
         final int outerZoneR = (int)(0.86 * R);
@@ -429,7 +429,7 @@ public final class AnalogGaugeRenderer
         final double redEnd = -0.7853981753223289;
         drawArcFillBlended(image, cx, cy, innerZoneR, outerZoneR, redStart, redEnd, c.zoneRed());
     }
-    
+
     private static void renderTickMarks(NativeImage image, int cx, int cy, int R, GaugeColorSet c, float gaugeMin, float gaugeMax) {
         for (int i = 0; i < 11; ++i) {
             final float frac = i / 10.0f;
@@ -459,7 +459,7 @@ public final class AnalogGaugeRenderer
             }
         }
     }
-    
+
     private static void renderNumberLabels(NativeImage image, int cx, int cy, int R, GaugeColorSet c, float gaugeMin, float gaugeMax) {
         final int textScale = (R >= 80) ? 2 : 1;
         for (int i = 0; i < 11; ++i) {
@@ -476,7 +476,7 @@ public final class AnalogGaugeRenderer
             }
         }
     }
-    
+
     private static void renderUnitLabel(NativeImage image, int cx, int cy, int R, GaugeColorSet c, StatsDisplayPanelBE.DataChannel channel) {
         final String unit = channel.getStore().getMetricType().getUnit();
         if (!unit.isEmpty()) {
@@ -536,7 +536,7 @@ public final class AnalogGaugeRenderer
         }
         return rest;
     }
-    
+
     private static void renderNeedle(NativeImage image, int cx, int cy, int R, double displayAngleRad, GaugeColorSet c) {
         final double cos = Math.cos(displayAngleRad);
         final double sin = Math.sin(displayAngleRad);
@@ -559,19 +559,19 @@ public final class AnalogGaugeRenderer
         final int cwY = cy - (int)(cwDist * Math.sin(oppAngle));
         TextureGraphRenderer.fillCircle(image, cwX, cwY, cwRadius, c.needleCounterWeight());
     }
-    
+
     private static void renderGlassReflection(NativeImage image, int cx, int cy, int R, GaugeColorSet c) {
         final int dialR = (int)(0.87 * R);
         drawCircleBlended(image, cx, cy, dialR, c.glassEdgeTint());
         drawArcFillBlended(image, cx, cy, (int)(0.2 * R), (int)(0.75 * R), Math.toRadians(120.0), Math.toRadians(210.0), c.glassReflection());
     }
-    
+
     private static void renderPivot(NativeImage image, int cx, int cy, int R, GaugeColorSet c) {
         final int pivotR = Math.max(2, (int)(0.07 * R));
         TextureGraphRenderer.fillCircle(image, cx, cy, pivotR, c.pivotCenter());
         TextureGraphRenderer.fillCircle(image, cx - 1, cy - 1, Math.max(1, pivotR / 3), c.pivotHighlight());
     }
-    
+
     private static void drawCircleBlended(NativeImage image, int cx, int cy, int r, int argbColor) {
         final int imgW = image.getWidth();
         final int imgH = image.getHeight();
@@ -586,7 +586,7 @@ public final class AnalogGaugeRenderer
             }
         }
     }
-    
+
     static void drawArcFillBlended(NativeImage image, int cx, int cy, int innerR, int outerR, double startAngle, double endAngle, int argbColor) {
         final int imgW = image.getWidth();
         for (int imgH = image.getHeight(), py = Math.max(0, cy - outerR); py <= Math.min(imgH - 1, cy + outerR); ++py) {
@@ -625,7 +625,7 @@ public final class AnalogGaugeRenderer
             }
         }
     }
-    
+
     private static String formatCompact(float value, float range) {
         final float abs = Math.abs(value);
         if (abs >= 1000000.0f) {

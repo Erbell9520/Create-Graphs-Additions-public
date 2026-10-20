@@ -28,13 +28,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** [1] */
 public final class BattleTacticalV2PanelHologram {
-
     private static final BlockState MISSING_STATE = Blocks.RED_STAINED_GLASS.defaultBlockState();
     private static final BlockState NEW_OVERLAY_STATE = Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState();
 
-    /** Reused BE cache for in-hologram BER rendering (chests, barrels, signs, etc.). */
     private static final Map<BlockState, BlockEntity> BE_CACHE = new HashMap<>();
 
     private BattleTacticalV2PanelHologram() {}
@@ -46,12 +43,10 @@ public final class BattleTacticalV2PanelHologram {
         if (link == null) return;
         final List<DamageObserverVoxelMap> maps = collectVoxelMaps(link);
         if (maps.isEmpty()) {
-            // Prime the cache so the next frame may have data.
             primeRequests(link);
             return;
         }
 
-        // Merged scene bounding box & centroid.
         BoundingBoxD bbox = computeBox(maps);
         if (bbox == null) return;
         final double cx = (bbox.minX + bbox.maxX) * 0.5;
@@ -67,13 +62,12 @@ public final class BattleTacticalV2PanelHologram {
         final int mbW = be.getMultiblockWidth();
         final int mbH = be.getMultiblockHeight();
 
-        // Auto-rotate yaw, tick-locked so all panels for the same data agree visually.
         final Level level = be.getLevel();
         final long time = level == null ? 0L : level.getGameTime();
         final float yaw = ((time + partialTick) * 0.6f) % 360f;
 
         ps.pushPose();
-        // [2]
+
         ps.translate(0.5, 0.5, 0.5);
         final float yRot = switch (facing) {
             case SOUTH -> 180f;
@@ -84,73 +78,23 @@ public final class BattleTacticalV2PanelHologram {
         ps.mulPose(Axis.YP.rotationDegrees(yRot));
         ps.translate(-0.5, -0.5, -0.5);
 
-        // [3]
         final double centerX = mbW * 0.5;
         final double centerY = mbH * 0.5;
         final double standoff = 0.4;
         ps.translate(centerX, centerY, -standoff);
 
-        // 3. Fit scene to ~55% of the smaller face dimension. Slight iso tilt and
-        //        slow auto-yaw for the always-on rotating effect.
         final float fitScale = (float) (Math.min(mbW, mbH) * 0.55 / extent);
         ps.scale(fitScale, fitScale, fitScale);
         ps.mulPose(Axis.XP.rotationDegrees(22f));
         ps.mulPose(Axis.YP.rotationDegrees(yaw));
 
-        // [4]
         final BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
         renderVoxels(maps, cx, cy, cz, ps, buf, LightTexture.FULL_BRIGHT, partialTick, brd);
         ps.popPose();
 
-        // Keep the cache fresh.
         primeRequests(link);
     }
 
-    /**
-     * Bridge-mounted variant, renders the same voxel hologram floating above a
-     * {@link com.createstats.blockentity.BattleScreenDisplayBE Battle Bridge} block.
-     * Called from {@link com.createstats.renderer.BattleScreenDisplayRenderer}.
-     */
-    public static void renderAboveBridge(com.createstats.blockentity.BattleScreenDisplayBE display,
-                                          PoseStack ps, MultiBufferSource buf,
-                                          int packedLight, float partialTick) {
-        if (display == null) return;
-        if (!display.isHologramEnabled()) return;
-        final List<DamageObserverVoxelMap> maps = collectVoxelMapsFromBridge(display);
-        if (maps.isEmpty()) {
-            primeRequestsFromBridge(display);
-            return;
-        }
-        final BoundingBoxD bbox = computeBox(maps);
-        if (bbox == null) return;
-        final double cx = (bbox.minX + bbox.maxX) * 0.5;
-        final double cy = (bbox.minY + bbox.maxY) * 0.5;
-        final double cz = (bbox.minZ + bbox.maxZ) * 0.5;
-        final double extent = Math.max(1.0, Math.max(bbox.maxX - bbox.minX,
-                Math.max(bbox.maxY - bbox.minY, bbox.maxZ - bbox.minZ)));
-
-        final Level level = display.getLevel();
-        final long time = level == null ? 0L : level.getGameTime();
-        final float yaw = ((time + partialTick) * 0.6f) % 360f;
-
-        ps.pushPose();
-        // Hover ~1.6 blocks above the bridge block, centered on its footprint.
-        ps.translate(0.5, 1.75, 0.5);
-        // Fit hologram inside a ~1.4-block envelope.
-        final float fitScale = (float) (1.4 / extent);
-        ps.scale(fitScale, fitScale, fitScale);
-        ps.mulPose(Axis.XP.rotationDegrees(22f));
-        ps.mulPose(Axis.YP.rotationDegrees(yaw));
-
-        // [5]
-        final BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-        renderVoxels(maps, cx, cy, cz, ps, buf, LightTexture.FULL_BRIGHT, partialTick, brd);
-        ps.popPose();
-
-        primeRequestsFromBridge(display);
-    }
-
-    /** Shared per-voxel render loop used by both panel and bridge entry points. */
     private static void renderVoxels(List<DamageObserverVoxelMap> maps,
                                      double cx, double cy, double cz,
                                      PoseStack ps, MultiBufferSource buf,
@@ -178,7 +122,7 @@ public final class BattleTacticalV2PanelHologram {
                             voxelState = palette[paletteIdx];
                             overlay = !inBaseline;
                         }
-                        // [6]
+
                         if (paletteIdx > 0 && inBaseline && voxelState.canOcclude()
                                 && occludes(map, lx + 1, ly, lz) && occludes(map, lx - 1, ly, lz)
                                 && occludes(map, lx, ly + 1, lz) && occludes(map, lx, ly - 1, lz)
@@ -201,39 +145,12 @@ public final class BattleTacticalV2PanelHologram {
         }
     }
 
-    /** [7] */
     private static boolean occludes(DamageObserverVoxelMap map, int lx, int ly, int lz) {
         if (lx < 0 || ly < 0 || lz < 0 || lx >= map.dx || ly >= map.dy || lz >= map.dz) return false;
         final int idx = map.paletteIndices[map.indexFor(lx, ly, lz)];
         if (idx <= 0) return false;
         final BlockState s = map.palette[idx];
         return s != null && s.canOcclude();
-    }
-
-    private static List<DamageObserverVoxelMap> collectVoxelMapsFromBridge(
-            com.createstats.blockentity.BattleScreenDisplayBE display) {
-        final List<DamageObserverVoxelMap> out = new ArrayList<>();
-        final List<com.createstats.blockentity.BattleScreenDisplayBE.LinkedObserver> observers =
-                display.getLinkedObservers();
-        if (observers == null) return out;
-        for (com.createstats.blockentity.BattleScreenDisplayBE.LinkedObserver obs : observers) {
-            if (obs == null || obs.sourcePos() == null) continue;
-            DamageObserverVoxelMap map = ClientObserverVoxelCache.get(obs.sourcePos());
-            if (map != null) out.add(map);
-        }
-        return out;
-    }
-
-    private static void primeRequestsFromBridge(
-            com.createstats.blockentity.BattleScreenDisplayBE display) {
-        final List<com.createstats.blockentity.BattleScreenDisplayBE.LinkedObserver> observers =
-                display.getLinkedObservers();
-        if (observers == null) return;
-        for (com.createstats.blockentity.BattleScreenDisplayBE.LinkedObserver obs : observers) {
-            if (obs != null && obs.sourcePos() != null) {
-                ClientObserverVoxelCache.ensureFresh(obs.sourcePos());
-            }
-        }
     }
 
     private static void renderBlockState(BlockRenderDispatcher brd, BlockState state,

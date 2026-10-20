@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:root",
+  "display": {
+    "icon": {
+      "id": "create_stats:vcc_mk4"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.mk4.title",
+      "fallback": "Use It in Good Health"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.mk4.description",
+      "fallback": "Get a VCC Mk IV Ground. Congratulations! The whole family now expects rides."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "console": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:vcc_mk4"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "console"
+    ]
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "parent": "create_stats:transport/aerial",
+  "display": {
+    "icon": {
+      "id": "create_stats:pilot_helmet"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.pilot_helmet.title",
+      "fallback": "This Is Your Captain Speaking"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.pilot_helmet.description",
+      "fallback": "Wear a pilot's helmet. The passengers will still clap on landing."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "helmet": {
+      "trigger": "minecraft:tick",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "equipment": {
+                "head": {
+                  "items": [
+                    "create_stats:pilot_helmet",
+                    "create_stats:aviator_helmet"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "helmet"
+    ]
+  ]
+}

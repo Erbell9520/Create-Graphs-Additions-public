@@ -15,7 +15,7 @@ public class TopologyNode
     private boolean isRootLike;
     private boolean isOverStressed;
     private final BlockPos upstreamPos;
-    
+
     public TopologyNode(BlockPos pos, String name, NodeType type, float speed, float stressImpact, float capacityProvided, boolean isSource, boolean isOverStressed) {
         this(pos, name, type, speed, stressImpact, capacityProvided, isSource, isSource || type.isSourceType(), isOverStressed, null);
     }
@@ -32,35 +32,35 @@ public class TopologyNode
         this.isOverStressed = isOverStressed;
         this.upstreamPos = (upstreamPos != null) ? upstreamPos.immutable() : null;
     }
-    
+
     public BlockPos getPos() {
         return this.pos;
     }
-    
+
     public String getName() {
         return this.name;
     }
-    
+
     public NodeType getType() {
         return this.type;
     }
-    
+
     public float getSpeed() {
         return this.speed;
     }
-    
+
     public void setSpeed(float speed) {
         this.speed = speed;
     }
-    
+
     public float getStressImpact() {
         return this.stressImpact;
     }
-    
+
     public float getCapacityProvided() {
         return this.capacityProvided;
     }
-    
+
     public boolean isSource() {
         return this.isSource;
     }
@@ -80,21 +80,21 @@ public class TopologyNode
     public BlockPos getUpstreamPos() {
         return this.upstreamPos;
     }
-    
+
     public boolean isOverStressed() {
         return this.isOverStressed;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         return this == o || (o instanceof TopologyNode && this.pos.equals(((TopologyNode)o).pos));
     }
-    
+
     @Override
     public int hashCode() {
         return this.pos.hashCode();
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         tag.putLong("Pos", this.pos.asLong());
@@ -111,7 +111,7 @@ public class TopologyNode
         }
         return tag;
     }
-    
+
     public static TopologyNode load(CompoundTag tag) {
         final NodeType type = NodeType.values()[Math.min(tag.getInt("Type"), NodeType.values().length - 1)];
         final boolean isSource = tag.getBoolean("IsSource");

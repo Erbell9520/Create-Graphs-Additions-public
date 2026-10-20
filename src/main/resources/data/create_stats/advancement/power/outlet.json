@@ -1,0 +1,45 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:duplex_power_outlet"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.outlet.title",
+      "fallback": "Power Strip in a Power Strip"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.outlet.description",
+      "fallback": "Place a power outlet. The power strip in the power strip in the power strip."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "outlet": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:power_outlet",
+                  "create_stats:duplex_power_outlet"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "outlet"
+    ]
+  ]
+}

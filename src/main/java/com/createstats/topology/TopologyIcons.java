@@ -33,10 +33,10 @@ public final class TopologyIcons
     private static final byte[] ICON_SPEED_CONTROLLER;
     private static final byte[] ICON_GAUGE;
     private static final byte[] ICON_GENERIC;
-    
+
     private TopologyIcons() {
     }
-    
+
     public static byte[] getIcon(NodeType type) {
         return switch (type) {
             default -> throw new IncompatibleClassChangeError();
@@ -66,7 +66,7 @@ public final class TopologyIcons
             case OTHER -> TopologyIcons.ICON_GENERIC;
         };
     }
-    
+
     public static void drawIcon(NativeImage image, byte[] icon, int iconSize, int x, int y, int argbColor, int scale) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -89,7 +89,7 @@ public final class TopologyIcons
             }
         }
     }
-    
+
     static {
         ICON_SHAFT = new byte[] { 4, 4, 14, 4, 4 };
         ICON_COGWHEEL = new byte[] { 10, 27, 14, 27, 10 };

@@ -15,33 +15,33 @@ public class PanelActivityPacket implements CustomPacketPayload
     private final BlockPos pos;
     private final boolean trainMapActive;
     private final boolean topologyActive;
-    
+
     public static final CustomPacketPayload.Type<PanelActivityPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "panel_activity"));
     public static final StreamCodec<FriendlyByteBuf, PanelActivityPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), PanelActivityPacket::new);
-    
+
     public PanelActivityPacket(BlockPos pos, boolean trainMapActive, boolean topologyActive) {
         this.pos = pos;
         this.trainMapActive = trainMapActive;
         this.topologyActive = topologyActive;
     }
-    
+
     public PanelActivityPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.trainMapActive = buf.readBoolean();
         this.topologyActive = buf.readBoolean();
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeBoolean(this.trainMapActive);
         buf.writeBoolean(this.topologyActive);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(PanelActivityPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();

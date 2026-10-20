@@ -20,14 +20,14 @@ import net.neoforged.api.distmarker.OnlyIn;
 public final class DashboardRenderer
 {
     private static final Map<Long, CachedLayout> LAYOUT_CACHE;
-    
+
     private DashboardRenderer() {
     }
-    
+
     public static void clearLayoutCache() {
         DashboardRenderer.LAYOUT_CACHE.clear();
     }
-    
+
     public static void renderDashboard(NativeImage image, StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -163,7 +163,7 @@ public final class DashboardRenderer
             AlertTickerRenderer.render(image, bottom, be, channels, theme);
         }
     }
-    
+
     static int blendColor(int c1, int c2, float factor) {
         final int r = (int)((c1 >> 16 & 0xFF) * (1.0f - factor) + (c2 >> 16 & 0xFF) * factor);
         final int g = (int)((c1 >> 8 & 0xFF) * (1.0f - factor) + (c2 >> 8 & 0xFF) * factor);
@@ -218,7 +218,7 @@ public final class DashboardRenderer
             return this.width == width && this.height == height && this.mainChannelId.equals(mainChannelId) && this.channelSignature.equals(channelSignature);
         }
     }
-    
+
     static {
         LAYOUT_CACHE = new ConcurrentHashMap<Long, CachedLayout>();
     }

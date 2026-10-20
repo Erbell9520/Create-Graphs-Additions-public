@@ -4,7 +4,7 @@ public final class PredictionFormatter
 {
     private PredictionFormatter() {
     }
-    
+
     public static String formatWarning(PredictionResult result) {
         if (result == null) {
             return "";
@@ -23,7 +23,7 @@ public final class PredictionFormatter
             return "\u26a0 " + result.thresholdLabel() + " in " + timeStr + " (" + formatReliability(result) + ")";
         }
     }
-    
+
     public static String formatCompact(PredictionResult result) {
         if (result == null) {
             return "";
@@ -41,14 +41,14 @@ public final class PredictionFormatter
         }
         return label + " in " + time;
     }
-    
+
     public static String formatRSquared(PredictionResult result) {
         if (result == null) {
             return "";
         }
         return "Confidence " + Math.round(Math.max(0.0, Math.min(1.0, result.rSquared())) * 100.0) + "%";
     }
-    
+
     public static String formatDuration(double seconds) {
         if (seconds < 0.0) {
             return "now";
@@ -69,7 +69,7 @@ public final class PredictionFormatter
         }
         return ">1 hr";
     }
-    
+
     public static int getRSquaredColor(double rSquared) {
         if (rSquared >= 0.75) {
             return -16711800;

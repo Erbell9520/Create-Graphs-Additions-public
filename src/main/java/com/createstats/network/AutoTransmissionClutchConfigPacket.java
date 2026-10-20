@@ -12,11 +12,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class AutoTransmissionClutchConfigPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<AutoTransmissionClutchConfigPacket> TYPE = 
+    public static final CustomPacketPayload.Type<AutoTransmissionClutchConfigPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "auto_transmission_clutch_config"));
-    
-    public static final StreamCodec<FriendlyByteBuf, AutoTransmissionClutchConfigPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, AutoTransmissionClutchConfigPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), AutoTransmissionClutchConfigPacket::new);
 
     public enum Action { UPDATE_SETTINGS }

@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public class FreightManifestLine {
-
     private UUID lineId;
     private ManifestCargoKind cargoKind;
     private ManifestOperation operation;

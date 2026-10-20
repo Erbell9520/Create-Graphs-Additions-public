@@ -9,24 +9,20 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/** [1] */
 public final class PanelCapabilities {
-
-    /** The behavioural kind of a single data channel, used to decide which controls apply. */
     public enum ChannelKind {
-        /** Open-ended numeric: RPM, stress SU, throughput, energy, fluid mB, velocity, burn time, item count. */
         CONTINUOUS("Continuous"),
-        /** Fixed 0..100 percentage style: stress %, fill level, efficiency score. */
+
         BOUNDED("Bounded"),
-        /** Small integer scale: redstone 0-15, boiler heat 0-18, engine count. */
+
         DISCRETE("Stepped"),
-        /** On / off state. */
+
         BOOLEAN("State"),
-        /** 0..360 degrees; wraps around. */
+
         ANGLE("Angle"),
-        /** Non-numeric text readout with no usable series. */
+
         TEXT("Text"),
-        /** Unknown or unclassified numeric value. */
+
         GENERIC("Value");
 
         private final String label;
@@ -42,14 +38,13 @@ public final class PanelCapabilities {
 
     private PanelCapabilities() {}
 
-    /** Classify one channel. Never returns null. */
     public static ChannelKind classify(StatsDisplayPanelBE.DataChannel channel) {
         if (channel == null) {
             return ChannelKind.GENERIC;
         }
         final TimeSeriesStore store = channel.getStore();
         final boolean hasSamples = store != null && store.getSampleCount() > 0;
-        // Text detection mirrors StressometerHudDataResolver: text present with no numeric samples.
+
         final String text = channel.getLastText();
         if (text != null && !text.isEmpty() && !hasSamples) {
             return ChannelKind.TEXT;
@@ -57,7 +52,6 @@ public final class PanelCapabilities {
         return classify(store != null ? store.getMetricType() : null);
     }
 
-    /** Classify by metric type alone (used when only the type is known). Never returns null. */
     public static ChannelKind classify(MetricType type) {
         if (type == null) {
             return ChannelKind.GENERIC;
@@ -82,32 +76,22 @@ public final class PanelCapabilities {
         }
     }
 
-    // per-kind control applicability (Block 2.2)
-
-    /** Manual Y-axis range only matters for open-ended numeric data; bounded/discrete/angle have a
-     * fixed canonical scale (see {@code MetricContract.fixedRange}) and boolean/text have none. */
     public static boolean supportsManualYRange(ChannelKind kind) {
         return kind == ChannelKind.CONTINUOUS || kind == ChannelKind.GENERIC;
     }
 
-    /** Trend prediction only makes sense for open-ended continuous series. */
     public static boolean supportsPrediction(ChannelKind kind) {
         return kind == ChannelKind.CONTINUOUS;
     }
 
-    /** Smooth line / area fill is wrong for stepped, boolean, or angle data. */
     public static boolean supportsSmoothLine(ChannelKind kind) {
         return kind == ChannelKind.CONTINUOUS || kind == ChannelKind.BOUNDED || kind == ChannelKind.GENERIC;
     }
 
-    /** Threshold alerts and redstone triggers bind to any numeric channel; text has no threshold. */
     public static boolean supportsThreshold(ChannelKind kind) {
         return kind != ChannelKind.TEXT;
     }
 
-    // source-level aggregate
-
-    /** Aggregated capabilities of the focused source: its family plus the set of channel kinds present. */
     public static final class SourceCapabilities {
         private final SourceFamilyDefinition family;
         private final Set<ChannelKind> kinds;
@@ -146,7 +130,6 @@ public final class PanelCapabilities {
         }
     }
 
-    /** Resolve the source-level capability set from its family and current channels. */
     public static SourceCapabilities resolve(SourceFamilyDefinition family,
                                              List<StatsDisplayPanelBE.DataChannel> channels) {
         final EnumSet<ChannelKind> kinds = EnumSet.noneOf(ChannelKind.class);

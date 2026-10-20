@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "lamp_amber": "create_stats:block/air_fryer_lamp_amber",
+    "particle": "create_stats:block/air_fryer_lamp_amber"
+  },
+  "elements": [
+    {
+      "__comment": "bead",
+      "from": [
+        -0.4,
+        -0.35000000000000003,
+        -0.16
+      ],
+      "to": [
+        0.4,
+        0.35000000000000003,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_amber"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_amber"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_amber"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_amber"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_amber"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#lamp_amber"
+        }
+      }
+    }
+  ]
+}

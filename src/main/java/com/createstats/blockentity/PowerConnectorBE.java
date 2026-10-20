@@ -2,9 +2,10 @@ package com.createstats.blockentity;
 
 import com.createstats.ModConfiguration;
 import com.createstats.block.PowerConnectorBlock;
+import com.createstats.power.ConnectorReadout;
 import com.createstats.power.FeWireNetwork;
+import com.createstats.power.WireTension;
 import com.createstats.power.WireTier;
-import com.createstats.registry.ModBlocks;
 import com.createstats.registry.ModItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -26,53 +27,63 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-/** [1] */
 public class PowerConnectorBE extends BlockEntity implements com.createstats.power.FeGridMember,
         com.createstats.power.FeWireTerminal,
         com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation {
-
     private final List<BlockPos> links = new ArrayList<>();
-    /** [2] */
+
     private final java.util.Map<Long, WireTier> linkTiers = new java.util.HashMap<>();
+
+    private final java.util.Map<Long, WireTension> linkTension = new java.util.HashMap<>();
     private int energy;
-    /** The connected component this node belongs to. Rebuilt lazily whenever it is null or dirty. */
+
     @Nullable
     private FeWireNetwork network;
 
-    /** [3] */
     private int lastFlow;
-    /** Minimum ticks between two flow syncs even when the value has not changed, as drift insurance. */
-    private static final int FLOW_SYNC_HEARTBEAT_TICKS = 20;
-    private int lastSyncedFlow = Integer.MIN_VALUE;
-    private int ticksSinceFlowSync = FLOW_SYNC_HEARTBEAT_TICKS;
+
+    private int cableFeed;
+
+    private int carried;
+
+    private int blockFlow;
+
+    private boolean servesBlock = true;
+
+    private int branchCeiling = com.createstats.power.FeGridSolver.NO_CEILING;
 
     private final IEnergyStorage energyView = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
-            final int amount = Math.min(Math.min(maxReceive, transferRate()), bufferCapacity() - energy);
-            if (amount <= 0) {
-                return 0;
-            }
-            if (!simulate) {
+            final int limit = Math.min(maxReceive, transferRate());
+            final int amount = Math.max(0, Math.min(limit, bufferCapacity() - energy));
+            if (amount > 0 && !simulate) {
                 energy += amount;
                 setChanged();
             }
-            return amount;
+            if (amount >= limit || network == null) {
+                return amount;
+            }
+
+            return amount + network.takeFromExternal(nodeKey(), limit - amount, simulate, level);
         }
 
         @Override
         public int extractEnergy(int maxExtract, boolean simulate) {
-            final int amount = Math.min(Math.min(maxExtract, transferRate()), energy);
-            if (amount <= 0) {
-                return 0;
-            }
-            if (!simulate) {
+            final int limit = Math.min(maxExtract, transferRate());
+            final int amount = Math.max(0, Math.min(limit, energy));
+            if (amount > 0 && !simulate) {
                 energy -= amount;
                 setChanged();
             }
-            return amount;
+            if (amount >= limit || network == null) {
+                return com.createstats.power.FeWireNetwork.noteSeamTransfer(network, level, simulate,
+                        amount, nodeKey());
+            }
+            return com.createstats.power.FeWireNetwork.noteSeamTransfer(network, level, simulate,
+                    amount + network.giveToExternal(nodeKey(), limit - amount, simulate, level),
+                    nodeKey());
         }
 
         @Override
@@ -108,20 +119,79 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         return links;
     }
 
-    /** The grade of the wire running to {@code link}, or {@link WireTier#COPPER} if untiered. */
     public WireTier tierOf(BlockPos link) {
         return linkTiers.getOrDefault(link.asLong(), WireTier.COPPER);
     }
 
-    /** The best wire attached here, which is what this node's throughput is allowed to reach. */
-    public WireTier bestWireTier() {
-        WireTier best = WireTier.COPPER;
-        for (WireTier tier : linkTiers.values()) {
-            if (tier.multiplier() > best.multiplier()) {
-                best = tier;
+    public WireTension tensionOf(BlockPos link) {
+        final WireTension set = linkTension.get(link.asLong());
+        return set == null ? WireTension.STANDARD : set;
+    }
+
+    public void setTension(BlockPos link, WireTension tension) {
+        if (tension == linkTension.get(link.asLong())) {
+            return;
+        }
+        linkTension.put(link.asLong(), tension);
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
+        }
+    }
+
+    public static WireTension tensionBetween(@Nullable net.minecraft.world.level.BlockGetter level,
+                                             BlockPos a, BlockPos b) {
+        if (level == null) {
+            return WireTension.STANDARD;
+        }
+        if (level.getBlockEntity(a) instanceof PowerConnectorBE near) {
+            final WireTension set = near.linkTension.get(b.asLong());
+            if (set != null) {
+                return set;
             }
         }
-        return best;
+        if (level.getBlockEntity(b) instanceof PowerConnectorBE far) {
+            final WireTension set = far.linkTension.get(a.asLong());
+            if (set != null) {
+                return set;
+            }
+        }
+        return WireTension.STANDARD;
+    }
+
+    public List<WireTier> spanTiers() {
+        final List<WireTier> spans = new ArrayList<>(links.size());
+        for (BlockPos link : links) {
+            spans.add(tierOf(link));
+        }
+        return spans;
+    }
+
+    public void measureCableFeed() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        int sum = 0;
+        for (Direction dir : Direction.values()) {
+            final BlockPos at = worldPosition.relative(dir);
+            if (!level.isLoaded(at)) {
+                continue;
+            }
+            final BlockEntity be = level.getBlockEntity(at);
+            final boolean conducts = be instanceof CableBE
+                    || be instanceof IndoorCableBE
+                    || (be instanceof SwitchBE sw && sw.isClosed())
+                    || (be instanceof DiagnosticJunctionBE junction
+                        && junction.isCableSplice() && !junction.isCutOff());
+            if (conducts) {
+                sum = com.createstats.power.FeRates.plus(sum,
+                        Math.max(0, ((com.createstats.power.FeGridMember) be).transferRate()));
+            }
+        }
+        if (sum != cableFeed) {
+            cableFeed = sum;
+            setChanged();
+        }
     }
 
     public int storedEnergy() {
@@ -136,21 +206,34 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
             energy = bufferCapacity();
         }
         if (network == null || network.isDirty()) {
-            // Rebuilds the whole connected component and hands every member the same instance, so
-            // this costs one flood fill per topology change, not one per node per tick.
             FeWireNetwork.buildFrom(this);
         }
         if (network != null) {
-            // Whichever member ticks first this tick runs the grid solve; the rest fall through.
             network.solveOnce(level);
         }
-        // [4]
-        syncReadout(lastFlow * 31 + energy / 8);
+        refreshReadout();
+        syncReadoutIfDue();
     }
 
-    // grid seam (used by FeWireNetwork)
+    // server side now. the client copy of six machines never synced draw, fryer at full tilt read "Idle"
+    private void refreshReadout() {
+        final BlockEntity attached = level.getBlockEntity(worldPosition.relative(mountedOn()));
+        servesBlock = attachedStorage() != null;
+        int flow = com.createstats.power.FeGoggle.deviceFlowFePerTick(attached);
+        if (flow == 0 && !com.createstats.power.FeGoggle.readsDeviceFlow(attached)) {
+            flow = lastFlow;
+        }
+        blockFlow = servesBlock ? flow : 0;
+        final long now = level.getGameTime();
+        final int through = network == null ? com.createstats.power.FeFlowGraph.UNKNOWN
+                : network.flowThrough(nodeKey(), now);
 
-    /** Set by the grid solve (or the PDU takeover) every tick it runs. Not called from anywhere else. */
+        carried = through == com.createstats.power.FeFlowGraph.UNKNOWN
+                ? Math.abs(blockFlow) : Math.max(0, through);
+        branchCeiling = network == null ? com.createstats.power.FeGridSolver.NO_CEILING
+                : network.supplyCeiling(level);
+    }
+
     public void setLastFlow(int flow) {
         this.lastFlow = flow;
     }
@@ -160,51 +243,48 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         return isRemoved() || getLevel() != owner;
     }
 
-    /**
-     * Signed FE/t between the grid and the attached block, as of the last solve. Positive feeds the
-     * attached block, negative draws from it, zero is idle.
-     */
+    @Override
     public int lastFlow() {
         return lastFlow;
     }
 
-    /** [5] */
-    private void syncFlowIfDue() {
-        ticksSinceFlowSync++;
-        if (lastFlow == lastSyncedFlow && ticksSinceFlowSync < FLOW_SYNC_HEARTBEAT_TICKS) {
-            return;
-        }
-        lastSyncedFlow = lastFlow;
-        ticksSinceFlowSync = 0;
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            // Flag 2: clients only, matching syncLinks(). A flow change is not a redstone event.
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
-        }
-    }
-
-    /** Goggle readout: what is passing between the grid and whatever this connector is mounted on. */
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        tooltip.add(Component.literal("    ").append(
-                Component.literal("Power Connector").withStyle(ChatFormatting.GRAY)));
-        final String flowLine;
-        final ChatFormatting flowColor;
-        if (lastFlow > 0) {
-            flowLine = String.format(Locale.ROOT, "Feeding attached block: %,d FE/t", lastFlow);
-            flowColor = ChatFormatting.GREEN;
-        } else if (lastFlow < 0) {
-            flowLine = String.format(Locale.ROOT, "Drawing from attached block: %,d FE/t", -lastFlow);
-            flowColor = ChatFormatting.AQUA;
-        } else {
-            flowLine = "Idle";
-            flowColor = ChatFormatting.DARK_GRAY;
-        }
-        tooltip.add(Component.literal("    ").append(Component.literal(flowLine).withStyle(flowColor)));
-        tooltip.add(Component.literal("    ").append(Component
-                .literal(String.format(Locale.ROOT, "Buffer: %,d / %,d FE", energy, bufferCapacity()))
-                .withStyle(ChatFormatting.AQUA)));
+        readout().appendTo(tooltip, isPlayerSneaking);
         return true;
+    }
+
+    public ConnectorReadout readout() {
+        final com.createstats.power.ConnectorTier tier = connectorTier();
+        return new ConnectorReadout(tier.getDisplayName(), tier, baseTransferRate(), spanTiers(), cableFeed,
+                carried, blockFlow, servesBlock, branchCeiling, bridgeCount(), sendOnlyBridgeCount(),
+                energy, bufferCapacity());
+    }
+
+    private int sendOnlyBridgeCount() {
+        if (level == null) {
+            return 0;
+        }
+        int oneWay = 0;
+        for (BlockPos link : links) {
+            if (com.createstats.power.NewAgeFeed.isSendOnlyBridge(level, link)) {
+                oneWay++;
+            }
+        }
+        return oneWay;
+    }
+
+    private int bridgeCount() {
+        if (level == null) {
+            return 0;
+        }
+        int bridges = 0;
+        for (BlockPos link : links) {
+            if (com.createstats.power.ForeignTerminalNode.isBridgeTarget(level, link)) {
+                bridges++;
+            }
+        }
+        return bridges;
     }
 
     @Override
@@ -212,7 +292,6 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         return worldPosition.asLong();
     }
 
-    /** The block this connector is mounted on, as an energy handler, or null if it has none. */
     @Override
     @Nullable
     public IEnergyStorage attachedStorage() {
@@ -224,25 +303,21 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
                 worldPosition.relative(towards), towards.getOpposite());
     }
 
-    /** [6] */
     public Direction mountedOn() {
         return (getBlockState().hasProperty(PowerConnectorBlock.FACING)
                 ? getBlockState().getValue(PowerConnectorBlock.FACING)
                 : Direction.UP).getOpposite();
     }
 
-    /** Adopt the network this node was found to belong to. Called only by {@link FeWireNetwork}. */
     public void adoptNetwork(FeWireNetwork network) {
         this.network = network;
     }
 
-    /** The grid this node is part of, if it has been built yet. */
     @Nullable
     public FeWireNetwork network() {
         return network;
     }
 
-    /** Set by the grid solve when it settles the pool back across node buffers. */
     public void setStoredEnergy(int amount) {
         final int clamped = Math.max(0, Math.min(amount, bufferCapacity()));
         if (clamped != energy) {
@@ -251,15 +326,14 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         }
     }
 
-    /** Drops one link that has been proven to point at something that is no longer a connector. */
     public void removeDeadLink(BlockPos link) {
         linkTiers.remove(link.asLong());
+        linkTension.remove(link.asLong());
         if (links.remove(link)) {
             syncLinks();
         }
     }
 
-    /** Forces this node's network to rebuild on the next tick. */
     @Override
     public void invalidateNetwork() {
         if (network != null) {
@@ -274,25 +348,6 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         invalidateNetwork();
     }
 
-    // wire link management (driven by CopperWireItem)
-
-    /** [7] */
-    public void addStudLink(BlockPos panel, WireTier tier) {
-        final BlockPos at = panel.immutable();
-        links.add(at);
-        linkTiers.put(at.asLong(), tier == null ? WireTier.COPPER : tier);
-        syncLinks();
-    }
-
-    /** Forgets the wire to a panel. The panel refunds it, or has already been broken. */
-    public void removeStudLink(BlockPos panel) {
-        linkTiers.remove(panel.asLong());
-        if (links.remove(panel)) {
-            syncLinks();
-        }
-    }
-
-    /** Links both ends with a wire of the given grade. Caller has validated range and capacity. */
     public static void linkPair(PowerConnectorBE a, PowerConnectorBE b, WireTier tier) {
         a.links.add(b.worldPosition.immutable());
         b.links.add(a.worldPosition.immutable());
@@ -307,7 +362,6 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         return worldPosition;
     }
 
-    /** One side of a link, so a wire to a machine's built-in connector is stored the same way. */
     @Override
     public void addLink(BlockPos far, WireTier tier) {
         final BlockPos at = far.immutable();
@@ -316,29 +370,25 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         syncLinks();
     }
 
-    /** Removes every wire on this node (both sides) and drops one Copper Wire per removed link. */
     public void dropWiresAndUnlinkAll() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        // Counted per grade, so a mixed node returns exactly what was spent on it rather than a
-        // handful of copper regardless of what the player actually strung up.
+
         final java.util.Map<WireTier, Integer> refund = new java.util.EnumMap<>(WireTier.class);
         for (BlockPos link : new ArrayList<>(links)) {
             refund.merge(tierOf(link), 1, Integer::sum);
-            if (level.getBlockEntity(link) instanceof PowerConnectorBE other) {
-                other.links.remove(worldPosition);
-                other.linkTiers.remove(worldPosition.asLong());
-                other.syncLinks();
-            } else if (level.getBlockEntity(link)
-                    instanceof PowerDistributionUnitBE panel) {
-                // The panel's leg loses this wire too. Forgetting rather than dropping, because the
-                // refund below already returns it: dropping at both ends would mint a second wire.
+            final BlockEntity far = level.getBlockEntity(link);
+
+            if (far instanceof com.createstats.power.FeStudPanel panel) {
                 panel.forgetLinksTo(worldPosition);
+            } else if (far instanceof com.createstats.power.FeWireTerminal other && other != this) {
+                other.removeDeadLink(worldPosition);
             }
         }
         links.clear();
         linkTiers.clear();
+        linkTension.clear();
         syncLinks();
         for (java.util.Map.Entry<WireTier, Integer> e : refund.entrySet()) {
             Block.popResource(level, worldPosition,
@@ -348,30 +398,28 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
 
     private void syncLinks() {
         setChanged();
-        // Topology changed, so the connected component this node belongs to is no longer valid.
+
         invalidateNetwork();
         if (level != null && !level.isClientSide()) {
-            // Flag 2: clients only. The wire renderer needs the new link list; the neighbours do
-            // not need a redstone update out of a wiring change.
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
         }
     }
 
-    // persistence + client sync
-
-
-    /** Last readout actually sent, and how long ago, so a still block costs nothing. */
-    private int lastSyncedReadout = Integer.MIN_VALUE;
+    private int syncedCarried = Integer.MIN_VALUE;
+    private int syncedBlockFlow = Integer.MIN_VALUE;
+    private int syncedShape = Integer.MIN_VALUE;
     private int ticksSinceReadoutSync;
 
-    /** [8] */
-    private void syncReadout(int shown) {
+    private void syncReadoutIfDue() {
         ticksSinceReadoutSync++;
-        final int bucket = Math.max(1, Math.abs(shown) / 32);
-        if (Math.abs(shown - lastSyncedReadout) < bucket && ticksSinceReadoutSync < 20) {
+        final int shape = java.util.Objects.hash(servesBlock, branchCeiling, cableFeed, transferRate());
+        if (!moved(carried, syncedCarried) && !moved(blockFlow, syncedBlockFlow)
+                && shape == syncedShape && ticksSinceReadoutSync < 20) {
             return;
         }
-        lastSyncedReadout = shown;
+        syncedCarried = carried;
+        syncedBlockFlow = blockFlow;
+        syncedShape = shape;
         ticksSinceReadoutSync = 0;
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(),
@@ -379,17 +427,34 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         }
     }
 
+    private static boolean moved(int now, int sent) {
+        return Math.abs((long) now - sent) >= Math.max(1, Math.abs(now) / 32);
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("Energy", energy);
-        // [9]
+
         tag.putInt("LastFlow", lastFlow);
+
+        tag.putInt("CableFeed", cableFeed);
+        tag.putInt("Carried", carried);
+        tag.putInt("BlockFlow", blockFlow);
+        tag.putBoolean("ServesBlock", servesBlock);
+        tag.putInt("BranchCeiling", branchCeiling);
         final byte[] tiers = new byte[links.size()];
         for (int i = 0; i < links.size(); i++) {
             tiers[i] = (byte) tierOf(links.get(i)).ordinal();
         }
         tag.putByteArray("LinkTiers", tiers);
+
+        final byte[] tension = new byte[links.size()];
+        for (int i = 0; i < links.size(); i++) {
+            final WireTension set = linkTension.get(links.get(i).asLong());
+            tension[i] = (byte) (set == null ? -1 : set.id());
+        }
+        tag.putByteArray("LinkTension", tension);
         final long[] longs = new long[links.size()];
         for (int i = 0; i < links.size(); i++) {
             longs[i] = links.get(i).asLong();
@@ -404,17 +469,28 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         if (tag.contains("LastFlow")) {
             lastFlow = tag.getInt("LastFlow");
         }
+        cableFeed = Math.max(0, tag.getInt("CableFeed"));
+        carried = Math.max(0, tag.getInt("Carried"));
+        blockFlow = tag.getInt("BlockFlow");
+
+        servesBlock = !tag.contains("ServesBlock") || tag.getBoolean("ServesBlock");
+        branchCeiling = tag.contains("BranchCeiling") ? tag.getInt("BranchCeiling")
+                : com.createstats.power.FeGridSolver.NO_CEILING;
         links.clear();
         linkTiers.clear();
-        // Written alongside Links and in the same order. A world saved before wire tiers existed has
-        // no LinkTiers at all, and every link correctly falls back to plain copper.
+        linkTension.clear();
+
         final byte[] tiers = tag.getByteArray("LinkTiers");
+        final byte[] tension = tag.getByteArray("LinkTension");
         final long[] packedLinks = tag.getLongArray("Links");
         for (int i = 0; i < packedLinks.length; i++) {
             final BlockPos pos = BlockPos.of(packedLinks[i]);
             links.add(pos);
             if (i < tiers.length) {
                 linkTiers.put(packedLinks[i], WireTier.byOrdinal(tiers[i]));
+            }
+            if (i < tension.length && tension[i] >= 0) {
+                linkTension.put(packedLinks[i], WireTension.byId(tension[i]));
             }
         }
     }
@@ -437,20 +513,18 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         loadAdditional(tag, registries);
     }
 
-    // config
-
-    /** [10] */
+    // wires add up like parallel conductors, capped at the connector's own rating
     @Override
     public int transferRate() {
-        final int base = baseTransferRate();
-        final int connectorTier = getBlockState().getBlock() == ModBlocks.ADVANCED_POWER_CONNECTOR.get()
-                ? advancedMultiplier() : 1;
-        // A connector with nothing attached is rated at its own grade; there is no wire to cap it.
-        final int wireTier = links.isEmpty() ? connectorTier : bestWireTier().multiplier();
-        return base * Math.min(connectorTier, wireTier);
+        return com.createstats.power.FeRates.connectorThroughput(baseTransferRate(), connectorTier(),
+                spanTiers(), cableFeed);
     }
 
-    /** The base rate one plain connector on plain copper moves. Every tier is a multiple of this. */
+    public com.createstats.power.ConnectorTier connectorTier() {
+        return getBlockState().getBlock() instanceof PowerConnectorBlock block
+                ? block.tier() : com.createstats.power.ConnectorTier.POWER;
+    }
+
     public static int baseTransferRate() {
         try {
             return ModConfiguration.COMMON.connectorTransferRate.get();
@@ -459,23 +533,16 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         }
     }
 
-    /** Throughput multiplier of the Advanced Power Connector over the plain one. */
-    public static int advancedMultiplier() {
-        try {
-            return ModConfiguration.COMMON.connectorAdvancedMultiplier.get();
-        } catch (RuntimeException ignored) {
-            return 3;
-        }
-    }
-
     @Override
     public int bufferCapacity() {
         try {
             return ModConfiguration.COMMON.connectorBufferCapacity.get();
         } catch (RuntimeException ignored) {
-            return 4096;
+            return DEFAULT_BUFFER;
         }
     }
+
+    public static final int DEFAULT_BUFFER = 16_000;
 
     public static int wireRange() {
         try {
@@ -485,11 +552,8 @@ public class PowerConnectorBE extends BlockEntity implements com.createstats.pow
         }
     }
 
-    public static int maxLinks() {
-        try {
-            return ModConfiguration.COMMON.connectorMaxLinks.get();
-        } catch (RuntimeException ignored) {
-            return 4;
-        }
+    @Override
+    public int maxLinks() {
+        return connectorTier().maxLinks();
     }
 }

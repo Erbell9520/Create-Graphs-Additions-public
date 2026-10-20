@@ -15,10 +15,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-/** [1] */
 @OnlyIn(Dist.CLIENT)
 public final class VccMk2ScreenTextureManager {
-
     private static final Map<BlockPos, Entry> TEXTURES = new HashMap<>();
     private static final int W = 160;
     private static final int H = 128;
@@ -58,7 +56,7 @@ public final class VccMk2ScreenTextureManager {
         try {
             NativeImage image = new NativeImage(W, H, false);
             DynamicTexture dyn = new DynamicTexture(image);
-            dyn.setFilter(false, false); // NEAREST: crisp CRT pixels, no edge bleed
+            dyn.setFilter(false, false);
             String name = "create_stats/vcc_mk2_" + pos.getX() + "_" + pos.getY() + "_" + pos.getZ();
             ResourceLocation loc = Minecraft.getInstance().getTextureManager().register(name, dyn);
             Entry e = new Entry();
@@ -73,7 +71,6 @@ public final class VccMk2ScreenTextureManager {
         }
     }
 
-    // themes
     private record Theme(int accent, int dim, int sky, int ground, boolean powered) {}
 
     private static Theme themeFor(VccMk2VisualState state) {
@@ -85,7 +82,6 @@ public final class VccMk2ScreenTextureManager {
         };
     }
 
-    // draw
     private static void renderScreen(NativeImage img, VccMk2VisualState state, long t) {
         Theme th = themeFor(state);
         TextureGraphRenderer.fillRect(img, 0, 0, W, H, 0xFF05080B);
@@ -101,7 +97,6 @@ public final class VccMk2ScreenTextureManager {
             return;
         }
 
-        // header + mode badge
         BitmapFont.drawString(img, "VCC MK II", ix + 5, iy + 4, th.accent(), 1);
         String badge = state.getSerializedName().toUpperCase();
         int badgeW = BitmapFont.measureString(badge, 1) + 8;
@@ -110,7 +105,6 @@ public final class VccMk2ScreenTextureManager {
         TextureGraphRenderer.drawBorder(img, badgeX, iy + 3, badgeW, 11, 1, th.accent());
         BitmapFont.drawString(img, badge, badgeX + 4, iy + 5, th.accent(), 1);
 
-        // artificial horizon (left in texture space)
         int cx = ix + 38, cy = iy + 64, r = 30;
         boolean act = state == VccMk2VisualState.ACTIVE;
         boolean warn = state == VccMk2VisualState.WARNING;
@@ -128,10 +122,8 @@ public final class VccMk2ScreenTextureManager {
         }
         drawHorizon(img, cx, cy, r, tilt, pitch, th);
 
-        // heading tape (scrolls only while ACTIVE; steady idle otherwise)
         drawHeadingTape(img, ix + iw / 2 + 6, iy + 22, iw / 2 - 12, act ? t : 0L, th);
 
-        // telemetry block (right). Live demo values only while ACTIVE; steady idle otherwise.
         int spdTenths = act ? (120 + (int) (40 * Math.sin(t * 0.05))) : 0;
         int rpm = act ? (180 + (int) (60 * Math.sin(t * 0.08 + 1))) : 0;
         int hdg = act ? (int) ((t / 2) % 360) : 127;
@@ -169,7 +161,7 @@ public final class VccMk2ScreenTextureManager {
                 setPx(img, xx, yy, line < 0 ? th.sky() : th.ground());
             }
         }
-        // horizon line + wings + center pip
+
         drawCircle(img, cx, cy, r, th.dim());
         int wing = th.accent();
         hline(img, cx - r + 5, cy, 10, wing);
@@ -178,7 +170,7 @@ public final class VccMk2ScreenTextureManager {
         setPx(img, cx, cy, wing);
         setPx(img, cx - 1, cy, wing);
         setPx(img, cx + 1, cy, wing);
-        // pitch ladder
+
         for (int p = -2; p <= 2; p++) {
             if (p == 0) {
                 continue;
@@ -201,12 +193,11 @@ public final class VccMk2ScreenTextureManager {
                 BitmapFont.drawString(img, pad2(label), hx - 4, y + 3, th.dim(), 1);
             }
         }
-        // center marker
+
         int mid = x + w / 2;
         fillTri(img, mid, y - 6, 4, th.accent());
     }
 
-    // effects
     private static void sweep(NativeImage img, int x, int y, int w, int h, long t, int accent) {
         int center = y + (int) ((t % 110L) * h / 110.0);
         int half = Math.max(4, h / 10);
@@ -256,7 +247,6 @@ public final class VccMk2ScreenTextureManager {
         }
     }
 
-    // pixel helpers
     private static void setPx(NativeImage img, int x, int y, int argb) {
         if (x < 0 || y < 0 || x >= img.getWidth() || y >= img.getHeight()) {
             return;
@@ -327,7 +317,7 @@ public final class VccMk2ScreenTextureManager {
     }
 
     private static int abgrToArgb(int abgr) {
-        return BitmapFont.argbToAbgr(abgr); // swap is its own inverse
+        return BitmapFont.argbToAbgr(abgr);
     }
 
     private static String pad2(int v) {
@@ -338,7 +328,6 @@ public final class VccMk2ScreenTextureManager {
         return String.format("%03d", ((v % 360) + 360) % 360);
     }
 
-    // lifecycle
     private static void cleanupStale(long now) {
         Iterator<Map.Entry<BlockPos, Entry>> it = TEXTURES.entrySet().iterator();
         while (it.hasNext()) {

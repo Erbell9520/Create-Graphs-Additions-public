@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light MK II BASE (static), rendered by the BER. FACING=up reference. Slightly larger, brass/gold/cream.",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

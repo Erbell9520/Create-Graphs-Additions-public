@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MiniDisplaySettings {
-
     private SourceMode sourceMode;
     private StorageDetailMode storageDetailMode;
     private AccentColor accentColor;

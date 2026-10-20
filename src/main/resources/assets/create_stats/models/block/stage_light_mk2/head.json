@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light MK II HEAD (pans with yoke + tilts about the hub axis), rendered by the BER. FACING=up reference. Chunkier long-throw barrel: wider and taller than MK I, four cooling fins, a rear driver box, and a raised gold bezel (lens plane at y=13.3..13.5, matched by MK2_LENS_Y in StageLightRenderer).",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

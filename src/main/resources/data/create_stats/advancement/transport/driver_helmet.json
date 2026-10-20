@@ -1,0 +1,47 @@
+{
+  "parent": "create_stats:transport/mk4",
+  "display": {
+    "icon": {
+      "id": "create_stats:driver_helmet"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.driver_helmet.title",
+      "fallback": "Mum Made You Wear It"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.driver_helmet.description",
+      "fallback": "Wear a Driver Helmet. Because your mum said so."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "helmet": {
+      "trigger": "minecraft:tick",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "equipment": {
+                "head": {
+                  "items": [
+                    "create_stats:driver_helmet"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "helmet"
+    ]
+  ]
+}

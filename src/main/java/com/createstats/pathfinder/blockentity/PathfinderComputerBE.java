@@ -43,8 +43,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class PathfinderComputerBE extends BlockEntity implements MenuProvider, IHaveGoggleInformation, com.createstats.power.IFeConsumer {
-
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_PATHFINDER_COMPUTER));
 
@@ -356,7 +354,7 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
     public void tick() {
         Level level = this.level;
         if (!(level instanceof ServerLevel serverLevel)) return;
-        // FE Dependent Mode gate: a dead route computer stops refreshing its scanner link.
+
         final boolean fePowered = this.feConsumer.serviceTick(this.plannerJobActive);
         com.createstats.power.FePowerFx.handleTransition(level, this.worldPosition, this.feConsumer);
         if (!fePowered) return;
@@ -598,7 +596,7 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
 
     private boolean isPlannerScanReady(PathScannerBE scanner) {
         int expected = Math.max(1, this.linkedExpectedChunks);
-        // Allow up to 3 unloaded edge chunks, A* will route around them via UnknownPolicy.BLOCK
+
         return this.linkedLoadedChunks >= expected && this.linkedUnknownChunks <= 3;
     }
 
@@ -744,7 +742,6 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
                 this.routeScanSideChunks = ROUTE_SCAN_MIN_SIDE_CHUNKS;
             }
         } else if (plannedRoute.guidance().confidence() <= 0f) {
-            // No route found, attempt to widen side scan; if already at max, force a fresh replan tick.
             if (!advanceRouteScanSideChunks()) {
                 this.plannerLastComputedTick = 0L;
             } else {
@@ -1112,7 +1109,7 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
         scanner.setRemotePaused(this.remotePaused);
         if (this.remotePaused) return true;
         this.ingestScannerSummary(scanner, this.linkedScannerPos);
-        return true; // scanner was found and ingested, do NOT let tick() reset linkedScannerLastSeenTick
+        return true;
     }
 
     public boolean isRemotePaused() {
@@ -1190,11 +1187,8 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
     }
 
     public boolean isPlayerInInteractionRange(Player player) {
-        // Shared lenient ship-aware reach check, see SableBridge for rationale.
         return com.createstats.flight.bridge.SableBridge.isPlayerInInteractionRangeFor(this, player);
     }
-
-    // goggle overlay
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
@@ -1205,7 +1199,7 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
                 Component.literal("No VCC linked").withStyle(ChatFormatting.DARK_GRAY)));
             return true;
         }
-        // Front direction
+
         if (Float.isNaN(linkedFccHeadingDeg)) {
             tooltip.add(Component.literal("    ").append(
                 Component.literal("Front: unknown").withStyle(ChatFormatting.DARK_GRAY)));
@@ -1216,26 +1210,24 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
                 Component.literal(String.format("Front: %s %s (%.0f\u00b0)", arrow, cardinal, linkedFccHeadingDeg))
                     .withStyle(ChatFormatting.AQUA)));
         }
-        // Speed
+
         if (Float.isFinite(linkedFccSpeedMs)) {
             tooltip.add(Component.literal("    ").append(
                 Component.literal(String.format("Speed: %.1f m/s", linkedFccSpeedMs))
                     .withStyle(ChatFormatting.WHITE)));
         }
-        // Front wheel zone status (missing zones → heading falls back to velocity → may detect "backwards" direction)
+
         tooltip.add(Component.literal("    ").append(
             Component.literal(linkedFccHasFrontWheels ? "Wheels: front set \u2714" : "Wheels: front not set \u26a0")
                 .withStyle(linkedFccHasFrontWheels ? ChatFormatting.GREEN : ChatFormatting.YELLOW)));
         return true;
     }
 
-    /** Maps Minecraft yaw (0=S, 90=W, 180=N, 270=E) to a unicode direction arrow. */
     private static String goggleHeadingArrow(float yaw) {
         int sector = Math.round(((yaw % 360f) + 360f) % 360f / 45f) % 8;
         return new String[]{"↓", "↙", "←", "↖", "↑", "↗", "→", "↘"}[sector];
     }
 
-    /** Maps Minecraft yaw to a cardinal/intercardinal name. */
     private static String goggleCardinalName(float yaw) {
         int sector = Math.round(((yaw % 360f) + 360f) % 360f / 45f) % 8;
         return new String[]{"S", "SW", "W", "NW", "N", "NE", "E", "SE"}[sector];
@@ -1372,7 +1364,7 @@ public class PathfinderComputerBE extends BlockEntity implements MenuProvider, I
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         this.saveAdditional(tag, registries);
-        // Sync activeGuidance to client only, not persisted to disk
+
         if (activeGuidance != null && activeGuidance.confidence() > 0f) {
             tag.put("ActiveGuidance", activeGuidance.save());
         }

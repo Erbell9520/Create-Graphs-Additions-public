@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "BSB",
+    "SWS",
+    "BSB"
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    },
+    "W": {
+      "item": "create_stats:window_shutter"
+    }
+  },
+  "result": {
+    "id": "create_stats:blast_shutter",
+    "count": 1
+  },
+  "show_notification": true
+}

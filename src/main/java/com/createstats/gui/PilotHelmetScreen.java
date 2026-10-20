@@ -18,9 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class PilotHelmetScreen extends Screen {
-
     private static final int PANEL_W = 296;
-    // Panel got a NIGHT VISION section above LINKED NODES; height bumped by NV_BLOCK_H.
+
     private static final int NV_BLOCK_H = 46;
     private static final int PANEL_H = 280 + NV_BLOCK_H;
 
@@ -40,7 +39,6 @@ public class PilotHelmetScreen extends Screen {
     private static final int STATUS_OFF = 0xFF50616E;
     private static final int FOOTER_TEXT = 0xFF8898A8;
 
-    // HUD scale (in-world helmet HUD overlay): cycle through 1x (default), 1.5x, 2x, 3x.
     static final float DEFAULT_HUD_SCALE_FACTOR = 1.0f;
     private static final float[] HUD_SCALE_CYCLE = {1.0f, 1.5f, 2.0f, 3.0f};
 
@@ -87,10 +85,8 @@ public class PilotHelmetScreen extends Screen {
                 .bounds(left + 184, rowY, 96, 20)
                 .build());
 
-        // CANOPY DISPLAY: vignette slider
         this.addRenderableWidget(new VignetteSlider(left + 16, top + 102, PANEL_W - 32, 20, this.pendingVignetteStrength));
 
-        // INTERFACE SCALE: HUD overlay scale cycle button (scales worn-helmet HUD elements, NOT this panel)
         this.addRenderableWidget(Button.builder(Component.literal(hudScaleLabel()),
                 btn -> {
                     this.pendingHudScaleFactor = nextHudScale(this.pendingHudScaleFactor);
@@ -100,7 +96,6 @@ public class PilotHelmetScreen extends Screen {
                 .bounds(left + 16, top + 148, PANEL_W - 32, 20)
                 .build());
 
-        // [1]
         int nvY = top + 194;
         this.addRenderableWidget(Button.builder(Component.literal(nvToggleLabel()),
                 btn -> {
@@ -119,7 +114,6 @@ public class PilotHelmetScreen extends Screen {
                 .bounds(left + 184, nvY, 96, 20)
                 .build());
 
-        // Close button
         this.addRenderableWidget(Button.builder(Component.literal("Close"), btn -> this.onClose())
                 .bounds(left + PANEL_W - 70, top + PANEL_H - 26, 58, 20)
                 .build());
@@ -139,7 +133,8 @@ public class PilotHelmetScreen extends Screen {
         return false;
     }
 
-    // [2]
+    // no-op so the 1.21 blur never runs
+
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
     }
@@ -151,10 +146,9 @@ public class PilotHelmetScreen extends Screen {
         int right = left + PANEL_W;
         int bottom = top + PANEL_H;
 
-        // Outline + body
         graphics.fill(left - 1, top - 1, right + 1, bottom + 1, OUTLINE);
         graphics.fill(left, top, right, bottom, PANEL_BG);
-        // Corner accent tabs
+
         graphics.fill(left, top, left + 8, top + 2, HEADER_ACCENT);
         graphics.fill(left, top, left + 2, top + 8, HEADER_ACCENT);
         graphics.fill(right - 8, top, right, top + 2, HEADER_ACCENT);
@@ -164,7 +158,6 @@ public class PilotHelmetScreen extends Screen {
         graphics.fill(right - 8, bottom - 2, right, bottom, HEADER_ACCENT);
         graphics.fill(right - 2, bottom - 8, right, bottom, HEADER_ACCENT);
 
-        // Header bar
         int headerH = 28;
         graphics.fill(left + 2, top + 2, right - 2, top + headerH, HEADER_BG);
         graphics.fill(left + 2, top + headerH, right - 2, top + headerH + 1, HEADER_ACCENT);
@@ -174,25 +167,20 @@ public class PilotHelmetScreen extends Screen {
         graphics.fill(right - stampW - 18, top + 8, right - 8, top + 20, 0xFF1B2D3D);
         graphics.drawString(this.font, stamp, right - stampW - 13, top + 10, HEADER_ACCENT, false);
 
-        // Section 1: OPERATING MODE
         drawSectionLabel(graphics, left + 16, top + 40, "OPERATING MODE", "mode + seat behavior");
 
-        // Section 2: CANOPY DISPLAY
         int s2Y = top + 86;
         graphics.fill(left + 12, s2Y - 6, right - 12, s2Y - 5, SECTION_DIVIDER);
         drawSectionLabel(graphics, left + 16, s2Y, "CANOPY DISPLAY", "visor mask intensity");
 
-        // Section 3: INTERFACE SCALE (scales the in-world worn-helmet HUD, not this panel)
         int s3Y = top + 132;
         graphics.fill(left + 12, s3Y - 6, right - 12, s3Y - 5, SECTION_DIVIDER);
         drawSectionLabel(graphics, left + 16, s3Y, "INTERFACE SCALE", "size of worn HUD elements");
 
-        // Section 4: NIGHT VISION (new), toggle + visualization mode + key hint
         int sNvY = top + 178;
         graphics.fill(left + 12, sNvY - 6, right - 12, sNvY - 5, SECTION_DIVIDER);
         drawSectionLabel(graphics, left + 16, sNvY, "NIGHT VISION", "toggle key: " + currentNvKeyText());
 
-        // Section 5: LINKED NODES (shifted down by NV_BLOCK_H to make room for NV)
         int s4Y = top + 178 + NV_BLOCK_H;
         graphics.fill(left + 12, s4Y - 6, right - 12, s4Y - 5, SECTION_DIVIDER);
         drawSectionLabel(graphics, left + 16, s4Y, "LINKED NODES", "right-click on block to assign");
@@ -207,7 +195,6 @@ public class PilotHelmetScreen extends Screen {
         linkY += linkRowH + 2;
         drawLinkRow(graphics, left + 16, linkY, PANEL_W - 32, linkRowH, "STATS DISPLAY", data.getStatsDisplayLink(), valueColX);
 
-        // Footer
         int footerY = bottom - 30;
         graphics.fill(left + 2, footerY, right - 2, footerY + 1, SECTION_DIVIDER);
         String footerMsg = "Fighter HUD active.";
@@ -244,8 +231,7 @@ public class PilotHelmetScreen extends Screen {
             String name = link.getTargetName();
             String coord = pos == null ? "" : "[" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]";
             String displayName = (name == null || name.isEmpty()) ? "Linked" : name;
-            // Fit "name  coord" into available width; if too wide, drop the name and keep coords,
-            // otherwise truncate the name with "…".
+
             int available = w - valueColRel - 6;
             value = displayName + "  " + coord;
             if (this.font.width(value) > available) {
@@ -283,7 +269,6 @@ public class PilotHelmetScreen extends Screen {
         return "NV " + this.pendingNightVisionMode.getDisplayName();
     }
 
-    /** @return the human-readable label of the current NV-toggle keybind (e.g. "G"). */
     private static String currentNvKeyText() {
         try {
             return ModKeyMappings.TOGGLE_HELMET_NIGHT_VISION.getTranslatedKeyMessage().getString();
@@ -303,12 +288,10 @@ public class PilotHelmetScreen extends Screen {
     }
 
     private static String formatHudScale(float factor) {
-        // Strip trailing .0 so 1.0 renders as "1" but 1.5 stays "1.5".
         return (factor == Math.floor(factor)) ? String.valueOf((int) factor) : String.valueOf(factor);
     }
 
     private static float nextHudScale(float current) {
-        // Find the first cycle entry strictly greater than current; wrap to index 0.
         for (float v : HUD_SCALE_CYCLE) {
             if (v > current + 0.001f) {
                 return v;
@@ -343,5 +326,4 @@ public class PilotHelmetScreen extends Screen {
             PilotHelmetScreen.this.pushSettings();
         }
     }
-
 }

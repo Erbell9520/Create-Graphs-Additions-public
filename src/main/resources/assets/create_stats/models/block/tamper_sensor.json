@@ -1,0 +1,85 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"textures": {
+		"particle": "create_stats:block/tamper_sensor_shell",
+		"shell": "create_stats:block/tamper_sensor_shell",
+		"face": "create_stats:block/tamper_sensor_face"
+	},
+	"elements": [
+		{
+			"name": "plate",
+			"from": [1.5, 5, 0],
+			"to": [14.5, 11, 0.8],
+			"faces": {
+				"north": {"uv": [1.5, 5, 14.5, 11], "texture": "#shell"},
+				"east": {"uv": [0, 5, 0.8, 11], "texture": "#shell"},
+				"south": {"uv": [1.5, 5, 14.5, 11], "texture": "#face"},
+				"west": {"uv": [0, 5, 0.8, 11], "texture": "#shell"},
+				"up": {"uv": [1.5, 0, 14.5, 0.8], "texture": "#shell"},
+				"down": {"uv": [1.5, 0, 14.5, 0.8], "texture": "#shell"}
+			}
+		},
+		{
+			"name": "case",
+			"from": [3, 5.5, 0.8],
+			"to": [13, 10.5, 2.3],
+			"faces": {
+				"east": {"uv": [0.8, 5.5, 2.3, 10.5], "texture": "#shell"},
+				"south": {"uv": [3, 5.5, 13, 10.5], "texture": "#shell"},
+				"west": {"uv": [0.8, 5.5, 2.3, 10.5], "texture": "#shell"},
+				"up": {"uv": [3, 0.8, 13, 2.3], "texture": "#shell"},
+				"down": {"uv": [3, 0.8, 13, 2.3], "texture": "#shell"}
+			}
+		},
+		{
+			"name": "lid",
+			"from": [4.5, 6, 2.3],
+			"to": [11.5, 10, 3],
+			"faces": {
+				"east": {"uv": [2.3, 6, 3, 10], "texture": "#shell"},
+				"south": {"uv": [4.5, 6, 11.5, 10], "texture": "#face"},
+				"west": {"uv": [2.3, 6, 3, 10], "texture": "#shell"},
+				"up": {"uv": [4.5, 2.3, 11.5, 3], "texture": "#shell"},
+				"down": {"uv": [4.5, 2.3, 11.5, 3], "texture": "#shell"}
+			}
+		},
+		{
+			"name": "gland",
+			"from": [13, 7, 0.5],
+			"to": [15, 9, 2],
+			"faces": {
+				"north": {"uv": [13, 7, 15, 9], "texture": "#shell"},
+				"east": {"uv": [0.5, 7, 2, 9], "texture": "#shell"},
+				"south": {"uv": [13, 7, 15, 9], "texture": "#shell"},
+				"up": {"uv": [13, 0.5, 15, 2], "texture": "#shell"},
+				"down": {"uv": [13, 0.5, 15, 2], "texture": "#shell"}
+			}
+		},
+		{
+			"name": "gland_nut",
+			"from": [15, 7.25, 0.6],
+			"to": [15.8, 8.75, 1.9],
+			"faces": {
+				"north": {"uv": [15, 7.25, 15.8, 8.75], "texture": "#shell"},
+				"east": {"uv": [0.6, 7.25, 1.9, 8.75], "texture": "#shell"},
+				"south": {"uv": [15, 7.25, 15.8, 8.75], "texture": "#shell"},
+				"up": {"uv": [15, 0.6, 15.8, 1.9], "texture": "#shell"},
+				"down": {"uv": [15, 0.6, 15.8, 1.9], "texture": "#shell"}
+			}
+		},
+		{
+			"name": "plunger",
+			"from": [7, 4, 0.9],
+			"to": [9, 5, 2],
+			"faces": {
+				"north": {"uv": [7, 11, 9, 12], "texture": "#shell"},
+				"east": {"uv": [0.9, 11, 2, 12], "texture": "#shell"},
+				"south": {"uv": [7, 11, 9, 12], "texture": "#shell"},
+				"west": {"uv": [0.9, 11, 2, 12], "texture": "#shell"},
+				"down": {"uv": [7, 0.9, 9, 2], "texture": "#shell"}
+			}
+		}
+	]
+}

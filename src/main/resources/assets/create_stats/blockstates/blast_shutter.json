@@ -1,0 +1,274 @@
+{
+  "variants": {
+    "facing=north,half=lower,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower"
+    },
+    "facing=east,half=lower,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower",
+      "y": 90
+    },
+    "facing=south,half=lower,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower",
+      "y": 180
+    },
+    "facing=west,half=lower,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower",
+      "y": 270
+    },
+    "facing=north,half=lower,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_sealed"
+    },
+    "facing=east,half=lower,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_sealed",
+      "y": 90
+    },
+    "facing=south,half=lower,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_sealed",
+      "y": 180
+    },
+    "facing=west,half=lower,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_sealed",
+      "y": 270
+    },
+    "facing=north,half=lower,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_front"
+    },
+    "facing=east,half=lower,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_front",
+      "y": 90
+    },
+    "facing=south,half=lower,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_front",
+      "y": 180
+    },
+    "facing=west,half=lower,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_front",
+      "y": 270
+    },
+    "facing=north,half=lower,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_front_sealed"
+    },
+    "facing=east,half=lower,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_front_sealed",
+      "y": 90
+    },
+    "facing=south,half=lower,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_front_sealed",
+      "y": 180
+    },
+    "facing=west,half=lower,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_front_sealed",
+      "y": 270
+    },
+    "facing=north,half=lower,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_back"
+    },
+    "facing=east,half=lower,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_back",
+      "y": 90
+    },
+    "facing=south,half=lower,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_back",
+      "y": 180
+    },
+    "facing=west,half=lower,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_lower_back",
+      "y": 270
+    },
+    "facing=north,half=lower,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_back_sealed"
+    },
+    "facing=east,half=lower,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_back_sealed",
+      "y": 90
+    },
+    "facing=south,half=lower,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_back_sealed",
+      "y": 180
+    },
+    "facing=west,half=lower,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_lower_back_sealed",
+      "y": 270
+    },
+    "facing=north,half=middle,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle"
+    },
+    "facing=east,half=middle,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle",
+      "y": 90
+    },
+    "facing=south,half=middle,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle",
+      "y": 180
+    },
+    "facing=west,half=middle,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle",
+      "y": 270
+    },
+    "facing=north,half=middle,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_sealed"
+    },
+    "facing=east,half=middle,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_sealed",
+      "y": 90
+    },
+    "facing=south,half=middle,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_sealed",
+      "y": 180
+    },
+    "facing=west,half=middle,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_sealed",
+      "y": 270
+    },
+    "facing=north,half=middle,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_front"
+    },
+    "facing=east,half=middle,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_front",
+      "y": 90
+    },
+    "facing=south,half=middle,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_front",
+      "y": 180
+    },
+    "facing=west,half=middle,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_front",
+      "y": 270
+    },
+    "facing=north,half=middle,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_front_sealed"
+    },
+    "facing=east,half=middle,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_front_sealed",
+      "y": 90
+    },
+    "facing=south,half=middle,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_front_sealed",
+      "y": 180
+    },
+    "facing=west,half=middle,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_front_sealed",
+      "y": 270
+    },
+    "facing=north,half=middle,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_back"
+    },
+    "facing=east,half=middle,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_back",
+      "y": 90
+    },
+    "facing=south,half=middle,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_back",
+      "y": 180
+    },
+    "facing=west,half=middle,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_middle_back",
+      "y": 270
+    },
+    "facing=north,half=middle,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_back_sealed"
+    },
+    "facing=east,half=middle,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_back_sealed",
+      "y": 90
+    },
+    "facing=south,half=middle,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_back_sealed",
+      "y": 180
+    },
+    "facing=west,half=middle,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_middle_back_sealed",
+      "y": 270
+    },
+    "facing=north,half=upper,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper"
+    },
+    "facing=east,half=upper,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper",
+      "y": 90
+    },
+    "facing=south,half=upper,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper",
+      "y": 180
+    },
+    "facing=west,half=upper,mount=center,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper",
+      "y": 270
+    },
+    "facing=north,half=upper,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_sealed"
+    },
+    "facing=east,half=upper,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_sealed",
+      "y": 90
+    },
+    "facing=south,half=upper,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_sealed",
+      "y": 180
+    },
+    "facing=west,half=upper,mount=center,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_sealed",
+      "y": 270
+    },
+    "facing=north,half=upper,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_front"
+    },
+    "facing=east,half=upper,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_front",
+      "y": 90
+    },
+    "facing=south,half=upper,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_front",
+      "y": 180
+    },
+    "facing=west,half=upper,mount=front,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_front",
+      "y": 270
+    },
+    "facing=north,half=upper,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_front_sealed"
+    },
+    "facing=east,half=upper,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_front_sealed",
+      "y": 90
+    },
+    "facing=south,half=upper,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_front_sealed",
+      "y": 180
+    },
+    "facing=west,half=upper,mount=front,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_front_sealed",
+      "y": 270
+    },
+    "facing=north,half=upper,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_back"
+    },
+    "facing=east,half=upper,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_back",
+      "y": 90
+    },
+    "facing=south,half=upper,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_back",
+      "y": 180
+    },
+    "facing=west,half=upper,mount=back,sealed=false": {
+      "model": "create_stats:block/blast_shutter_upper_back",
+      "y": 270
+    },
+    "facing=north,half=upper,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_back_sealed"
+    },
+    "facing=east,half=upper,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_back_sealed",
+      "y": 90
+    },
+    "facing=south,half=upper,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_back_sealed",
+      "y": 180
+    },
+    "facing=west,half=upper,mount=back,sealed=true": {
+      "model": "create_stats:block/blast_shutter_upper_back_sealed",
+      "y": 270
+    }
+  }
+}

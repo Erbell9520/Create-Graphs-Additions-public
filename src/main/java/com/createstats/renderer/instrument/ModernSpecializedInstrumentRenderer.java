@@ -27,7 +27,7 @@ public final class ModernSpecializedInstrumentRenderer
 {
     private ModernSpecializedInstrumentRenderer() {
     }
-    
+
     public static boolean renderPanel(NativeImage image, StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels, String preferredSourceId, long renderTick) {
         final SourceSelection source = selectSource(be, channels, preferredSourceId, renderTick);
         if (source == null) {
@@ -52,7 +52,7 @@ public final class ModernSpecializedInstrumentRenderer
             }
         };
     }
-    
+
     private static void renderStressPanel(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick) {
         final StatsDisplayPanelBE.DataChannel stressPctCh = findMetric(source, "stress_pct", "Stress %");
         final StatsDisplayPanelBE.DataChannel stressSuCh = findMetric(source, "stress_su", "Current Stress (SU)");
@@ -90,7 +90,7 @@ public final class ModernSpecializedInstrumentRenderer
             }
         }
     }
-    
+
     private static void renderStockpilePanel(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick) {
         final StockpileReadout readout = resolveStockpileReadout(source);
         if (readout == null) {
@@ -116,7 +116,7 @@ public final class ModernSpecializedInstrumentRenderer
             }
         }
     }
-    
+
     private static void renderStressLocomotive(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, StatsDisplayPanelBE.DataChannel heroChannel, float pct, float used, float capacity, float remaining, float rpm, StateInfo state, boolean overstressed) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -148,7 +148,7 @@ public final class ModernSpecializedInstrumentRenderer
             TextureGraphRenderer.drawBorder(image, 1, 1, w - 2, h - 2, 2, state.color);
         }
     }
-    
+
     private static void renderStressMechanical(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, StatsDisplayPanelBE.DataChannel heroChannel, float pct, float used, float capacity, float remaining, float rpm, StateInfo state, boolean overstressed) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -160,7 +160,7 @@ public final class ModernSpecializedInstrumentRenderer
         final int cardsY = yAfterHeader() + topH + Math.max(18, h / 10) + 8;
         drawMetricTriplet(image, pad, cardsY, w - pad * 2, Math.max(30, h - cardsY - pad), theme, "LOAD", String.format("%.1f%%", pct), state.color, "HEAD", InstrumentRenderPrimitives.formatCompact(remaining), InstrumentRenderPrimitives.SAFE_GREEN, "RPM", InstrumentRenderPrimitives.formatCompact(rpm), theme.accent);
     }
-    
+
     private static void renderStressScientific(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, StatsDisplayPanelBE.DataChannel heroChannel, float pct, float used, float capacity, float remaining, float rpm, StateInfo state, boolean overstressed) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -177,7 +177,7 @@ public final class ModernSpecializedInstrumentRenderer
             InstrumentRenderPrimitives.drawMetricCard(image, rightX, h - Math.max(58, h / 4) - 22, rightW, 18, "RPM", InstrumentRenderPrimitives.formatCompact(rpm), theme, theme.accent, true);
         }
     }
-    
+
     private static void renderStressControl(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, float pct, float used, float capacity, float remaining, float rpm, StateInfo state, boolean overstressed) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -192,7 +192,7 @@ public final class ModernSpecializedInstrumentRenderer
         final int lowerY = cardsY + Math.max(24, h / 4) + 8;
         drawMetricTriplet(image, pad, lowerY, w - pad * 2, Math.max(24, h - lowerY - pad - 6), theme, "LOAD", String.format("%.1f%%", pct), state.color, "RPM", InstrumentRenderPrimitives.formatCompact(rpm), theme.accent, "MODE", state.shortLabel, state.color);
     }
-    
+
     private static void renderStockpileLocomotive(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, StockpileReadout readout) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -220,7 +220,7 @@ public final class ModernSpecializedInstrumentRenderer
             drawMetricTriplet(image, pad, trackerY + Math.max(24, h / 10) + 14, w - pad * 2, Math.max(22, h - trackerY - Math.max(24, h / 10) - pad - 18), theme, "STATE", readout.state().shortLabel(), readout.state().color(), "POWER", readout.powered() ? "ON" : "OFF", readout.powered() ? InstrumentRenderPrimitives.COOL_BLUE : theme.dim, "CAP", formatMetricValue(readout.amountType(), readout.capacityAmount()), theme.accent);
         }
     }
-    
+
     private static void renderStockpileMechanical(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, StockpileReadout readout) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -231,7 +231,7 @@ public final class ModernSpecializedInstrumentRenderer
         final int cardsY = yAfterHeader() + Math.max(56, h / 2) + Math.max(18, h / 10) + 8;
         drawMetricTriplet(image, pad, cardsY, w - pad * 2, Math.max(30, h - cardsY - pad), theme, "FILL", String.format("%.1f%%", readout.fillPercent()), readout.state().color(), "AMOUNT", formatMetricValue(readout.amountType(), readout.currentAmount()), theme.accent, "CAP", formatMetricValue(readout.amountType(), readout.capacityAmount()), InstrumentRenderPrimitives.ALERT_AMBER);
     }
-    
+
     private static void renderStockpileScientific(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, StockpileReadout readout) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -248,7 +248,7 @@ public final class ModernSpecializedInstrumentRenderer
             InstrumentRenderPrimitives.drawMetricCard(image, rightX, h - Math.max(58, h / 4) - 22, rightW, 18, "CAPACITY", formatMetricValue(readout.amountType(), readout.capacityAmount()), theme, theme.accent, true);
         }
     }
-    
+
     private static void renderStockpileControl(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick, StockpileReadout readout) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -263,7 +263,7 @@ public final class ModernSpecializedInstrumentRenderer
         final int lowerY = cardsY + Math.max(24, h / 4) + 8;
         drawMetricTriplet(image, pad, lowerY, w - pad * 2, Math.max(24, h - lowerY - pad - 6), theme, "LOW", formatMetricValue(readout.amountType(), readout.lowerAmount()), InstrumentRenderPrimitives.SAFE_GREEN, "HIGH", formatMetricValue(readout.amountType(), readout.upperAmount()), InstrumentRenderPrimitives.ALERT_AMBER, "CAP", formatMetricValue(readout.amountType(), readout.capacityAmount()), theme.accent);
     }
-    
+
     private static void renderGenericPanel(NativeImage image, StatsDisplayPanelBE be, SourceSelection source, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags, long tick) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -277,7 +277,7 @@ public final class ModernSpecializedInstrumentRenderer
         InstrumentRenderPrimitives.drawValuePlate(image, rightX, yAfterHeader() + 4, rightW, Math.max(36, h / 4), hero.getLabel(), InstrumentRenderPrimitives.formatChannelValue(hero), theme, state.color, true);
         drawChannelCards(image, source.channels, 1, rightX, yAfterHeader() + Math.max(36, h / 4) + 8, rightW, Math.max(34, h - yAfterHeader() - Math.max(36, h / 4) - pad - 12), theme, settings);
     }
-    
+
     private static void drawHeader(NativeImage image, String title, SourceSelection source, DisplayTheme theme, StateInfo state, int pad, String familyTag) {
         BitmapFont.drawString(image, title, pad, 8, theme.text, image.getWidth() >= 360 ? 2 : 1);
         BitmapFont.drawString(image, InstrumentRenderPrimitives.truncate(source.label, Math.max(10, (image.getWidth() - pad * 2) / 10)), pad, 22, theme.dim, 1);
@@ -286,7 +286,7 @@ public final class ModernSpecializedInstrumentRenderer
         InstrumentRenderPrimitives.drawBadge(image, image.getWidth() - pad - cycleWidth, 8, cycleWidth, 12, cycleLabel, (source.cycleCount > 1) ? InstrumentRenderPrimitives.COOL_BLUE : state.color);
         InstrumentRenderPrimitives.drawBadge(image, image.getWidth() - pad - cycleWidth - 58, 8, 54, 12, state.shortLabel, state.color);
     }
-    
+
     private static void drawMetricTriplet(NativeImage image, int x, int y, int w, int h, DisplayTheme theme, String label1, String value1, int accent1, String label2, String value2, int accent2, String label3, String value3, int accent3) {
         final int gap = 6;
         final int cardW = Math.max(24, (w - gap * 2) / 3);
@@ -295,7 +295,7 @@ public final class ModernSpecializedInstrumentRenderer
         InstrumentRenderPrimitives.drawMetricCard(image, x + cardW + gap, y, cardW, cardH, label2, value2, theme, accent2, false);
         InstrumentRenderPrimitives.drawMetricCard(image, x + (cardW + gap) * 2, y, cardW, cardH, label3, value3, theme, accent3, false);
     }
-    
+
     private static void drawChannelCards(NativeImage image, List<StatsDisplayPanelBE.DataChannel> channels, int startIndex, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         final int renderCount = Math.min(4, Math.max(0, channels.size() - startIndex));
         if (renderCount <= 0 || h <= 12) {
@@ -314,7 +314,7 @@ public final class ModernSpecializedInstrumentRenderer
             InstrumentRenderPrimitives.drawMetricCard(image, x + col * (cardW + gap), y + row * (cardH + gap), cardW, cardH, channel.getLabel(), InstrumentRenderPrimitives.formatChannelValue(channel), theme, InstrumentRenderPrimitives.accentForChannel(channel, theme, settings), true);
         }
     }
-    
+
     private static void renderSpecializedGauge(NativeImage image, StatsDisplayPanelBE be, StatsDisplayPanelBE.DataChannel channel, int offset, int cx, int cy, int radius, DisplayTheme theme, StatsDisplaySettings settings, SpecializedFlags flags) {
         if (channel == null) {
             return;
@@ -322,7 +322,7 @@ public final class ModernSpecializedInstrumentRenderer
         AnalogGaugeRenderer.tickGaugeNeedle(be.getBlockPos(), trackerSlot(be.getBlockPos().toShortString(), offset), channel, settings, 2);
         AnalogGaugeRenderer.renderGaugeWidget(image, cx, cy, radius, channel, trackerSlot(be.getBlockPos().toShortString(), offset), be.getBlockPos(), theme, settings, flags.showZones, flags.showGlass, flags.showRivets, true);
     }
-    
+
     private static SpecializedFlags resolveFlags(StatsDisplaySettings settings, boolean largeSurface) {
         final InstrumentStyleFamily family = settings.getInstrumentStyleFamily();
         final InstrumentEffectPreset effect = settings.getInstrumentEffectPreset();
@@ -330,7 +330,7 @@ public final class ModernSpecializedInstrumentRenderer
         final boolean rich = effect == InstrumentEffectPreset.RICH;
         return new SpecializedFlags(options.getOption(InstrumentStyleOptionKeys.SHOW_WARNING_ZONES, true), options.getOption(InstrumentStyleOptionKeys.SHOW_GLASS, rich && !largeSurface), options.getOption(InstrumentStyleOptionKeys.SHOW_RIVETS, (family == InstrumentStyleFamily.MECHANICAL_BRASS || rich) && !largeSurface), options.getOption(InstrumentStyleOptionKeys.SHOW_SPARKLINE, settings.getInstrumentDensityPreset() == InstrumentDensityPreset.DENSE && !largeSurface));
     }
-    
+
     private static SourceSelection selectSource(StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels, String preferredSourceId, long renderTick) {
         final LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>> bySource = groupBySource(channels);
         if (preferredSourceId != null) {
@@ -365,7 +365,7 @@ public final class ModernSpecializedInstrumentRenderer
         selected.cycleCount = available.size();
         return selected;
     }
-    
+
     private static SourceSelection buildSelection(StatsDisplayPanelBE be, String sourceId, List<StatsDisplayPanelBE.DataChannel> channels, int cycleIndex, int cycleCount) {
         if (channels == null || channels.isEmpty()) {
             return null;
@@ -380,7 +380,7 @@ public final class ModernSpecializedInstrumentRenderer
         selection.label = (config != null) ? config.getDisplayLabel() : selection.sourceType;
         return selection;
     }
-    
+
     private static LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>> groupBySource(List<StatsDisplayPanelBE.DataChannel> channels) {
         final LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>> bySource = new LinkedHashMap<String, List<StatsDisplayPanelBE.DataChannel>>();
         for (StatsDisplayPanelBE.DataChannel channel : channels) {
@@ -388,7 +388,7 @@ public final class ModernSpecializedInstrumentRenderer
         }
         return bySource;
     }
-    
+
     private static String extractSourceId(String channelId) {
         if (!channelId.startsWith("src_")) {
             return "legacy";
@@ -404,7 +404,7 @@ public final class ModernSpecializedInstrumentRenderer
         }
         return rest;
     }
-    
+
     private static StatsDisplayPanelBE.DataChannel findMetric(SourceSelection source, String metricId, String label) {
         for (StatsDisplayPanelBE.DataChannel channel : source.channels) {
             if (channel.getId().contains("_auto_" + metricId)) {
@@ -418,14 +418,14 @@ public final class ModernSpecializedInstrumentRenderer
         }
         return null;
     }
-    
+
     private static float valueOr(StatsDisplayPanelBE.DataChannel channel, float fallback) {
         if (channel == null || channel.getStore().getSampleCount() == 0) {
             return fallback;
         }
         return channel.getStore().getLatestValue();
     }
-    
+
     private static StockpileReadout resolveStockpileReadout(SourceSelection source) {
         final StatsDisplayPanelBE.DataChannel fillCh = findMetric(source, "fill_pct", "Fill Level %");
         if (fillCh == null) {
@@ -451,7 +451,7 @@ public final class ModernSpecializedInstrumentRenderer
         final StatsDisplayPanelBE.DataChannel trendChannel = (fillCh.getStore().getSampleCount() > 0) ? fillCh : stockCh;
         return new StockpileReadout((trendChannel != null) ? trendChannel : fillCh, fill, current, capacity, lower, upper, lowerPercent, upperPercent, powered, amountType, state);
     }
-    
+
     private static float percentOfRange(float value, float min, float max) {
         final float range = max - min;
         if (range <= 0.001f) {
@@ -459,11 +459,11 @@ public final class ModernSpecializedInstrumentRenderer
         }
         return Math.max(0.0f, Math.min(100.0f, (value - min) * 100.0f / range));
     }
-    
+
     private static String formatMetricValue(MetricType type, float value) {
         return ((type != null) ? type : MetricType.GENERIC).formatValue(value);
     }
-    
+
     private static StateInfo describeStressState(float pct, boolean overstressed) {
         if (overstressed || pct >= 100.0f) {
             return new StateInfo("OVERSTRESSED", "LIMIT", InstrumentRenderPrimitives.DANGER_RED);
@@ -473,7 +473,7 @@ public final class ModernSpecializedInstrumentRenderer
         }
         return new StateInfo("HEALTHY", "READY", InstrumentRenderPrimitives.SAFE_GREEN);
     }
-    
+
     private static StateInfo describeStockpileState(float fill, float lower, float upper, boolean powered) {
         if (fill < lower) {
             return new StateInfo("REFILLING", "LOW", InstrumentRenderPrimitives.SAFE_GREEN);
@@ -486,16 +486,16 @@ public final class ModernSpecializedInstrumentRenderer
         }
         return new StateInfo("BUFFER ZONE", "BUFFER", InstrumentRenderPrimitives.SAFE_GREEN);
     }
-    
+
     private static int trackerSlot(SourceSelection source, int offset) {
         return trackerSlot(source.sourceId, offset);
     }
-    
+
     private static int trackerSlot(String key, int offset) {
         final int hash = Math.abs(key.hashCode() % 700);
         return 1200 + hash + offset;
     }
-    
+
     private static int yAfterHeader() {
         return 36;
     }
@@ -507,7 +507,7 @@ public final class ModernSpecializedInstrumentRenderer
     private static int controlTrackerHeight(int imageHeight) {
         return Math.max(18, imageHeight / 12);
     }
-    
+
     private static final class SourceSelection
     {
         String sourceId;
@@ -517,10 +517,10 @@ public final class ModernSpecializedInstrumentRenderer
         int cycleIndex;
         int cycleCount;
     }
-    
+
     private record StateInfo(String label, String shortLabel, int color) {}
-    
+
     private record StockpileReadout(StatsDisplayPanelBE.DataChannel trendChannel, float fillPercent, float currentAmount, float capacityAmount, float lowerAmount, float upperAmount, float lowerPercent, float upperPercent, boolean powered, MetricType amountType, StateInfo state) {}
-    
+
     private record SpecializedFlags(boolean showZones, boolean showGlass, boolean showRivets, boolean showSparkline) {}
 }

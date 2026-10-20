@@ -39,13 +39,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/** [1] */
+// same trick as the heater, Create's own HEAT_LEVEL
 public class InductionRangeBlock extends Block implements EntityBlock {
-
-    /** True when the supply cannot hold the dial setting, so the hob is running cooler than asked. */
     public static final BooleanProperty STARVED = BooleanProperty.create("starved");
 
-    /** Base, body and plate are one solid box to 11; the element stands proud of it to 12.4. */
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(0, 0, 0, 16, 11, 16),
             Block.box(3.2, 11, 3.2, 12.8, 13.6, 12.8));
@@ -70,7 +67,6 @@ public class InductionRangeBlock extends Block implements EntityBlock {
                 context.getHorizontalDirection().getOpposite());
     }
 
-    /** Light output rises with the element, so a hob on high lights the room it is in. */
     public static int getLight(BlockState state) {
         return switch (state.getValue(BlazeBurnerBlock.HEAT_LEVEL)) {
             case SMOULDERING -> 3;
@@ -84,8 +80,6 @@ public class InductionRangeBlock extends Block implements EntityBlock {
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
-
-    // interaction
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
@@ -105,7 +99,6 @@ public class InductionRangeBlock extends Block implements EntityBlock {
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /** [2] */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hit) {
@@ -127,7 +120,7 @@ public class InductionRangeBlock extends Block implements EntityBlock {
         }
         if (!level.isClientSide()) {
             range.cycleSetting();
-            // Pitch rises with the setting, so the dial can be worked by ear without looking at it.
+
             level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS,
                     0.5f, 0.8f + 0.2f * range.setting());
             player.displayClientMessage(Component.translatable(
@@ -146,14 +139,11 @@ public class InductionRangeBlock extends Block implements EntityBlock {
         super.onRemove(state, level, pos, newState, moving);
     }
 
-    // redstone
-
     @Override
     public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
-    /** Reads out the heat actually being managed, not the heat that was asked for. */
     @Override
     public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         return switch (state.getValue(BlazeBurnerBlock.HEAT_LEVEL)) {
@@ -164,9 +154,6 @@ public class InductionRangeBlock extends Block implements EntityBlock {
         };
     }
 
-    // hazard
-
-    /** [3] */
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
         final HeatLevel heat = state.getValue(BlazeBurnerBlock.HEAT_LEVEL);
@@ -182,14 +169,10 @@ public class InductionRangeBlock extends Block implements EntityBlock {
         super.stepOn(level, pos, state, entity);
     }
 
-    // idle animation
-
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         final HeatLevel heat = state.getValue(BlazeBurnerBlock.HEAT_LEVEL);
         if (state.getValue(STARVED) && random.nextInt(12) == 0) {
-            // A brown-out sputters. One spark, irregularly, is enough to say "this is not getting
-            // what it asked for" without competing with the working animation of a healthy hob.
             level.addParticle(ParticleTypes.ELECTRIC_SPARK,
                     pos.getX() + 0.2 + random.nextDouble() * 0.6, pos.getY() + 0.7,
                     pos.getZ() + 0.2 + random.nextDouble() * 0.6, 0.0, 0.01, 0.0);
@@ -214,8 +197,6 @@ public class InductionRangeBlock extends Block implements EntityBlock {
                     heat == HeatLevel.SEETHING ? 0.45f : 0.22f, 1.5f, false);
         }
     }
-
-    // block entity
 
     @Override
     @Nullable

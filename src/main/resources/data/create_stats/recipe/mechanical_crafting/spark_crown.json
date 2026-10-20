@@ -1,0 +1,42 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "create_stats:porcelain_insulator"
+    },
+    "R": {
+      "item": "create:polished_rose_quartz"
+    },
+    "M": {
+      "item": "create:precision_mechanism"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "B": {
+      "item": "create:brass_casing"
+    },
+    "N": {
+      "item": "create:nixie_tube"
+    },
+    "I": {
+      "item": "create_stats:industrial_power_connector"
+    },
+    "K": {
+      "item": "create_stats:capacitor_bank"
+    }
+  },
+  "pattern": [
+    " P P ",
+    "RMEMR",
+    "RBNBR",
+    " IKI "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_stats:spark_crown"
+  },
+  "show_notification": false
+}

@@ -28,52 +28,31 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/** [1] */
 public final class CargoLinkTargetHandler {
-
     private static final String SOURCE_TYPE_DISPATCH = "Dispatch Board";
     private static final String SOURCE_TYPE_MANIFEST = "Freight Manifest";
 
     private CargoLinkTargetHandler() {}
 
-    /**
-     * Returns true if the active display source is a CargoLinkSource.
-     */
     public static boolean isCargoLinkSource(@Nullable DisplayLinkContext context) {
         return context != null
             && context.blockEntity() != null
             && context.blockEntity().activeSource instanceof CargoLinkSource;
     }
 
-    // rich target: Stats Display Panel, full freight state
-
-    /**
-     * Handles cargo link data for StatsDisplayPanelBE.
-     * DispatchBoardBE sources are registered as freight manifest links (rich data).
-     * FreightManifestClipboardBE sources are already handled by existing code.
-     *
-     * @return true if the source was handled, false if it should fall through
-     */
     public static boolean handleForPanel(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof DispatchBoardBE board) {
             DispatchBoardBE controller = board.getControllerBE();
             panel.registerOrUpdateSource(sourcePos, SOURCE_TYPE_DISPATCH);
 
-            // Provide cargo metrics as named data channels on the panel
             CargoSnapshot snapshot = captureFromDispatchBoard(controller);
             pushCargoMetricsToPanel(panel, sourcePos, SOURCE_TYPE_DISPATCH, snapshot);
             return true;
         }
-        // FreightManifestClipboardBE is already handled by registerOrUpdateFreightManifest
+
         return false;
     }
 
-    // rich target: Holographic Projector, limited summary
-
-    /**
-     * Handles cargo link data for HolographicProjectorBE.
-     * Provides a limited cargo summary (completion, train state, line counts).
-     */
     public static void handleForProjector(HolographicProjectorBE projector, BlockPos sourcePos, BlockEntity sourceBE) {
         CargoSnapshot snapshot = captureSnapshot(sourceBE);
         if (snapshot == null) {
@@ -87,12 +66,6 @@ public final class CargoLinkTargetHandler {
         projector.onAutoData(sourcePos, sourceType, "manifest_lines", "Manifest Lines", snapshot.manifestLines, MetricType.ITEM_COUNT);
     }
 
-    // compact target: Status Tower Light, berth/completion state only
-
-    /**
-     * Handles cargo link data for StatusTowerLightBE.
-     * Only provides berth state and completion %, no dense manifest rows.
-     */
     public static void handleForTowerLight(StatusTowerLightBE towerLight, BlockPos sourcePos, BlockEntity sourceBE) {
         CargoSnapshot snapshot = captureSnapshot(sourceBE);
         if (snapshot == null) {
@@ -106,12 +79,6 @@ public final class CargoLinkTargetHandler {
             "Train: " + (snapshot.trainPresent ? "Present" : "Absent"));
     }
 
-    // compact target: Data Dial, completion % only
-
-    /**
-     * Handles cargo link data for DataDialBE.
-     * Only provides completion % and train state, no manifest row data.
-     */
     public static void handleForDataDial(DataDialBE dial, BlockPos sourcePos, BlockEntity sourceBE) {
         CargoSnapshot snapshot = captureSnapshot(sourceBE);
         if (snapshot == null) {
@@ -125,12 +92,6 @@ public final class CargoLinkTargetHandler {
         dial.replaceAutoData(sourcePos, snapshot.sourceType, metrics);
     }
 
-    // compact target: Mini Display, compact summary only
-
-    /**
-     * Handles cargo link data for MiniDisplayBE.
-     * Provides completion %, train state, and manifest line count, no dense rows.
-     */
     public static void handleForMiniDisplay(MiniDisplayBE miniDisplay, BlockPos sourcePos, BlockEntity sourceBE) {
         CargoSnapshot snapshot = captureSnapshot(sourceBE);
         if (snapshot == null) {
@@ -148,17 +109,9 @@ public final class CargoLinkTargetHandler {
         miniDisplay.replaceAutoData(sourcePos, snapshot.sourceType, metrics);
     }
 
-    // rejected target: Stats Recorder, cargo is not time-series metric data
-
-    /**
-     * Cargo data is not meaningful for time-series recording.
-     * Logs and returns without pushing data.
-     */
     public static void rejectForRecorder(BlockPos sourcePos) {
         CreateStats.LOGGER.debug("[CargoLink] Rejecting cargo data for StatsRecorder at {}; cargo is not time-series metric data", sourcePos);
     }
-
-    // snapshot capture
 
     @Nullable
     private static CargoSnapshot captureSnapshot(BlockEntity sourceBE) {
@@ -242,8 +195,6 @@ public final class CargoLinkTargetHandler {
         );
     }
 
-    // panel helper: push cargo metrics as named data channels
-
     private static void pushCargoMetricsToPanel(StatsDisplayPanelBE panel, BlockPos sourcePos,
                                                  String sourceType, CargoSnapshot snapshot) {
         panel.onReceiveData(sourcePos, sourceType, 0,
@@ -260,8 +211,6 @@ public final class CargoLinkTargetHandler {
             "Lines: " + snapshot.manifestLines + " (L:" + snapshot.loadLines + " U:" + snapshot.unloadLines + ")");
     }
 
-    // helpers
-
     private static int countLines(FreightManifest manifest, ManifestOperation operation) {
         int count = 0;
         for (var line : manifest.getLines()) {
@@ -272,9 +221,6 @@ public final class CargoLinkTargetHandler {
         return count;
     }
 
-    /**
-     * Constrained cargo snapshot, only the fields that compact targets may consume.
-     */
     private static class CargoSnapshot {
         final String sourceType;
         final float completionPercent;

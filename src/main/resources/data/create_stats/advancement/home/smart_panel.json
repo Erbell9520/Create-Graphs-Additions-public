@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:home/lamp",
+  "display": {
+    "icon": {
+      "id": "create_stats:smart_home_panel"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.smart_panel.title",
+      "fallback": "Call Home, Turn the Boiler On"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.smart_panel.description",
+      "fallback": "Place a Smart Home Panel. Switch the boiler on from work, like a civilised person."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "panel": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:smart_home_panel"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "panel"
+    ]
+  ]
+}

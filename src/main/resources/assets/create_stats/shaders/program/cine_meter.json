@@ -1,0 +1,57 @@
+{
+    "blend": {
+        "func": "add",
+        "srcrgb": "one",
+        "dstrgb": "zero"
+    },
+    "vertex": "create_stats:cine_quad",
+    "fragment": "create_stats:cine_meter",
+    "attributes": [
+        "Position"
+    ],
+    "samplers": [
+        {
+            "name": "DepthSampler"
+        },
+        {
+            "name": "PrevSampler"
+        }
+    ],
+    "uniforms": [
+        {
+            "name": "ProjParams",
+            "type": "float",
+            "count": 2,
+            "values": [
+                -1.0001,
+                -0.1
+            ]
+        },
+        {
+            "name": "Spread",
+            "type": "float",
+            "count": 2,
+            "values": [
+                0.004,
+                0.004
+            ]
+        },
+        {
+            "name": "Lock",
+            "type": "float",
+            "count": 2,
+            "values": [
+                0.0,
+                0.0
+            ]
+        },
+        {
+            "name": "Blend",
+            "type": "float",
+            "count": 1,
+            "values": [
+                1.0
+            ]
+        }
+    ]
+}

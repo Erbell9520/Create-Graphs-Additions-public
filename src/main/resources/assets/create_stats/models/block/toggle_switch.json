@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
+    "legend": "create_stats:block/switch_legend",
     "plate": "create_stats:block/switch_plate",
+    "well": "create_stats:block/switch_well",
     "steel": "create_stats:block/switch_steel",
-    "iron": "create_stats:block/switch_iron",
-    "brass": "create_stats:block/switch_brass",
-    "indicator_off": "create_stats:block/switch_indicator_off",
-    "particle": "create_stats:block/switch_plate"
+    "nickel": "create_stats:block/switch_nickel",
+    "particle": "create_stats:block/switch_legend"
   },
   "elements": [
     {
@@ -29,7 +29,7 @@
             8,
             1
           ],
-          "texture": "#plate"
+          "texture": "#legend"
         },
         "south": {
           "uv": [
@@ -38,7 +38,7 @@
             8,
             1
           ],
-          "texture": "#plate"
+          "texture": "#legend"
         },
         "east": {
           "uv": [
@@ -47,7 +47,7 @@
             8,
             1
           ],
-          "texture": "#plate"
+          "texture": "#legend"
         },
         "west": {
           "uv": [
@@ -56,7 +56,7 @@
             8,
             1
           ],
-          "texture": "#plate"
+          "texture": "#legend"
         },
         "up": {
           "uv": [
@@ -65,7 +65,7 @@
             8,
             10
           ],
-          "texture": "#plate"
+          "texture": "#legend"
         },
         "down": {
           "uv": [
@@ -74,7 +74,7 @@
             8,
             10
           ],
-          "texture": "#plate"
+          "texture": "#legend"
         }
       }
     },
@@ -355,10 +355,79 @@
       }
     },
     {
+      "__comment": "pocket",
+      "from": [
+        5.4,
+        0.9,
+        4.4
+      ],
+      "to": [
+        10.6,
+        1.15,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#well"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#well"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#well"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            5,
+            1
+          ],
+          "texture": "#well"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5,
+            7
+          ],
+          "texture": "#well"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5,
+            7
+          ],
+          "texture": "#well"
+        }
+      }
+    },
+    {
       "__comment": "boss",
       "from": [
         6.6,
-        0.9,
+        1.15,
         6.6
       ],
       "to": [
@@ -424,278 +493,71 @@
       }
     },
     {
-      "__comment": "lever_a",
+      "__comment": "nut",
       "from": [
-        7.2,
+        6.2,
         2.1,
-        8.6
-      ],
-      "to": [
-        8.8,
-        3.4,
-        10.4
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#iron"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#iron"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#iron"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#iron"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            2,
-            2
-          ],
-          "texture": "#iron"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            2,
-            2
-          ],
-          "texture": "#iron"
-        }
-      }
-    },
-    {
-      "__comment": "lever_b",
-      "from": [
-        7.3,
-        3.0,
-        10.0
-      ],
-      "to": [
-        8.7,
-        4.6,
-        11.6
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            1,
-            2
-          ],
-          "texture": "#iron"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            1,
-            2
-          ],
-          "texture": "#iron"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            1,
-            2
-          ],
-          "texture": "#iron"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            1,
-            2
-          ],
-          "texture": "#iron"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            1,
-            2
-          ],
-          "texture": "#iron"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            1,
-            2
-          ],
-          "texture": "#iron"
-        }
-      }
-    },
-    {
-      "__comment": "ball",
-      "from": [
-        7.0,
-        4.4,
-        11.3
-      ],
-      "to": [
-        9.0,
-        5.5,
-        12.5
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#brass"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#brass"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#brass"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#brass"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#brass"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            2,
-            1
-          ],
-          "texture": "#brass"
-        }
-      }
-    },
-    {
-      "__comment": "lamp",
-      "from": [
-        5.6,
-        1.6,
-        5.0
-      ],
-      "to": [
-        7.0,
-        1.9,
         6.2
       ],
+      "to": [
+        9.8,
+        2.5,
+        9.8
+      ],
       "faces": {
         "north": {
           "uv": [
             0,
             0,
-            1,
+            4,
             1
           ],
-          "texture": "#indicator_off"
+          "texture": "#nickel"
         },
         "south": {
           "uv": [
             0,
             0,
-            1,
+            4,
             1
           ],
-          "texture": "#indicator_off"
+          "texture": "#nickel"
         },
         "east": {
           "uv": [
             0,
             0,
-            1,
+            4,
             1
           ],
-          "texture": "#indicator_off"
+          "texture": "#nickel"
         },
         "west": {
           "uv": [
             0,
             0,
-            1,
+            4,
             1
           ],
-          "texture": "#indicator_off"
+          "texture": "#nickel"
         },
         "up": {
           "uv": [
             0,
             0,
-            1,
-            1
+            4,
+            4
           ],
-          "texture": "#indicator_off"
+          "texture": "#nickel"
         },
         "down": {
           "uv": [
             0,
             0,
-            1,
-            1
+            4,
+            4
           ],
-          "texture": "#indicator_off"
+          "texture": "#nickel"
         }
       }
     }

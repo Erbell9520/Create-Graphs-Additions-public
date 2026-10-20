@@ -2,13 +2,10 @@ package com.createstats.util;
 
 import net.minecraft.world.item.DyeColor;
 
-/** [1] */
 public final class StageLightColors {
-
     private StageLightColors() {
     }
 
-    /** Vivid RGB for each dye, in {@link DyeColor#values()} order (matches the GUI swatch order). */
     public static int rgb(DyeColor dye) {
         return switch (dye) {
             case WHITE -> 0xF9FFFE;
@@ -30,7 +27,6 @@ public final class StageLightColors {
         };
     }
 
-    /** Inverse of {@link #rgb}: the dye whose colour matches, or {@code null} if none (e.g. no filter). */
     public static DyeColor fromRgb(int rgb) {
         final int masked = rgb & 0xFFFFFF;
         for (DyeColor dye : DyeColor.values()) {

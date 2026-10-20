@@ -17,15 +17,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.List;
 
-/**
- * Governor Card, slotted into the FCC's "governor" slot of any binding row.
- *
- * <p>Linked by right-clicking an {@link RpmGovernorBE} in the world.
- * Sneak-right-click in air clears the link.</p>
- */
 public class GovernorCardItem extends Item {
-
-    /** Stable tag key in {@code DataComponents.CUSTOM_DATA}. */
     public static final String TAG_KEY = "FccGovernorCard";
 
     public GovernorCardItem(Properties properties) {

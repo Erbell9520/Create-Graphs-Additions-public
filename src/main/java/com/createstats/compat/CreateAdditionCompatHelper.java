@@ -221,6 +221,48 @@ public final class CreateAdditionCompatHelper {
         putEnergyMetrics(metrics, sourceBE, energy);
     }
 
+    // IEnergyStorage can't say what a generator could make or what a machine costs. so ask the block
+
+    // without this an alternator branch had zero known generation and lagged every speed change
+    public static int generationPotentialFePerTick(@Nullable BlockEntity sourceBE) {
+        if (!CreateAdditionCompat.isAvailable() || sourceBE == null
+                || !isCreateAdditionBlockEntity(sourceBE)) {
+            return 0;
+        }
+        if (matches(sourceBE, ALTERNATOR_BE)) {
+            final int rpm = Math.round(Math.abs(resolveKineticSpeed(sourceBE)));
+            return Math.max(0, Math.round(invokeFloat(sourceBE, "getEnergyProductionRate", rpm)));
+        }
+        return 0;
+    }
+
+    public static int consumptionFePerTick(@Nullable BlockEntity sourceBE) {
+        if (!CreateAdditionCompat.isAvailable() || sourceBE == null
+                || !isCreateAdditionBlockEntity(sourceBE)) {
+            return -1;
+        }
+        if (matches(sourceBE, ELECTRIC_MOTOR_BE)) {
+            if (invokeBoolean(sourceBE, "isPoweredState")) {
+                return 0;
+            }
+            final float rpm = invokeFloat(sourceBE, "getRPM");
+            final float consumed = Math.max(invokeFloat(sourceBE, "getEnergyConsumption"),
+                    invokeFloat(sourceBE, "getEnergyConsumptionRate", rpm));
+            return Math.max(0, Math.round(consumed));
+        }
+        return -1;
+    }
+
+    @Nullable
+    public static BlockPos controllerPosOf(@Nullable BlockEntity sourceBE) {
+        if (!CreateAdditionCompat.isAvailable() || sourceBE == null
+                || !isCreateAdditionBlockEntity(sourceBE)) {
+            return null;
+        }
+        final BlockEntity controller = resolveController(sourceBE);
+        return controller == null ? null : controller.getBlockPos();
+    }
+
     private static void putEnergyMetrics(Map<String, InstrumentSourceHelper.MetricSample> metrics, BlockEntity sourceBE, IEnergyStorage energy) {
         final int stored = Math.max(0, energy.getEnergyStored());
         final int capacity = Math.max(0, energy.getMaxEnergyStored());

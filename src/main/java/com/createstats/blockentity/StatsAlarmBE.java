@@ -35,7 +35,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.createstats.power.IFeConsumer
 {
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_STATS_ALARM));
 
@@ -61,7 +60,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             this.channel = channel;
         }
     }
-    
+
     public StatsAlarmBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super((BlockEntityType)type, pos, state);
         this.checkTimer = 0;
@@ -72,21 +71,21 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
         this.ownerUUID = null;
         this.antennaTier = AntennaTier.NONE;
     }
-    
+
     public AlarmSettings getAlarmSettings() {
         return this.alarmSettings;
     }
-    
+
     public void setAlarmSettings(AlarmSettings settings) {
         this.alarmSettings = settings;
         this.needsSync = true;
         this.setChanged();
     }
-    
+
     public UUID getOwnerUUID() {
         return this.ownerUUID;
     }
-    
+
     public void setOwnerUUID(UUID uuid) {
         this.ownerUUID = uuid;
     }
@@ -109,7 +108,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
-    
+
     public void tick() {
         final Level level = this.getLevel();
         if (level == null || level.isClientSide()) {
@@ -119,7 +118,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             this.needsSync = false;
             level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
-        // FE Dependent Mode gate: a dead alarm goes quiet and dark instead of scanning.
+
         final boolean alarmCurrentlyActive = (boolean) this.getBlockState().getValue(StatsAlarmBlock.ACTIVE);
         final boolean fePowered = this.feConsumer.serviceTick(alarmCurrentlyActive);
         com.createstats.power.FePowerFx.handleTransition(level, this.worldPosition, this.feConsumer);
@@ -136,7 +135,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             return;
         }
         this.checkTimer = 0;
-        // FE burst: one alert network scan. Skipped (and retried next interval) if unaffordable.
+
         if (!this.feConsumer.spendBurst()) {
             return;
         }
@@ -163,20 +162,15 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
         }
         this.wasActive = alertFound;
     }
-    
+
     private AlertHit scanForAlerts() {
         final Level level = this.getLevel();
         if (level == null) {
             return null;
         }
         final int r = AntennaRange.cappedScanRadius(this.alarmSettings.getScanRadius(), this.antennaTier, 16);
-        final java.util.Set<BlockPos> checkedControllers = new java.util.HashSet<BlockPos>();
-        for (BlockPos pos : BlockPos.betweenClosed(this.worldPosition.offset(-r, -r, -r), this.worldPosition.offset(r, r, r))) {
-            if (pos.equals(this.worldPosition)) {
-                continue;
-            }
-            final BlockEntity be = level.getBlockEntity(pos);
-            if (!(be instanceof StatsDisplayPanelBE panel) || !panel.isController() || !checkedControllers.add(pos)) {
+        for (StatsDisplayPanelBE panel : com.createstats.alarm.AlarmCoverage.panelsNear(level, this.worldPosition, r)) {
+            if (panel.getBlockPos().equals(this.worldPosition)) {
                 continue;
             }
             for (StatsDisplayPanelBE.DataChannel ch : panel.getActiveChannels()) {
@@ -187,7 +181,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
         }
         return null;
     }
-    
+
     private void playAlarmEffects() {
         final Level level = this.getLevel();
         if (level == null || level.isClientSide()) {
@@ -237,7 +231,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             }
         }
     }
-    
+
     private void sendTextAlerts(final AlertHit hit) {
         final Level level = this.getLevel();
         if (level instanceof ServerLevel serverLevel && hit != null) {
@@ -252,7 +246,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             }
         }
     }
-    
+
     private List<ServerPlayer> getTargetPlayers(ServerLevel level, AlarmSettings.AlertVisibility vis, int range) {
         final double x = this.worldPosition.getX() + 0.5;
         final double y = this.worldPosition.getY() + 0.5;
@@ -264,7 +258,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             case NOBODY -> List.of();
         };
     }
-    
+
     private SoundEvent getSoundEvent(AlarmSettings.AlarmSound sound) {
         return switch (sound) {
             case BELL -> SoundEvents.BELL_BLOCK;
@@ -275,11 +269,11 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             case NONE -> (SoundEvent)SoundEvents.UI_BUTTON_CLICK.value();
         };
     }
-    
+
     public boolean isActive() {
         return (boolean)this.getBlockState().getValue(StatsAlarmBlock.ACTIVE);
     }
-    
+
     public int getConnectedPanelCount() {
         final Level level = this.getLevel();
         if (level == null) {
@@ -287,20 +281,15 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
         }
         int count = 0;
         final int r = AntennaRange.cappedScanRadius(this.alarmSettings.getScanRadius(), this.antennaTier, 16);
-        final java.util.Set<BlockPos> countedControllers = new java.util.HashSet<BlockPos>();
-        for (BlockPos pos : BlockPos.betweenClosed(this.worldPosition.offset(-r, -r, -r), this.worldPosition.offset(r, r, r))) {
-            if (pos.equals(this.worldPosition)) {
-                continue;
+
+        for (StatsDisplayPanelBE panel : com.createstats.alarm.AlarmCoverage.panelsNear(level, this.worldPosition, r)) {
+            if (!panel.getBlockPos().equals(this.worldPosition)) {
+                ++count;
             }
-            final BlockEntity be = level.getBlockEntity(pos);
-            if (!(be instanceof StatsDisplayPanelBE panel) || !panel.isController() || !countedControllers.add(pos)) {
-                continue;
-            }
-            ++count;
         }
         return count;
     }
-    
+
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         this.feConsumer.save(tag);
@@ -310,7 +299,7 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             tag.putUUID("Owner", this.ownerUUID);
         }
     }
-    
+
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         this.feConsumer.load(tag);
@@ -322,25 +311,25 @@ public class StatsAlarmBE extends BlockEntity implements RangeAttachment, com.cr
             this.ownerUUID = tag.getUUID("Owner");
         }
     }
-    
+
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
         this.saveAdditional(tag, registries);
         return tag;
     }
-    
+
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return (Packet<ClientGamePacketListener>)ClientboundBlockEntityDataPacket.create((BlockEntity)this);
     }
-    
+
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider registries) {
         final CompoundTag tag = pkt.getTag();
         if (tag != null) {
             this.handleUpdateTag(tag, registries);
         }
     }
-    
+
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
         this.loadAdditional(tag, registries);
     }

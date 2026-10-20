@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:machines/induction_range",
+  "display": {
+    "icon": {
+      "id": "create_stats:vacuum_cleaner"
+    },
+    "title": {
+      "translate": "advancement.create_stats.machines.vacuum.title",
+      "fallback": "Holiday Cleaning"
+    },
+    "description": {
+      "translate": "advancement.create_stats.machines.vacuum.description",
+      "fallback": "Get a Vacuum Cleaner. Guests arrive tomorrow, so every rug goes over the balcony today."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "vacuum": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:vacuum_cleaner"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "vacuum"
+    ]
+  ]
+}

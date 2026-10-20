@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light MK II pan drive COG (gold). Rendered by the BER and spun as the head pans. FACING=up reference; seats just under the wider MK II yoke ring, with a larger tooth radius so the teeth peek out past the ring.",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

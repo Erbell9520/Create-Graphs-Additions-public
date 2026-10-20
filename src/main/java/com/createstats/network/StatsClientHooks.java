@@ -3,13 +3,13 @@ package com.createstats.network;
 import com.createstats.data.TimeSeriesStore;
 import com.createstats.train.manifest.DeliveryOrderBoardView;
 import com.createstats.train.manifest.FreightStationCargoView;
+import com.createstats.train.manifest.FreightManifest;
 import java.lang.reflect.Method;
 import net.minecraft.core.BlockPos;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 public final class StatsClientHooks {
-
     private static final String CLIENT_PACKET_HANDLER = "com.createstats.client.ClientPacketHandler";
     private static final String CLIENT_COG_HANDLER = "com.createstats.client.ClientCogHandler";
 
@@ -34,10 +34,13 @@ public final class StatsClientHooks {
             packet);
     }
 
-    public static void handleFreightManifestClipboardState(BlockPos pos, FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard) {
+    public static void handleFreightManifestClipboardState(BlockPos pos, FreightManifest manifest,
+            FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard,
+            boolean saveReply, boolean saveAccepted) {
         invoke(CLIENT_PACKET_HANDLER, "handleFreightManifestClipboardState",
-            new Class<?>[]{BlockPos.class, FreightStationCargoView.class, DeliveryOrderBoardView.class},
-            pos, cargoView, deliveryBoard);
+            new Class<?>[]{BlockPos.class, FreightManifest.class, FreightStationCargoView.class, DeliveryOrderBoardView.class,
+                boolean.class, boolean.class},
+            pos, manifest, cargoView, deliveryBoard, saveReply, saveAccepted);
     }
 
     public static void handlePduHistory(BlockPos pduPos, int range, boolean full,
@@ -45,6 +48,19 @@ public final class StatsClientHooks {
         invoke("com.createstats.client.PduHistoryClient", "receive",
             new Class<?>[]{BlockPos.class, int.class, boolean.class, short[].class, short[].class, byte[].class},
             pduPos, range, full, supply, demand, shed);
+    }
+
+    public static void handlePowerMeterHistory(BlockPos meterPos, int range, boolean full, int[] samples) {
+        invoke("com.createstats.client.PowerMeterHistoryClient", "receive",
+            new Class<?>[]{BlockPos.class, int.class, boolean.class, int[].class},
+            meterPos, range, full, samples);
+    }
+
+    public static void handleBatteryControllerHistory(BlockPos controllerPos, int range, boolean full,
+                                                      byte[] soc, int[] in, int[] out) {
+        invoke("com.createstats.client.BatteryControllerHistoryClient", "receive",
+            new Class<?>[]{BlockPos.class, int.class, boolean.class, byte[].class, int[].class, int[].class},
+            controllerPos, range, full, soc, in, out);
     }
 
     private static void invoke(String className, String methodName, Class<?>[] parameterTypes, Object... args) {

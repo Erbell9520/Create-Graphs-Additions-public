@@ -16,9 +16,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduTablePerfTest {
-
     private static List<BranchDevice> twoHundredDevices() {
         final List<BranchDevice> roster = new ArrayList<>(200);
         for (int i = 0; i < 200; i++) {
@@ -35,7 +33,6 @@ class PduTablePerfTest {
     void twoHundredDeviceModelIsCheapToBuildAndFreeToKeep() throws IOException {
         final List<BranchDevice> roster = twoHundredDevices();
 
-        // Warm up the JIT so the timing reflects steady state, not first-call interpretation.
         for (int i = 0; i < 5000; i++) {
             PduTableModel.build(roster, PduTableModel.Group.TIER, PduTableModel.Sort.DRAW, false, "", false);
         }
@@ -49,8 +46,6 @@ class PduTablePerfTest {
         }
         final double buildUs = (System.nanoTime() - t0) / 1000.0 / builds;
 
-        // Steady state: setData with unchanged inputs must early return, doing no rebuild. This is the
-        // per frame model cost, and it should be a token comparison, not a rebuild.
         final PduTable table = new PduTable();
         table.setData(roster, PduTableModel.Group.TIER, PduTableModel.Sort.DRAW, false, "", false);
         final int frames = 200000;
@@ -64,8 +59,6 @@ class PduTablePerfTest {
                 "PduTable 200-device model%n  build (on sync/control change): %.2f us/call%n"
                         + "  steady setData (per frame, no change): %.4f us/call%n", buildUs, steadyUs));
 
-        // Loose bounds: a 200-device build must stay well inside a 16.6 ms frame, and the per frame
-        // no-change path must be effectively free.
         assertTrue(buildUs < 2000.0, "200-device build took " + buildUs + " us, expected well under a frame");
         assertTrue(steadyUs < 50.0, "steady per-frame setData took " + steadyUs + " us, expected near zero");
     }

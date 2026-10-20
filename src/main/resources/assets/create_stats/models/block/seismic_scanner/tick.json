@@ -1,0 +1,269 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "machine": "create_stats:block/seismic_scanner/machine",
+    "orange": "create_stats:block/seismic_scanner/orange",
+    "particle": "create_stats:block/seismic_scanner/frame"
+  },
+  "elements": [
+    {
+      "__comment": "dog_w",
+      "from": [
+        5.25,
+        7.5,
+        9.85
+      ],
+      "to": [
+        5.75,
+        8.75,
+        10.45
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            5.25,
+            9.85,
+            5.75,
+            10.45
+          ],
+          "texture": "#machine"
+        },
+        "down": {
+          "uv": [
+            5.25,
+            5.55,
+            5.75,
+            6.15
+          ],
+          "texture": "#machine"
+        },
+        "north": {
+          "uv": [
+            10.25,
+            7.25,
+            10.75,
+            8.5
+          ],
+          "texture": "#machine"
+        },
+        "south": {
+          "uv": [
+            5.25,
+            7.25,
+            5.75,
+            8.5
+          ],
+          "texture": "#machine"
+        },
+        "east": {
+          "uv": [
+            5.55,
+            7.25,
+            6.15,
+            8.5
+          ],
+          "texture": "#machine"
+        },
+        "west": {
+          "uv": [
+            9.85,
+            7.25,
+            10.45,
+            8.5
+          ],
+          "texture": "#machine"
+        }
+      }
+    },
+    {
+      "__comment": "flag_w",
+      "from": [
+        3.25,
+        7.5,
+        9.95
+      ],
+      "to": [
+        5.25,
+        8.75,
+        10.35
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.75,
+            7.25,
+            12.75,
+            8.5
+          ],
+          "texture": "#orange"
+        },
+        "south": {
+          "uv": [
+            3.25,
+            7.25,
+            5.25,
+            8.5
+          ],
+          "texture": "#orange"
+        },
+        "up": {
+          "uv": [
+            3.25,
+            9.95,
+            5.25,
+            10.35
+          ],
+          "texture": "#orange"
+        },
+        "down": {
+          "uv": [
+            3.25,
+            5.65,
+            5.25,
+            6.05
+          ],
+          "texture": "#orange"
+        },
+        "west": {
+          "uv": [
+            9.95,
+            7.25,
+            10.35,
+            8.5
+          ],
+          "texture": "#orange"
+        }
+      }
+    },
+    {
+      "__comment": "dog_e",
+      "from": [
+        10.25,
+        7.5,
+        9.85
+      ],
+      "to": [
+        10.75,
+        8.75,
+        10.45
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            10.25,
+            9.85,
+            10.75,
+            10.45
+          ],
+          "texture": "#machine"
+        },
+        "down": {
+          "uv": [
+            10.25,
+            5.55,
+            10.75,
+            6.15
+          ],
+          "texture": "#machine"
+        },
+        "north": {
+          "uv": [
+            5.25,
+            7.25,
+            5.75,
+            8.5
+          ],
+          "texture": "#machine"
+        },
+        "south": {
+          "uv": [
+            10.25,
+            7.25,
+            10.75,
+            8.5
+          ],
+          "texture": "#machine"
+        },
+        "east": {
+          "uv": [
+            5.55,
+            7.25,
+            6.15,
+            8.5
+          ],
+          "texture": "#machine"
+        },
+        "west": {
+          "uv": [
+            9.85,
+            7.25,
+            10.45,
+            8.5
+          ],
+          "texture": "#machine"
+        }
+      }
+    },
+    {
+      "__comment": "flag_e",
+      "from": [
+        10.75,
+        7.5,
+        9.95
+      ],
+      "to": [
+        12.75,
+        8.75,
+        10.35
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.25,
+            7.25,
+            5.25,
+            8.5
+          ],
+          "texture": "#orange"
+        },
+        "south": {
+          "uv": [
+            10.75,
+            7.25,
+            12.75,
+            8.5
+          ],
+          "texture": "#orange"
+        },
+        "up": {
+          "uv": [
+            10.75,
+            9.95,
+            12.75,
+            10.35
+          ],
+          "texture": "#orange"
+        },
+        "down": {
+          "uv": [
+            10.75,
+            5.65,
+            12.75,
+            6.05
+          ],
+          "texture": "#orange"
+        },
+        "east": {
+          "uv": [
+            5.65,
+            7.25,
+            6.05,
+            8.5
+          ],
+          "texture": "#orange"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "facing=north,face=dark": {
+      "model": "create_stats:block/home_security_panel_dark"
+    },
+    "facing=east,face=dark": {
+      "model": "create_stats:block/home_security_panel_dark",
+      "y": 90
+    },
+    "facing=south,face=dark": {
+      "model": "create_stats:block/home_security_panel_dark",
+      "y": 180
+    },
+    "facing=west,face=dark": {
+      "model": "create_stats:block/home_security_panel_dark",
+      "y": 270
+    },
+    "facing=north,face=live": {
+      "model": "create_stats:block/home_security_panel_live"
+    },
+    "facing=east,face=live": {
+      "model": "create_stats:block/home_security_panel_live",
+      "y": 90
+    },
+    "facing=south,face=live": {
+      "model": "create_stats:block/home_security_panel_live",
+      "y": 180
+    },
+    "facing=west,face=live": {
+      "model": "create_stats:block/home_security_panel_live",
+      "y": 270
+    },
+    "facing=north,face=alert": {
+      "model": "create_stats:block/home_security_panel_alert"
+    },
+    "facing=east,face=alert": {
+      "model": "create_stats:block/home_security_panel_alert",
+      "y": 90
+    },
+    "facing=south,face=alert": {
+      "model": "create_stats:block/home_security_panel_alert",
+      "y": 180
+    },
+    "facing=west,face=alert": {
+      "model": "create_stats:block/home_security_panel_alert",
+      "y": 270
+    }
+  }
+}

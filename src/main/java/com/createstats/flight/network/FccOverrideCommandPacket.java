@@ -7,23 +7,21 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** [1] */
 public record FccOverrideCommandPacket(
     int containerId,
-    int[] bindingRowIndices,   // which rows are affected (in same order as bound propellers)
-    int[] overrideRpmCommands, // RPM command for each row (0 if override disabled)
-    boolean[] overrideActive   // true if this row's override is currently active
+    int[] bindingRowIndices,
+    int[] overrideRpmCommands,
+    boolean[] overrideActive
 ) implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<FccOverrideCommandPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "fcc_override_command"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, FccOverrideCommandPacket> STREAM_CODEC =
         StreamCodec.of((buf, p) -> {
             buf.writeVarInt(p.containerId);
-            // Write array lengths
+
             buf.writeVarInt(p.bindingRowIndices.length);
-            // Write arrays
+
             for (int row : p.bindingRowIndices) {
                 buf.writeVarInt(row);
             }
@@ -61,7 +59,6 @@ public record FccOverrideCommandPacket(
             var serverPlayer = ctx.player();
             if (serverPlayer == null) return;
 
-            // Apply override commands to FCC block entity if player is using it
             var container = serverPlayer.containerMenu;
             if (container instanceof com.createstats.flight.menu.FlightControlComputerMenu menu) {
                 if (menu.containerId != packet.containerId()) {

@@ -27,7 +27,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class SmartGearshiftBlock extends AbstractEncasedShaftBlock implements IBE<SmartGearshiftBE> {
-
     public static final EnumProperty<VisualState> VISUAL_STATE = EnumProperty.create("visual_state", VisualState.class);
 
     public SmartGearshiftBlock(Properties properties) {

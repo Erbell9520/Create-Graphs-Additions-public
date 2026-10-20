@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:stats/display",
+  "display": {
+    "icon": {
+      "id": "create_stats:pa_megaphone"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.megaphone.title",
+      "fallback": "Buying Old Stuff, Buying Scrap!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.megaphone.description",
+      "fallback": "Get a Horn Megaphone. The scrap van that circles the block every morning has competition."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "megaphone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:pa_megaphone"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "megaphone"
+    ]
+  ]
+}

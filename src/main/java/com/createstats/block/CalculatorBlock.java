@@ -55,25 +55,25 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
     private static final VoxelShape SHAPE_SOUTH;
     private static final VoxelShape SHAPE_EAST;
     private static final VoxelShape SHAPE_WEST;
-    
+
     public CalculatorBlock(BlockBehaviour.Properties properties) {
         super(properties);
         this.registerDefaultState((this.stateDefinition.any()).setValue(CalculatorBlock.FACING, Direction.NORTH));
     }
-    
+
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return simpleCodec(CalculatorBlock::new);
     }
-    
+
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(new Property[] { CalculatorBlock.FACING });
     }
-    
+
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(CalculatorBlock.FACING, context.getHorizontalDirection());
     }
-    
+
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return switch ((Direction)state.getValue(CalculatorBlock.FACING)) {
             case SOUTH -> CalculatorBlock.SHAPE_SOUTH;
@@ -82,7 +82,7 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
             default -> CalculatorBlock.SHAPE_NORTH;
         };
     }
-    
+
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
@@ -123,7 +123,7 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
-    
+
     private static FaceTarget resolveFaceTarget(CalculatorBE controller, BlockPos clickedPos, Vec3 hitLocation, Direction facing) {
         final Direction right = facing.getClockWise();
         final BlockPos controllerPos = controller.getControllerPos();
@@ -136,7 +136,7 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
         final double vTop = Mth.clamp(1.0 - localY / controller.getMultiblockHeight(), 0.0, 0.999999);
         return CalculatorLayout.resolve(u, vTop);
     }
-    
+
     private static double fractionAlongAxis(Vec3 hitLocation, BlockPos pos, Direction axis) {
         final double localX = hitLocation.x - pos.getX();
         final double localZ = hitLocation.z - pos.getZ();
@@ -148,16 +148,16 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
             default -> 0.0;
         };
     }
-    
+
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.calculator");
     }
-    
+
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new CalculatorBE((BlockEntityType<?>)ModBlockEntities.CALCULATOR.get(), pos, state);
     }
-    
+
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         if (!level.isClientSide() && !state.is(oldState.getBlock())) {
@@ -167,7 +167,7 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
             }
         }
     }
-    
+
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide() || !(placer instanceof Player)) {
@@ -285,7 +285,7 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
             }
         }
     }
-    
+
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
             final BlockEntity be = level.getBlockEntity(pos);
@@ -295,11 +295,11 @@ public class CalculatorBlock extends HorizontalDirectionalBlock implements Entit
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }
-    
+
     private static int dotAlongAxis(BlockPos pos, Direction axis) {
         return pos.getX() * axis.getStepX() + pos.getZ() * axis.getStepZ();
     }
-    
+
     static {
         FACING = HorizontalDirectionalBlock.FACING;
         SHAPE_NORTH = Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 3.0);

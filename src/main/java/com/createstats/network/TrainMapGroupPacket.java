@@ -17,15 +17,15 @@ public class TrainMapGroupPacket implements CustomPacketPayload
 {
     private final BlockPos pos;
     private final List<String> groups;
-    
+
     public static final CustomPacketPayload.Type<TrainMapGroupPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "train_map_group"));
     public static final StreamCodec<FriendlyByteBuf, TrainMapGroupPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), TrainMapGroupPacket::new);
-    
+
     public TrainMapGroupPacket(BlockPos pos, List<String> groups) {
         this.pos = pos;
         this.groups = groups;
     }
-    
+
     public TrainMapGroupPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         final int count = buf.readVarInt();
@@ -34,7 +34,7 @@ public class TrainMapGroupPacket implements CustomPacketPayload
             this.groups.add(buf.readUtf(256));
         }
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeVarInt(this.groups.size());
@@ -42,12 +42,12 @@ public class TrainMapGroupPacket implements CustomPacketPayload
             buf.writeUtf(g, 256);
         }
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(TrainMapGroupPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();

@@ -9,16 +9,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** [1] */
+// one walker for brush, rip-up and goggles. the brush used to walk its own way and painted the wrong runs
 public final class CableRun {
-
     private CableRun() {
     }
 
-    /** [2] */
     public static final int MAX_RUN_BLOCKS = 1024;
 
-    /** [3] */
     public static List<BlockPos> collect(CableLinks.View view, BlockPos origin, int cap) {
         final List<BlockPos> out = new ArrayList<>();
         if (!view.isCable(origin)) {
@@ -42,7 +39,6 @@ public final class CableRun {
         return out;
     }
 
-    /** True when the walk from {@code origin} would hit the cap, so a caller can warn before acting. */
     public static boolean isTruncated(CableLinks.View view, BlockPos origin, int cap) {
         return collect(view, origin, cap).size() >= cap;
     }

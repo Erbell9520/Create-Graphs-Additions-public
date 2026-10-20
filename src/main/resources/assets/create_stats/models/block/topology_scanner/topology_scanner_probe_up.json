@@ -1,0 +1,867 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "steel": "create_stats:block/topology_scanner/field_steel",
+    "cap": "create_stats:block/topology_scanner/field_cap",
+    "ring": "create_stats:block/topology_scanner/field_ring",
+    "bezel": "create_stats:block/topology_scanner/field_bezel",
+    "window": "create_stats:block/topology_scanner/field_window",
+    "window_lit": "create_stats:block/topology_scanner/field_window_lit",
+    "cord": "create_stats:block/topology_scanner/field_cord",
+    "particle": "create_stats:block/topology_scanner/field_steel"
+  },
+  "elements": [
+    {
+      "from": [
+        5.5,
+        0.0,
+        5.5
+      ],
+      "to": [
+        10.5,
+        1.2,
+        10.5
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            1.2
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            1.2
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            1.2
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            1.2
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            5.0
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            5.0
+          ],
+          "texture": "#steel"
+        }
+      },
+      "comment": "foot"
+    },
+    {
+      "from": [
+        7.0,
+        1.2,
+        7.0
+      ],
+      "to": [
+        9.0,
+        3.6,
+        9.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            2.0,
+            2.4
+          ],
+          "texture": "#ring"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2.0,
+            2.4
+          ],
+          "texture": "#ring"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            2.0,
+            2.4
+          ],
+          "texture": "#ring"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2.0,
+            2.4
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.0,
+            2.0
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.0,
+            2.0
+          ],
+          "texture": "#ring"
+        }
+      },
+      "comment": "neck"
+    },
+    {
+      "from": [
+        2.5,
+        3.6,
+        2.5
+      ],
+      "to": [
+        13.5,
+        7.2,
+        13.5
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            11.0,
+            3.6
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            11.0,
+            3.6
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            11.0,
+            3.6
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            11.0,
+            3.6
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            11.0,
+            11.0
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            11.0,
+            11.0
+          ],
+          "texture": "#steel"
+        }
+      },
+      "comment": "shell"
+    },
+    {
+      "from": [
+        2.4,
+        3.4,
+        3.0
+      ],
+      "to": [
+        3.9,
+        8.4,
+        13.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "#ring"
+        }
+      },
+      "comment": "strap_left"
+    },
+    {
+      "from": [
+        12.1,
+        3.4,
+        3.0
+      ],
+      "to": [
+        13.6,
+        8.4,
+        13.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            5.0
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "#ring"
+        }
+      },
+      "comment": "strap_right"
+    },
+    {
+      "from": [
+        4.1,
+        7.2,
+        3.2
+      ],
+      "to": [
+        11.9,
+        8.2,
+        12.8
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            9.6,
+            1.0
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            9.6,
+            1.0
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            7.8,
+            1.0
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            7.8,
+            1.0
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            7.8,
+            9.6
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            7.8,
+            9.6
+          ],
+          "texture": "#steel"
+        }
+      },
+      "comment": "hood"
+    },
+    {
+      "from": [
+        6.5,
+        4.2,
+        1.0
+      ],
+      "to": [
+        9.5,
+        6.8,
+        2.6
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.6,
+            2.6
+          ],
+          "texture": "#ring"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.6,
+            2.6
+          ],
+          "texture": "#ring"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            2.6
+          ],
+          "texture": "#ring"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            2.6
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            1.6
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            1.6
+          ],
+          "texture": "#ring"
+        }
+      },
+      "comment": "gland"
+    },
+    {
+      "from": [
+        6.9,
+        4.7,
+        0.0
+      ],
+      "to": [
+        9.1,
+        6.3,
+        1.4
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.4,
+            1.6
+          ],
+          "texture": "#cord"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.4,
+            1.6
+          ],
+          "texture": "#cord"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            2.2,
+            1.6
+          ],
+          "texture": "#cord"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2.2,
+            1.6
+          ],
+          "texture": "#cord"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.2,
+            1.4
+          ],
+          "texture": "#cord"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.2,
+            1.4
+          ],
+          "texture": "#cord"
+        }
+      },
+      "comment": "pigtail"
+    },
+    {
+      "from": [
+        4.5,
+        8.2,
+        10.0
+      ],
+      "to": [
+        11.5,
+        8.6,
+        10.8
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        }
+      },
+      "comment": "bezel top"
+    },
+    {
+      "from": [
+        4.5,
+        8.2,
+        4.6
+      ],
+      "to": [
+        11.5,
+        8.6,
+        5.4
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            7.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        }
+      },
+      "comment": "bezel bottom"
+    },
+    {
+      "from": [
+        4.5,
+        8.2,
+        5.4
+      ],
+      "to": [
+        5.2,
+        8.6,
+        10.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            4.6,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4.6,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            4.6
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            4.6
+          ],
+          "texture": "#bezel"
+        }
+      },
+      "comment": "bezel left"
+    },
+    {
+      "from": [
+        10.8,
+        8.2,
+        5.4
+      ],
+      "to": [
+        11.5,
+        8.6,
+        10.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            4.6,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4.6,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            1.0
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            4.6
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.0,
+            4.6
+          ],
+          "texture": "#bezel"
+        }
+      },
+      "comment": "bezel right"
+    },
+    {
+      "from": [
+        5.2,
+        8.2,
+        5.4
+      ],
+      "to": [
+        10.8,
+        8.4,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#window"
+        }
+      },
+      "comment": "window"
+    }
+  ]
+}

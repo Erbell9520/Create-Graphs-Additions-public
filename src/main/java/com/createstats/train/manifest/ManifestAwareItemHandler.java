@@ -1,38 +1,34 @@
 package com.createstats.train.manifest;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-import com.createstats.CreateStats;
+import javax.annotation.Nullable;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.trains.entity.Carriage;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.trains.entity.Train;
 import com.simibubi.create.content.trains.station.GlobalStation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.minecraft.core.registries.BuiltInRegistries;
 
-/**
- * Wraps a PSI item handler to enforce manifest unload limits.
- * Resolves the manifest lazily on first extraction attempt,
- * since the train's station may not be set when PSI first connects.
- */
+// a direction the manifest says nothing about is left alone
 public class ManifestAwareItemHandler implements IItemHandlerModifiable {
-
     private final IItemHandlerModifiable wrapped;
     private final BlockEntity psi;
     private final AbstractContraptionEntity contraptionEntity;
 
-    // Lazy-resolved state
-    private boolean resolved = false;
-    private Map<ResourceLocation, Integer> limits;
+    private boolean resolved;
+    private ServerLevel stationLevel;
     private UUID stationId;
-    private UUID trainId;
+    private Train train;
+
+    private ManifestAllowance cachedUnload;
+    private ManifestAllowance cachedLoad;
+    private long cachedAtTick = Long.MIN_VALUE;
 
     public ManifestAwareItemHandler(IItemHandlerModifiable wrapped,
                                     BlockEntity psi,
@@ -44,22 +40,22 @@ public class ManifestAwareItemHandler implements IItemHandlerModifiable {
 
     private boolean tryResolve() {
         if (this.resolved) {
-            return this.limits != null;
+            return this.stationId != null;
         }
 
         if (!(this.contraptionEntity instanceof CarriageContraptionEntity carriageEntity)) {
-            return false; // Not a train, don't resolve, let vanilla behavior through
+            return false;
         }
 
         Carriage carriage = carriageEntity.getCarriage();
         if (carriage == null || carriage.train == null) {
-            return false; // Keep retrying
+            return false;
         }
 
-        Train train = carriage.train;
-        GlobalStation station = train.getCurrentStation();
+        Train resolvedTrain = carriage.train;
+        GlobalStation station = resolvedTrain.getCurrentStation();
         if (station == null) {
-            return false; // Keep retrying, station not set yet
+            return false;
         }
 
         Level level = this.psi.getLevel();
@@ -68,51 +64,56 @@ public class ManifestAwareItemHandler implements IItemHandlerModifiable {
             return false;
         }
 
-        UUID sid = station.getId();
-        UUID tid = train.id;
-
-        FreightManifest manifest;
-        try {
-            FreightManifestSavedData savedData = FreightManifestSavedData.get(serverLevel);
-            manifest = savedData.getManifest(sid);
-        } catch (Exception e) {
-            CreateStats.LOGGER.error("[ManifestHandler] Error getting manifest", e);
-            this.resolved = true;
-            return false;
-        }
-
-        if (manifest == null || manifest.isEmpty()) {
-            CreateStats.LOGGER.info("[ManifestHandler] No manifest for station {}, passthrough mode", station.name);
-            this.resolved = true;
-            return false;
-        }
-
-        // Build limits from UNLOAD + ITEM lines
-        Map<ResourceLocation, Integer> lim = new HashMap<>();
-        for (FreightManifestLine line : manifest.getLines()) {
-            if (line.getOperation() == ManifestOperation.UNLOAD
-                && line.getCargoKind() == ManifestCargoKind.ITEM
-                && line.getResourceId() != null
-                && line.getAmount() > 0) {
-                lim.merge(line.getResourceId(), line.getAmount(), Integer::sum);
-            }
-        }
-
-        if (lim.isEmpty()) {
-            CreateStats.LOGGER.info("[ManifestHandler] No UNLOAD+ITEM lines, passthrough mode");
-            this.resolved = true;
-            return false;
-        }
-
-        this.limits = lim;
-        this.stationId = sid;
-        this.trainId = tid;
+        this.stationLevel = serverLevel;
+        this.stationId = station.getId();
+        this.train = resolvedTrain;
         this.resolved = true;
 
-        ManifestUnloadTracker.registerInterface(this.psi.getBlockPos(), sid);
-        CreateStats.LOGGER.info("[ManifestHandler] Resolved manifest for train '{}' at '{}': {}",
-            train.name.getString(), station.name, lim);
+        ManifestUnloadTracker.registerInterface(this.psi.getBlockPos(), this.stationId);
         return true;
+    }
+
+    @Nullable
+    private ManifestAllowance allowance(ManifestOperation operation) {
+        if (this.stationLevel == null || this.stationId == null) {
+            return null;
+        }
+        long now = this.stationLevel.getGameTime();
+        if (now != this.cachedAtTick) {
+            this.cachedAtTick = now;
+            this.cachedUnload = null;
+            this.cachedLoad = null;
+        }
+        if (operation == ManifestOperation.UNLOAD) {
+            if (this.cachedUnload == null) {
+                this.cachedUnload = ManifestAllowance.capture(this.stationLevel, this.stationId, this.train,
+                    ManifestOperation.UNLOAD, ManifestCargoKind.ITEM);
+            }
+            return this.cachedUnload;
+        }
+        if (this.cachedLoad == null) {
+            this.cachedLoad = ManifestAllowance.capture(this.stationLevel, this.stationId, this.train,
+                ManifestOperation.LOAD, ManifestCargoKind.ITEM);
+        }
+        return this.cachedLoad;
+    }
+
+    private void recordMovement(ManifestAllowance allowance, FreightManifestResourceKey key,
+                               ManifestOperation operation, int amount) {
+        if (this.stationId == null || this.train == null || amount <= 0) {
+            return;
+        }
+        ManifestUnloadTracker.getOrCreate(this.stationId, this.train.id).record(key, operation, amount);
+        allowance.spend(key, amount);
+    }
+
+    @Nullable
+    private static FreightManifestResourceKey keyOf(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return itemId == null ? null : new FreightManifestResourceKey(ManifestCargoKind.ITEM, itemId);
     }
 
     @Override
@@ -127,48 +128,58 @@ public class ManifestAwareItemHandler implements IItemHandlerModifiable {
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        return this.wrapped.insertItem(slot, stack, simulate);
+        if (stack.isEmpty() || !this.tryResolve()) {
+            return this.wrapped.insertItem(slot, stack, simulate);
+        }
+        ManifestAllowance allowance = this.allowance(ManifestOperation.LOAD);
+        if (allowance == null || !allowance.isRestricted()) {
+            return this.wrapped.insertItem(slot, stack, simulate);
+        }
+
+        FreightManifestResourceKey key = keyOf(stack);
+        if (key == null) {
+            return stack;
+        }
+        int permitted = allowance.allowanceFor(key);
+        if (permitted <= 0) {
+            return stack;
+        }
+
+        int offered = Math.min(stack.getCount(), permitted);
+        int withheld = stack.getCount() - offered;
+        ItemStack remainder = this.wrapped.insertItem(slot, stack.copyWithCount(offered), simulate);
+        int accepted = offered - remainder.getCount();
+        if (!simulate && accepted > 0) {
+            this.recordMovement(allowance, key, ManifestOperation.LOAD, accepted);
+        }
+        int rejected = remainder.getCount() + withheld;
+        return rejected <= 0 ? ItemStack.EMPTY : stack.copyWithCount(rejected);
     }
 
     @Override
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        // If not resolved yet or no manifest, pass through to original
-        if (!tryResolve()) {
+        if (!this.tryResolve()) {
+            return this.wrapped.extractItem(slot, amount, simulate);
+        }
+        ManifestAllowance allowance = this.allowance(ManifestOperation.UNLOAD);
+        if (allowance == null || !allowance.isRestricted()) {
             return this.wrapped.extractItem(slot, amount, simulate);
         }
 
         ItemStack inSlot = this.wrapped.getStackInSlot(slot);
-        if (inSlot.isEmpty()) {
+        FreightManifestResourceKey key = keyOf(inSlot);
+        if (key == null) {
+            return ItemStack.EMPTY;
+        }
+        int permitted = allowance.allowanceFor(key);
+        if (permitted <= 0) {
             return ItemStack.EMPTY;
         }
 
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(inSlot.getItem());
-        if (itemId == null) {
-            return ItemStack.EMPTY;
-        }
-
-        Integer limit = this.limits.get(itemId);
-        if (limit == null) {
-            // Item not in manifest UNLOAD list, block extraction
-            return ItemStack.EMPTY;
-        }
-
-        ManifestUnloadTracker.StationVisitState state =
-            ManifestUnloadTracker.getOrCreate(this.stationId, this.trainId);
-        int alreadyExtracted = state.getExtractedItems(itemId);
-        int remaining = limit - alreadyExtracted;
-
-        if (remaining <= 0) {
-            return ItemStack.EMPTY;
-        }
-
-        int toExtract = Math.min(amount, remaining);
-        ItemStack result = this.wrapped.extractItem(slot, toExtract, simulate);
-
+        ItemStack result = this.wrapped.extractItem(slot, Math.min(amount, permitted), simulate);
         if (!simulate && !result.isEmpty()) {
-            state.recordItemExtraction(itemId, result.getCount());
+            this.recordMovement(allowance, key, ManifestOperation.UNLOAD, result.getCount());
         }
-
         return result;
     }
 
@@ -179,7 +190,18 @@ public class ManifestAwareItemHandler implements IItemHandlerModifiable {
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
-        return this.wrapped.isItemValid(slot, stack);
+        if (!this.wrapped.isItemValid(slot, stack)) {
+            return false;
+        }
+        if (stack.isEmpty() || !this.tryResolve()) {
+            return true;
+        }
+        ManifestAllowance allowance = this.allowance(ManifestOperation.LOAD);
+        if (allowance == null || !allowance.isRestricted()) {
+            return true;
+        }
+        FreightManifestResourceKey key = keyOf(stack);
+        return key != null && allowance.allowanceFor(key) > 0;
     }
 
     @Override

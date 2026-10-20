@@ -11,36 +11,34 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.lang.reflect.Method;
 
-/** [1] */
 public record FccTelemetryPacket(
     int containerId,
     long controllerPosLong,
     double altitude,
-    float climbRate,           // blocks/second (positive = ascending)
-    float headingDeg,          // [-180, +180], 0 = +Z (north-ish before nose remap)
-    float pitchDeg,            // signed, 0 = level
-    float rollDeg,             // signed, 0 = wings level
+    float climbRate,
+    float headingDeg,
+    float pitchDeg,
+    float rollDeg,
     float velX,
     float velZ,
     float velY,
     float autoTargetDistance,
     int propBoundCount,
     int propResolvedCount,
-    int[] bindingRows,         // row index per binding; -1 if unknown
-    int[] commandedRpm,        // length == propBoundCount
-    int[] actualRpm,           // physical prop RPM, length == propBoundCount
-    float[] thrustSigned,      // signed thrust scalar
-    float[] thrustVertical,    // world-space Y component of thrust
-    float[] thrustHorizontal,  // world-space horizontal thrust magnitude, signed by thrustSigned
-    float[] sailPower,         // sail power scalar from prop actor
-    float[] tiltAngleDeg,      // angle between thrust direction and local forward axis
-    int gyroMask,              // bit i set when binding i is a gyroscopic bearing
-    int[] vehicleWheelRpm,     // FL, FR, ML, MR, RL, RR runtime wheel RPM commands (commanded)
-    int[] vehicleWheelSteer,   // FL, FR, ML, MR, RL, RR runtime steering signals [-15, 15]
-    int[] actualWheelRpm,      // FL, FR, ML, MR, RL, RR physical wheel shaft RPM (kinetic getSpeed())
-    int vehicleSteerModeOrdinal // live steering mode from the vehicle runtime: -1 idle, else FRONT=0 ALL_WHEEL=1 CRAB=2
+    int[] bindingRows,
+    int[] commandedRpm,
+    int[] actualRpm,
+    float[] thrustSigned,
+    float[] thrustVertical,
+    float[] thrustHorizontal,
+    float[] sailPower,
+    float[] tiltAngleDeg,
+    int gyroMask,
+    int[] vehicleWheelRpm,
+    int[] vehicleWheelSteer,
+    int[] actualWheelRpm,
+    int vehicleSteerModeOrdinal
 ) implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<FccTelemetryPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "fcc_telemetry"));
 

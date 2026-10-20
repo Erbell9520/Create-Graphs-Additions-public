@@ -1,9 +1,13 @@
 package com.createstats.train.manifest;
 
+import com.createstats.train.power.TrainChargeLedger;
+import com.createstats.train.power.TrainChargeProbe;
+import com.createstats.train.power.TrainChargeReading;
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.content.trains.entity.Train;
 import com.simibubi.create.content.trains.schedule.ScheduleEntry;
 import com.simibubi.create.content.trains.schedule.destination.DestinationInstruction;
+import com.simibubi.create.content.trains.station.GlobalStation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,9 +23,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.GameProfileCache;
 
-/** [1] */
 public class TrainSummarySnapshot {
-
     private final UUID trainId;
     private final String trainName;
     private final String ownerName;
@@ -33,13 +35,31 @@ public class TrainSummarySnapshot {
     private final String currentStationName;
     private final boolean waitingForSignal;
     private final int ticksWaitingForSignal;
+    private final boolean inboundToStation;
+    private final TrainCargoSnapshot cargoSnapshot;
     private final long captureTick;
+
+    @Nullable
+    private final TrainChargeReading charge;
 
     public TrainSummarySnapshot(UUID trainId, String trainName, String ownerName,
                                 int carriageCount, float speed, String nextDestination,
                                 List<String> scheduleStops, boolean stoppedAtStation,
                                 String currentStationName, boolean waitingForSignal,
-                                int ticksWaitingForSignal, long captureTick) {
+                                int ticksWaitingForSignal, boolean inboundToStation,
+                                TrainCargoSnapshot cargoSnapshot, long captureTick) {
+        this(trainId, trainName, ownerName, carriageCount, speed, nextDestination, scheduleStops,
+                stoppedAtStation, currentStationName, waitingForSignal, ticksWaitingForSignal,
+                inboundToStation, cargoSnapshot, captureTick, null);
+    }
+
+    public TrainSummarySnapshot(UUID trainId, String trainName, String ownerName,
+                                int carriageCount, float speed, String nextDestination,
+                                List<String> scheduleStops, boolean stoppedAtStation,
+                                String currentStationName, boolean waitingForSignal,
+                                int ticksWaitingForSignal, boolean inboundToStation,
+                                TrainCargoSnapshot cargoSnapshot, long captureTick,
+                                @Nullable TrainChargeReading charge) {
         this.trainId = trainId;
         this.trainName = trainName;
         this.ownerName = ownerName;
@@ -51,19 +71,20 @@ public class TrainSummarySnapshot {
         this.currentStationName = currentStationName;
         this.waitingForSignal = waitingForSignal;
         this.ticksWaitingForSignal = ticksWaitingForSignal;
+        this.inboundToStation = inboundToStation;
+        this.cargoSnapshot = cargoSnapshot == null ? new TrainCargoSnapshot() : cargoSnapshot.copy();
         this.captureTick = captureTick;
+        this.charge = charge;
     }
 
-    /**
-     * Captures a snapshot from a live Create Train entity.
-     *
-     * @param train        the train to snapshot
-     * @param server       the server instance (for owner name resolution)
-     * @param stationNames map of station UUID to display name (for currentStationName resolution)
-     * @param tick         current game tick
-     */
     public static TrainSummarySnapshot capture(Train train, MinecraftServer server,
                                                Map<UUID, String> stationNames, long tick) {
+        return capture(train, server, stationNames, null, tick);
+    }
+
+    public static TrainSummarySnapshot capture(Train train, MinecraftServer server,
+                                               Map<UUID, String> stationNames,
+                                               @Nullable GlobalStation monitoredStation, long tick) {
         UUID trainId = train.id;
         String trainName = (train.name != null) ? train.name.getString() : "Train";
         String ownerName = resolveOwnerName(server, train.owner);
@@ -101,10 +122,24 @@ public class TrainSummarySnapshot {
                 && train.navigation.waitingForSignal != null;
         int ticksWaitingForSignal = waitingForSignal
                 ? train.navigation.ticksWaitingForSignal : 0;
+        boolean inboundToStation = monitoredStation != null && train.navigation != null
+                && train.navigation.destination != null
+                && monitoredStation.getId().equals(train.navigation.destination.getId());
+        TrainCargoSnapshot cargoSnapshot = TrainCargoSnapshot.capture(train);
+
+        TrainChargeReading charge = TrainChargeProbe.read(train, tick, currentStationName);
+        TrainChargeLedger ledger = TrainChargeLedger.get(server);
+        if (ledger != null) {
+            if (charge != null) {
+                ledger.record(trainId, charge);
+            } else {
+                charge = ledger.get(trainId);
+            }
+        }
 
         return new TrainSummarySnapshot(trainId, trainName, ownerName, carriageCount, speed,
                 nextDestination, scheduleStops, stoppedAtStation, currentStationName,
-                waitingForSignal, ticksWaitingForSignal, tick);
+                waitingForSignal, ticksWaitingForSignal, inboundToStation, cargoSnapshot, tick, charge);
     }
 
     private static String resolveOwnerName(MinecraftServer server, @Nullable UUID ownerUUID) {
@@ -120,8 +155,6 @@ public class TrainSummarySnapshot {
         }
         return ownerUUID.toString().substring(0, 8);
     }
-
-    // getters
 
     public UUID getTrainId() {
         return this.trainId;
@@ -167,8 +200,21 @@ public class TrainSummarySnapshot {
         return this.ticksWaitingForSignal;
     }
 
+    public boolean isInboundToStation() {
+        return this.inboundToStation;
+    }
+
+    public TrainCargoSnapshot getCargoSnapshot() {
+        return this.cargoSnapshot.copy();
+    }
+
     public long getCaptureTick() {
         return this.captureTick;
+    }
+
+    @Nullable
+    public TrainChargeReading getCharge() {
+        return this.charge;
     }
 
     public TrainSummarySnapshot copy() {
@@ -176,10 +222,9 @@ public class TrainSummarySnapshot {
                 this.carriageCount, this.speed, this.nextDestination,
                 new ArrayList<>(this.scheduleStops), this.stoppedAtStation,
                 this.currentStationName, this.waitingForSignal,
-                this.ticksWaitingForSignal, this.captureTick);
+                this.ticksWaitingForSignal, this.inboundToStation,
+                this.cargoSnapshot, this.captureTick, this.charge);
     }
-
-    // NBT
 
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
@@ -198,7 +243,12 @@ public class TrainSummarySnapshot {
         tag.putString("CurrentStation", this.currentStationName);
         tag.putBoolean("WaitSignal", this.waitingForSignal);
         tag.putInt("WaitTicks", this.ticksWaitingForSignal);
+        tag.putBoolean("InboundToStation", this.inboundToStation);
+        tag.put("CargoSnapshot", this.cargoSnapshot.save());
         tag.putLong("CaptureTick", this.captureTick);
+        if (this.charge != null) {
+            tag.put("Charge", this.charge.save());
+        }
         return tag;
     }
 
@@ -220,10 +270,13 @@ public class TrainSummarySnapshot {
                 tag.getString("CurrentStation"),
                 tag.getBoolean("WaitSignal"),
                 tag.getInt("WaitTicks"),
-                tag.getLong("CaptureTick"));
+                tag.getBoolean("InboundToStation"),
+                tag.contains("CargoSnapshot")
+                        ? TrainCargoSnapshot.load(tag.getCompound("CargoSnapshot"))
+                        : new TrainCargoSnapshot(),
+                tag.getLong("CaptureTick"),
+                tag.contains("Charge") ? TrainChargeReading.load(tag.getCompound("Charge")) : null);
     }
-
-    // network
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeUUID(this.trainId);
@@ -240,7 +293,10 @@ public class TrainSummarySnapshot {
         buf.writeUtf(this.currentStationName);
         buf.writeBoolean(this.waitingForSignal);
         buf.writeVarInt(this.ticksWaitingForSignal);
+        buf.writeBoolean(this.inboundToStation);
+        buf.writeNbt(this.cargoSnapshot.save());
         buf.writeLong(this.captureTick);
+        TrainChargeReading.encodeNullable(buf, this.charge);
     }
 
     public static TrainSummarySnapshot decode(FriendlyByteBuf buf) {
@@ -259,8 +315,12 @@ public class TrainSummarySnapshot {
         String currentStation = buf.readUtf();
         boolean waitSignal = buf.readBoolean();
         int waitTicks = buf.readVarInt();
+        boolean inboundToStation = buf.readBoolean();
+        TrainCargoSnapshot cargoSnapshot = TrainCargoSnapshot.load(buf.readNbt());
         long captureTick = buf.readLong();
+        TrainChargeReading charge = TrainChargeReading.decodeNullable(buf);
         return new TrainSummarySnapshot(trainId, trainName, ownerName, carriageCount, speed,
-                nextDest, stops, stopped, currentStation, waitSignal, waitTicks, captureTick);
+                nextDest, stops, stopped, currentStation, waitSignal, waitTicks,
+                inboundToStation, cargoSnapshot, captureTick, charge);
     }
 }

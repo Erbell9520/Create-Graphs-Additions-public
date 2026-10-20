@@ -2,7 +2,7 @@ package com.createstats.client.hud;
 
 import net.minecraft.util.Mth;
 
-/** [1] */
+// wall clock so it keeps breathing while paused
 public final class HudAnim {
     private HudAnim() {}
 
@@ -42,15 +42,6 @@ public final class HudAnim {
         return p < 0.5f ? p * 2f : 2f - p * 2f;
     }
 
-    /**
-     * Critically-damped spring step.
-     *
-     * @param current  current value
-     * @param target   target value
-     * @param velocity in/out velocity holder (length-1 array); pass {@code null} to ignore
-     * @param dt       delta time in seconds
-     * @param halfLife seconds for value to halve the gap (smaller = snappier)
-     */
     public static float spring(float current, float target, float[] velocity, float dt, float halfLife) {
         if (halfLife <= 0f) return target;
         final float k = (float) (Math.log(2.0) / halfLife);

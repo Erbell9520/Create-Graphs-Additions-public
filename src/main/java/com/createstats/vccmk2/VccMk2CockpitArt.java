@@ -3,9 +3,7 @@ package com.createstats.vccmk2;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
-/** [1] */
 final class VccMk2CockpitArt {
-
     private VccMk2CockpitArt() {
     }
 
@@ -23,7 +21,6 @@ final class VccMk2CockpitArt {
     static final int SKY = 0xFF3E72A8;
     static final int GROUND = 0xFF7A5230;
 
-    // primitives
     static int dim(int argb, double f) {
         int a = (argb >>> 24) & 0xFF;
         int r = (int) (((argb >> 16) & 0xFF) * f);
@@ -80,11 +77,6 @@ final class VccMk2CockpitArt {
         }
     }
 
-    // switches
-    /**
-     * A physical-looking toggle. {@code anim} (0..1) is the eased knob position so the lever
-     * visibly slides between OFF (bottom) and ON (top) when flipped.
-     */
     static void drawToggle(GuiGraphics g, Font font, int x, int y, int w, int h,
                            String title, boolean on, double anim, int onColor,
                            String onText, String offText, boolean hover, boolean enabled) {
@@ -100,7 +92,7 @@ final class VccMk2CockpitArt {
         int ty = y + 18;
         g.fill(tx, ty, tx + tw, ty + th, 0xFF05080C);
         renderOutline(g, tx, ty, tw, th, GOLD_DK);
-        // slot ticks
+
         g.drawString(font, "I", tx - 7, ty + 1, on ? onColor : DIM, false);
         g.drawString(font, "O", tx - 8, ty + th - 8, on ? DIM : AMBER, false);
 
@@ -112,7 +104,6 @@ final class VccMk2CockpitArt {
         g.fill(tx + 2, ky + 2, tx + tw - 2, ky + 3, dim(kc, 1.4 > 1 ? 1.0 : 1.0));
         g.fill(tx + 2, ky + knobH / 2 - 1, tx + tw - 2, ky + knobH / 2 + 1, dim(kc, 0.55));
 
-        // lamp
         int lampC = !enabled ? 0xFF2A323D : on ? onColor : 0xFF3A4250;
         g.fill(x + w - 13, y + 6, x + w - 6, y + 13, lampC);
         renderOutline(g, x + w - 13, y + 6, 7, 7, dim(lampC, 0.6));
@@ -122,7 +113,6 @@ final class VccMk2CockpitArt {
         g.drawString(font, st, x + (w - font.width(st)) / 2, y + h - 11, stCol, false);
     }
 
-    /** [2] */
     static void drawRotary(GuiGraphics g, Font font, int x, int y, int w, int h,
                            String title, int index, String[] options, int color, boolean hover, boolean enabled) {
         g.fill(x, y, x + w, y + h, 0xFF0E141B);
@@ -136,13 +126,13 @@ final class VccMk2CockpitArt {
         if (r < 5) {
             r = 5;
         }
-        // knob body
+
         ring(g, cx, cy, r + 1, GOLD_DK, 32);
         for (int i = 0; i < r; i++) {
             g.fill(cx - i, cy - 1, cx + i, cy + 1, 0xFF222A34);
         }
         ring(g, cx, cy, r, dim(color, enabled ? 0.9 : 0.5), 32);
-        // detent ticks across the active arc
+
         double start = Math.toRadians(150);
         double sweep = Math.toRadians(240);
         for (int i = 0; i < n; i++) {
@@ -151,19 +141,18 @@ final class VccMk2CockpitArt {
             int ty = (int) Math.round(cy + Math.sin(ang) * (r + 3));
             g.fill(tx, ty, tx + 1, ty + 1, i == idx ? color : DIM);
         }
-        // pointer to the selected detent
+
         double pa = start + (n == 1 ? 0 : sweep * idx / (n - 1));
         int px = (int) Math.round(cx + Math.cos(pa) * (r - 2));
         int py = (int) Math.round(cy + Math.sin(pa) * (r - 2));
         lineT(g, cx, cy, px, py, enabled ? color : DIM);
         g.fill(cx - 2, cy - 2, cx + 2, cy + 2, GOLD);
-        // active label to the right of the knob
+
         String lbl = options[idx];
         g.drawString(font, lbl, cx + r + 6, cy - 7, enabled ? color : DIM, false);
         g.drawString(font, (idx + 1) + "/" + n, cx + r + 6, cy + 2, DIM, false);
     }
 
-    // attitude indicator
     static void drawAttitude(GuiGraphics g, Font font, int cx, int cy, int r,
                              double pitchDeg, double rollDeg, boolean live) {
         ring(g, cx, cy, r + 3, METAL_DK, 72);
@@ -194,7 +183,7 @@ final class VccMk2CockpitArt {
                 g.fill(col, hY - 1, col + 1, hY + 1, 0xFFFFFFFF);
             }
         }
-        // pitch ladder rungs
+
         for (int p = -20; p <= 20; p += 10) {
             if (p == 0) {
                 continue;
@@ -205,25 +194,24 @@ final class VccMk2CockpitArt {
                 g.fill(cx + 3, ry, cx + 10, ry + 1, 0xCCFFFFFF);
             }
         }
-        // bank ticks
+
         for (int a = -60; a <= 60; a += 30) {
             double ar = Math.toRadians(a - 90);
             int tx = (int) Math.round(cx + Math.cos(ar) * (r - 2));
             int ty = (int) Math.round(cy + Math.sin(ar) * (r - 2));
             g.fill(tx, ty, tx + 1, ty + 1, DIM);
         }
-        // fixed aircraft symbol
+
         g.fill(cx - 16, cy - 1, cx - 5, cy + 1, GOLD);
         g.fill(cx + 5, cy - 1, cx + 16, cy + 1, GOLD);
         g.fill(cx - 2, cy - 2, cx + 2, cy + 2, GOLD);
-        // bank pointer
+
         int px = (int) Math.round(cx + Math.cos(Math.toRadians(rollDeg - 90)) * (r - 4));
         int py = (int) Math.round(cy + Math.sin(Math.toRadians(rollDeg - 90)) * (r - 4));
         g.fill(px - 1, py - 1, px + 2, py + 2, live ? CYAN : AMBER);
         g.drawString(font, "ATTITUDE", cx - font.width("ATTITUDE") / 2, cy + r + 5, DIM, false);
     }
 
-    // round gauge
     static void drawDial(GuiGraphics g, Font font, int cx, int cy, int r,
                          double value, double max, String label, String unit, int color) {
         ring(g, cx, cy, r + 2, GOLD_DK, 80);
@@ -251,18 +239,12 @@ final class VccMk2CockpitArt {
         g.drawString(font, label, cx - font.width(label) / 2, cy - r - 11, GOLD, false);
     }
 
-    // car dashboard
-    /**
-     * A proper car instrument gauge: numbered ticks, a coloured redline arc, a sweeping needle
-     * with a counterweight, and a big digital centre readout. Used for the speedometer and tacho.
-     */
     static void drawCarGauge(GuiGraphics g, Font font, int cx, int cy, int r,
                              double value, double max, double redlineFrac,
                              String label, String unit, int color, boolean live) {
         ring(g, cx, cy, r + 3, METAL_DK, 96);
         ring(g, cx, cy, r + 2, GOLD_DK, 96);
         for (int i = 0; i < r; i += 1) {
-            // faint dished face
             if (i > r - 3) {
                 ring(g, cx, cy, i, dim(METAL, 0.7), 64);
             }
@@ -293,7 +275,7 @@ final class VccMk2CockpitArt {
                 g.drawString(font, s, lx, ly, red ? RED : DIM, false);
             }
         }
-        // redline arc band
+
         for (double f = redlineFrac; f <= 1.0; f += 0.015) {
             double a = start + sweep * f;
             int x = (int) Math.round(cx + Math.cos(a) * (r - 1));
@@ -306,7 +288,7 @@ final class VccMk2CockpitArt {
         int ny = (int) Math.round(cy + Math.sin(na) * (r - 9));
         int needle = live ? (frac >= redlineFrac ? RED : color) : DIM;
         lineT(g, cx, cy, nx, ny, needle);
-        // counterweight tail
+
         lineT(g, cx, cy, (int) Math.round(cx - Math.cos(na) * 9), (int) Math.round(cy - Math.sin(na) * 9), needle);
         g.fill(cx - 3, cy - 3, cx + 4, cy + 4, GOLD);
         ring(g, cx, cy, 4, GOLD_DK, 16);
@@ -318,7 +300,6 @@ final class VccMk2CockpitArt {
         g.drawString(font, label, cx - font.width(label) / 2, cy - r - 11, GOLD, false);
     }
 
-    /** Vertical P/R/N/D gear selector with the active gear lit. {@code gear} is 0=P,1=R,2=N,3=D. */
     static void drawGearStack(GuiGraphics g, Font font, int x, int y, int w, int h, int gear, boolean live) {
         String[] labels = {"P", "R", "N", "D"};
         int[] cols = {DIM, AMBER, CYAN, GREEN};
@@ -339,7 +320,6 @@ final class VccMk2CockpitArt {
         }
     }
 
-    /** A bubble inclinometer: the bubble drifts with pitch (vertical) and roll (horizontal). */
     static void drawInclinometer(GuiGraphics g, Font font, int x, int y, int w, int h,
                                  double pitch, double roll, boolean live) {
         g.fill(x, y, x + w, y + h, 0xFF05080C);
@@ -361,7 +341,6 @@ final class VccMk2CockpitArt {
         g.drawString(font, s, x + 4, y + h - 10, DIM, false);
     }
 
-    /** A g-force dot in a cross: lateral g moves it left/right, longitudinal g up (accel)/down (brake). */
     static void drawGMeter(GuiGraphics g, Font font, int x, int y, int w, int h, double accelG, double latG) {
         g.fill(x, y, x + w, y + h, 0xFF05080C);
         renderOutline(g, x, y, w, h, GOLD_DK);
@@ -384,7 +363,6 @@ final class VccMk2CockpitArt {
         g.drawString(font, String.format("%+.1f", accelG), x + 4, y + h - 10, DIM, false);
     }
 
-    /** A labelled vertical fill bar (throttle / brake) from 0..1. */
     static void drawPedalBar(GuiGraphics g, Font font, int x, int y, int w, int h,
                              double v, String label, int color) {
         g.fill(x, y + 10, x + w, y + h, 0xFF05080C);
@@ -396,7 +374,6 @@ final class VccMk2CockpitArt {
         g.drawString(font, label, x + (w - font.width(label)) / 2, y, GOLD, false);
     }
 
-    /** A horizontal diesel-fuel gauge: label + filled bar + amount / capacity readout. */
     static void drawFuelBar(GuiGraphics g, Font font, int x, int y, int w, float amount, float capacity, boolean live) {
         g.drawString(font, "FUEL", x, y, GOLD, false);
         int barX = x + font.width("FUEL") + 6;
@@ -423,7 +400,6 @@ final class VccMk2CockpitArt {
         g.drawString(font, txt, x, y + 10, has || amount > 0.5f ? TXT : DIM, false);
     }
 
-    // heading tape
     static void drawHeadingTape(GuiGraphics g, Font font, int x, int y, int w, int h, double headingDeg) {
         g.fill(x, y, x + w, y + h, INSTR_BG);
         renderOutline(g, x, y, w, h, GOLD_DK);
@@ -443,14 +419,13 @@ final class VccMk2CockpitArt {
                 g.drawString(font, c, tx - font.width(c) / 2, y + 12, GOLD, false);
             }
         }
-        // center pointer
+
         g.fill(cx, y - 2, cx + 1, y + h - 2, CYAN);
         g.fill(cx - 2, y - 2, cx + 3, y, CYAN);
         String hd = String.format("%03.0f", ((headingDeg % 360) + 360) % 360);
         g.drawString(font, hd, cx - font.width(hd) / 2, y + h - 10, CYAN, false);
     }
 
-    // pilot controls
     static final int LEVER_SLOT_TOP = 18;
     static final int LEVER_SLOT_BOT = 16;
     static final int LEVER_HANDLE = 14;
@@ -487,12 +462,12 @@ final class VccMk2CockpitArt {
     static void drawWheel(GuiGraphics g, Font font, int cx, int cy, int r,
                           String label, double v, int color, boolean hover) {
         double ang = (v - 0.5) * Math.toRadians(240);
-        // fixed reference notch at top (12 o'clock) so any turn is visible against it
+
         g.fill(cx - 1, cy - r - 4, cx + 2, cy - r + 2, AMBER);
-        // rim
+
         ring(g, cx, cy, r, hover ? color : GOLD, 48);
         ring(g, cx, cy, r - 1, GOLD_DK, 48);
-        // turn arc from top to current grip (shows amount + side)
+
         int steps = 16;
         for (int i = 0; i <= steps; i++) {
             double a = -Math.PI / 2 + ang * i / steps;
@@ -500,10 +475,10 @@ final class VccMk2CockpitArt {
             int ay = (int) Math.round(cy + Math.sin(a) * (r - 4));
             g.fill(ax, ay, ax + 1, ay + 1, dim(CYAN, 0.8));
         }
-        // hub
+
         g.fill(cx - 6, cy - 6, cx + 6, cy + 6, METAL);
         renderOutline(g, cx - 6, cy - 6, 12, 12, GOLD_DK);
-        // spokes: the grip spoke is bright + thick, the other two are dim so rotation reads
+        // one bright spoke so you can see it turn
         for (int i = 0; i < 3; i++) {
             double a = ang + i * 2 * Math.PI / 3 - Math.PI / 2;
             int ex = (int) Math.round(cx + Math.cos(a) * (r - 3));
@@ -515,7 +490,7 @@ final class VccMk2CockpitArt {
                 line(g, cx, cy, ex, ey, GOLD_DK);
             }
         }
-        // chunky moving grip on the rim at the top spoke
+
         double ga = ang - Math.PI / 2;
         int gx = (int) Math.round(cx + Math.cos(ga) * (r - 2));
         int gy = (int) Math.round(cy + Math.sin(ga) * (r - 2));
@@ -567,7 +542,6 @@ final class VccMk2CockpitArt {
         renderOutline(g, gx - 5, ky, 14, 10, color);
     }
 
-    // craft graphics
     static void drawCraftGraphic(GuiGraphics g, Font font, VccMk2CraftProfile p,
                                  int x, int y, int w, int h, double t) {
         g.fill(x, y, x + w, y + h, INSTR_BG);
@@ -648,7 +622,7 @@ final class VccMk2CockpitArt {
         int cy = y + h / 2;
         int bw = Math.min(w - 40, 70);
         int bh = Math.min(h - 30, 54);
-        // tracks
+
         int scroll = (int) (t * 14) % 8;
         for (int side = 0; side < 2; side++) {
             int tx = side == 0 ? cx - bw / 2 - 10 : cx + bw / 2 - 2;
@@ -660,7 +634,7 @@ final class VccMk2CockpitArt {
         }
         g.fill(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2, METAL);
         renderOutline(g, cx - bw / 2, cy - bh / 2, bw, bh, GOLD_DK);
-        // turret + barrel
+
         double a = Math.sin(t * 0.5) * 0.4 - Math.PI / 2;
         ring(g, cx, cy, 12, GOLD_DK, 24);
         int gx = (int) Math.round(cx + Math.cos(a) * (bh / 2 + 12));
@@ -694,20 +668,20 @@ final class VccMk2CockpitArt {
         int cy = y + h / 2;
         int bw = Math.min(w - 40, 64);
         int bh = Math.min(h - 30, 30);
-        // wake
+
         int scroll = (int) (t * 16) % 10;
         for (int yy = cy + bh; yy < y + h - 8; yy += 10) {
             int ww = (yy - cy) / 2;
             g.fill(cx - ww, yy - scroll, cx + ww, yy - scroll + 1, dim(CYAN, 0.5));
         }
         g.fill(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2, METAL);
-        // pointed bow
+
         for (int i = 0; i < bw / 2; i++) {
             int yy = cy - bh / 2 - (bw / 2 - i) / 3;
             g.fill(cx - bw / 2 + i, yy, cx + bw / 2 - i, yy + 1, METAL);
         }
         renderOutline(g, cx - bw / 2, cy - bh / 2, bw, bh, GOLD_DK);
-        // rudder
+
         double a = Math.sin(t * 0.9) * 5;
         g.fill(cx - 1, cy + bh / 2, cx + 1 + (int) Math.round(a), cy + bh / 2 + 10, CYAN);
         center(g, font, "HULL", cx, y + h - 11, DIM);
@@ -722,7 +696,6 @@ final class VccMk2CockpitArt {
         center(g, font, "CUSTOM", cx, cy + r + 8, DIM);
     }
 
-    // auto maps
     static void drawRouteMap(GuiGraphics g, Font font, int x, int y, int w, int h, double t, boolean engaged) {
         g.fill(x, y, x + w, y + h, INSTR_BG);
         renderOutline(g, x, y, w, h, engaged ? GREEN : GOLD_DK);
@@ -808,8 +781,7 @@ final class VccMk2CockpitArt {
         center(g, font, label, x + bw / 2, top - 10, GOLD);
     }
 
-    // profile icons (Hangar)
-    /** [3] */
+    // idle cards get a frozen clock so the hangar reads calm
     static void drawProfileIcon(GuiGraphics g, VccMk2CraftProfile p, int x, int y, int w, int h,
                                 double clock, boolean animate, int col) {
         double t = animate ? clock : 0.0;
@@ -950,7 +922,6 @@ final class VccMk2CockpitArt {
         g.fill(cx - 2, cy - 2, cx + 2, cy + 2, col);
     }
 
-    // helpers
     private static void center(GuiGraphics g, Font font, String s, int cx, int y, int color) {
         g.drawString(font, s, cx - font.width(s) / 2, y, color, false);
     }

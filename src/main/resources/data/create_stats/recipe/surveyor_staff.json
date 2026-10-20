@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " C ",
+    "BTS",
+    " T "
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:compass"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "T": {
+      "item": "minecraft:stick"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "id": "create_stats:surveyor_staff",
+    "count": 1
+  }
+}

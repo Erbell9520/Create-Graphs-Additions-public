@@ -9,9 +9,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 
-/** [1] */
 public class GearScrollOptionBehaviour<E extends Enum<E> & INamedIconOptions> extends ScrollOptionBehaviour<E> {
-
     private final BehaviourType<?> type;
     private final String nbtKey;
     private final int netId;
@@ -29,7 +27,6 @@ public class GearScrollOptionBehaviour<E extends Enum<E> & INamedIconOptions> ex
         return type;
     }
 
-    /** [2] */
     @Override
     public int netId() {
         return netId;
@@ -37,7 +34,6 @@ public class GearScrollOptionBehaviour<E extends Enum<E> & INamedIconOptions> ex
 
     @Override
     public void write(CompoundTag nbt, HolderLookup.Provider registries, boolean clientPacket) {
-        // Deliberately skip the super implementation (which writes the shared "ScrollValue" key).
         nbt.putInt(nbtKey, value);
     }
 

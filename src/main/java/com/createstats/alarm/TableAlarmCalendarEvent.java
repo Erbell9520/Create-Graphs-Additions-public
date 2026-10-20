@@ -12,7 +12,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 
 public class TableAlarmCalendarEvent {
-
     public static final int MAX_TITLE_LENGTH = 48;
     public static final int MINUTES_PER_DAY = 24 * 60;
     public static final Comparator<TableAlarmCalendarEvent> SORT_ORDER = Comparator

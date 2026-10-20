@@ -9,9 +9,7 @@ import net.minecraft.world.item.component.CustomData;
 
 import javax.annotation.Nullable;
 
-/** [1] */
 public final class FlightCardData {
-
     @Nullable private BlockPos linkedPos;
     @Nullable private ResourceLocation dimensionId;
 
@@ -54,8 +52,6 @@ public final class FlightCardData {
         }
         return data;
     }
-
-    // itemStack helpers, used by both PropellerCardItem and GovernorCardItem.
 
     public static FlightCardData get(ItemStack stack, String tagKey) {
         CustomData cd = stack.get(DataComponents.CUSTOM_DATA);

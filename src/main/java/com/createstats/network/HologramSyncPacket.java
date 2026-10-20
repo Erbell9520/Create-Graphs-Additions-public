@@ -16,33 +16,30 @@ public class HologramSyncPacket implements CustomPacketPayload
     private final BlockPos pos;
     private final CompoundTag hologramSettingsTag;
     private final CompoundTag channelDataTag;
-    
+
     public HologramSyncPacket(BlockPos pos, CompoundTag hologramSettingsTag, CompoundTag channelDataTag) {
         this.pos = pos;
         this.hologramSettingsTag = hologramSettingsTag;
         this.channelDataTag = channelDataTag;
     }
-    
+
     public HologramSyncPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         this.hologramSettingsTag = buf.readNbt();
         this.channelDataTag = buf.readNbt();
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeNbt(this.hologramSettingsTag);
         buf.writeNbt(this.channelDataTag);
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(HologramSyncPacket packet, IPayloadContext ctx) {
-        // Sync is handled entirely via the standard block-entity update mechanism
-        // (sendBlockUpdated → getUpdatePacket → onDataPacket).  This packet is kept
-        // registered only to preserve packet-ID stability; no server code sends it.
     }
 }

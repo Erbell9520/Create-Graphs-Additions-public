@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=north,glow=off": {
+      "model": "create_stats:block/klaxon_alarm"
+    },
+    "facing=north,glow=dim": {
+      "model": "create_stats:block/klaxon_alarm"
+    },
+    "facing=north,glow=mid": {
+      "model": "create_stats:block/klaxon_alarm"
+    },
+    "facing=north,glow=hot": {
+      "model": "create_stats:block/klaxon_alarm"
+    },
+    "facing=south,glow=off": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 180
+    },
+    "facing=south,glow=dim": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 180
+    },
+    "facing=south,glow=mid": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 180
+    },
+    "facing=south,glow=hot": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 180
+    },
+    "facing=east,glow=off": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 90
+    },
+    "facing=east,glow=dim": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 90
+    },
+    "facing=east,glow=mid": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 90
+    },
+    "facing=east,glow=hot": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 90
+    },
+    "facing=west,glow=off": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 270
+    },
+    "facing=west,glow=dim": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 270
+    },
+    "facing=west,glow=mid": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 270
+    },
+    "facing=west,glow=hot": {
+      "model": "create_stats:block/klaxon_alarm",
+      "y": 270
+    }
+  }
+}

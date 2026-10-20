@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/air_fryer"
+    },
+    "facing=east": {
+      "model": "create_stats:block/air_fryer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/air_fryer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/air_fryer",
+      "y": 270
+    }
+  }
+}

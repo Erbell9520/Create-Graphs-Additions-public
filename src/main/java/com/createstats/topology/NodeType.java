@@ -4,43 +4,43 @@ import java.util.Locale;
 
 public enum NodeType
 {
-    SHAFT(5, false), 
-    COGWHEEL(5, false), 
-    LARGE_COGWHEEL(5, false), 
-    GEARBOX(5, false), 
-    GEARSHIFT(5, false), 
-    SPEED_CONTROLLER(7, false), 
-    BELT(5, false), 
-    CHAIN_DRIVE(5, false), 
-    MECHANICAL_PRESS(7, true), 
-    MECHANICAL_MIXER(7, true), 
-    MECHANICAL_DRILL(7, true), 
-    MECHANICAL_SAW(7, true), 
-    DEPLOYER(7, true), 
-    ENCASED_FAN(7, true), 
-    MILLSTONE(7, true), 
-    CRUSHING_WHEEL(7, true), 
-    WATER_WHEEL(7, true), 
-    WINDMILL(7, true), 
-    HAND_CRANK(7, true), 
-    STEAM_ENGINE(7, true), 
-    CREATIVE_MOTOR(7, true), 
-    FLYWHEEL(7, true), 
-    GAUGE(7, true), 
+    SHAFT(5, false),
+    COGWHEEL(5, false),
+    LARGE_COGWHEEL(5, false),
+    GEARBOX(5, false),
+    GEARSHIFT(5, false),
+    SPEED_CONTROLLER(7, false),
+    BELT(5, false),
+    CHAIN_DRIVE(5, false),
+    MECHANICAL_PRESS(7, true),
+    MECHANICAL_MIXER(7, true),
+    MECHANICAL_DRILL(7, true),
+    MECHANICAL_SAW(7, true),
+    DEPLOYER(7, true),
+    ENCASED_FAN(7, true),
+    MILLSTONE(7, true),
+    CRUSHING_WHEEL(7, true),
+    WATER_WHEEL(7, true),
+    WINDMILL(7, true),
+    HAND_CRANK(7, true),
+    STEAM_ENGINE(7, true),
+    CREATIVE_MOTOR(7, true),
+    FLYWHEEL(7, true),
+    GAUGE(7, true),
     OTHER(5, true);
-    
+
     private final int iconSize;
     private final boolean showLabel;
-    
+
     private NodeType(int iconSize, boolean showLabel) {
         this.iconSize = iconSize;
         this.showLabel = showLabel;
     }
-    
+
     public int getIconSize() {
         return this.iconSize;
     }
-    
+
     public boolean showLabel() {
         return this.showLabel;
     }
@@ -69,7 +69,7 @@ public enum NodeType
             default -> false;
         };
     }
-    
+
     public static NodeType fromClassName(String className) {
         if (className.contains("CreativeMotor")) {
             return NodeType.CREATIVE_MOTOR;
@@ -223,7 +223,7 @@ public enum NodeType
         }
         return fromClassName(blockEntityClassName == null ? "" : blockEntityClassName);
     }
-    
+
     public static String displayNameFromClassName(String className) {
         final String name = className.replace("BlockEntity", "").replace("TileEntity", "").replace("BE", "");
         final StringBuilder sb = new StringBuilder();

@@ -1,0 +1,7 @@
+{
+  "type": "create_stats:arc_smelting",
+  "first": { "item": "minecraft:andesite" },
+  "second": { "tag": "c:nuggets/iron" },
+  "result": { "id": "create:andesite_alloy", "count": 2 },
+  "duration": 120
+}

@@ -30,22 +30,22 @@ public final class TopologyRenderer
 {
     private static final Map<BlockPos, CachedTopologyLayout> layoutCache;
     private static StatsDisplayPanelBE currentBE;
-    
+
     private TopologyRenderer() {
     }
-    
+
     public static void setCurrentBE(StatsDisplayPanelBE be) {
         TopologyRenderer.currentBE = be;
     }
-    
+
     public static void clearCurrentBE() {
         TopologyRenderer.currentBE = null;
     }
-    
+
     public static void disposeAll() {
         TopologyRenderer.layoutCache.clear();
     }
-    
+
     public static void renderTopology(NativeImage image, int x, int y, int w, int h, DisplayTheme theme, StatsDisplaySettings settings) {
         if (TopologyRenderer.currentBE == null) {
             return;
@@ -145,7 +145,7 @@ public final class TopologyRenderer
         }
         return h;
     }
-    
+
     private static Map<BlockPos, float[]> scaleToTexture(Map<BlockPos, float[]> normalized, int width, int height) {
         if (normalized.isEmpty()) {
             return Collections.emptyMap();
@@ -160,7 +160,7 @@ public final class TopologyRenderer
         }
         return scaled;
     }
-    
+
     private static void renderNoNetwork(NativeImage image, int x, int y, int w, int h, DisplayTheme theme) {
         final int scale = (image.getWidth() >= 512) ? 2 : 1;
         final int bigScale = scale + 1;
@@ -169,7 +169,7 @@ public final class TopologyRenderer
         BitmapFont.drawCentered(image, "No kinetic network", x, y + h / 2, w, theme.dim, scale);
         BitmapFont.drawCentered(image, "Link a stats source", x, y + h / 2 + lineH, w, theme.dim, scale);
     }
-    
+
     private static void renderBlueprintGrid(NativeImage image, int x, int y, int w, int h, DisplayTheme theme) {
         final int step = 32;
         final int gridRgb = theme.grid & 0xFFFFFF;
@@ -191,7 +191,7 @@ public final class TopologyRenderer
             }
         }
     }
-    
+
     private static int blendGridPixel(int existingAbgr, int overlayRgb, float opacity) {
         final int eR = existingAbgr & 0xFF;
         final int eG = (existingAbgr >> 8) & 0xFF;
@@ -205,7 +205,7 @@ public final class TopologyRenderer
         final int b = (int)(eB + (oB - eB) * opacity);
         return (eA << 24) | (b << 16) | (g << 8) | r;
     }
-    
+
     private static void renderNode(NativeImage image, int cx, int cy, BlockPos pos, TopologyNode node, NetworkGraph graph, DisplayTheme theme, StatsDisplaySettings settings, boolean isDense, @Nullable TopologyFlowLayout.LayoutResult flowLayout) {
         final int scale = (image.getWidth() >= 512) ? 2 : 1;
         final NodeType type = node.getType();
@@ -289,7 +289,7 @@ public final class TopologyRenderer
             BitmapFont.drawCentered(image, label, nodeX - 10, nodeY + nodeH + 2, nodeW + 20, labelColor, 1);
         }
     }
-    
+
     private static void renderEdge(NativeImage image, int x0, int y0, int x1, int y1, TopologyEdge edge, NetworkGraph graph, StatsDisplaySettings settings, @Nullable TopologyFlowLayout.LayoutResult flowLayout) {
         int edgeColor;
         if (settings.topologyColorByStress()) {
@@ -391,7 +391,7 @@ public final class TopologyRenderer
             }
         }
     }
-    
+
     private static void renderNetworkSummary(NativeImage image, NetworkGraph graph, int x, int y, int w, int h, DisplayTheme theme) {
         final int scale = 1;
         final int lineH = 9 * scale;
@@ -412,14 +412,14 @@ public final class TopologyRenderer
             BitmapFont.drawRight(image, lines[i], x + w - 2, y + 2 + i * lineH, summaryColor, scale);
         }
     }
-    
+
     private static void renderGhostNode(NativeImage image, int cx, int cy, DisplayTheme theme, int scale) {
         final int radius = 6 * scale;
         final int color = 0x88000000 | (theme.dim & 0xFFFFFF);
         drawCircleOutline(image, cx, cy, radius, color);
         BitmapFont.drawCentered(image, "?", cx - 3 * scale, cy - 3 * scale, 6 * scale, color, scale);
     }
-    
+
     private static void drawDashedLine(NativeImage image, int x0, int y0, int x1, int y1, int argbColor, int thickness, int dashLen, int gapLen, float animOffset) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -450,7 +450,7 @@ public final class TopologyRenderer
             }
         }
     }
-    
+
     private static void drawArrowhead(NativeImage image, int x, int y, float dx, float dy, int argbColor, int size) {
         final float len = (float)Math.sqrt(dx * dx + dy * dy);
         if (len < 0.01f) {
@@ -476,7 +476,7 @@ public final class TopologyRenderer
         final int b = Math.max(0, Math.min(255, (int)((argbColor & 0xFF) * factor)));
         return alpha << 24 | r << 16 | g << 8 | b;
     }
-    
+
     private static void fillTriangle(NativeImage image, int x0, int y0, int x1, int y1, int x2, int y2, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -492,7 +492,7 @@ public final class TopologyRenderer
             }
         }
     }
-    
+
     private static boolean pointInTriangle(int px, int py, int x0, int y0, int x1, int y1, int x2, int y2) {
         final int d1 = (px - x1) * (y0 - y1) - (x0 - x1) * (py - y1);
         final int d2 = (px - x2) * (y1 - y2) - (x1 - x2) * (py - y2);
@@ -501,7 +501,7 @@ public final class TopologyRenderer
         final boolean hasPos = d1 > 0 || d2 > 0 || d3 > 0;
         return !hasNeg || !hasPos;
     }
-    
+
     private static void drawCircleOutline(NativeImage image, int cx, int cy, int radius, int argbColor) {
         final int abgr = BitmapFont.argbToAbgr(argbColor);
         final int imgW = image.getWidth();
@@ -528,13 +528,13 @@ public final class TopologyRenderer
             }
         }
     }
-    
+
     private static void setPixelSafe(NativeImage image, int x, int y, int abgr, int imgW, int imgH) {
         if (x >= 0 && x < imgW && y >= 0 && y < imgH) {
             image.setPixelRGBA(x, y, abgr);
         }
     }
-    
+
     private static String truncateName(String text, int maxWidth, int scale) {
         if (BitmapFont.measureString(text, scale) <= maxWidth) {
             return text;
@@ -543,7 +543,7 @@ public final class TopologyRenderer
         for (t = text; t.length() > 3 && BitmapFont.measureString(t + "..", scale) > maxWidth; t = t.substring(0, t.length() - 1)) {}
         return t + "..";
     }
-    
+
     private static String formatCompact(float val) {
         if (val >= 1000000.0f) {
             return String.format("%.1fM", val / 1000000.0f);
@@ -553,7 +553,7 @@ public final class TopologyRenderer
         }
         return String.format("%.0f", val);
     }
-    
+
     static {
         layoutCache = new HashMap<BlockPos, CachedTopologyLayout>();
     }

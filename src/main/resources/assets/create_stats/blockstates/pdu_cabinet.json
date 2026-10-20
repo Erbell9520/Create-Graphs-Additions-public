@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north,half=lower": {
+      "model": "create_stats:block/pdu_cabinet"
+    },
+    "facing=north,half=upper": {
+      "model": "create_stats:block/pdu_cabinet"
+    },
+    "facing=east,half=lower": {
+      "model": "create_stats:block/pdu_cabinet"
+    },
+    "facing=east,half=upper": {
+      "model": "create_stats:block/pdu_cabinet"
+    },
+    "facing=south,half=lower": {
+      "model": "create_stats:block/pdu_cabinet"
+    },
+    "facing=south,half=upper": {
+      "model": "create_stats:block/pdu_cabinet"
+    },
+    "facing=west,half=lower": {
+      "model": "create_stats:block/pdu_cabinet"
+    },
+    "facing=west,half=upper": {
+      "model": "create_stats:block/pdu_cabinet"
+    }
+  }
+}

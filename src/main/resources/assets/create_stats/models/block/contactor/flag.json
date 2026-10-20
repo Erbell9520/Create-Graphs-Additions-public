@@ -1,0 +1,61 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "flag": "create_stats:block/contactor/flag",
+    "phenolic": "create_stats:block/contactor/phenolic",
+    "particle": "create_stats:block/contactor/phenolic"
+  },
+  "elements": [
+    {
+      "__comment": "flag",
+      "from": [
+        10.9,
+        5.23,
+        12.4
+      ],
+      "to": [
+        12.1,
+        5.33,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            8,
+            4,
+            0,
+            0
+          ],
+          "texture": "#flag"
+        },
+        "down": {
+          "uv": [
+            0,
+            8,
+            8,
+            4
+          ],
+          "texture": "#flag"
+        },
+        "north": {
+          "uv": [
+            3.0,
+            7.0,
+            4.2,
+            7.1
+          ],
+          "texture": "#phenolic"
+        },
+        "south": {
+          "uv": [
+            1.5,
+            8.0,
+            2.7,
+            8.1
+          ],
+          "texture": "#phenolic"
+        }
+      }
+    }
+  ]
+}

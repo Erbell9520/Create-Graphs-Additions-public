@@ -6,6 +6,7 @@ import com.createstats.gui.pdu.PduTableModel.GroupRow;
 import com.createstats.gui.pdu.PduTableModel.Row;
 import com.createstats.power.FeLock;
 import com.createstats.power.FePriority;
+import com.createstats.power.PduDeviceKind;
 import com.createstats.power.PduReason;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
@@ -17,9 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduTableModelTest {
-
     private static int posCounter;
 
     private static BlockPos pos() {
@@ -39,8 +38,16 @@ class PduTableModelTest {
             case RUNNING -> new BranchDevice(pos(), name, 0, 0, tier, 100, false, FeLock.NONE, PduReason.RUNNING, false);
             case SHED -> new BranchDevice(pos(), name, 0, 0, tier, 100, true, FeLock.NONE, PduReason.OVER_BUDGET, false);
             case HOLDING -> new BranchDevice(pos(), name, 0, 0, tier, 100, false, FeLock.NONE, PduReason.AWAITING_DWELL, false);
-            case OFF -> new BranchDevice(pos(), name, 0, 0, tier, 100, true, FeLock.FORCE_OFF, PduReason.LOCKED_OFF, false);
+
+            case OFF -> new BranchDevice(pos(), name, 0, 0, tier, 100, false, FeLock.FORCE_OFF, PduReason.LOCKED_OFF, false);
+            case BREAKER -> new BranchDevice(pos(), name, 0, 0, tier, 100, false, FeLock.NONE, PduReason.BREAKER_OPEN, false);
+            case STORAGE -> tank(name, 100, 64_000, 100_000);
         };
+    }
+
+    private static BranchDevice tank(String name, int flow, int stored, int capacity) {
+        return new BranchDevice(pos(), name, 0, 0, FePriority.NORMAL, flow, false, FeLock.NONE,
+                PduReason.STORAGE_CHARGING, false, PduDeviceKind.STORAGE, stored, capacity);
     }
 
     private static List<String> groupLabels(List<Row> rows) {
@@ -70,8 +77,6 @@ class PduTableModelTest {
         }
         return out;
     }
-
-    // size edge cases
 
     @Test
     void emptyRosterProducesNoRows() {
@@ -103,8 +108,6 @@ class PduTableModelTest {
                     "no device may be lost under group " + group);
         }
     }
-
-    // grouping
 
     @Test
     void groupByTierOrdersGroupsInServeOrder() {
@@ -152,8 +155,6 @@ class PduTableModelTest {
         assertEquals(350, header.totalDraw());
     }
 
-    // sorting
-
     @Test
     void sortByDrawIsBiggestFirstByDefault() {
         final List<BranchDevice> roster = List.of(
@@ -197,8 +198,6 @@ class PduTableModelTest {
 
     @Test
     void sortIsStableForEqualKeysInBothDirections() {
-        // Three devices with identical draw. Their roster order must survive the sort, forward and
-        // reversed, or the table jitters every time a value ties.
         final List<BranchDevice> roster = List.of(
                 running("first", FePriority.NORMAL, 500),
                 running("second", FePriority.NORMAL, 500),
@@ -208,8 +207,6 @@ class PduTableModelTest {
         assertEquals(List.of("first", "second", "third"), deviceNames(PduTableModel.build(roster,
                 PduTableModel.Group.TIER, PduTableModel.Sort.DRAW, true, "", false)));
     }
-
-    // filtering
 
     @Test
     void searchThatMatchesNothingProducesNoRows() {
@@ -269,8 +266,6 @@ class PduTableModelTest {
         assertTrue(PduTableModel.matches(off, "", true), "shed only keeps a shed device");
     }
 
-    // status classification
-
     @Test
     void statusOfReadsLockThenReasonThenShed() {
         assertEquals(PduTableModel.Status.OFF,
@@ -281,6 +276,110 @@ class PduTableModelTest {
                 PduTableModel.Status.of(status("x", FePriority.NORMAL, PduTableModel.Status.SHED)));
         assertEquals(PduTableModel.Status.RUNNING,
                 PduTableModel.Status.of(status("x", FePriority.NORMAL, PduTableModel.Status.RUNNING)));
+    }
+
+    @Test
+    void anOpenBreakerIsNotRunning() {
+        final BranchDevice dark = status("dark", FePriority.NORMAL, PduTableModel.Status.BREAKER);
+        assertFalse(dark.shed(), "an open breaker is a switch, so the roster writes no shed flag");
+        assertEquals(PduTableModel.Status.BREAKER, PduTableModel.Status.of(dark));
+        assertTrue(PduTableModel.Status.of(dark).isDark());
+    }
+
+    @Test
+    void aBreakerOutranksTheDwellButNotALock() {
+        final BranchDevice lockedOnDeadLeg = new BranchDevice(pos(), "x", 0, 0, FePriority.NORMAL,
+                0, false, FeLock.FORCE_OFF, PduReason.LOCKED_OFF, false);
+        assertEquals(PduTableModel.Status.OFF, PduTableModel.Status.of(lockedOnDeadLeg));
+    }
+
+    @Test
+    void shedOnlyDoesNotSweepUpTheMachinesYouSwitchedOffYourself() {
+        final BranchDevice off = status("off", FePriority.NORMAL, PduTableModel.Status.OFF);
+        final BranchDevice shed = status("shed", FePriority.NORMAL, PduTableModel.Status.SHED);
+        final BranchDevice breaker = status("breaker", FePriority.NORMAL, PduTableModel.Status.BREAKER);
+        assertTrue(PduTableModel.matches(shed, "", true));
+        assertFalse(PduTableModel.matches(off, "", true),
+                "a lock is not the panel running out of anything");
+        assertFalse(PduTableModel.matches(breaker, "", true),
+                "and neither is a breaker");
+    }
+
+    private static BranchDevice onLeg(String name, int leg) {
+        return new BranchDevice(pos(), name, 0, leg, FePriority.NORMAL, 100, false, FeLock.NONE,
+                PduReason.RUNNING, false);
+    }
+
+    @Test
+    void theLegFilterKeepsOnlyThatCircuit() {
+        final BranchDevice a = onLeg("a", 2);
+        final BranchDevice b = onLeg("b", 5);
+        final PduTableModel.Filter leg2 = PduTableModel.Filter.NONE.withLeg(2);
+        assertTrue(PduTableModel.matches(a, leg2));
+        assertFalse(PduTableModel.matches(b, leg2));
+    }
+
+    @Test
+    void theLegFilterKeepsBatteriesOnThatLeg() {
+        final BranchDevice bank = new BranchDevice(pos(), "Bank", 0, 3, FePriority.NORMAL, 40, false,
+                FeLock.NONE, PduReason.STORAGE_CHARGING, false, PduDeviceKind.STORAGE, 10, 100);
+        assertTrue(PduTableModel.matches(bank, PduTableModel.Filter.NONE.withLeg(3)));
+        assertFalse(PduTableModel.matches(bank, PduTableModel.Filter.NONE.withLeg(4)));
+    }
+
+    @Test
+    void filtersCompose() {
+        final BranchDevice hit = new BranchDevice(pos(), "Arc Furnace", 0, 1, FePriority.HIGH,
+                100, true, FeLock.NONE, PduReason.OVER_BUDGET, false);
+        final PduTableModel.Filter all = new PduTableModel.Filter("arc", true, FePriority.HIGH, 1);
+        assertTrue(PduTableModel.matches(hit, all));
+        assertFalse(PduTableModel.matches(hit, all.withLeg(2)), "wrong leg");
+        assertFalse(PduTableModel.matches(hit, all.withTier(FePriority.LOW)), "wrong tier");
+        assertFalse(PduTableModel.matches(hit, all.withSearch("washer")), "wrong name");
+    }
+
+    @Test
+    void anEmptyFilterHidesNothing() {
+        assertTrue(PduTableModel.Filter.NONE.isEmpty());
+        assertFalse(PduTableModel.Filter.NONE.withLeg(0).isEmpty(),
+                "leg zero is a real leg, not the absence of a filter");
+        assertFalse(PduTableModel.Filter.NONE.withShedOnly(true).isEmpty());
+    }
+
+    @Test
+    void groupingByLegNamesTheBackOutputRatherThanNumberingIt() {
+        final List<BranchDevice> roster = List.of(onLeg("a", 0), onLeg("b", 8), onLeg("c", 0));
+        final List<String> labels = groupLabels(PduTableModel.build(roster,
+                PduTableModel.Group.LEG, PduTableModel.Sort.NAME, false, PduTableModel.Filter.NONE));
+        assertEquals(List.of("Leg 1", "Back output"), labels,
+                "legs in stud order, and the cable boss is not the ninth of anything");
+    }
+
+    @Test
+    void sortingByTierPutsCriticalFirstAndTanksLast() {
+        final List<BranchDevice> devices = new ArrayList<>(List.of(
+                running("low", FePriority.LOW, 10),
+                tank("bank", 0, 1, 2),
+                running("crit", FePriority.CRITICAL, 10)));
+        devices.sort(PduTableModel.comparator(PduTableModel.Sort.TIER));
+        final List<String> names = new ArrayList<>();
+        for (BranchDevice d : devices) {
+            names.add(d.name());
+        }
+        assertEquals(List.of("crit", "low", "bank"), names,
+                "a tank has no tier, so it does not land in the middle of the ones that do");
+    }
+
+    @Test
+    void sortingByLegRunsInStudOrder() {
+        final List<BranchDevice> devices = new ArrayList<>(List.of(
+                onLeg("back", 8), onLeg("third", 2), onLeg("first", 0)));
+        devices.sort(PduTableModel.comparator(PduTableModel.Sort.LEG));
+        final List<String> names = new ArrayList<>();
+        for (BranchDevice d : devices) {
+            names.add(d.name());
+        }
+        assertEquals(List.of("first", "third", "back"), names);
     }
 
     @Test

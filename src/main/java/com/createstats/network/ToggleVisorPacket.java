@@ -12,9 +12,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** [1] */
 public record ToggleVisorPacket() implements CustomPacketPayload {
-
     public static final ToggleVisorPacket INSTANCE = new ToggleVisorPacket();
 
     public static final CustomPacketPayload.Type<ToggleVisorPacket> TYPE =

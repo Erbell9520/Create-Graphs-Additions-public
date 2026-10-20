@@ -1,0 +1,69 @@
+{
+  "type": "minecraft:random_patch",
+  "config": {
+    "feature": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "config": {
+          "to_place": {
+            "type": "minecraft:weighted_state_provider",
+            "entries": [
+              {
+                "weight": 1,
+                "data": {
+                  "Name": "create_stats:vanilla_bean_vine",
+                  "Properties": {
+                    "age": "2",
+                    "facing": "north"
+                  }
+                }
+              },
+              {
+                "weight": 1,
+                "data": {
+                  "Name": "create_stats:vanilla_bean_vine",
+                  "Properties": {
+                    "age": "2",
+                    "facing": "south"
+                  }
+                }
+              },
+              {
+                "weight": 1,
+                "data": {
+                  "Name": "create_stats:vanilla_bean_vine",
+                  "Properties": {
+                    "age": "2",
+                    "facing": "east"
+                  }
+                }
+              },
+              {
+                "weight": 1,
+                "data": {
+                  "Name": "create_stats:vanilla_bean_vine",
+                  "Properties": {
+                    "age": "2",
+                    "facing": "west"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": "minecraft:air"
+          }
+        }
+      ]
+    },
+    "tries": 128,
+    "xz_spread": 8,
+    "y_spread": 10
+  }
+}

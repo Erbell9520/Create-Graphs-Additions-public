@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "create_stats:block/vehicle_control_unit" },
+    "facing=east": { "model": "create_stats:block/vehicle_control_unit", "y": 90 },
+    "facing=south": { "model": "create_stats:block/vehicle_control_unit", "y": 180 },
+    "facing=west": { "model": "create_stats:block/vehicle_control_unit", "y": 270 }
+  }
+}

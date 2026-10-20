@@ -22,9 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** [1] */
 public class StatsDisplayMk2Block extends StatsDisplayPanelBlock {
-
     public StatsDisplayMk2Block(BlockBehaviour.Properties properties) {
         super(properties);
     }

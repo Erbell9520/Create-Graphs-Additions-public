@@ -1,7 +1,6 @@
 package com.createstats.train.manifest;
 
 public class FreightTransferProgress {
-
     private final TrainCargoSnapshot currentSnapshot;
     private final TrainCargoSnapshot movedToStation;
     private final TrainCargoSnapshot movedToTrain;

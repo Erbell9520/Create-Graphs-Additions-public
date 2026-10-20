@@ -1,0 +1,222 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "housing": "create_stats:block/vehicle_light_housing",
+    "bezel": "create_stats:block/vehicle_light_bezel",
+    "lens": "create_stats:block/vehicle_light_lens_white",
+    "particle": "create_stats:block/vehicle_light_housing"
+  },
+  "elements": [
+    {
+      "__comment": "flange",
+      "from": [
+        2.0,
+        3.0,
+        15
+      ],
+      "to": [
+        14.0,
+        13.0,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#housing"
+        },
+        "up": {
+          "texture": "#housing"
+        },
+        "east": {
+          "texture": "#housing"
+        },
+        "west": {
+          "texture": "#housing"
+        },
+        "north": {
+          "texture": "#housing"
+        },
+        "south": {
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "__comment": "body",
+      "from": [
+        2.5,
+        3.5,
+        12.0
+      ],
+      "to": [
+        13.5,
+        12.5,
+        15
+      ],
+      "faces": {
+        "down": {
+          "texture": "#housing"
+        },
+        "up": {
+          "texture": "#housing"
+        },
+        "east": {
+          "texture": "#housing"
+        },
+        "west": {
+          "texture": "#housing"
+        },
+        "north": {
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "__comment": "bezel north",
+      "from": [
+        2.5,
+        3.5,
+        11.0
+      ],
+      "to": [
+        13.5,
+        4.5,
+        12.0
+      ],
+      "faces": {
+        "down": {
+          "texture": "#bezel"
+        },
+        "up": {
+          "texture": "#bezel"
+        },
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "bezel south",
+      "from": [
+        2.5,
+        11.5,
+        11.0
+      ],
+      "to": [
+        13.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "down": {
+          "texture": "#bezel"
+        },
+        "up": {
+          "texture": "#bezel"
+        },
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "bezel west",
+      "from": [
+        2.5,
+        4.5,
+        11.0
+      ],
+      "to": [
+        3.5,
+        11.5,
+        12.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "bezel east",
+      "from": [
+        12.5,
+        4.5,
+        11.0
+      ],
+      "to": [
+        13.5,
+        11.5,
+        12.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#bezel"
+        },
+        "west": {
+          "texture": "#bezel"
+        },
+        "north": {
+          "texture": "#bezel"
+        }
+      }
+    },
+    {
+      "__comment": "lens",
+      "from": [
+        3.5,
+        4.5,
+        11.4
+      ],
+      "to": [
+        12.5,
+        11.5,
+        12.0
+      ],
+      "faces": {
+        "down": {
+          "texture": "#lens"
+        },
+        "up": {
+          "texture": "#lens"
+        },
+        "east": {
+          "texture": "#lens"
+        },
+        "west": {
+          "texture": "#lens"
+        },
+        "north": {
+          "texture": "#lens",
+          "uv": [
+            0.0,
+            0.0,
+            9.0,
+            7.0
+          ],
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    }
+  ]
+}

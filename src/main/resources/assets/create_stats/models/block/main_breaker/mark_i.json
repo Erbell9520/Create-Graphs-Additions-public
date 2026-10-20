@@ -1,0 +1,78 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "lens": "create_stats:block/main_breaker_lens",
+    "particle": "create_stats:block/main_breaker_case"
+  },
+  "elements": [
+    {
+      "name": "i_bar",
+      "from": [
+        7.7,
+        5.2,
+        11.5
+      ],
+      "to": [
+        8.3,
+        5.46,
+        13.3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#lens",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      }
+    }
+  ]
+}

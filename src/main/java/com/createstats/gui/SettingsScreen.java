@@ -93,7 +93,7 @@ public class SettingsScreen extends Screen
     private static final int GAP = 2;
     private static final int SEC_GAP = 6;
     private static final String[] CLOCK_LABELS;
-    
+
     public SettingsScreen(StatsDisplayPanelBE panel) {
         super(Component.literal("\u2699 Panel Configuration"));
         this.scrollOffset = 0;
@@ -121,7 +121,7 @@ public class SettingsScreen extends Screen
         this.panel = panel;
         this.settings = panel.getSettings();
     }
-    
+
     protected void init() {
         super.init();
         if (this.openedAtMs <= 0L) {
@@ -588,7 +588,7 @@ public class SettingsScreen extends Screen
             this.scrollOffset = maxS;
         }
     }
-    
+
     private void addWidget(AbstractWidget w) {
         final int contentTop = this.scrollContentTop();
         final int contentBottom = contentTop + this.contentViewportHeight();
@@ -689,17 +689,17 @@ public class SettingsScreen extends Screen
     private int scrollContentTop() {
         return this.panelTop() + HEADER_H + (this.hasRail() ? HERO_H + 12 : 0);
     }
-    
+
     private int screenY(int contentY) {
         return this.scrollContentTop() + contentY - this.scrollOffset;
     }
-    
+
     private int sectionHeader(int x, int y, int w, String label, boolean open, Button.OnPress toggle) {
         final String cleanLabel = label.replace("\u2550 ", "");
         this.addWidget((AbstractWidget)Button.builder(this.lit((open ? "\u25bc " : "\u25b6 ") + cleanLabel), toggle).bounds(x, this.screenY(y), w, 20).build());
         return y + 20 + 4;
     }
-    
+
     private int addCycleBtn(int x, int y, int w, String prefix, String value, Button.OnPress action) {
         this.addWidget((AbstractWidget)Button.builder(this.lit(prefix + ": " + value), b -> {
             action.onPress(b);
@@ -707,7 +707,7 @@ public class SettingsScreen extends Screen
         }).bounds(x, this.screenY(y), w, 18).build());
         return y + 18 + 2;
     }
-    
+
     private int addCycleBtn2(int x, int y, int hw, String p1, String v1, Button.OnPress a1, String p2, String v2, Button.OnPress a2) {
         this.addWidget((AbstractWidget)Button.builder(this.lit(p1 + ": " + v1), b -> {
             a1.onPress(b);
@@ -719,7 +719,7 @@ public class SettingsScreen extends Screen
         }).bounds(x + hw + 4, this.screenY(y), hw, 18).build());
         return y + 18 + 2;
     }
-    
+
     private int addToggle3(int x, int y, int tw, String n1, boolean s1, Button.OnPress a1, String n2, boolean s2, Button.OnPress a2, String n3, boolean s3, Button.OnPress a3) {
         this.addWidget((AbstractWidget)Button.builder(this.tglComp(n1, s1), b -> {
             a1.onPress(b);
@@ -735,34 +735,34 @@ public class SettingsScreen extends Screen
         }).bounds(x + (tw + 3) * 2, this.screenY(y), tw, 18).build());
         return y + 18 + 2;
     }
-    
+
     private Component lit(String s) {
         return Component.literal(s);
     }
-    
+
     private Component tglComp(String name, boolean on) {
         return this.lit((on ? "\u25c9 " : "\u25cb ") + name);
     }
-    
+
     private void updBtn(Button b, String prefix, String value) {
         b.setMessage(this.lit(prefix + ": " + value));
     }
-    
+
     private void updTgl(Button b, String name, boolean state) {
         b.setMessage(this.tglComp(name, state));
     }
-    
+
     private String fmtVal(float v) {
         if (v == (int)v) {
             return String.valueOf((int)v);
         }
         return String.format("%.1f", v);
     }
-    
+
     private String fmtRatio(float r) {
         return String.format("%.2f\u00d7", r);
     }
-    
+
     private String pct(float v) {
         return String.format("%.0f%%", v * 100.0f);
     }
@@ -823,11 +823,11 @@ public class SettingsScreen extends Screen
         this.apply();
         this.rebuildWidgets();
     }
-    
+
     private int clamp(int v, int min, int max) {
         return Math.max(min, Math.min(max, v));
     }
-    
+
     private String labelFor(List<StatsDisplayPanelBE.DataChannel> channels, String id) {
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
             if (ch.getId().equals(id)) {
@@ -837,7 +837,7 @@ public class SettingsScreen extends Screen
         }
         return (id.length() > 18) ? (id.substring(0, 16) + "..") : id;
     }
-    
+
     private void apply() {
         this.panel.setSettings(this.settings);
         PacketDistributor.sendToServer(ConfigSyncPacket.settingsChange(this.panel.getBlockPos(), this.settings));
@@ -885,11 +885,11 @@ public class SettingsScreen extends Screen
                 return false;
         }
     }
-    
+
     private void applyAlert(StatsDisplayPanelBE.DataChannel ch) {
         PacketDistributor.sendToServer(ConfigSyncPacket.alertConfig(this.panel.getBlockPos(), ch.getId(), ch.getAlertThreshold(), ch.isAlertAbove(), ch.isAlertEnabled()));
     }
-    
+
     private void applyRedstone() {
         PacketDistributor.sendToServer(ConfigSyncPacket.redstoneConfig(this.panel.getBlockPos(), this.panel.getRedstoneChannelId(), this.panel.getRedstoneThreshold(), this.panel.isRedstoneAbove(), this.panel.isRedstoneEnabled(), this.panel.getRedstoneMode()));
     }
@@ -1090,10 +1090,10 @@ public class SettingsScreen extends Screen
         final int clamped = Math.max(0, Math.min(255, alpha));
         return (clamped << 24) | (color & 0x00FFFFFF);
     }
-    
+
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(g);
-        // FE Dependent Mode panel in the free screen corner (self-gating).
+
         com.createstats.power.client.FeStatusWidget.draw(g, this.font, this.width - 130, 8, 120, this.panel.feConsumer());
         final int panelW = this.panelWidth();
         final int left = this.panelLeft();
@@ -1139,7 +1139,7 @@ public class SettingsScreen extends Screen
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
     }
-    
+
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
         if (this.handleGaugeRangeScroll(mx, my, scrollY)) {
             return true;
@@ -1185,11 +1185,11 @@ public class SettingsScreen extends Screen
         }
         return 10.0f;
     }
-    
+
     public boolean isPauseScreen() {
         return false;
     }
-    
+
     static {
         CLOCK_LABELS = new String[] { "Game Time", "Game 12h", "Real Time", "Uptime", "Hidden" };
     }

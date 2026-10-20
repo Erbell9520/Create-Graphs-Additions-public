@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:root",
+  "display": {
+    "icon": {
+      "id": "create_stats:home_security_panel"
+    },
+    "title": {
+      "translate": "advancement.create_stats.security.panel.title",
+      "fallback": "Who Is It?"
+    },
+    "description": {
+      "translate": "advancement.create_stats.security.panel.description",
+      "fallback": "Place a Home Security Panel. Ding dong. Who is it? It is always the doorman."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "panel": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:home_security_panel"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "panel"
+    ]
+  ]
+}

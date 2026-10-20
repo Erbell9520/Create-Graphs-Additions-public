@@ -14,14 +14,14 @@ public final class BitmapFont
     public static final int CELL_WIDTH = 6;
     public static final int CELL_HEIGHT = 9;
     private static final byte[][] GLYPHS;
-    
+
     private BitmapFont() {
     }
-    
+
     private static void g(int idx, int r0, int r1, int r2, int r3, int r4, int r5, int r6) {
         BitmapFont.GLYPHS[idx] = new byte[] { (byte)r0, (byte)r1, (byte)r2, (byte)r3, (byte)r4, (byte)r5, (byte)r6 };
     }
-    
+
     public static int argbToAbgr(int argb) {
         final int a = argb >> 24 & 0xFF;
         final int r = argb >> 16 & 0xFF;
@@ -29,7 +29,7 @@ public final class BitmapFont
         final int b = argb & 0xFF;
         return a << 24 | b << 16 | g << 8 | r;
     }
-    
+
     public static int drawChar(NativeImage image, char c, int x, int y, int argbColor, int scale) {
         int idx = c - ' ';
         if (idx < 0 || idx >= BitmapFont.GLYPHS.length || BitmapFont.GLYPHS[idx] == null) {
@@ -57,7 +57,7 @@ public final class BitmapFont
         }
         return 5 * scale + 1 * scale;
     }
-    
+
     public static int drawString(NativeImage image, String text, int x, int y, int argbColor, int scale) {
         int cx = x;
         for (int i = 0; i < text.length(); ++i) {
@@ -65,29 +65,80 @@ public final class BitmapFont
         }
         return cx - x;
     }
-    
+
     public static void drawCentered(NativeImage image, String text, int x, int y, int width, int argbColor, int scale) {
         final int textW = measureString(text, scale);
         final int startX = x + (width - textW) / 2;
         drawString(image, text, startX, y, argbColor, scale);
     }
-    
+
     public static void drawRight(NativeImage image, String text, int rightX, int y, int argbColor, int scale) {
         final int textW = measureString(text, scale);
         drawString(image, text, rightX - textW, y, argbColor, scale);
     }
-    
+
     public static int measureString(String text, int scale) {
         if (text.isEmpty()) {
             return 0;
         }
         return text.length() * 6 * scale - 1 * scale;
     }
-    
+
+    public static float measurePixels(String text) {
+        return text.isEmpty() ? 0.0f : text.length() * 6.0f - 1.0f;
+    }
+
+    public static void drawScaled(NativeImage image, String text, float x, float y, int argbColor,
+                                  float scaleX, float scaleY) {
+        if (text == null || text.isEmpty() || scaleX <= 0.0f || scaleY <= 0.0f) {
+            return;
+        }
+        final int abgr = argbToAbgr(argbColor);
+        final int imgW = image.getWidth();
+        final int imgH = image.getHeight();
+        for (int i = 0; i < text.length(); ++i) {
+            final char c = text.charAt(i);
+            int idx = c - ' ';
+            if (idx < 0 || idx >= GLYPHS.length || GLYPHS[idx] == null) {
+                idx = 31;
+            }
+            final byte[] glyph = GLYPHS[idx];
+            final float gx = x + i * 6.0f * scaleX;
+            for (int row = 0; row < CHAR_HEIGHT; ++row) {
+                final int rowBits = glyph[row] & 0x1F;
+                if (rowBits == 0) {
+                    continue;
+                }
+                final int py0 = Math.round(y + row * scaleY);
+                final int py1 = Math.max(py0 + 1, Math.round(y + (row + 1) * scaleY));
+                for (int col = 0; col < CHAR_WIDTH; ++col) {
+                    if ((rowBits & 1 << CHAR_WIDTH - 1 - col) == 0) {
+                        continue;
+                    }
+                    final int px0 = Math.round(gx + col * scaleX);
+                    final int px1 = Math.max(px0 + 1, Math.round(gx + (col + 1) * scaleX));
+                    for (int py = Math.max(0, py0); py < Math.min(imgH, py1); ++py) {
+                        for (int px = Math.max(0, px0); px < Math.min(imgW, px1); ++px) {
+                            image.setPixelRGBA(px, py, abgr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public static int textHeight(int scale) {
         return 7 * scale;
     }
-    
+
+    public static byte[] glyphRows(char c) {
+        int idx = c - ' ';
+        if (idx < 0 || idx >= GLYPHS.length || GLYPHS[idx] == null) {
+            idx = 31;
+        }
+        return GLYPHS[idx].clone();
+    }
+
     static {
         GLYPHS = new byte[95][];
         g(0, 0, 0, 0, 0, 0, 0, 0);

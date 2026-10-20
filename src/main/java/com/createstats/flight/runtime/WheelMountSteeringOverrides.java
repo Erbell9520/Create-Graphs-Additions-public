@@ -7,9 +7,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** [1] */
 public final class WheelMountSteeringOverrides {
-
     private static final Map<Long, Entry> BY_POS = new ConcurrentHashMap<>();
     private static long lastWriteDebugTick = Long.MIN_VALUE;
 

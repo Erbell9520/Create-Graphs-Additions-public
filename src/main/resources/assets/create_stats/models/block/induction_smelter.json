@@ -1,0 +1,842 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "back": "create_stats:block/smelter_back",
+    "body": "create_stats:block/smelter_body",
+    "cap_side": "create_stats:block/smelter_cap_side",
+    "cap_top": "create_stats:block/smelter_cap_top",
+    "dial": "create_stats:block/smelter_dial",
+    "front": "create_stats:block/smelter_front",
+    "grille": "create_stats:block/smelter_grille",
+    "hearth": "create_stats:block/smelter_hearth",
+    "lining": "create_stats:block/smelter_lining",
+    "plinth": "create_stats:block/smelter_plinth",
+    "well": "create_stats:block/smelter_well",
+    "well_floor": "create_stats:block/smelter_well_floor",
+    "particle": "create_stats:block/smelter_body"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        3.0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            13.0,
+            16,
+            16
+          ],
+          "texture": "#plinth"
+        },
+        "south": {
+          "uv": [
+            0,
+            13.0,
+            16,
+            16
+          ],
+          "texture": "#plinth"
+        },
+        "east": {
+          "uv": [
+            0,
+            13.0,
+            16,
+            16
+          ],
+          "texture": "#plinth"
+        },
+        "west": {
+          "uv": [
+            0,
+            13.0,
+            16,
+            16
+          ],
+          "texture": "#plinth"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#plinth"
+        }
+      },
+      "__comment": "plinth"
+    },
+    {
+      "from": [
+        0,
+        3.0,
+        0
+      ],
+      "to": [
+        5.0,
+        13.0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.0,
+            3.0,
+            16,
+            13.0
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            0,
+            3.0,
+            5.0,
+            13.0
+          ],
+          "texture": "#back"
+        },
+        "west": {
+          "uv": [
+            0,
+            3.0,
+            16,
+            13.0
+          ],
+          "texture": "#body"
+        },
+        "east": {
+          "uv": [
+            0,
+            3.0,
+            16,
+            13.0
+          ],
+          "texture": "#lining"
+        }
+      },
+      "__comment": "body, west slab"
+    },
+    {
+      "from": [
+        11.0,
+        3.0,
+        0
+      ],
+      "to": [
+        16,
+        13.0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            3.0,
+            5.0,
+            13.0
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            11.0,
+            3.0,
+            16,
+            13.0
+          ],
+          "texture": "#back"
+        },
+        "east": {
+          "uv": [
+            0,
+            3.0,
+            16,
+            13.0
+          ],
+          "texture": "#body"
+        },
+        "west": {
+          "uv": [
+            0,
+            3.0,
+            16,
+            13.0
+          ],
+          "texture": "#lining"
+        }
+      },
+      "__comment": "body, east slab"
+    },
+    {
+      "from": [
+        5.0,
+        3.0,
+        0
+      ],
+      "to": [
+        11.0,
+        5.0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            11.0,
+            11.0,
+            13.0
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            11.0,
+            11.0,
+            13.0
+          ],
+          "texture": "#back"
+        },
+        "up": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            16
+          ],
+          "texture": "#hearth"
+        }
+      },
+      "__comment": "body, floor slab under the muffle"
+    },
+    {
+      "from": [
+        5.0,
+        11.0,
+        0
+      ],
+      "to": [
+        11.0,
+        13.0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            3.0,
+            11.0,
+            5.0
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            3.0,
+            11.0,
+            5.0
+          ],
+          "texture": "#back"
+        },
+        "down": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            16
+          ],
+          "texture": "#hearth"
+        }
+      },
+      "__comment": "body, roof slab over the muffle"
+    },
+    {
+      "from": [
+        5.0,
+        5.0,
+        13.0
+      ],
+      "to": [
+        11.0,
+        11.0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ],
+          "texture": "#lining"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ],
+          "texture": "#back"
+        }
+      },
+      "__comment": "the muffle's back wall"
+    },
+    {
+      "from": [
+        0,
+        13.0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        5.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "east": {
+          "uv": [
+            11.0,
+            0,
+            16,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            5.0
+          ],
+          "texture": "#cap_top"
+        }
+      },
+      "__comment": "cap, north bar"
+    },
+    {
+      "from": [
+        0,
+        13.0,
+        11.0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "west": {
+          "uv": [
+            11.0,
+            0,
+            16,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "up": {
+          "uv": [
+            0,
+            11.0,
+            16,
+            16
+          ],
+          "texture": "#cap_top"
+        }
+      },
+      "__comment": "cap, south bar"
+    },
+    {
+      "from": [
+        0,
+        13.0,
+        5.0
+      ],
+      "to": [
+        5.0,
+        16,
+        11.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "east": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            3.0
+          ],
+          "texture": "#well"
+        },
+        "up": {
+          "uv": [
+            0,
+            5.0,
+            5.0,
+            11.0
+          ],
+          "texture": "#cap_top"
+        }
+      },
+      "__comment": "cap, west bar"
+    },
+    {
+      "from": [
+        11.0,
+        13.0,
+        5.0
+      ],
+      "to": [
+        16,
+        16,
+        11.0
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            3.0
+          ],
+          "texture": "#cap_side"
+        },
+        "west": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            3.0
+          ],
+          "texture": "#well"
+        },
+        "up": {
+          "uv": [
+            11.0,
+            5.0,
+            16,
+            11.0
+          ],
+          "texture": "#cap_top"
+        }
+      },
+      "__comment": "cap, east bar"
+    },
+    {
+      "from": [
+        5.0,
+        13.0,
+        4.99
+      ],
+      "to": [
+        11.0,
+        16,
+        5.0
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            3.0
+          ],
+          "texture": "#well"
+        }
+      },
+      "__comment": "well, north wall"
+    },
+    {
+      "from": [
+        5.0,
+        13.0,
+        11.0
+      ],
+      "to": [
+        11.0,
+        16,
+        11.01
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            0,
+            11.0,
+            3.0
+          ],
+          "texture": "#well"
+        }
+      },
+      "__comment": "well, south wall"
+    },
+    {
+      "from": [
+        5.0,
+        12.9,
+        5.0
+      ],
+      "to": [
+        11.0,
+        13.0,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ],
+          "texture": "#well_floor"
+        }
+      },
+      "__comment": "well floor, behind the fan"
+    },
+    {
+      "from": [
+        5.0,
+        15.6,
+        6.2
+      ],
+      "to": [
+        11.0,
+        16.0,
+        6.9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            0.0,
+            11.0,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            0.0,
+            11.0,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "east": {
+          "uv": [
+            9.1,
+            0.0,
+            9.8,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "west": {
+          "uv": [
+            6.2,
+            0.0,
+            6.9,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "up": {
+          "uv": [
+            5.0,
+            6.2,
+            11.0,
+            6.9
+          ],
+          "texture": "#grille"
+        },
+        "down": {
+          "uv": [
+            5.0,
+            9.1,
+            11.0,
+            9.8
+          ],
+          "texture": "#grille"
+        }
+      },
+      "__comment": "well guard bar 0"
+    },
+    {
+      "from": [
+        5.0,
+        15.6,
+        8.1
+      ],
+      "to": [
+        11.0,
+        16.0,
+        8.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            0.0,
+            11.0,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            0.0,
+            11.0,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "east": {
+          "uv": [
+            7.2,
+            0.0,
+            7.9,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "west": {
+          "uv": [
+            8.1,
+            0.0,
+            8.8,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "up": {
+          "uv": [
+            5.0,
+            8.1,
+            11.0,
+            8.8
+          ],
+          "texture": "#grille"
+        },
+        "down": {
+          "uv": [
+            5.0,
+            7.2,
+            11.0,
+            7.9
+          ],
+          "texture": "#grille"
+        }
+      },
+      "__comment": "well guard bar 1"
+    },
+    {
+      "from": [
+        5.0,
+        15.6,
+        10.0
+      ],
+      "to": [
+        11.0,
+        16.0,
+        10.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.0,
+            0.0,
+            11.0,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            0.0,
+            11.0,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "east": {
+          "uv": [
+            5.3,
+            0.0,
+            6.0,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "west": {
+          "uv": [
+            10.0,
+            0.0,
+            10.7,
+            0.4
+          ],
+          "texture": "#grille"
+        },
+        "up": {
+          "uv": [
+            5.0,
+            10.0,
+            11.0,
+            10.7
+          ],
+          "texture": "#grille"
+        },
+        "down": {
+          "uv": [
+            5.0,
+            5.3,
+            11.0,
+            6.0
+          ],
+          "texture": "#grille"
+        }
+      },
+      "__comment": "well guard bar 2"
+    },
+    {
+      "from": [
+        0.0,
+        7.0,
+        -0.4
+      ],
+      "to": [
+        4.0,
+        11.0,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#dial"
+        },
+        "east": {
+          "uv": [
+            7,
+            0,
+            9,
+            16
+          ],
+          "texture": "#dial"
+        },
+        "west": {
+          "uv": [
+            7,
+            0,
+            9,
+            16
+          ],
+          "texture": "#dial"
+        },
+        "up": {
+          "uv": [
+            0,
+            7,
+            16,
+            9
+          ],
+          "texture": "#dial"
+        },
+        "down": {
+          "uv": [
+            0,
+            7,
+            16,
+            9
+          ],
+          "texture": "#dial"
+        }
+      },
+      "__comment": "temperature dial"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "replace": false,
+  "values": [
+    "create_stats:battle_screen_display",
+    "create_stats:damage_observer",
+    "create_stats:flight_control_computer",
+    "create_stats:stats_display_panel",
+    "create_stats:stats_display_mk2",
+    "create_stats:stats_display_mk3",
+    "create_stats:stats_display_mk3_console",
+    "create_stats:mini_display",
+    "create_stats:vcc_mk2",
+    "create_stats:vcc_mk3",
+    "create_stats:vcc_mk4",
+    "create_stats:vcc_mk4_aerial",
+    "create_stats:pathfinder_computer",
+    {
+      "id": "create:white_seat",
+      "required": false
+    },
+    {
+      "id": "create:orange_seat",
+      "required": false
+    },
+    {
+      "id": "create:magenta_seat",
+      "required": false
+    },
+    {
+      "id": "create:light_blue_seat",
+      "required": false
+    },
+    {
+      "id": "create:yellow_seat",
+      "required": false
+    },
+    {
+      "id": "create:lime_seat",
+      "required": false
+    },
+    {
+      "id": "create:pink_seat",
+      "required": false
+    },
+    {
+      "id": "create:gray_seat",
+      "required": false
+    },
+    {
+      "id": "create:light_gray_seat",
+      "required": false
+    },
+    {
+      "id": "create:cyan_seat",
+      "required": false
+    },
+    {
+      "id": "create:purple_seat",
+      "required": false
+    },
+    {
+      "id": "create:blue_seat",
+      "required": false
+    },
+    {
+      "id": "create:brown_seat",
+      "required": false
+    },
+    {
+      "id": "create:green_seat",
+      "required": false
+    },
+    {
+      "id": "create:red_seat",
+      "required": false
+    },
+    {
+      "id": "create:black_seat",
+      "required": false
+    }
+  ]
+}

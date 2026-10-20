@@ -8,7 +8,7 @@ public final class ChannelPriorityScorer
 {
     private ChannelPriorityScorer() {
     }
-    
+
     public static float computePriority(StatsDisplayPanelBE.DataChannel channel) {
         float score = 0.0f;
         final TimeSeriesStore store = channel.getStore();
@@ -24,7 +24,7 @@ public final class ChannelPriorityScorer
         score += Math.min(50.0f, roc * 5.0f);
         return score;
     }
-    
+
     static float getMetricTypePriority(MetricType type) {
         return switch (type) {
             case STRESS_PERCENT -> 80.0f;

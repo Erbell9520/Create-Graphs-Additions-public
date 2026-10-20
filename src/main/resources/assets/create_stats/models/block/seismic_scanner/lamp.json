@@ -1,0 +1,160 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "lens": "create_stats:block/seismic_scanner/lens",
+    "particle": "create_stats:block/seismic_scanner/frame"
+  },
+  "elements": [
+    {
+      "__comment": "lens_0",
+      "from": [
+        13.3525,
+        27.05,
+        4.674
+      ],
+      "to": [
+        14.3475,
+        29.05,
+        7.076
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.6525,
+            2.95,
+            2.6475,
+            4.95
+          ],
+          "texture": "#lens"
+        },
+        "south": {
+          "uv": [
+            13.3525,
+            2.95,
+            14.3475,
+            4.95
+          ],
+          "texture": "#lens"
+        }
+      }
+    },
+    {
+      "__comment": "lens_1",
+      "from": [
+        13.3525,
+        27.05,
+        4.674
+      ],
+      "to": [
+        14.3475,
+        29.05,
+        7.076
+      ],
+      "rotation": {
+        "origin": [
+          13.85,
+          27.05,
+          5.875
+        ],
+        "axis": "y",
+        "angle": 45.0
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1.6525,
+            2.95,
+            2.6475,
+            4.95
+          ],
+          "texture": "#lens"
+        },
+        "south": {
+          "uv": [
+            13.3525,
+            2.95,
+            14.3475,
+            4.95
+          ],
+          "texture": "#lens"
+        }
+      }
+    },
+    {
+      "__comment": "lens_2",
+      "from": [
+        12.649,
+        27.05,
+        5.3775
+      ],
+      "to": [
+        15.051,
+        29.05,
+        6.3725
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            9.6275,
+            2.95,
+            10.6225,
+            4.95
+          ],
+          "texture": "#lens"
+        },
+        "west": {
+          "uv": [
+            5.3775,
+            2.95,
+            6.3725,
+            4.95
+          ],
+          "texture": "#lens"
+        }
+      }
+    },
+    {
+      "__comment": "lens_3",
+      "from": [
+        12.649,
+        27.05,
+        5.3775
+      ],
+      "to": [
+        15.051,
+        29.05,
+        6.3725
+      ],
+      "rotation": {
+        "origin": [
+          13.85,
+          27.05,
+          5.875
+        ],
+        "axis": "y",
+        "angle": 45.0
+      },
+      "faces": {
+        "east": {
+          "uv": [
+            9.6275,
+            2.95,
+            10.6225,
+            4.95
+          ],
+          "texture": "#lens"
+        },
+        "west": {
+          "uv": [
+            5.3775,
+            2.95,
+            6.3725,
+            4.95
+          ],
+          "texture": "#lens"
+        }
+      }
+    }
+  ]
+}

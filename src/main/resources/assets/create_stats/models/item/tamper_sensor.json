@@ -1,0 +1,483 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_stats:block/tamper_sensor_shell",
+    "shell": "create_stats:block/tamper_sensor_shell",
+    "face": "create_stats:block/tamper_sensor_face"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        1.5,
+        5.0,
+        6.5
+      ],
+      "to": [
+        14.5,
+        11.0,
+        7.3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            1.5,
+            5.0,
+            14.5,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#face",
+          "uv": [
+            1.5,
+            5.0,
+            14.5,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            6.5,
+            5.0,
+            7.3,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            6.5,
+            5.0,
+            7.3,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            1.5,
+            6.5,
+            14.5,
+            7.3
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            1.5,
+            6.5,
+            14.5,
+            7.3
+          ]
+        }
+      }
+    },
+    {
+      "name": "case",
+      "from": [
+        3.0,
+        5.5,
+        7.3
+      ],
+      "to": [
+        13.0,
+        10.5,
+        8.8
+      ],
+      "faces": {
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            3.0,
+            5.5,
+            13.0,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            7.3,
+            5.5,
+            8.8,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            7.3,
+            5.5,
+            8.8,
+            10.5
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            3.0,
+            7.3,
+            13.0,
+            8.8
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            3.0,
+            7.3,
+            13.0,
+            8.8
+          ]
+        }
+      }
+    },
+    {
+      "name": "lid",
+      "from": [
+        4.5,
+        6.0,
+        8.8
+      ],
+      "to": [
+        11.5,
+        10.0,
+        9.5
+      ],
+      "faces": {
+        "south": {
+          "texture": "#face",
+          "uv": [
+            4.5,
+            6.0,
+            11.5,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            8.8,
+            6.0,
+            9.5,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            8.8,
+            6.0,
+            9.5,
+            10.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            4.5,
+            8.8,
+            11.5,
+            9.5
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            4.5,
+            8.8,
+            11.5,
+            9.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "gland",
+      "from": [
+        13.0,
+        7.0,
+        7.0
+      ],
+      "to": [
+        15.0,
+        9.0,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            13.0,
+            7.0,
+            15.0,
+            9.0
+          ]
+        },
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            13.0,
+            7.0,
+            15.0,
+            9.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            7.0,
+            7.0,
+            8.5,
+            9.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            13.0,
+            7.0,
+            15.0,
+            8.5
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            13.0,
+            7.0,
+            15.0,
+            8.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "gland_nut",
+      "from": [
+        15.0,
+        7.25,
+        7.1
+      ],
+      "to": [
+        15.8,
+        8.75,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            15.0,
+            7.25,
+            15.8,
+            8.75
+          ]
+        },
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            15.0,
+            7.25,
+            15.8,
+            8.75
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            7.1,
+            7.25,
+            8.4,
+            8.75
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            15.0,
+            7.1,
+            15.8,
+            8.4
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            15.0,
+            7.1,
+            15.8,
+            8.4
+          ]
+        }
+      }
+    },
+    {
+      "name": "plunger",
+      "from": [
+        7.0,
+        4.0,
+        7.4
+      ],
+      "to": [
+        9.0,
+        5.0,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            7.0,
+            11.0,
+            9.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            7.0,
+            11.0,
+            9.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            7.4,
+            11.0,
+            8.5,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            7.4,
+            11.0,
+            8.5,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            7.0,
+            7.4,
+            9.0,
+            8.5
+          ]
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.45
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        13,
+        7
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

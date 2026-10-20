@@ -1,0 +1,84 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "minecraft:builtin/entity",
+    "gui_light": "front",
+    "textures": {
+      "particle": "create_stats:item/surveyor_staff"
+    },
+    "display": {
+      "thirdperson_righthand": {
+        "rotation": [
+          72,
+          0,
+          0
+        ],
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "firstperson_righthand": {
+        "rotation": [
+          0,
+          0,
+          12
+        ],
+        "translation": [
+          -2.5,
+          -2,
+          -1
+        ],
+        "scale": [
+          0.26,
+          0.26,
+          0.26
+        ]
+      },
+      "head": {
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "translation": [
+          0,
+          8,
+          0
+        ],
+        "scale": [
+          0.4,
+          0.4,
+          0.4
+        ]
+      }
+    }
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "create_stats:item/surveyor_staff"
+      }
+    },
+    "ground": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "create_stats:item/surveyor_staff"
+      }
+    },
+    "fixed": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "create_stats:item/surveyor_staff"
+      }
+    }
+  }
+}

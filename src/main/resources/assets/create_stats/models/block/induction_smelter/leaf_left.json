@@ -1,0 +1,79 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "leaf": "create_stats:block/smelter_leaf",
+    "leaf_inner": "create_stats:block/smelter_leaf_inner",
+    "particle": "create_stats:block/smelter_body"
+  },
+  "elements": [
+    {
+      "from": [
+        -3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        6.0,
+        0.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            5,
+            8,
+            11
+          ],
+          "texture": "#leaf"
+        },
+        "south": {
+          "uv": [
+            8,
+            5,
+            16,
+            11
+          ],
+          "texture": "#leaf_inner"
+        },
+        "east": {
+          "uv": [
+            7,
+            5,
+            8,
+            11
+          ],
+          "texture": "#leaf"
+        },
+        "west": {
+          "uv": [
+            7,
+            5,
+            8,
+            11
+          ],
+          "texture": "#leaf"
+        },
+        "up": {
+          "uv": [
+            0,
+            7,
+            8,
+            8
+          ],
+          "texture": "#leaf"
+        },
+        "down": {
+          "uv": [
+            0,
+            7,
+            8,
+            8
+          ],
+          "texture": "#leaf"
+        }
+      },
+      "__comment": "shutter leaf"
+    }
+  ]
+}

@@ -15,7 +15,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DispatchBoardDisplaySource extends DisplaySource implements CargoLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         BlockEntity blockEntity = context.getSourceBlockEntity();
@@ -23,7 +22,6 @@ public class DispatchBoardDisplaySource extends DisplaySource implements CargoLi
             return EMPTY;
         }
 
-        // Always resolve through the controller for freight data
         DispatchBoardBE dispatchBoard = board.getControllerBE();
 
         FreightManifest manifest = dispatchBoard.getManifest();

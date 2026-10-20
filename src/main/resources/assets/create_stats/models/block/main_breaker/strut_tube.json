@@ -1,0 +1,147 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "tones": "create_stats:block/main_breaker_tones",
+    "particle": "create_stats:block/main_breaker_case"
+  },
+  "elements": [
+    {
+      "name": "tube",
+      "from": [
+        0.0,
+        5.3,
+        -0.45
+      ],
+      "to": [
+        4.0,
+        6.2,
+        0.45
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "tube_eye",
+      "from": [
+        -0.7,
+        5.2,
+        -0.55
+      ],
+      "to": [
+        0.2,
+        6.3,
+        0.55
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            0.5,
+            0.5,
+            1.5,
+            1.5
+          ]
+        }
+      }
+    }
+  ]
+}

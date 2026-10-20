@@ -1,0 +1,112 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "ivory": "create_stats:block/contactor/ivory",
+    "silver": "create_stats:block/contactor/silver",
+    "particle": "create_stats:block/contactor/phenolic"
+  },
+  "elements": [
+    {
+      "__comment": "stalk",
+      "from": [
+        11.25,
+        2.1,
+        8.35
+      ],
+      "to": [
+        11.75,
+        3.0,
+        11.35
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            15.0,
+            9.5,
+            15.5,
+            12.5
+          ],
+          "texture": "#ivory"
+        },
+        "east": {
+          "uv": [
+            4.0,
+            10.5,
+            7.0,
+            11.4
+          ],
+          "texture": "#ivory"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            0.0,
+            5.5,
+            0.9
+          ],
+          "texture": "#ivory"
+        }
+      }
+    },
+    {
+      "__comment": "bridge",
+      "from": [
+        10.1,
+        2.0,
+        11.35
+      ],
+      "to": [
+        12.9,
+        3.4,
+        11.85
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            10.0,
+            8.5,
+            12.8,
+            9.0
+          ],
+          "texture": "#silver"
+        },
+        "north": {
+          "uv": [
+            3.5,
+            14.0,
+            6.3,
+            15.4
+          ],
+          "texture": "#silver"
+        },
+        "south": {
+          "uv": [
+            6.5,
+            9.0,
+            9.3,
+            10.4
+          ],
+          "texture": "#silver"
+        },
+        "east": {
+          "uv": [
+            2.0,
+            2.0,
+            2.5,
+            3.4
+          ],
+          "texture": "#silver"
+        },
+        "west": {
+          "uv": [
+            6.0,
+            5.5,
+            6.5,
+            6.9
+          ],
+          "texture": "#silver"
+        }
+      }
+    }
+  ]
+}

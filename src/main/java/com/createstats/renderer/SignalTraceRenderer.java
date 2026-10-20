@@ -2,23 +2,11 @@ package com.createstats.renderer;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
-/** [1] */
+// per column anti aliased plot, fritsch-carlson for sparse data
 public final class SignalTraceRenderer {
-
     private SignalTraceRenderer() {
     }
 
-    // bake
-
-    /**
-     * Bakes the full static trace (grid, gradient fill, glow, anti-aliased core, reference lines,
-     * comet head, corner brackets) into {@code img} using pure CPU pixel writes. The caller uploads
-     * the backing texture once and blits it, drawing only the cheap live overlays (head pulse,
-     * hover, text) per frame. Image coordinates are local: (0,0) is the plot's top-left, size w x h.
-     *
-     * @param reveal                   0..1 left-to-right draw-in progress
-     * @param avgVal/warnVal/dangerVal reference values, or NaN to skip
-     */
     public static void bakeTrace(NativeImage img, float[] data, float min, float max,
                                  int coreColor, int glowColor, int fillColor, float reveal, boolean drawGlow,
                                  int gridMinorArgb, int gridTickArgb, int baselineArgb, int bracketArgb,
@@ -29,7 +17,7 @@ public final class SignalTraceRenderer {
         if (data == null || data.length < 2 || w < 2 || h < 2) {
             return;
         }
-        img.fillRect(0, 0, w, h, 0); // clear to transparent (image is reused across rebuilds)
+        img.fillRect(0, 0, w, h, 0);
         final int n = data.length;
         float range = max - min;
         if (range < 1.0e-6f) {
@@ -37,7 +25,6 @@ public final class SignalTraceRenderer {
         }
         final float span = h - 1;
 
-        // Scientific graph-paper minor grid (eighths) + edge tick rulers.
         for (int k = 1; k <= 7; k += 2) {
             final int gx = w * k / 8;
             final int gy = h * k / 8;
@@ -65,11 +52,9 @@ public final class SignalTraceRenderer {
             }
         }
 
-        // Per-column trace envelope in image pixel space (topPy = higher value = smaller y).
         final float[] topPy = new float[w];
         final float[] botPy = new float[w];
         if (n <= w) {
-            // Smooth: monotone cubic interpolation of the samples across the columns.
             final float[] m = monotoneTangents(data);
             for (int c = 0; c < w; ++c) {
                 final float pos = (w == 1) ? 0.0f : c / (float) (w - 1) * (n - 1);
@@ -80,7 +65,6 @@ public final class SignalTraceRenderer {
             }
         }
         else {
-            // Dense: per-column min/max envelope so spikes survive downsampling.
             for (int c = 0; c < w; ++c) {
                 final int a = (int) ((long) c * n / w);
                 final int b = Math.max(a + 1, (int) ((long) (c + 1) * n / w));
@@ -102,7 +86,6 @@ public final class SignalTraceRenderer {
         final float baseY = span;
         final float halfCore = 0.85f;
 
-        // Gradient area fill (per pixel, free in image memory), strongest under recent data.
         for (int c = 0; c <= revealFront && c < w; ++c) {
             final float edge = edgeFade(revealFront, c);
             final float recency = (w > 1) ? c / (float) (w - 1) : 1.0f;
@@ -120,12 +103,10 @@ public final class SignalTraceRenderer {
             }
         }
 
-        // Reference lines (dashed).
         bakeDash(img, avgVal, min, range, span, avgArgb, 5, 2);
         bakeDash(img, warnVal, min, range, span, warnArgb, 3, 3);
         bakeDash(img, dangerVal, min, range, span, dangerArgb, 3, 3);
 
-        // Soft outer glow (two feathered passes), tinted by the health band. Optional per client pref.
         if (drawGlow) {
             for (int pass = 0; pass < 2; ++pass) {
                 final float pad = halfCore + (pass == 0 ? 2.2f : 4.2f);
@@ -139,7 +120,6 @@ public final class SignalTraceRenderer {
             }
         }
 
-        // Crisp anti-aliased core stroke, brightened toward the newest sample.
         for (int c = 0; c <= revealFront && c < w; ++c) {
             final int cn = Math.min(w - 1, c + 1);
             final float segTop = Math.min(topPy[c], topPy[cn]) - halfCore;
@@ -149,7 +129,6 @@ public final class SignalTraceRenderer {
             vSpan(img, c, segTop, segBot, col, edgeFade(revealFront, c));
         }
 
-        // Comet head + short fading tail (static; the live pulse is drawn over the blit).
         final int headC = (int) Math.min(w - 1, Math.max(0.0f, revealFront));
         final int hy = Math.round((topPy[headC] + botPy[headC]) * 0.5f);
         for (int k = 1; k <= 12; ++k) {
@@ -168,7 +147,6 @@ public final class SignalTraceRenderer {
         blend(img, headC, hy + 1, headCore);
         blend(img, headC, hy, 0xFFFFFFFF);
 
-        // Corner instrument brackets.
         final int bl = 6;
         for (int t = 0; t < bl; ++t) {
             blend(img, t, 0, bracketArgb);
@@ -196,9 +174,6 @@ public final class SignalTraceRenderer {
         }
     }
 
-    // anti-aliased image primitives
-
-    /** Vertical span [top, bot] at column x with sub-pixel edge coverage, blended into the image. */
     private static void vSpan(NativeImage img, int x, float top, float bot, int rgb, float alpha) {
         if (alpha <= 0.0f) {
             return;
@@ -247,7 +222,6 @@ public final class SignalTraceRenderer {
         blend(img, x, y, ((int) (a * 255.0f) << 24) | (rgb & 0xFFFFFF));
     }
 
-    /** Alpha-composites an ARGB colour over the existing image pixel (NativeImage stores ABGR). */
     private static void blend(NativeImage img, int x, int y, int argb) {
         if (x < 0 || y < 0 || x >= img.getWidth() || y >= img.getHeight()) {
             return;
@@ -269,8 +243,6 @@ public final class SignalTraceRenderer {
         final int oa = Math.min(255, a + (existing >>> 24 & 0xFF) * invA / 255);
         img.setPixelRGBA(x, y, oa << 24 | b << 16 | gg << 8 | r);
     }
-
-    // monotone cubic (Fritsch-Carlson) interpolation
 
     private static float[] monotoneTangents(float[] y) {
         final int n = y.length;
@@ -320,8 +292,6 @@ public final class SignalTraceRenderer {
         final float h11 = t3 - t2;
         return h00 * y[i] + h10 * m[i] + h01 * y[i + 1] + h11 * m[i + 1];
     }
-
-    // small helpers
 
     private static float edgeFade(float revealFront, int c) {
         final float d = revealFront - c;

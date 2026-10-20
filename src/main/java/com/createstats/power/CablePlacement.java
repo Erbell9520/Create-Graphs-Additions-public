@@ -3,64 +3,72 @@ package com.createstats.power;
 import com.createstats.block.CableBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** [1] */
+// two clicks, not fifteen placements
 public final class CablePlacement {
-
     private CablePlacement() {
     }
 
-    /** How far a single assisted run may reach. Also the router's search cap. */
     public static final int MAX_RUN = 48;
 
-    // [2]
     private static final Map<UUID, CableRoute.Step> ANCHORS = new ConcurrentHashMap<>();
 
-    /** [3] */
+    private static final Map<UUID, CableRoute.Step> CLIENT_ANCHORS = new ConcurrentHashMap<>();
+
+    private static Map<UUID, CableRoute.Step> mapFor(Player player) {
+        return player.level().isClientSide() ? CLIENT_ANCHORS : ANCHORS;
+    }
+
+    public static void clear(Player player) {
+        mapFor(player).remove(player.getUUID());
+        publish(player, null);
+    }
+
     public static void clear(UUID playerId) {
         ANCHORS.remove(playerId);
     }
 
     public static CableRoute.Step anchorOf(Player player) {
-        return ANCHORS.get(player.getUUID());
+        return mapFor(player).get(player.getUUID());
     }
 
     public static void setAnchor(Player player, CableRoute.Step step) {
-        ANCHORS.put(player.getUUID(), step);
+        mapFor(player).put(player.getUUID(), step);
+        publish(player, step);
     }
 
-    /** [4] */
+    public static void acceptFromServer(UUID playerId, @Nullable CableRoute.Step step) {
+        if (step == null) {
+            CLIENT_ANCHORS.remove(playerId);
+        } else {
+            CLIENT_ANCHORS.put(playerId, step);
+        }
+    }
+
+    private static void publish(Player player, @Nullable CableRoute.Step step) {
+        if (player instanceof ServerPlayer server) {
+            PacketDistributor.sendToPlayer(server, new com.createstats.network.CableAnchorPacket(step));
+        }
+    }
+
     public static CableRoute.Step stepFor(BlockPos clicked, Direction clickedFace) {
         return new CableRoute.Step(clicked.relative(clickedFace), clickedFace.getOpposite());
     }
 
-    /**
-     * The cable step a click means, snapping to the surface beside a fitting when the player clicked
-     * the fitting itself.
-     *
-     * <p>Clicking a lamp used to be rejected outright. {@link CableRoute#isPlaceable} wants a full
-     * solid block behind the cable and a lamp is not one, so the most obvious gesture in the whole
-     * feature, pointing at the thing you want to power, was the one gesture that did not work.</p>
-     *
-     * <p>A fitting is a perfectly good end for a run; it is simply not a place cable can sit. So the
-     * run ends <i>next to</i> it, on the surface the fitting is itself mounted on, which is where a
-     * player would have put the last block by hand. Landing there is also what feeds it: cable powers
-     * whatever it touches.</p>
-     *
-     * @param hint where on the block the player actually clicked, so a long fitting takes cable at the
-     *             end the player pointed at rather than an arbitrary one
-     */
     public static CableRoute.Step endpointFor(Level level, BlockPos clicked, Direction clickedFace,
                                               net.minecraft.world.phys.Vec3 hint) {
         final CableRoute.Step direct = stepFor(clicked, clickedFace);
@@ -69,15 +77,14 @@ public final class CablePlacement {
             return direct;
         }
         if (level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
-                clicked, clickedFace) == null) {
-            return direct;   // not a fitting either, so let the caller refuse it as before
+                clicked, null) == null) {
+            return direct;
         }
 
         CableRoute.Step best = null;
         double bestScore = Double.MAX_VALUE;
+        boolean bestFeeds = false;
         for (Direction surface : Direction.values()) {
-            // The fitting's own mounting surface: cable joins it on the same wall, not floating off
-            // at right angles to it.
             if (!view.isSolid(clicked.relative(surface))) {
                 continue;
             }
@@ -89,11 +96,19 @@ public final class CablePlacement {
                 if (!CableRoute.isPlaceable(view, candidate)) {
                     continue;
                 }
+
+                final boolean feeds = level.getCapability(
+                        net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
+                        clicked, beside) != null;
                 final double score = hint.distanceToSqr(
                         candidate.pos().getX() + 0.5, candidate.pos().getY() + 0.5,
                         candidate.pos().getZ() + 0.5);
-                if (score < bestScore) {
+                final boolean better = best == null
+                        || (feeds && !bestFeeds)
+                        || (feeds == bestFeeds && score < bestScore);
+                if (better) {
                     bestScore = score;
+                    bestFeeds = feeds;
                     best = candidate;
                 }
             }
@@ -101,20 +116,10 @@ public final class CablePlacement {
         return best != null ? best : direct;
     }
 
-    /** [5] */
     public static List<CableRoute.Step> route(Level level, CableRoute.Step from, CableRoute.Step to) {
         return CableRoute.find(CableBlock.viewOf(level), from, to, MAX_RUN);
     }
 
-    /**
-     * Lays a route in one colour, skipping steps that already carry this cable on that face.
-     *
-     * <p>The colour is passed in rather than defaulted, because colour is the circuit: a run laid in
-     * the player's chosen colour is a circuit of its own the moment it exists, and one laid in the
-     * default would silently join whatever orange run it happened to touch.</p>
-     *
-     * @return how many cable blocks were actually placed
-     */
     public static int place(LevelAccessor level, List<CableRoute.Step> route, CableBlock cable,
                             DyeColor colour, int budget) {
         int placed = 0;
@@ -126,7 +131,7 @@ public final class CablePlacement {
             final Direction face = step.face();
             if (existing.getBlock() == cable) {
                 if (existing.getValue(CableBlock.faceProperty(face))) {
-                    continue; // already wired this way; not an error and not a charge
+                    continue;
                 }
                 level.setBlock(step.pos(), existing.setValue(CableBlock.faceProperty(face), true),
                         Block.UPDATE_ALL);
@@ -144,7 +149,6 @@ public final class CablePlacement {
         return placed;
     }
 
-    /** How many cable items a route will actually consume, ignoring steps already wired. */
     public static int cost(LevelAccessor level, List<CableRoute.Step> route, CableBlock cable) {
         int n = 0;
         for (CableRoute.Step step : route) {

@@ -1,0 +1,78 @@
+{
+ "credit": "gen_staff_redesign.py, sample jacob",
+ "textures": {
+  "atlas": "create_stats:item/surveyor_staff/jacob/atlas",
+  "particle": "create_stats:item/surveyor_staff/jacob/atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    4.05,
+    14.6,
+    7.85
+   ],
+   "to": [
+    4.35,
+    15.6,
+    8.15
+   ],
+   "name": "chalk line, one unit, scaled by the renderer",
+   "faces": {
+    "north": {
+     "uv": [
+      10.5,
+      4.5,
+      10.625,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      10.75,
+      4.5,
+      10.875,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      11.0,
+      4.5,
+      11.125,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      11.25,
+      4.5,
+      11.375,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      11.5,
+      4.5,
+      11.625,
+      4.625
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      11.75,
+      4.5,
+      11.875,
+      4.625
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

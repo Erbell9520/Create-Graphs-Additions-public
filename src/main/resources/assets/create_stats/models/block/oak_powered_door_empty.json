@@ -1,0 +1,6 @@
+{
+  "__generator": "gen_powered_door.py",
+  "textures": {
+    "particle": "create_stats:block/powered_door/oak_frame"
+  }
+}

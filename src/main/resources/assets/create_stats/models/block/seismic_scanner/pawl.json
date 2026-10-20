@@ -1,0 +1,148 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "steel_dark": "create_stats:block/seismic_scanner/steel_dark",
+    "particle": "create_stats:block/seismic_scanner/frame"
+  },
+  "elements": [
+    {
+      "__comment": "pawl_boss",
+      "from": [
+        14.225,
+        7.5,
+        6.244
+      ],
+      "to": [
+        14.925,
+        8.2,
+        6.944
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            14.225,
+            6.244,
+            14.925,
+            6.944
+          ],
+          "texture": "#steel_dark"
+        },
+        "down": {
+          "uv": [
+            14.225,
+            9.056,
+            14.925,
+            9.756
+          ],
+          "texture": "#steel_dark"
+        },
+        "north": {
+          "uv": [
+            1.075,
+            7.8,
+            1.775,
+            8.5
+          ],
+          "texture": "#steel_dark"
+        },
+        "south": {
+          "uv": [
+            14.225,
+            7.8,
+            14.925,
+            8.5
+          ],
+          "texture": "#steel_dark"
+        },
+        "east": {
+          "uv": [
+            9.056,
+            7.8,
+            9.756,
+            8.5
+          ],
+          "texture": "#steel_dark"
+        },
+        "west": {
+          "uv": [
+            6.244,
+            7.8,
+            6.944,
+            8.5
+          ],
+          "texture": "#steel_dark"
+        }
+      }
+    },
+    {
+      "__comment": "pawl_arm",
+      "from": [
+        14.4,
+        6.16,
+        6.394
+      ],
+      "to": [
+        14.75,
+        7.6,
+        6.794
+      ],
+      "rotation": {
+        "origin": [
+          14.575,
+          7.85,
+          6.594
+        ],
+        "axis": "x",
+        "angle": 0.0
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1.25,
+            8.4,
+            1.6,
+            9.84
+          ],
+          "texture": "#steel_dark"
+        },
+        "south": {
+          "uv": [
+            14.4,
+            8.4,
+            14.75,
+            9.84
+          ],
+          "texture": "#steel_dark"
+        },
+        "east": {
+          "uv": [
+            9.206,
+            8.4,
+            9.606,
+            9.84
+          ],
+          "texture": "#steel_dark"
+        },
+        "west": {
+          "uv": [
+            6.394,
+            8.4,
+            6.794,
+            9.84
+          ],
+          "texture": "#steel_dark"
+        },
+        "down": {
+          "uv": [
+            14.4,
+            9.206,
+            14.75,
+            9.606
+          ],
+          "texture": "#steel_dark"
+        }
+      }
+    }
+  ]
+}

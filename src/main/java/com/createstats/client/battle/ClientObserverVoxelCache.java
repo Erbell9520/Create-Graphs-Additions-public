@@ -1,17 +1,13 @@
 package com.createstats.client.battle;
 
 import com.createstats.battle.DamageObserverVoxelMap;
-import com.createstats.network.RequestObserverVoxelMapPacket;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/** [1] */
+// nothing fills this since the bridge rewrite
 public final class ClientObserverVoxelCache {
-
     private static final long TTL_MS = 5_000L;
     private static final long REQUEST_THROTTLE_MS = 1_000L;
 
@@ -30,21 +26,7 @@ public final class ClientObserverVoxelCache {
         return e == null ? 0L : e.receivedAtMs;
     }
 
-    /** [2] */
     public static synchronized void ensureFresh(BlockPos observerPos) {
-        long now = System.currentTimeMillis();
-        Entry e = CACHE.get(observerPos);
-        if (e != null && now - e.receivedAtMs < TTL_MS) {
-            return;
-        }
-        Long last = LAST_REQUEST_MS.get(observerPos);
-        if (last != null && now - last < REQUEST_THROTTLE_MS) {
-            return;
-        }
-        LAST_REQUEST_MS.put(observerPos, now);
-        if (Minecraft.getInstance().getConnection() != null) {
-            PacketDistributor.sendToServer(new RequestObserverVoxelMapPacket(observerPos));
-        }
     }
 
     public static synchronized void acceptPayload(BlockPos observerPos, DamageObserverVoxelMap map) {

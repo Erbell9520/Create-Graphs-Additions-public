@@ -1,17 +1,979 @@
 {
-  "__comment": "Static housing for the Kinetic Flywheel (blockstate). Authored for FACING=north (shaft exits -Z); blockstate rotates it for other facings. The spinning wheel is added by the block entity renderer, so it is NOT part of this model.",
-  "parent": "block/block",
+  "parent": "minecraft:block/block",
   "textures": {
-    "casing": "create:block/brass_block",
-    "iron": "create:block/industrial_iron_block",
-    "particle": "create:block/industrial_iron_block"
+    "cage": "create_stats:block/flywheel_cage",
+    "cage_hazard": "create_stats:block/flywheel_cage_hazard",
+    "casing": "create_stats:block/flywheel_casing",
+    "panel": "create_stats:block/flywheel_panel",
+    "panel_edge": "create_stats:block/flywheel_panel_edge",
+    "particle": "create_stats:block/flywheel_casing"
   },
   "elements": [
-    { "name": "back_puck", "from": [3, 3, 11], "to": [13, 13, 16],
-      "faces": { "north": {"texture": "#casing"}, "south": {"texture": "#casing"}, "east": {"texture": "#casing"}, "west": {"texture": "#casing"}, "up": {"texture": "#casing"}, "down": {"texture": "#casing"} } },
-    { "name": "foot", "from": [2, 0, 11], "to": [14, 2, 16],
-      "faces": { "north": {"texture": "#iron"}, "south": {"texture": "#iron"}, "east": {"texture": "#iron"}, "west": {"texture": "#iron"}, "up": {"texture": "#iron"}, "down": {"texture": "#iron"} } },
-    { "name": "collar", "from": [6, 6, 9], "to": [10, 10, 12],
-      "faces": { "north": {"texture": "#iron"}, "south": {"texture": "#iron"}, "east": {"texture": "#iron"}, "west": {"texture": "#iron"}, "up": {"texture": "#iron"}, "down": {"texture": "#iron"} } }
+    {
+      "__comment": "cage_front_top",
+      "from": [
+        0.5,
+        14.0,
+        0.5
+      ],
+      "to": [
+        15.5,
+        15.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "cage_front_bottom",
+      "from": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "to": [
+        15.5,
+        2.0,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "cage_front_left",
+      "from": [
+        0.5,
+        2.0,
+        0.5
+      ],
+      "to": [
+        2.0,
+        14.0,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "cage_front_right",
+      "from": [
+        14.0,
+        2.0,
+        0.5
+      ],
+      "to": [
+        15.5,
+        14.0,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "cage_post_sw",
+      "from": [
+        0.5,
+        0.5,
+        1.5
+      ],
+      "to": [
+        3.0,
+        3.0,
+        11.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        }
+      }
+    },
+    {
+      "__comment": "cage_post_se",
+      "from": [
+        13.0,
+        0.5,
+        1.5
+      ],
+      "to": [
+        15.5,
+        3.0,
+        11.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        }
+      }
+    },
+    {
+      "__comment": "cage_post_nw",
+      "from": [
+        0.5,
+        13.0,
+        1.5
+      ],
+      "to": [
+        3.0,
+        15.5,
+        11.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        }
+      }
+    },
+    {
+      "__comment": "cage_post_ne",
+      "from": [
+        13.0,
+        13.0,
+        1.5
+      ],
+      "to": [
+        15.5,
+        15.5,
+        11.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#cage_hazard"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            10
+          ],
+          "texture": "#cage_hazard"
+        }
+      }
+    },
+    {
+      "__comment": "cage_rear_top",
+      "from": [
+        0.5,
+        14.0,
+        10.5
+      ],
+      "to": [
+        15.5,
+        15.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "cage_rear_bottom",
+      "from": [
+        0.5,
+        0.5,
+        10.5
+      ],
+      "to": [
+        15.5,
+        2.0,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "cage_rear_left",
+      "from": [
+        0.5,
+        2.0,
+        10.5
+      ],
+      "to": [
+        2.0,
+        14.0,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "cage_rear_right",
+      "from": [
+        14.0,
+        2.0,
+        10.5
+      ],
+      "to": [
+        15.5,
+        14.0,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            12
+          ],
+          "texture": "#cage"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "case",
+      "from": [
+        1.5,
+        1.5,
+        11.0
+      ],
+      "to": [
+        14.5,
+        14.5,
+        15.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            13,
+            13
+          ],
+          "texture": "#casing"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            13,
+            13
+          ],
+          "texture": "#casing"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            13
+          ],
+          "texture": "#casing"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            13
+          ],
+          "texture": "#casing"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            13,
+            4
+          ],
+          "texture": "#casing"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            13,
+            4
+          ],
+          "texture": "#casing"
+        }
+      }
+    },
+    {
+      "__comment": "rear_plate",
+      "from": [
+        0.5,
+        0.5,
+        15.0
+      ],
+      "to": [
+        15.5,
+        15.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            15,
+            15
+          ],
+          "texture": "#panel_edge"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#panel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            15
+          ],
+          "texture": "#panel_edge"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            15
+          ],
+          "texture": "#panel_edge"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#panel_edge"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            15,
+            1
+          ],
+          "texture": "#panel_edge"
+        }
+      }
+    }
   ]
 }

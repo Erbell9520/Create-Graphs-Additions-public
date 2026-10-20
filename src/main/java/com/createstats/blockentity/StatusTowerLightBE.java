@@ -32,8 +32,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver, com.createstats.power.IFeConsumer {
-
+public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver,
+        com.createstats.power.IFeConsumer,
+        com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation,
+        com.createstats.util.CopyableSettings {
     private static final float EPSILON = 0.01f;
     private static final long LINK_TIMEOUT_TICKS = 60L;
 
@@ -47,12 +49,25 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
     private SignalState signalState;
     private SourceState sourceState;
 
-    /** FE Dependent Mode buffer. Receive-only; exposed as a block capability via FeCapabilities. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_STATUS_TOWER_LIGHT));
 
+    @Nullable
+    private BlockPos bankPos;
+
     public com.createstats.power.FeConsumer feConsumer() {
-        return feConsumer;
+        return this.bankOwner().feConsumer;
+    }
+
+    private StatusTowerLightBE bankOwner() {
+        if (this.level == null) {
+            return this;
+        }
+        final BlockPos basePos = StatusTowerLightBlock.towerBase(this.level, this.worldPosition);
+        if (basePos.equals(this.worldPosition)) {
+            return this;
+        }
+        return this.level.getBlockEntity(basePos) instanceof StatusTowerLightBE base ? base : this;
     }
     @Nullable
     private BlockPos activeSourcePos;
@@ -81,18 +96,65 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
         if (this.level == null || this.level.isClientSide()) {
             return;
         }
-        // FE Dependent Mode gate: an unpowered tower light snaps dark instead of evaluating.
-        final boolean feActive = this.signalState != SignalState.OFF && this.signalState != SignalState.NO_DATA;
-        final boolean fePowered = this.feConsumer.serviceTick(feActive);
-        com.createstats.power.FePowerFx.handleTransition(this.level, this.worldPosition, this.feConsumer);
-        if (!fePowered) {
+
+        if (!this.feServiceTick()) {
             this.applyUnpoweredVisual();
             return;
         }
         this.evaluateAndApply(this.level.getGameTime());
     }
 
-    /** Hard cutoff: force the lamp dark, drop any critical redstone output, sync once. */
+    private boolean feServiceTick() {
+        final StatusTowerLightBE owner = this.bankOwner();
+        final com.createstats.power.FeConsumer bank = owner.feConsumer;
+        this.adoptBank(owner);
+        com.createstats.power.FePowerFx.chargeFromNeighbors(this.level, this.worldPosition, bank);
+        if (owner != this) {
+            return bank.isPowered();
+        }
+        int modules = 0;
+        boolean active = false;
+        for (StatusTowerLightBE module : this.stack()) {
+            modules++;
+            active |= module.signalState != SignalState.OFF && module.signalState != SignalState.NO_DATA;
+        }
+        final boolean powered = bank.serviceTick(active,
+                com.createstats.power.FeLoadCurve.multiplier(modules));
+        com.createstats.power.FePowerFx.playTransition(this.level, this.worldPosition,
+                bank.pollTransition());
+        return powered;
+    }
+
+    private void adoptBank(StatusTowerLightBE owner) {
+        final BlockPos ownerPos = owner.getBlockPos();
+        if (ownerPos.equals(this.bankPos)) {
+            return;
+        }
+        this.bankPos = ownerPos.immutable();
+        if (owner != this) {
+            this.feConsumer.transferChargeTo(owner.feConsumer);
+        }
+        if (this.level != null) {
+            this.level.invalidateCapabilities(this.worldPosition);
+        }
+    }
+
+    private java.util.List<StatusTowerLightBE> stack() {
+        final java.util.List<StatusTowerLightBE> modules = new java.util.ArrayList<>(
+                StatusTowerLightBlock.MAX_STACK);
+        modules.add(this);
+        if (this.level == null) {
+            return modules;
+        }
+        BlockPos cursor = this.worldPosition.above();
+        for (int i = 0; i < StatusTowerLightBlock.MAX_STACK
+                && this.level.getBlockEntity(cursor) instanceof StatusTowerLightBE module; i++) {
+            modules.add(module);
+            cursor = cursor.above();
+        }
+        return modules;
+    }
+
     private void applyUnpoweredVisual() {
         if (this.signalState == SignalState.OFF) {
             return;
@@ -105,13 +167,6 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
             this.level.updateNeighbourForOutputSignal(this.worldPosition, this.getBlockState().getBlock());
         }
         this.syncToClient();
-    }
-
-    public void clientTick() {
-        if (this.level == null || !this.level.isClientSide()) {
-            return;
-        }
-        this.updateClientVisual(this.level.getGameTime());
     }
 
     public StatusTowerLightSettings getSettings() {
@@ -128,6 +183,28 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
         }
     }
 
+    @Override
+    public String settingsKey() {
+        return "create_stats:status_tower_light";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put("Settings", this.settings.save());
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @Nullable net.minecraft.world.entity.player.Player player, boolean simulate) {
+        if (!tag.contains("Settings")) {
+            return false;
+        }
+        if (!simulate && !this.alreadyHolds(tag, registries)) {
+            this.setSettings(StatusTowerLightSettings.load(tag.getCompound("Settings")));
+        }
+        return true;
+    }
+
     public boolean isCriticalPowered() {
         return this.signalState == SignalState.CRITICAL;
     }
@@ -142,6 +219,29 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
 
     public String getSourceSummary() {
         return this.getPreviewSourceSummary(this.settings.getSourceMode());
+    }
+
+    public float getActiveMetricValue() {
+        return this.activeMetricValue;
+    }
+
+    public String getActiveMetricLabel() {
+        return this.activeMetricLabel;
+    }
+
+    public MetricType getActiveMetricType() {
+        return this.activeMetricType;
+    }
+
+    public java.util.List<String> localSourceSummaries() {
+        final java.util.List<String> out = new java.util.ArrayList<>();
+        for (LocalBinding binding : this.resolveLocalBindings()) {
+            if (binding.blockEntity() == null || binding.pos() == null) {
+                continue;
+            }
+            out.add(this.resolveSourceType(binding.blockEntity()) + " @ " + binding.pos().toShortString());
+        }
+        return out;
     }
 
     public String getMetricSummary() {
@@ -176,7 +276,9 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
                 || this.signalState != evaluation.signalState()
                 || this.sourceState != evaluation.sourceState();
 
+        final SignalState previousState = this.signalState;
         this.signalState = evaluation.signalState();
+        this.maybeSound(previousState, this.signalState);
         this.sourceState = evaluation.sourceState();
         this.activeSourcePos = evaluation.sourcePos();
         this.activeSourceType = evaluation.sourceType();
@@ -197,49 +299,73 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
         }
     }
 
-    private void updateClientVisual(long gameTime) {
-        if (this.level == null || !this.getBlockState().hasProperty(StatusTowerLightBlock.VISUAL)) {
-            return;
-        }
-        final StatusTowerLightBlock.VisualState visualState = this.computeVisualState(gameTime);
-        if (this.getBlockState().getValue(StatusTowerLightBlock.VISUAL) != visualState) {
-            this.level.setBlock(this.worldPosition, this.getBlockState().setValue(StatusTowerLightBlock.VISUAL, visualState), 2);
-        }
-    }
-
     private void updateSteadyBlockState() {
-        if (this.level == null || !this.getBlockState().hasProperty(StatusTowerLightBlock.VISUAL) || !this.getBlockState().hasProperty(StatusTowerLightBlock.GLOW)) {
+        if (this.level == null || !this.getBlockState().hasProperty(StatusTowerLightBlock.GLOW)) {
             return;
         }
-        final StatusTowerLightBlock.VisualState steadyVisual = this.computeSteadyVisualState();
         final BlockState currentState = this.getBlockState();
-        final BlockState updatedState = currentState
-                .setValue(StatusTowerLightBlock.VISUAL, steadyVisual)
-                .setValue(StatusTowerLightBlock.GLOW, steadyVisual);
+        final BlockState updatedState = currentState.setValue(StatusTowerLightBlock.GLOW, this.computeGlow());
         if (updatedState != currentState) {
             this.level.setBlock(this.worldPosition, updatedState, 3);
         }
     }
 
+    // worse only, never better. on recovery = twice per incident, while bad = never stops
+    private void maybeSound(SignalState previous, SignalState current) {
+        if (this.level == null || this.level.isClientSide() || previous == current) {
+            return;
+        }
+        if (current.severity() <= previous.severity() || !this.settings.getSounder().soundsFor(current)) {
+            return;
+        }
+        final boolean critical = current == SignalState.CRITICAL;
+        this.level.playSound(null, this.worldPosition,
+                com.createstats.registry.ModSounds.ALARM_RING.get(),
+                net.minecraft.sounds.SoundSource.BLOCKS,
+                critical ? 0.85f : 0.45f,
+                critical ? 1.0f : 1.35f);
+    }
+
     private Evaluation evaluateLocal() {
-        final LocalBinding binding = this.resolveLocalBinding();
-        if (binding.state() != SourceState.BOUND || binding.blockEntity() == null || binding.pos() == null) {
-            return Evaluation.noData(binding.state(), null, "");
+        final java.util.List<LocalBinding> bindings = this.resolveLocalBindings();
+        if (bindings.isEmpty()) {
+            return Evaluation.idle();
         }
 
-        final Map<String, MetricSample> metrics = new LinkedHashMap<>();
-        final String sourceType = this.readLocalMetrics(binding.blockEntity(), metrics);
-        if (metrics.isEmpty()) {
-            return Evaluation.noData(binding.state(), binding.pos(), sourceType);
+        Evaluation worst = null;
+        Evaluation quiet = null;
+        for (LocalBinding binding : bindings) {
+            if (binding.blockEntity() == null || binding.pos() == null) {
+                continue;
+            }
+            final Map<String, MetricSample> metrics = new LinkedHashMap<>();
+            final String sourceType = this.readLocalMetrics(binding.blockEntity(), metrics);
+            if (metrics.isEmpty()) {
+                if (quiet == null) {
+                    quiet = Evaluation.noData(SourceState.BOUND, binding.pos(), sourceType);
+                }
+                continue;
+            }
+            final Evaluation candidate =
+                    this.evaluateMetrics(metrics, SourceState.BOUND, binding.pos(), sourceType);
+            if (worst == null
+                    || candidate.signalState().severity() > worst.signalState().severity()) {
+                worst = candidate;
+            }
         }
-        return this.evaluateMetrics(metrics, binding.state(), binding.pos(), sourceType);
+        if (worst != null) {
+            return worst;
+        }
+        return quiet != null ? quiet : Evaluation.idle();
     }
 
     private Evaluation evaluateLinked(long gameTime) {
-        if (this.linkedSource == null || this.linkedMetrics.isEmpty() || gameTime - this.lastLinkedDataTick > LINK_TIMEOUT_TICKS) {
-            return Evaluation.noData(SourceState.MISSING,
-                    this.linkedSource != null ? this.linkedSource.getSourcePos() : null,
-                    this.linkedSource != null ? this.linkedSource.getSourceType() : "");
+        if (this.linkedSource == null) {
+            return Evaluation.idle();
+        }
+        if (this.linkedMetrics.isEmpty() || gameTime - this.lastLinkedDataTick > LINK_TIMEOUT_TICKS) {
+            return Evaluation.noData(SourceState.BOUND, this.linkedSource.getSourcePos(),
+                    this.linkedSource.getSourceType());
         }
         return this.evaluateMetrics(this.linkedMetrics, SourceState.BOUND, this.linkedSource.getSourcePos(), this.linkedSource.getSourceType());
     }
@@ -261,8 +387,7 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
             if (this.settings.isBinaryInvert()) {
                 active = !active;
             }
-            // "Overstressed" means trouble when true, so map active→CRITICAL rather than NORMAL,
-            // and inactive→NORMAL rather than OFF, respecting any binaryInvert the player set.
+
             if ("overstressed".equals(resolvedSample.metricId())) {
                 return new Evaluation(active ? SignalState.CRITICAL : SignalState.NORMAL, sourceState, sourcePos, sourceType,
                         resolvedSample.metricId(), resolvedSample.label(), resolvedSample.type(), resolvedSample.value());
@@ -277,22 +402,7 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
     }
 
     private SignalState evaluateThreshold(float value) {
-        if (this.settings.getThresholdDirection() == StatusTowerLightSettings.ThresholdDirection.HIGHER_IS_WORSE) {
-            if (value >= this.settings.getCriticalThreshold()) {
-                return SignalState.CRITICAL;
-            }
-            if (value >= this.settings.getWarningThreshold()) {
-                return SignalState.WARNING;
-            }
-            return SignalState.NORMAL;
-        }
-        if (value <= this.settings.getCriticalThreshold()) {
-            return SignalState.CRITICAL;
-        }
-        if (value <= this.settings.getWarningThreshold()) {
-            return SignalState.WARNING;
-        }
-        return SignalState.NORMAL;
+        return this.settings.thresholdSeverity(value);
     }
 
     @Nullable
@@ -323,7 +433,7 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
             return battleAlert;
         }
         if (this.settings.getLogicMode() == StatusTowerLightSettings.LogicMode.BINARY) {
-            final MetricSample binaryFirst = this.sampleByIds(metrics, "running", "powered", "connected", "energy_can_receive", "energy_can_extract", "overstressed", "rpm", "stress_pct", "energy_fill_pct", "fill_pct", "tank_fill");
+            final MetricSample binaryFirst = this.sampleByIds(metrics, "running", "powered", "connected", "overstressed", "rpm", "stress_pct", "energy_fill_pct", "fill_pct", "tank_fill");
             if (binaryFirst != null) {
                 return binaryFirst;
             }
@@ -353,40 +463,40 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
         return null;
     }
 
-    private LocalBinding resolveLocalBinding() {
+    private java.util.List<LocalBinding> resolveLocalBindings() {
+        final java.util.List<LocalBinding> found = new java.util.ArrayList<>(MAX_LOCAL_SOURCES);
         if (this.level == null) {
-            return new LocalBinding(null, null, SourceState.MISSING);
+            return found;
         }
+        final java.util.Set<BlockPos> seen = new java.util.HashSet<>();
 
         final BlockPos belowPos = this.worldPosition.below();
         final BlockEntity below = this.level.getBlockEntity(belowPos);
         if (this.isSupportedLocalSource(below)) {
-            return this.normalizeLocalBinding(belowPos, below);
+            final LocalBinding binding = this.normalizeLocalBinding(belowPos, below);
+            if (binding.pos() != null && seen.add(binding.pos())) {
+                found.add(binding);
+            }
         }
 
-        int matches = 0;
-        BlockPos matchedPos = null;
-        BlockEntity matchedBe = null;
         for (Direction direction : Direction.Plane.HORIZONTAL) {
+            if (found.size() >= MAX_LOCAL_SOURCES) {
+                break;
+            }
             final BlockPos candidatePos = this.worldPosition.relative(direction);
             final BlockEntity candidate = this.level.getBlockEntity(candidatePos);
             if (!this.isSupportedLocalSource(candidate)) {
                 continue;
             }
-            matches++;
-            if (matches == 1) {
-                matchedPos = candidatePos;
-                matchedBe = candidate;
-            } else {
-                return new LocalBinding(null, null, SourceState.AMBIGUOUS);
+            final LocalBinding binding = this.normalizeLocalBinding(candidatePos, candidate);
+            if (binding.pos() != null && seen.add(binding.pos())) {
+                found.add(binding);
             }
         }
-
-        if (matches == 1) {
-            return this.normalizeLocalBinding(matchedPos, matchedBe);
-        }
-        return new LocalBinding(null, null, SourceState.MISSING);
+        return found;
     }
+
+    public static final int MAX_LOCAL_SOURCES = 2;
 
     private LocalBinding normalizeLocalBinding(BlockPos pos, BlockEntity sourceBE) {
         if (sourceBE instanceof FluidTankBlockEntity tank) {
@@ -395,26 +505,29 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
                 return new LocalBinding(controller.getBlockPos(), controller, SourceState.BOUND);
             }
         }
+        if (sourceBE instanceof com.simibubi.create.content.logistics.vault.ItemVaultBlockEntity vault) {
+            final com.simibubi.create.content.logistics.vault.ItemVaultBlockEntity controller =
+                    vault.getControllerBE();
+            if (controller != null) {
+                return new LocalBinding(controller.getBlockPos(), controller, SourceState.BOUND);
+            }
+        }
         return new LocalBinding(pos, sourceBE, SourceState.BOUND);
     }
 
     private boolean isSupportedLocalSource(@Nullable BlockEntity sourceBE) {
+        if (sourceBE == null || InstrumentSourceHelper.isGridWiring(sourceBE)) {
+            return false;
+        }
+
+        if (sourceBE instanceof StatusTowerLightBE) {
+            return false;
+        }
         return sourceBE instanceof KineticBlockEntity
                 || sourceBE instanceof ThresholdSwitchBlockEntity
                 || sourceBE instanceof FluidTankBlockEntity
                 || sourceBE instanceof ProductionDetectorBE
-                || this.isEnergyLocalSource(sourceBE);
-    }
-
-    private boolean isEnergyLocalSource(@Nullable BlockEntity sourceBE) {
-        if (sourceBE == null) {
-            return false;
-        }
-        try {
-            return InstrumentSourceHelper.readSource(sourceBE, null).sourceKind() == InstrumentSourceHelper.SourceKind.ENERGY_STORAGE;
-        } catch (Exception ignored) {
-            return false;
-        }
+                || InstrumentSourceHelper.supportsAutoRead(sourceBE);
     }
 
     private String readLocalMetrics(BlockEntity sourceBE, Map<String, MetricSample> metrics) {
@@ -512,7 +625,7 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
 
         if (sourceBE instanceof KineticFlywheelBE flywheel) {
             final float chargePct = flywheel.getChargePercent();
-            // Map the "stress" slot to charge so AUTO/STRESS thresholds track the reserve.
+
             this.putSample(metrics, "stress_pct", "Charge %", chargePct, MetricType.FILL_LEVEL);
             this.putSample(metrics, "charge_pct", "Charge %", chargePct, MetricType.FILL_LEVEL);
             this.putSample(metrics, "stored_rpm", "Stored RPM", flywheel.getStoredRpm(), MetricType.RPM);
@@ -533,7 +646,11 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
             return this.resolveSourceType(sourceBE);
         }
 
-        return this.resolveSourceType(sourceBE);
+        for (InstrumentSourceHelper.MetricSample sample : sharedReadout.metrics().values()) {
+            this.putSample(metrics, sample.metricId(), sample.label(), sample.value(), sample.type());
+        }
+        return sharedReadout.metrics().isEmpty()
+                ? this.resolveSourceType(sourceBE) : sharedReadout.sourceType();
     }
 
     private void putSample(Map<String, MetricSample> metrics, String metricId, String label, float value, MetricType type) {
@@ -555,7 +672,8 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
 
     private String resolveSourceType(BlockEntity sourceBE) {
         final String mapped = StatsDisplayTarget.getStatsDisplayLinkSourceType(sourceBE);
-        if (!mapped.isEmpty()) {
+
+        if (!mapped.isEmpty() && !StatsDisplayTarget.isGenericContainerType(mapped)) {
             return mapped;
         }
         return sourceBE.getBlockState().getBlock().getName().getString();
@@ -568,7 +686,11 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
     public String getPreviewSourceSummary(StatusTowerLightSettings.SourceMode mode) {
         final SourcePreview preview = this.buildSourcePreview(mode);
         if (preview.sourcePos() != null && !preview.sourceType().isEmpty()) {
-            return preview.sourceType() + " @ " + preview.sourcePos().toShortString();
+            final String primary = preview.sourceType() + " @ " + preview.sourcePos().toShortString();
+
+            final int extra = mode == StatusTowerLightSettings.SourceMode.LOCAL
+                    ? this.resolveLocalBindings().size() - 1 : 0;
+            return extra > 0 ? primary + " (+" + extra + ")" : primary;
         }
         return switch (preview.sourceState()) {
             case AMBIGUOUS -> "Multiple nearby sources";
@@ -582,15 +704,19 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
     }
 
     private SourcePreview buildLocalPreview() {
-        final LocalBinding binding = this.resolveLocalBinding();
-        if (binding.state() != SourceState.BOUND || binding.blockEntity() == null || binding.pos() == null) {
-            final StatusTowerLightSettings.SourceKind sourceKind = binding.state() == SourceState.AMBIGUOUS
-                    ? StatusTowerLightSettings.SourceKind.AMBIGUOUS
-                    : StatusTowerLightSettings.SourceKind.NO_SOURCE;
-            return new SourcePreview(binding.state(), null, "", sourceKind);
+        final java.util.List<LocalBinding> bindings = this.resolveLocalBindings();
+        if (bindings.isEmpty()) {
+            return new SourcePreview(SourceState.MISSING, null, "",
+                    StatusTowerLightSettings.SourceKind.NO_SOURCE);
+        }
+        final LocalBinding binding = bindings.get(0);
+        if (binding.blockEntity() == null || binding.pos() == null) {
+            return new SourcePreview(SourceState.MISSING, null, "",
+                    StatusTowerLightSettings.SourceKind.NO_SOURCE);
         }
         final String sourceType = this.resolveSourceType(binding.blockEntity());
-        return new SourcePreview(binding.state(), binding.pos(), sourceType, this.classifySource(binding.blockEntity(), binding.pos(), sourceType));
+        return new SourcePreview(SourceState.BOUND, binding.pos(), sourceType,
+                this.classifySource(binding.blockEntity(), binding.pos(), sourceType));
     }
 
     private SourcePreview buildLinkedPreview() {
@@ -601,6 +727,27 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
         final String sourceType = this.linkedSource.getSourceType();
         final BlockEntity sourceBE = this.level != null ? this.level.getBlockEntity(sourcePos) : null;
         return new SourcePreview(SourceState.BOUND, sourcePos, sourceType, this.classifySource(sourceBE, sourcePos, sourceType));
+    }
+
+    private static InstrumentSourceHelper.SourceKind readKind(BlockEntity sourceBE) {
+        try {
+            return InstrumentSourceHelper.readSource(sourceBE, null).sourceKind();
+        } catch (RuntimeException ignored) {
+            return InstrumentSourceHelper.SourceKind.UNKNOWN;
+        }
+    }
+
+    @Nullable
+    private static StatusTowerLightSettings.SourceKind mapSourceKind(InstrumentSourceHelper.SourceKind kind) {
+        return switch (kind) {
+            case KINETIC_STRESS -> StatusTowerLightSettings.SourceKind.KINETIC_STRESS;
+            case KINETIC_SPEED -> StatusTowerLightSettings.SourceKind.KINETIC_SPEED;
+            case ITEM_STORAGE -> StatusTowerLightSettings.SourceKind.ITEM_STORAGE;
+
+            case FLUID_STORAGE, BOILER -> StatusTowerLightSettings.SourceKind.FLUID_STORAGE;
+            case ENERGY_STORAGE, POWER_GRID -> StatusTowerLightSettings.SourceKind.ENERGY_STORAGE;
+            case NO_SOURCE, UNKNOWN -> null;
+        };
     }
 
     private StatusTowerLightSettings.SourceKind classifySource(@Nullable BlockEntity sourceBE, @Nullable BlockPos sourcePos, String sourceType) {
@@ -620,8 +767,12 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
         if (sourceBE instanceof ProductionDetectorBE) {
             return StatusTowerLightSettings.SourceKind.PRODUCTION;
         }
-        if (sourceBE != null && this.isEnergyLocalSource(sourceBE)) {
-            return StatusTowerLightSettings.SourceKind.ENERGY_STORAGE;
+
+        if (sourceBE != null) {
+            final StatusTowerLightSettings.SourceKind known = mapSourceKind(readKind(sourceBE));
+            if (known != null) {
+                return known;
+            }
         }
         if (sourceBE == null && InstrumentSourceHelper.classifyLinkedSource(sourceType, convertMetrics(this.linkedMetrics)) == InstrumentSourceHelper.SourceKind.ENERGY_STORAGE) {
             return StatusTowerLightSettings.SourceKind.ENERGY_STORAGE;
@@ -680,22 +831,82 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
         return converted;
     }
 
-    private StatusTowerLightBlock.VisualState computeVisualState(long gameTime) {
+    @Override
+    public boolean addToGoggleTooltip(java.util.List<net.minecraft.network.chat.Component> tooltip,
+                                      boolean isPlayerSneaking) {
+        tooltip.add(com.createstats.power.FeGoggle.title("Status Tower Light"));
+
+        switch (this.signalState) {
+            case CRITICAL -> tooltip.add(com.createstats.power.FeGoggle.bad("Critical"));
+            case WARNING -> tooltip.add(com.createstats.power.FeGoggle.warn("Warning"));
+            case NORMAL -> tooltip.add(com.createstats.power.FeGoggle.ok("Normal"));
+            case NO_DATA -> tooltip.add(com.createstats.power.FeGoggle.warn("Source has gone quiet"));
+            case OFF -> tooltip.add(com.createstats.power.FeGoggle.dim(
+                    this.sourceState == SourceState.MISSING ? "No source yet" : "Off"));
+        }
+
+        tooltip.add(com.createstats.power.FeGoggle.dim(this.getSourceSummary()));
+        if (!this.activeMetricLabel.isEmpty()) {
+            tooltip.add(com.createstats.power.FeGoggle.dim(this.getMetricSummary()));
+        }
+
+        // the supply line was missing, a dead tower looks like a happy one
+
+        final StatusTowerLightBE owner = this.bankOwner();
+        final com.createstats.power.FeConsumer bank = owner.feConsumer;
+        tooltip.add(com.createstats.power.FeGoggle.loadState(false, bank.isPowered(),
+                bank.isBurstStarved()));
+        tooltip.add(com.createstats.power.FeGoggle.stored(bank.getEnergyStored(),
+                bank.getMaxEnergyStored()));
+        if (owner != this) {
+            final BlockPos at = owner.getBlockPos();
+            tooltip.add(com.createstats.power.FeGoggle.dim("Shares the tower's supply, fed at "
+                    + at.getX() + " " + at.getY() + " " + at.getZ()));
+        }
+
+        if (isPlayerSneaking) {
+            tooltip.add(com.createstats.power.FeGoggle.dim(this.getRuleSummary()));
+            tooltip.add(com.createstats.power.FeGoggle.dim(
+                    this.settings.getLens().getDisplayName() + " | " + this.lensPattern().getDisplayName()));
+        } else {
+            tooltip.add(com.createstats.power.FeGoggle.more());
+        }
+        return true;
+    }
+
+    public SignalPattern lensPattern() {
+        return this.settings.getAlertStyle().patternFor(this.signalState);
+    }
+
+    public int lensColour() {
+        final StatusTowerLightSettings.Lens lens = this.settings.getLens();
+        if (!lens.isAuto()) {
+            return lens.rgb();
+        }
         return switch (this.signalState) {
-            case OFF -> StatusTowerLightBlock.VisualState.OFF;
-            case NORMAL -> StatusTowerLightBlock.VisualState.GREEN;
-            case WARNING -> StatusTowerLightBlock.VisualState.YELLOW;
-            case CRITICAL -> ((gameTime / 10L) % 2L == 0L) ? StatusTowerLightBlock.VisualState.RED : StatusTowerLightBlock.VisualState.OFF;
-            case NO_DATA -> ((gameTime / 5L) % 2L == 0L) ? StatusTowerLightBlock.VisualState.YELLOW : StatusTowerLightBlock.VisualState.OFF;
+            case NORMAL -> StatusTowerLightSettings.Lens.AUTO_NORMAL;
+            case WARNING, NO_DATA -> StatusTowerLightSettings.Lens.AUTO_WARNING;
+            case CRITICAL -> StatusTowerLightSettings.Lens.AUTO_CRITICAL;
+            case OFF -> StatusTowerLightSettings.Lens.AUTO_NORMAL;
         };
     }
 
-    private StatusTowerLightBlock.VisualState computeSteadyVisualState() {
+    public int comparatorLevel() {
         return switch (this.signalState) {
-            case OFF -> StatusTowerLightBlock.VisualState.OFF;
-            case NORMAL -> StatusTowerLightBlock.VisualState.GREEN;
-            case WARNING, NO_DATA -> StatusTowerLightBlock.VisualState.YELLOW;
-            case CRITICAL -> StatusTowerLightBlock.VisualState.RED;
+            case OFF -> 0;
+            case NORMAL -> 5;
+            case NO_DATA -> 7;
+            case WARNING -> 10;
+            case CRITICAL -> 15;
+        };
+    }
+
+    private StatusTowerLightBlock.Glow computeGlow() {
+        return switch (this.signalState) {
+            case OFF -> StatusTowerLightBlock.Glow.OFF;
+            case NORMAL -> StatusTowerLightBlock.Glow.DIM;
+            case WARNING, NO_DATA -> StatusTowerLightBlock.Glow.MID;
+            case CRITICAL -> StatusTowerLightBlock.Glow.HOT;
         };
     }
 
@@ -854,27 +1065,41 @@ public class StatusTowerLightBE extends BlockEntity implements IAutoDataReceiver
     private record Evaluation(SignalState signalState, SourceState sourceState, @Nullable BlockPos sourcePos,
                               String sourceType, String metricId, String metricLabel,
                               MetricType metricType, float metricValue) {
-
         private static Evaluation noData(SourceState sourceState, @Nullable BlockPos sourcePos, String sourceType) {
             return new Evaluation(SignalState.NO_DATA, sourceState, sourcePos, sourceType, "", "", MetricType.GENERIC, 0.0f);
+        }
+
+        private static Evaluation idle() {
+            return new Evaluation(SignalState.OFF, SourceState.MISSING, null, "", "", "",
+                    MetricType.GENERIC, 0.0f);
         }
     }
 
     public enum SignalState {
-        OFF("Off"),
-        NORMAL("Normal"),
-        WARNING("Warning"),
-        CRITICAL("Critical"),
-        NO_DATA("No Data");
+        OFF("Off", 0),
+        NORMAL("Normal", 1),
+        NO_DATA("No Data", 2),
+        WARNING("Warning", 3),
+        CRITICAL("Critical", 4);
 
         private final String displayName;
+        private final int severity;
 
-        SignalState(String displayName) {
+        SignalState(String displayName, int severity) {
             this.displayName = displayName;
+            this.severity = severity;
         }
 
         public String getDisplayName() {
             return this.displayName;
+        }
+
+        public int severity() {
+            return this.severity;
+        }
+
+        public static SignalState worst(SignalState a, SignalState b) {
+            return a.severity() >= b.severity() ? a : b;
         }
     }
 

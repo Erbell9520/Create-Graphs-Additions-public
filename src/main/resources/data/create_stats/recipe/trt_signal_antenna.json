@@ -13,7 +13,7 @@
       "item": "minecraft:ender_eye"
     },
     "N": {
-      "item": "minecraft:netherite_scrap"
+      "item": "create_stats:porcelain_insulator"
     },
     "A": {
       "item": "create_stats:advanced_signal_antenna"

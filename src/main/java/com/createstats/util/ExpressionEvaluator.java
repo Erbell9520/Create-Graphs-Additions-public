@@ -9,16 +9,16 @@ public final class ExpressionEvaluator
 {
     private ExpressionEvaluator() {
     }
-    
+
     public static EvaluationResult evaluate(String expression, boolean scientificMode) throws EvaluationException {
         final double value = new Parser(expression, scientificMode, false, 0.0).parse();
         return new EvaluationResult(value, format(value));
     }
-    
+
     public static double evaluateForX(String expression, boolean scientificMode, double xValue) throws EvaluationException {
         return new Parser(expression, scientificMode, true, xValue).parse();
     }
-    
+
     public static float[] samplePlot(String expression, boolean scientificMode, double minX, double maxX, int sampleCount) throws EvaluationException {
         if (sampleCount < 2) {
             return new float[0];
@@ -54,7 +54,7 @@ public final class ExpressionEvaluator
         }
         return values;
     }
-    
+
     public static String format(double value) throws EvaluationException {
         ensureFinite(value);
         final BigDecimal decimal = BigDecimal.valueOf(value).stripTrailingZeros();
@@ -64,40 +64,40 @@ public final class ExpressionEvaluator
         }
         return text;
     }
-    
+
     private static double ensureFinite(double value) throws EvaluationException {
         if (!Double.isFinite(value)) {
             throw new EvaluationException("Result is not finite");
         }
         return value;
     }
-    
+
     public static final class EvaluationResult
     {
         private final double value;
         private final String formatted;
-        
+
         public EvaluationResult(double value, String formatted) {
             this.value = value;
             this.formatted = formatted;
         }
-        
+
         public double getValue() {
             return this.value;
         }
-        
+
         public String getFormatted() {
             return this.formatted;
         }
     }
-    
+
     public static class EvaluationException extends Exception
     {
         public EvaluationException(String message) {
             super(message);
         }
     }
-    
+
     private static final class Parser
     {
         private final String input;
@@ -105,7 +105,7 @@ public final class ExpressionEvaluator
         private final boolean allowVariable;
         private final double xValue;
         private int index;
-        
+
         private Parser(String input, boolean scientificMode, boolean allowVariable, double xValue) {
             this.input = ((input != null) ? input.trim() : "");
             this.scientificMode = scientificMode;
@@ -113,7 +113,7 @@ public final class ExpressionEvaluator
             this.xValue = xValue;
             this.index = 0;
         }
-        
+
         public double parse() throws EvaluationException {
             if (this.input.isEmpty()) {
                 throw new EvaluationException("Expression is empty");
@@ -125,7 +125,7 @@ public final class ExpressionEvaluator
             }
             return ensureFinite(value);
         }
-        
+
         private double parseExpression() throws EvaluationException {
             double value = this.parseTerm();
             while (true) {
@@ -141,7 +141,7 @@ public final class ExpressionEvaluator
                 }
             }
         }
-        
+
         private double parseTerm() throws EvaluationException {
             double value = this.parsePower();
             while (true) {
@@ -161,7 +161,7 @@ public final class ExpressionEvaluator
                 }
             }
         }
-        
+
         private double parsePower() throws EvaluationException {
             double value = this.parseUnary();
             this.skipWhitespace();
@@ -173,7 +173,7 @@ public final class ExpressionEvaluator
             }
             return value;
         }
-        
+
         private double parseUnary() throws EvaluationException {
             this.skipWhitespace();
             if (this.match('+')) {
@@ -184,7 +184,7 @@ public final class ExpressionEvaluator
             }
             return this.parsePrimary();
         }
-        
+
         private double parsePrimary() throws EvaluationException {
             this.skipWhitespace();
             if (this.match('(')) {
@@ -200,7 +200,7 @@ public final class ExpressionEvaluator
             }
             throw this.error("Unexpected '" + this.peek() + "'");
         }
-        
+
         private double parseNumber() throws EvaluationException {
             final int start = this.index;
             boolean seenDot = false;
@@ -224,7 +224,7 @@ public final class ExpressionEvaluator
                 throw this.error("Invalid number");
             }
         }
-        
+
         private double parseIdentifier() throws EvaluationException {
             final String name = this.readIdentifier().toLowerCase(Locale.ROOT);
             if ("x".equals(name)) {
@@ -264,7 +264,7 @@ public final class ExpressionEvaluator
             }
             return ensureFinite(this.applyFunction(name, args));
         }
-        
+
         private double applyFunction(String name, List<Double> args) throws EvaluationException {
             if ("sin".equals(name)) {
                 return this.expectArgCount(name, args, 1, Math.sin(args.get(0)));
@@ -340,21 +340,21 @@ public final class ExpressionEvaluator
             }
             throw this.error("Unknown function: " + name);
         }
-        
+
         private double expectArgCount(String name, List<Double> args, int count, double value) throws EvaluationException {
             if (args.size() != count) {
                 throw this.error(name + " expects " + count + " argument" + ((count == 1) ? "" : "s"));
             }
             return value;
         }
-        
+
         private double expectSingleArg(String name, List<Double> args) throws EvaluationException {
             if (args.size() != 1) {
                 throw this.error(name + " expects 1 argument");
             }
             return args.get(0);
         }
-        
+
         private String readIdentifier() {
             final int start = this.index;
             while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
@@ -362,14 +362,14 @@ public final class ExpressionEvaluator
             }
             return this.input.substring(start, this.index);
         }
-        
+
         private void expect(char expected) throws EvaluationException {
             this.skipWhitespace();
             if (!this.match(expected)) {
                 throw this.error("Expected '" + expected + "'");
             }
         }
-        
+
         private boolean match(char expected) {
             if (this.isAtEnd() || this.input.charAt(this.index) != expected) {
                 return false;
@@ -377,33 +377,33 @@ public final class ExpressionEvaluator
             ++this.index;
             return true;
         }
-        
+
         private void skipWhitespace() {
             while (!this.isAtEnd() && Character.isWhitespace(this.input.charAt(this.index))) {
                 ++this.index;
             }
         }
-        
+
         private char peek() {
             return this.isAtEnd() ? '\0' : this.input.charAt(this.index);
         }
-        
+
         private boolean isAtEnd() {
             return this.index >= this.input.length();
         }
-        
+
         private boolean isDigit(char ch) {
             return ch >= '0' && ch <= '9';
         }
-        
+
         private boolean isIdentifierStart(char ch) {
             return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_';
         }
-        
+
         private boolean isIdentifierPart(char ch) {
             return this.isIdentifierStart(ch) || this.isDigit(ch);
         }
-        
+
         private EvaluationException error(String message) {
             return new EvaluationException(message);
         }

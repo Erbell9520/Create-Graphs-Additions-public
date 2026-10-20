@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " W ",
+    "BSB",
+    " C "
+  ],
+  "key": {
+    "W": { "item": "create_stats:copper_wire" },
+    "B": { "tag": "c:plates/brass" },
+    "S": { "item": "create_stats:topology_scanner" },
+    "C": { "item": "create:copper_casing" }
+  },
+  "result": {
+    "id": "create_stats:topology_scanner_probe",
+    "count": 1
+  },
+  "show_notification": true
+}

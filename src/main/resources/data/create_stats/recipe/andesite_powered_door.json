@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "LGL",
+    "LGL",
+    "LEL"
+  ],
+  "key": {
+    "L": {
+      "item": "create:andesite_alloy"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "id": "create_stats:andesite_powered_door",
+    "count": 2
+  },
+  "show_notification": true
+}

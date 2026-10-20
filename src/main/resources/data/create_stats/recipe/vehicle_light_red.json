@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "NGN",
+    "DLD"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:iron_nugget"
+    },
+    "G": {
+      "item": "minecraft:red_stained_glass_pane"
+    },
+    "D": {
+      "item": "minecraft:black_dye"
+    },
+    "L": {
+      "item": "minecraft:glowstone_dust"
+    }
+  },
+  "result": {
+    "id": "create_stats:vehicle_light_red",
+    "count": 2
+  },
+  "show_notification": true
+}

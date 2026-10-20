@@ -26,9 +26,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.List;
 
-/** [1] */
 public class PowerDistributionUnitBlock extends Block implements EntityBlock {
-
     public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING =
             HorizontalDirectionalBlock.FACING;
 
@@ -63,23 +61,19 @@ public class PowerDistributionUnitBlock extends Block implements EntityBlock {
         return (lvl, pos, blockState, be) -> ((PowerDistributionUnitBE) be).tick();
     }
 
-    /** [2] */
+    // conductor in hand = wiring. otherwise the screen opened on every click and no stud was reachable
     @Override
     protected net.minecraft.world.ItemInteractionResult useItemOn(
             ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
             net.minecraft.world.InteractionHand hand, BlockHitResult hit) {
-        // [3]
         final boolean wiringStuds = stack.getItem() instanceof com.createstats.item.CopperWireItem
                 && hit.getDirection() == Direction.UP;
         if (stack.getItem() instanceof com.createstats.item.CableItem || wiringStuds) {
-            // SKIP_DEFAULT_BLOCK_INTERACTION, not PASS: PASS would fall through to useWithoutItem and
-            // open the screen anyway, which is the exact behaviour being fixed.
             return net.minecraft.world.ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
-    /** [4] */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock() && !level.isClientSide()
@@ -89,7 +83,6 @@ public class PowerDistributionUnitBlock extends Block implements EntityBlock {
         super.onRemove(state, level, pos, newState, isMoving);
     }
 
-    /** Right-click anywhere on the panel opens the distribution screen. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
                                                BlockHitResult hit) {

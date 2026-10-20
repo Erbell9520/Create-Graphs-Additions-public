@@ -32,32 +32,29 @@ public final class DisplayTextureManager
     private static final int MAX_IDLE_TICKS = 200;
     private static int cleanupCounter;
     private static final int CLEANUP_INTERVAL = 100;
-    private static final long SOURCE_IDLE_TIMEOUT = 600L; // Imported from StatsDisplayPanelBE
-    
-    /**
-     * Represents the operational state of a Stats Display Panel.
-     */
+    private static final long SOURCE_IDLE_TIMEOUT = 600L;
+
     public enum PanelState {
-        UNCONFIGURED,      // No sources registered, no setup needed
-        SETUP_REQUIRED,    // StatsDisplayLink needs output type selection
-        AWAITING_DATA,     // Sources registered but no data received yet
-        BOOTING,           // First data just arrived, boot animation active
-        LIVE,              // Normal operation with active data flow
-        STALE,             // Data stream interrupted/timed out
-        ERROR;             // Exceptional state (reserved for future use)
-        
+        UNCONFIGURED,
+        SETUP_REQUIRED,
+        AWAITING_DATA,
+        BOOTING,
+        LIVE,
+        STALE,
+        ERROR;
+
         public boolean shouldAnimate() {
             return this == BOOTING || this == LIVE || this == SETUP_REQUIRED;
         }
-        
+
         public boolean isHealthy() {
             return this == LIVE || this == BOOTING;
         }
     }
-    
+
     private DisplayTextureManager() {
     }
-    
+
     public static ResourceLocation getOrUpdateTexture(StatsDisplayPanelBE be, float partialTick) {
         final BlockPos pos = be.getBlockPos();
         TextureEntry entry = DisplayTextureManager.textures.get(pos);
@@ -81,14 +78,14 @@ public final class DisplayTextureManager
         }
         return entry.textureLocation;
     }
-    
+
     public static void markDirty(BlockPos pos) {
         final TextureEntry entry = DisplayTextureManager.textures.get(pos);
         if (entry != null) {
             entry.needsRedraw = true;
         }
     }
-    
+
     public static void disposeTexture(BlockPos pos) {
         final TextureEntry entry = DisplayTextureManager.textures.remove(pos);
         if (entry != null) {
@@ -96,7 +93,7 @@ public final class DisplayTextureManager
         }
         NeedlePhysicsRegistry.remove(pos);
     }
-    
+
     public static void disposeAll() {
         for (TextureEntry entry : DisplayTextureManager.textures.values()) {
             disposeEntry(entry);
@@ -105,7 +102,7 @@ public final class DisplayTextureManager
         NeedlePhysicsRegistry.clear();
         TopologyRenderer.disposeAll();
     }
-    
+
     private static TextureEntry createTextureEntry(StatsDisplayPanelBE be) {
         final int mbW = be.getMultiblockWidth();
         final int mbH = be.getMultiblockHeight();
@@ -136,45 +133,37 @@ public final class DisplayTextureManager
             return null;
         }
     }
-    
+
     private static void updateTexture(TextureEntry entry, StatsDisplayPanelBE be) {
         final List<StatsDisplayPanelBE.DataChannel> allChannels = be.getActiveChannels();
-        
-        // === STATE DETECTION & TRANSITION TRACKING ===
+
         final long currentTick = getGameTime();
         final PanelState newState = detectPanelState(be, entry, currentTick);
-        
-        // Handle state transitions with hysteresis to prevent flickering
+
         if (entry.currentState != newState) {
-            // Require state to persist for 3 update cycles (3 * 5 ticks = 15 ticks)
             if (entry.stateStabilityCounter < 3) {
                 entry.stateStabilityCounter++;
             } else {
-                // State is stable, commit transition
                 entry.previousState = entry.currentState;
                 entry.currentState = newState;
                 entry.stateTransitionTick = currentTick;
                 entry.stateStabilityCounter = 0;
-                entry.bootAnimationProgress = 0; // Reset animations on state change
-                entry.needsRedraw = true; // Force immediate redraw
+                entry.bootAnimationProgress = 0;
+                entry.needsRedraw = true;
             }
         } else {
-            // State unchanged, reset stability counter
             entry.stateStabilityCounter = 0;
         }
-        
-        // Update boot animation progress (0-100 over 2 seconds = 40 ticks)
+
         if (entry.currentState == PanelState.BOOTING) {
             final long ticksInBootState = currentTick - entry.stateTransitionTick;
             entry.bootAnimationProgress = Math.min(100, (int)((ticksInBootState * 100) / 40));
-            
-            // Force redraw during boot animation to update sweep
+
             if (entry.bootAnimationProgress < 100) {
                 entry.needsRedraw = true;
             }
         }
-        // === END STATE TRACKING ===
-        
+
         final StatsDisplaySettings settings = be.getSettings();
         final StatsDisplaySettings.DisplayMode mode = settings.getDisplayMode();
         final StatsDisplaySettings.GraphType gType = settings.getGraphType();
@@ -198,8 +187,8 @@ public final class DisplayTextureManager
             if (settings.getGraphType() == StatsDisplaySettings.GraphType.TOPOLOGY) {
                 TopologyRenderer.clearCurrentBE();
             }
-            // Apply state animations before upload
-            PanelAnimationRenderer.applyStateVisuals(entry.image, entry.currentState, 
+
+            PanelAnimationRenderer.applyStateVisuals(entry.image, entry.currentState,
                                                      entry.bootAnimationProgress, currentTick, settings.getDisplayTheme());
             entry.dynamicTexture.upload();
             return;
@@ -228,8 +217,8 @@ public final class DisplayTextureManager
         final boolean specialView = dedicatedView || gType == StatsDisplaySettings.GraphType.ANALOG_GAUGE;
         if (!specialView && DashboardLayoutEngine.shouldActivate(be, channels)) {
             DashboardRenderer.renderDashboard(entry.image, be, channels);
-            // Apply state animations before upload
-            PanelAnimationRenderer.applyStateVisuals(entry.image, entry.currentState, 
+
+            PanelAnimationRenderer.applyStateVisuals(entry.image, entry.currentState,
                                                      entry.bootAnimationProgress, currentTick, settings.getDisplayTheme());
             entry.dynamicTexture.upload();
             return;
@@ -245,15 +234,13 @@ public final class DisplayTextureManager
         if (settings.getGraphType() == StatsDisplaySettings.GraphType.TOPOLOGY) {
             TopologyRenderer.clearCurrentBE();
         }
-        
-        // === APPLY STATE ANIMATIONS ===
-        PanelAnimationRenderer.applyStateVisuals(entry.image, entry.currentState, 
+
+        PanelAnimationRenderer.applyStateVisuals(entry.image, entry.currentState,
                                                  entry.bootAnimationProgress, currentTick, settings.getDisplayTheme());
-        // === END ANIMATIONS ===
-        
+
         entry.dynamicTexture.upload();
     }
-    
+
     private static void cleanupStaleTextures() {
         final long currentTick = getGameTime();
         final Iterator<Map.Entry<BlockPos, TextureEntry>> it = DisplayTextureManager.textures.entrySet().iterator();
@@ -266,7 +253,7 @@ public final class DisplayTextureManager
             }
         }
     }
-    
+
     private static void disposeEntry(TextureEntry entry) {
         try {
             if (entry.dynamicTexture != null) {
@@ -277,14 +264,14 @@ public final class DisplayTextureManager
             CreateStats.LOGGER.warn("Failed to dispose display texture", ex);
         }
     }
-    
+
     private static long getGameTime() {
         if (Minecraft.getInstance().level != null) {
             return Minecraft.getInstance().level.getGameTime();
         }
         return System.currentTimeMillis() / 50L;
     }
-    
+
     private static float computeNormalizedForNeedle(StatsDisplayPanelBE.DataChannel channel, StatsDisplaySettings settings) {
         final float value = channel.getStore().getLatestValue();
         if (Float.isNaN(value) || Float.isInfinite(value)) {
@@ -433,41 +420,31 @@ public final class DisplayTextureManager
         }
         return rest;
     }
-    
-    /**
-     * Determine the current operational state of the panel based on data source status.
-     * Uses existing SOURCE_IDLE_TIMEOUT and considers channel/source health.
-     */
+
     private static PanelState detectPanelState(StatsDisplayPanelBE be, TextureEntry entry, long currentTick) {
-        // Priority 1: Setup required state (user action needed)
         if (be.isStatsDisplayLinkOptInRequired()) {
             return PanelState.SETUP_REQUIRED;
         }
-        
-        // Get all channels with data
+
         final List<StatsDisplayPanelBE.DataChannel> channels = be.getActiveChannels();
         final java.util.LinkedHashMap<String, SourceConfig> sourceRegistry = be.getSourceRegistry();
-        
-        // Priority 2: Unconfigured (no sources ever registered)
+
         if (channels.isEmpty() && sourceRegistry.isEmpty()) {
             return PanelState.UNCONFIGURED;
         }
-        
-        // Priority 3: Awaiting data (sources exist but no channel data yet)
+
         if (channels.isEmpty() && !sourceRegistry.isEmpty()) {
             return PanelState.AWAITING_DATA;
         }
-        
-        // Analyze channel/source health for BOOTING/LIVE/STALE detection
+
         long newestLastDataTick = 0L;
         long newestFirstConnectTick = 0L;
         int totalSampleCount = 0;
         boolean hasActiveSource = false;
-        
+
         for (StatsDisplayPanelBE.DataChannel ch : channels) {
             totalSampleCount += ch.getStore().getSampleCount();
-            
-            // Extract source ID from channel ID (format: "src_sourceId_metric")
+
             final String channelId = ch.getId();
             final String sourceId = extractSourceId(channelId);
             final SourceConfig src = sourceRegistry.get(sourceId);
@@ -477,35 +454,30 @@ public final class DisplayTextureManager
                 hasActiveSource = hasActiveSource || src.isActive();
             }
         }
-        
-        // No valid source data found (shouldn't happen, but defensive)
+
         if (newestLastDataTick <= 0L) {
             return PanelState.AWAITING_DATA;
         }
-        
+
         final long ticksSinceLastData = currentTick - newestLastDataTick;
         final long ticksSinceFirstConnect = currentTick - newestFirstConnectTick;
-        
-        // Priority 4: BOOTING detection
-        // Criteria: First data arrived recently (within 100 ticks) AND low sample count (< 20 samples)
+
         if (ticksSinceFirstConnect >= 0 && ticksSinceFirstConnect < 100 && totalSampleCount < 20) {
             return PanelState.BOOTING;
         }
-        
-        // Priority 5: STALE detection (data stream interrupted)
+
         if (!hasActiveSource && ticksSinceLastData > SOURCE_IDLE_TIMEOUT) {
             return PanelState.STALE;
         }
-        
-        // Priority 6: LIVE (healthy operation)
+
         return PanelState.LIVE;
     }
-    
+
     static {
         textures = new HashMap<BlockPos, TextureEntry>();
         DisplayTextureManager.cleanupCounter = 0;
     }
-    
+
     private static class TextureEntry
     {
         NativeImage image;
@@ -516,12 +488,11 @@ public final class DisplayTextureManager
         boolean needsRedraw;
         int texWidth;
         int texHeight;
-        
-        // Animation state tracking
+
         PanelState currentState = PanelState.UNCONFIGURED;
         PanelState previousState = PanelState.UNCONFIGURED;
         long stateTransitionTick = 0L;
-        int bootAnimationProgress = 0; // 0-100
-        int stateStabilityCounter = 0; // Hysteresis to prevent flickering
+        int bootAnimationProgress = 0;
+        int stateStabilityCounter = 0;
     }
 }

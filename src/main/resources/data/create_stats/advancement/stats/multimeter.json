@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:stats/manual",
+  "display": {
+    "icon": {
+      "id": "create_stats:kinetic_multimeter"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.multimeter.title",
+      "fallback": "Boss, Can You Take a Look?"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.multimeter.description",
+      "fallback": "Get a Kinetic Multimeter. Every mechanic owns one, and none of them lend it out."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "multimeter": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:kinetic_multimeter"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "multimeter"
+    ]
+  ]
+}

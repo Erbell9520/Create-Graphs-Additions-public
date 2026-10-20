@@ -1,14 +1,17 @@
 package com.createstats.compat;
 
 import com.createstats.CreateStats;
-import com.createstats.compat.runtime.BattleScreenMountControlSuppressions;
+import com.createstats.battle.core.BoreCheck;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,11 +19,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public final class CreateBigCannonsReflectionAdapter {
-
     private CreateBigCannonsReflectionAdapter() {
     }
 
@@ -90,7 +94,7 @@ public final class CreateBigCannonsReflectionAdapter {
         }
     }
 
-    /** [1] */
+    // assembled barrels live on the contraption entity, not the world grid
     public static Map<BlockPos, BlockState> collectAssembledCannonWorldBlocks(@Nullable BlockEntity mountBlockEntity) {
         if (!CreateBigCannonsCompat.isAvailable() || mountBlockEntity == null) {
             return Map.of();
@@ -116,7 +120,8 @@ public final class CreateBigCannonsReflectionAdapter {
             if (blocks == null || blocks.isEmpty()) {
                 return Map.of();
             }
-            // [2]
+            // anchor + local = build pose position, independent of aim
+
             Method blockPosMethod = noArgMethod(mountedEntity.getClass(), "blockPosition");
             BlockPos anchorPos = null;
             if (blockPosMethod != null && blockPosMethod.invoke(mountedEntity) instanceof BlockPos resolvedAnchor) {
@@ -143,7 +148,6 @@ public final class CreateBigCannonsReflectionAdapter {
         }
     }
 
-    /** [3] */
     public static float resolveBigCannonChargePower(@Nullable BlockEntity mountBlockEntity) {
         if (!CreateBigCannonsCompat.isAvailable() || mountBlockEntity == null) {
             return 0.0f;
@@ -242,7 +246,6 @@ public final class CreateBigCannonsReflectionAdapter {
             Method contraptionMethod = noArgMethod(mountedEntity.getClass(), "getContraption");
             Object contraption = contraptionMethod == null ? null : contraptionMethod.invoke(mountedEntity);
 
-            // [4]
             int loadedBefore = countLoadedMunitionCells(contraption);
 
             Method tryFiringShotMethod = noArgMethod(mountedEntity.getClass(), "tryFiringShot");
@@ -261,7 +264,6 @@ public final class CreateBigCannonsReflectionAdapter {
 
             int loadedAfter = countLoadedMunitionCells(contraption);
             if (loadedBefore < 0 || loadedAfter < 0) {
-                // Could not introspect the bore; fall back to assuming the fire call took effect.
                 return true;
             }
             return loadedAfter < loadedBefore;
@@ -271,7 +273,6 @@ public final class CreateBigCannonsReflectionAdapter {
         }
     }
 
-    /** [5] */
     private static int countLoadedMunitionCells(@Nullable Object contraption) {
         if (contraption == null) {
             return -1;
@@ -330,68 +331,6 @@ public final class CreateBigCannonsReflectionAdapter {
         } catch (ReflectiveOperationException | RuntimeException error) {
             CreateStats.LOGGER.debug("[CBC compat] Mounted fire-side signal failed for {}: {}", blockEntity.getBlockPos(), error.toString());
             return false;
-        }
-    }
-
-    public static boolean setMountedAimAngles(@Nullable BlockEntity blockEntity, float yawDegrees, float pitchDegrees) {
-        if (!CreateBigCannonsCompat.isAvailable() || blockEntity == null) {
-            return false;
-        }
-        try {
-            Method yawMethod = singleNumberMethod(blockEntity.getClass(), "setYaw");
-            Method pitchMethod = singleNumberMethod(blockEntity.getClass(), "setPitch");
-            if (yawMethod == null && pitchMethod == null) {
-                return false;
-            }
-            if (yawMethod != null) {
-                invokeSingleNumber(yawMethod, blockEntity, yawDegrees);
-            }
-            if (pitchMethod != null) {
-                invokeSingleNumber(pitchMethod, blockEntity, pitchDegrees);
-            }
-            return true;
-        } catch (ReflectiveOperationException | RuntimeException error) {
-            CreateStats.LOGGER.debug("[CBC compat] Mounted aim setter failed for {}: {}", blockEntity.getBlockPos(), error.toString());
-            return false;
-        }
-    }
-
-    public static boolean commandMountedAimStep(@Nullable BlockEntity blockEntity, float yawStepDegrees, float pitchStepDegrees) {
-        if (!CreateBigCannonsCompat.isAvailable() || blockEntity == null) {
-            return false;
-        }
-        try {
-            boolean usedInterface = false;
-            usedInterface |= setMountedInterfaceAngleLimit(fieldValue(blockEntity, "yawInterface"), yawStepDegrees);
-            usedInterface |= setMountedInterfaceAngleLimit(fieldValue(blockEntity, "pitchInterface"), pitchStepDegrees);
-            if (usedInterface) {
-                return true;
-            }
-            float currentYaw = floatFieldValue(blockEntity, "cannonYaw");
-            float currentPitch = floatFieldValue(blockEntity, "cannonPitch");
-            return setMountedAimAngles(blockEntity, currentYaw + yawStepDegrees, currentPitch + pitchStepDegrees);
-        } catch (ReflectiveOperationException | RuntimeException error) {
-            CreateStats.LOGGER.debug("[CBC compat] Mounted aim step command failed for {}: {}", blockEntity.getBlockPos(), error.toString());
-            return false;
-        }
-    }
-
-    public static void suppressMountedInterfaceControl(@Nullable BlockEntity blockEntity, long tick) {
-        if (!CreateBigCannonsCompat.isAvailable() || blockEntity == null) {
-            return;
-        }
-        try {
-            BattleScreenMountControlSuppressions.suppressForTick(blockEntity.getBlockPos(), tick);
-            Object yawInterface = fieldValue(blockEntity, "yawInterface");
-            if (yawInterface instanceof BlockEntity yawBlockEntity) {
-                BattleScreenMountControlSuppressions.suppressForTick(yawBlockEntity.getBlockPos(), tick);
-            }
-            Object pitchInterface = fieldValue(blockEntity, "pitchInterface");
-            if (pitchInterface instanceof BlockEntity pitchBlockEntity) {
-                BattleScreenMountControlSuppressions.suppressForTick(pitchBlockEntity.getBlockPos(), tick);
-            }
-        } catch (ReflectiveOperationException | RuntimeException error) {
-            CreateStats.LOGGER.debug("[CBC compat] Mounted interface suppression failed for {}: {}", blockEntity.getBlockPos(), error.toString());
         }
     }
 
@@ -468,7 +407,8 @@ public final class CreateBigCannonsReflectionAdapter {
     }
 
     private static LoadInspection inspectVisibleState(BlockState state) {
-        // [6]
+        // only the loader's "moving" means loading. ram/worm heads are permanent, they stuck autoloaded cannons on LOADING forever
+
         if (CreateBigCannonsCompat.hasBooleanProperty(state, "moving", true)) {
             return LoadInspection.loading(1);
         }
@@ -573,7 +513,8 @@ public final class CreateBigCannonsReflectionAdapter {
         return switch (containedPart) {
             case PROJECTILE -> LoadInspection.loadedProjectile();
             case PROPELLANT -> LoadInspection.loadedPropellant();
-            // [7]
+            // a loader head in the bore is hardware, not a load
+
             default -> CreateBigCannonsCompat.isCreateBigCannonsBlock(containedState)
                     ? LoadInspection.inspectedUnknownPayload()
                     : LoadInspection.none();
@@ -682,15 +623,6 @@ public final class CreateBigCannonsReflectionAdapter {
         return value instanceof Number number ? number.floatValue() : 0.0f;
     }
 
-    private static void invokeSingleNumber(Method method, Object owner, float value) throws ReflectiveOperationException {
-        Class<?> parameterType = method.getParameterTypes()[0];
-        if (parameterType == double.class || parameterType == Double.class) {
-            method.invoke(owner, (double) value);
-            return;
-        }
-        method.invoke(owner, value);
-    }
-
     @Nullable
     private static Method noArgMethod(Class<?> type, String name) {
         try {
@@ -734,31 +666,6 @@ public final class CreateBigCannonsReflectionAdapter {
     }
 
     @Nullable
-    private static Method singleNumberMethod(Class<?> type, String name) {
-        try {
-            Method method = type.getMethod(name, float.class);
-            method.setAccessible(true);
-            return method;
-        } catch (NoSuchMethodException ignored) {
-        }
-        Class<?> cursor = type;
-        while (cursor != null) {
-            for (Method method : cursor.getDeclaredMethods()) {
-                if (!name.equals(method.getName()) || method.getParameterCount() != 1) {
-                    continue;
-                }
-                Class<?> parameterType = method.getParameterTypes()[0];
-                if (parameterType == float.class || parameterType == Float.class || parameterType == double.class || parameterType == Double.class) {
-                    method.setAccessible(true);
-                    return method;
-                }
-            }
-            cursor = cursor.getSuperclass();
-        }
-        return null;
-    }
-
-    @Nullable
     private static Field field(Class<?> type, String name) {
         Class<?> cursor = type;
         while (cursor != null) {
@@ -787,26 +694,6 @@ public final class CreateBigCannonsReflectionAdapter {
     private static Object fieldValue(Object owner, String name) throws ReflectiveOperationException {
         Field targetField = field(owner.getClass(), name);
         return targetField == null ? null : targetField.get(owner);
-    }
-
-    private static boolean setMountedInterfaceAngleLimit(@Nullable Object interfaceBlockEntity, float angleLimit) throws ReflectiveOperationException {
-        if (interfaceBlockEntity == null || Math.abs(angleLimit) <= 1.0E-3f) {
-            return false;
-        }
-        Method limitMethod = singleNumberMethod(interfaceBlockEntity.getClass(), "setSequencedAngleLimit");
-        if (limitMethod == null) {
-            return false;
-        }
-        invokeSingleNumber(limitMethod, interfaceBlockEntity, angleLimit);
-        Method tryUpdateSpeed = noArgMethod(interfaceBlockEntity.getClass(), "tryUpdateSpeed");
-        if (tryUpdateSpeed != null) {
-            tryUpdateSpeed.invoke(interfaceBlockEntity);
-        }
-        Method sendData = noArgMethod(interfaceBlockEntity.getClass(), "sendData");
-        if (sendData != null) {
-            sendData.invoke(interfaceBlockEntity);
-        }
-        return true;
     }
 
     private static long virtualKey(long mountKey, long localKey) {
@@ -859,6 +746,307 @@ public final class CreateBigCannonsReflectionAdapter {
         return null;
     }
 
+    private static final String BIG_CONTRAPTION = "rbasamoyai.createbigcannons.cannon_control.contraption.MountedBigCannonContraption";
+    private static final String PROPELLANT_CONTEXT = BIG_CONTRAPTION + "$PropellantContext";
+    private static final String BIG_CANNON_BE = "rbasamoyai.createbigcannons.cannons.big_cannons.IBigCannonBlockEntity";
+    private static final String QF_BREECH = "rbasamoyai.createbigcannons.cannons.big_cannons.breeches.quickfiring_breech.QuickfiringBreechBlockEntity";
+    private static final String CHARGE_BLOCK = "rbasamoyai.createbigcannons.munitions.big_cannon.propellant.BigCannonPropellantBlock";
+    private static final String SHELL_BLOCK = "rbasamoyai.createbigcannons.munitions.big_cannon.ProjectileBlock";
+    private static final String INTEGRATED = "rbasamoyai.createbigcannons.munitions.big_cannon.propellant.IntegratedPropellantProjectile";
+    private static final String CONFIGS = "rbasamoyai.createbigcannons.config.CBCConfigs";
+
+    private static final int MAX_BORE = 256;
+
+    private static final Class<?>[] ARGS_INFO = {StructureBlockInfo.class};
+    private static final Class<?>[] ARGS_INFO_DIR = {StructureBlockInfo.class, Direction.class};
+    private static final Class<?>[] ARGS_CHARGE_VALID = {StructureBlockInfo.class, int.class, Direction.class};
+    private static final Class<?>[] ARGS_SHELL_VALID = {List.class, StructureBlockInfo.class, int.class, Direction.class};
+    private static final Class<?>[] ARGS_LIST_DIR = {List.class, Direction.class};
+    private static final Class<?>[] ARGS_LEVEL_LIST = {Level.class, List.class};
+
+    private static final ClassValue<Map<String, Optional<Method>>> METHODS = new ClassValue<>() {
+        @Override
+        protected Map<String, Optional<Method>> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+    private static final ClassValue<Map<String, Optional<Field>>> FIELDS = new ClassValue<>() {
+        @Override
+        protected Map<String, Optional<Field>> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+    private static final ClassValue<Map<String, Boolean>> KINDS = new ClassValue<>() {
+        @Override
+        protected Map<String, Boolean> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+
+    private record ShellProps(float added, float minimum, boolean canSquib, boolean integrated, float power, float stress,
+                              long readAt) {
+    }
+
+    private static final ShellProps STOCK_SHELL = new ShellProps(0f, 1f, true, false, 0f, 0f, 0L);
+
+    private static final Map<Block, ShellProps> SHELLS = new ConcurrentHashMap<>();
+    private static final long SHELL_KEEP_NANOS = 60_000_000_000L;
+
+    @Nullable
+    private static volatile Optional<Method> safeLoadRef;
+
+    @Nullable
+    private static volatile Optional<Method> serverConfigRef;
+
+    @Nullable
+    public static BoreCheck.Bore readBore(@Nullable BlockEntity mount) {
+        if (!CreateBigCannonsCompat.isAvailable() || mount == null) {
+            return null;
+        }
+        try {
+            Object entity = call(mount, "getContraption");
+            Object contraption = call(entity, "getContraption");
+            if (!isA(contraption, BIG_CONTRAPTION)
+                    || !(fieldValueCached(contraption, "startPos") instanceof BlockPos startPos)
+                    || !(fieldValueCached(contraption, "initialOrientation") instanceof Direction dir)
+                    || !(fieldValueCached(contraption, "blocks") instanceof Map<?, ?> blocks)
+                    || !(fieldValueCached(contraption, "presentBlockEntities") instanceof Map<?, ?> present)
+                    || !(call(contraption, "getMaxSafeCharges") instanceof Number maxSafe)) {
+                return null;
+            }
+            boolean dropMortar = call(contraption, "isDropMortar") instanceof Boolean mortar && mortar;
+
+            Object breech = present.get(startPos.relative(dir.getOpposite()));
+            boolean breechOpen = isA(breech, QF_BREECH) && call(breech, "getOpenProgress") instanceof Number open && open.intValue() > 0;
+            Object properties = call(fieldValueCached(contraption, "cannonMaterial"), "properties");
+            double minVelocity = call(properties, "minimumVelocityPerBarrel") instanceof Number v ? v.doubleValue() : 1.0;
+            float minimumSpread = call(properties, "minimumSpread") instanceof Number s ? s.floatValue() : 0f;
+            ClassLoader loader = contraption.getClass().getClassLoader();
+            Method safeLoad = safeLoadMethod(loader);
+
+            List<BoreCheck.Cell> cells = new ArrayList<>();
+            List<StructureBlockInfo> charges = new ArrayList<>();
+            List<StructureBlockInfo> shell = new ArrayList<>();
+            ShellProps whole = null;
+            BlockPos pos = startPos;
+            for (int i = 0; i < MAX_BORE; i++) {
+                Object cellEntity = present.get(pos);
+                if (!isA(cellEntity, BIG_CANNON_BE) || !(blocks.get(pos) instanceof StructureBlockInfo cannonInfo)) {
+                    break;
+                }
+                if (!(call(call(cellEntity, "cannonBehavior"), "block") instanceof StructureBlockInfo held)) {
+                    return null;
+                }
+                boolean thick = call(cellEntity, "blockCanHandle", ARGS_INFO, cannonInfo) instanceof Boolean t && t;
+                Block block = held.state().getBlock();
+                if (held.state().isAir()) {
+                    cells.add(BoreCheck.Cell.empty(thick));
+                } else if (isA(block, CHARGE_BLOCK) && !isA(block, SHELL_BLOCK)) {
+                    charges.add(held);
+                    float power = floatValue(call(block, "getChargePower", ARGS_INFO, held));
+                    float stress = floatValue(call(block, "getStressOnCannon", ARGS_INFO, held));
+                    boolean lights = call(block, "canBeIgnited", ARGS_INFO_DIR, held, dir) instanceof Boolean l && l;
+                    cells.add(BoreCheck.Cell.charge(thick, power, stress, lights, safeLoad(safeLoad, charges, dir)));
+                } else if (isA(block, SHELL_BLOCK) && whole == null) {
+                    shell.add(held);
+                    List<StructureBlockInfo> sofar = List.copyOf(shell);
+                    boolean valid = true;
+                    for (int k = 0; k < sofar.size() && valid; k++) {
+                        Block part = sofar.get(k).state().getBlock();
+                        valid = isA(part, SHELL_BLOCK)
+                                && call(part, "isValidAddition", ARGS_SHELL_VALID, sofar, sofar.get(k), k, dir) instanceof Boolean ok && ok;
+                    }
+                    boolean complete = valid && call(block, "isComplete", ARGS_LIST_DIR, sofar, dir) instanceof Boolean c && c;
+                    if (complete) {
+                        whole = shellProps(block, sofar, mount.getLevel());
+                        cells.add(BoreCheck.Cell.shell(thick, true, true, whole.added(), whole.minimum(), whole.canSquib()));
+                    } else {
+                        cells.add(BoreCheck.Cell.shell(thick, valid, false, 0f, 0f, false));
+                    }
+                } else if (isA(block, SHELL_BLOCK)) {
+                    cells.add(BoreCheck.Cell.shell(thick, false, false, 0f, 0f, false));
+                } else {
+                    cells.add(BoreCheck.Cell.other(thick));
+                }
+                pos = pos.relative(dir);
+            }
+            boolean muzzleBlocked = blocks.get(pos) instanceof StructureBlockInfo past && !past.state().isAir();
+            BoreCheck.Integrated integrated = null;
+            if (whole != null && whole.integrated() && !shell.isEmpty()) {
+                List<StructureBlockInfo> withShell = new ArrayList<>(charges);
+                withShell.add(shell.get(0));
+                integrated = new BoreCheck.Integrated(safeLoad(safeLoad, withShell, dir), whole.power(), whole.stress());
+            }
+            return new BoreCheck.Bore(cells, breechOpen, dropMortar, maxSafe.intValue(), minVelocity, minimumSpread,
+                    chances(loader), muzzleBlocked, integrated);
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            CreateStats.LOGGER.debug("[CBC compat] Bore read failed for {}: {}", mount.getBlockPos(), error.toString());
+            return null;
+        }
+    }
+
+    private static boolean safeLoad(@Nullable Method safeLoad, List<StructureBlockInfo> charges, Direction dir)
+            throws ReflectiveOperationException {
+        List<StructureBlockInfo> sofar = List.copyOf(charges);
+        if (safeLoad != null) {
+            return safeLoad.invoke(null, sofar, dir) instanceof Boolean ok && ok;
+        }
+        for (int i = 0; i < sofar.size(); i++) {
+            Block block = sofar.get(i).state().getBlock();
+            if (!(call(block, "isValidAddition", ARGS_CHARGE_VALID, sofar.get(i), i, dir) instanceof Boolean ok && ok)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Nullable
+    private static Method safeLoadMethod(ClassLoader loader) {
+        Optional<Method> known = safeLoadRef;
+        if (known == null) {
+            Method found = null;
+            try {
+                found = Class.forName(PROPELLANT_CONTEXT, false, loader).getMethod("safeLoad", List.class, Direction.class);
+                found.setAccessible(true);
+            } catch (ReflectiveOperationException | RuntimeException error) {
+                CreateStats.LOGGER.debug("[CBC compat] PropellantContext.safeLoad not found, using each charge's rule: {}", error.toString());
+                found = null;
+            }
+            known = Optional.ofNullable(found);
+            safeLoadRef = known;
+        }
+        return known.orElse(null);
+    }
+
+    private static ShellProps shellProps(Block block, List<StructureBlockInfo> shell, @Nullable Level level) {
+        long now = System.nanoTime();
+        ShellProps kept = SHELLS.get(block);
+        if (kept != null && now - kept.readAt() < SHELL_KEEP_NANOS) {
+            return kept;
+        }
+        ShellProps read = new ShellProps(STOCK_SHELL.added(), STOCK_SHELL.minimum(), STOCK_SHELL.canSquib(), false, 0f, 0f, now);
+        if (level != null) {
+            try {
+                Object projectile = call(block, "getProjectile", ARGS_LEVEL_LIST, level, shell);
+                if (projectile != null) {
+                    boolean integrated = isA(projectile, INTEGRATED);
+                    read = new ShellProps(
+                            floatValue(call(projectile, "addedChargePower")),
+                            call(projectile, "minimumChargePower") instanceof Number min ? min.floatValue() : STOCK_SHELL.minimum(),
+                            !(call(projectile, "canSquib") instanceof Boolean squib) || squib,
+                            integrated,
+                            integrated ? floatValue(call(projectile, "getChargePower")) : 0f,
+                            integrated ? floatValue(call(projectile, "getStressOnCannon")) : 0f,
+                            now);
+                }
+            } catch (ReflectiveOperationException | RuntimeException error) {
+                CreateStats.LOGGER.debug("[CBC compat] Shell properties read failed for {}: {}", block, error.toString());
+            }
+        }
+        SHELLS.put(block, read);
+        return read;
+    }
+
+    private static BoreCheck.Chances chances(ClassLoader loader) {
+        try {
+            Method server = serverConfigMethod(loader);
+            Object failure = fieldValueCached(server == null ? null : server.invoke(null), "failure");
+            if (failure == null) {
+                return BoreCheck.Chances.STOCK;
+            }
+            boolean off = call(fieldValueCached(failure, "disableAllFailure"), "get") instanceof Boolean b && b;
+            BoreCheck.Chances stock = BoreCheck.Chances.STOCK;
+            return new BoreCheck.Chances(!off,
+                    configFloat(failure, "squibChance", stock.squib()),
+                    configFloat(failure, "barrelChargeBurstChance", stock.barrelBurst()),
+                    configFloat(failure, "overloadBurstChance", stock.overload()),
+                    configFloat(failure, "interruptedIgnitionChance", stock.interrupted()));
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            return BoreCheck.Chances.STOCK;
+        }
+    }
+
+    @Nullable
+    private static Method serverConfigMethod(ClassLoader loader) {
+        Optional<Method> known = serverConfigRef;
+        if (known == null) {
+            Method found;
+            try {
+                found = Class.forName(CONFIGS, false, loader).getMethod("server");
+            } catch (ReflectiveOperationException | RuntimeException error) {
+                found = null;
+            }
+            known = Optional.ofNullable(found);
+            serverConfigRef = known;
+        }
+        return known.orElse(null);
+    }
+
+    private static float configFloat(Object failure, String name, float fallback) throws ReflectiveOperationException {
+        return call(fieldValueCached(failure, name), "getF") instanceof Number n ? n.floatValue() : fallback;
+    }
+
+    @Nullable
+    private static Object call(@Nullable Object owner, String name) throws ReflectiveOperationException {
+        if (owner == null) {
+            return null;
+        }
+        Method method = cachedMethod(owner.getClass(), name);
+        return method == null ? null : method.invoke(owner);
+    }
+
+    @Nullable
+    private static Object call(@Nullable Object owner, String name, Class<?>[] types, Object... args) throws ReflectiveOperationException {
+        if (owner == null) {
+            return null;
+        }
+        Method method = cachedMethod(owner.getClass(), name, types);
+        return method == null ? null : method.invoke(owner, args);
+    }
+
+    @Nullable
+    private static Method cachedMethod(Class<?> type, String name, Class<?>... types) {
+        StringBuilder key = new StringBuilder(name).append('(');
+        for (Class<?> t : types) {
+            key.append(t.getName()).append(',');
+        }
+        return METHODS.get(type).computeIfAbsent(key.toString(),
+                k -> Optional.ofNullable(types.length == 0 ? noArgMethod(type, name) : method(type, name, types))).orElse(null);
+    }
+
+    @Nullable
+    private static Object fieldValueCached(@Nullable Object owner, String name) throws IllegalAccessException {
+        if (owner == null) {
+            return null;
+        }
+        Class<?> type = owner.getClass();
+        Field found = FIELDS.get(type).computeIfAbsent(name, n -> Optional.ofNullable(field(type, n))).orElse(null);
+        return found == null ? null : found.get(owner);
+    }
+
+    private static boolean isA(@Nullable Object value, String typeName) {
+        if (value == null) {
+            return false;
+        }
+        Class<?> type = value.getClass();
+        return KINDS.get(type).computeIfAbsent(typeName, n -> isA(type, n));
+    }
+
+    private static boolean isA(@Nullable Class<?> type, String typeName) {
+        if (type == null) {
+            return false;
+        }
+        if (type.getName().equals(typeName)) {
+            return true;
+        }
+        for (Class<?> face : type.getInterfaces()) {
+            if (isA(face, typeName)) {
+                return true;
+            }
+        }
+        return isA(type.getSuperclass(), typeName);
+    }
+
     public record VirtualBlockInspection(
             long key,
             BlockState state,
@@ -870,7 +1058,6 @@ public final class CreateBigCannonsReflectionAdapter {
             int totalCapacity,
             int tracerRounds,
             boolean creative) {
-
         public static AmmoContainerInspection none() {
             return new AmmoContainerInspection(0, 0, 0, false);
         }
@@ -880,7 +1067,6 @@ public final class CreateBigCannonsReflectionAdapter {
             int fireRateRpm,
             boolean canFireKnown,
             boolean canFire) {
-
         public static AutocannonControlInspection none() {
             return new AutocannonControlInspection(0, false, false);
         }
@@ -892,7 +1078,6 @@ public final class CreateBigCannonsReflectionAdapter {
             float baseSpeed,
             float speedIncreasePerBarrel,
             int maxSpeedIncreases) {
-
         public static AutocannonBallisticsInspection none() {
             return new AutocannonBallisticsInspection(false, 0.0f, 0.0f, 0.0f, 0);
         }
@@ -910,7 +1095,6 @@ public final class CreateBigCannonsReflectionAdapter {
             float pitchSpeed,
             Vec3 aimOriginLocation,
             Vec3 aimForwardLocation) {
-
         public static MountedAimInspection none() {
             return new MountedAimInspection(false, false, false, Integer.MIN_VALUE, Vec3.ZERO, 0.0f, 0.0f, 0.0f, 0.0f, Vec3.ZERO, Vec3.ZERO);
         }
@@ -919,7 +1103,6 @@ public final class CreateBigCannonsReflectionAdapter {
     private record MountedAimGeometry(
             Vec3 origin,
             Vec3 forwardPoint) {
-
         private static MountedAimGeometry fallback(Vec3 origin) {
             return new MountedAimGeometry(origin, origin.add(0.0, 0.0, 1.0));
         }
@@ -934,7 +1117,6 @@ public final class CreateBigCannonsReflectionAdapter {
             int emptyPayloads,
             boolean breechOpenKnown,
             boolean breechOpen) {
-
         public static LoadInspection none() {
             return new LoadInspection("NOT_APPLICABLE", 0, 0, 0, 0, 0, false, false);
         }

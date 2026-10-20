@@ -11,13 +11,10 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class FeLoadCostTest {
-
     @Test
     @DisplayName("a rated device costs its rating even while starved, so restoring it is priced honestly")
     void ratedIgnoresAStarvedMeasurement() {
-        // An Induction Range on HIGH that got nothing this tick. It still costs 256 to bring back.
         final FeLoadCost cost = FeLoadCost.rated(256, 0);
         assertEquals(256, cost.budgetCost());
         assertEquals(0, cost.reportedDraw(), "the panel must show what it took, which was nothing");
@@ -57,19 +54,15 @@ class FeLoadCostTest {
         assertEquals(0, FeLoadCost.opaque(-1).reportedDraw());
     }
 
-    // the regression that matters
-
-    /** Rated cost of one Induction Range on HIGH. */
     private static final int RATED = 256;
-    /** What an empty one would have reported under the old headroom rule: its transfer rate. */
+
     private static final int HEADROOM_WHEN_EMPTY = 512;
     private static final int DEVICES = 8;
-    /** Exactly enough for every device at its real cost, and nowhere near enough at headroom cost. */
+
     private static final int HEALTHY_BUDGET = DEVICES * RATED;
-    /** A dip that only one device fits inside, to shed the rest and set the trap. */
+
     private static final int STARVED_BUDGET = RATED;
 
-    /** [2] */
     @Test
     @DisplayName("headroom costing ratchets shed devices off permanently; rated costing recovers")
     void headroomCostingRatchetsShedDevicesOffPermanently() {
@@ -83,17 +76,9 @@ class FeLoadCostTest {
                         + "Recovered " + recoveredWithHeadroomCost + " of " + DEVICES);
     }
 
-    /**
-     * Sheds the branch with a supply dip, restores full supply, and reports how many devices are running
-     * once everything has had ample time to settle.
-     *
-     * @param useRatedCost true to cost each device at its rating, false to reproduce the old rule where
-     *                     a shed device reports its full buffer headroom
-     */
     private static int runRecovery(boolean useRatedCost) {
         final PduAutoController controller = new PduAutoController();
-        // One tick of dwell and one between restores, so the run is short. The pacing is not what is
-        // under test here; the ordering is.
+
         controller.setTuning(new PduAutoController.Tuning(1, 1));
 
         final Map<Long, Boolean> running = new HashMap<>();
@@ -102,8 +87,7 @@ class FeLoadCostTest {
         }
 
         long now = 0;
-        // Long enough that the dwell and the one-per-tick restore pacing cannot be what is limiting
-        // recovery at the end: 400 steps for 8 devices is fifty chances each.
+
         for (int step = 0; step < 400; step++, now++) {
             final int budget = step < 100 ? STARVED_BUDGET : HEALTHY_BUDGET;
             final List<PduAutoController.Device> devices = new ArrayList<>(DEVICES);
@@ -113,7 +97,7 @@ class FeLoadCostTest {
                         : wasRunning ? RATED : HEADROOM_WHEN_EMPTY;
                 devices.add(new PduAutoController.Device(key, FePriority.DEFAULT.ordinal(), demand));
             }
-            // [3]
+
             final PduAutoController.Supply supply = PduAutoController.Supply.flat(budget, true);
             final PduAutoController.Plan plan = controller.decide(devices, supply, now);
             for (long key = 0; key < DEVICES; key++) {

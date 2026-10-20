@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "PDP",
+    "BBB"
+  ],
+  "key": {
+    "G": { "item": "minecraft:tinted_glass" },
+    "P": { "item": "create_stats:reinforced_solar_panel" },
+    "D": { "item": "minecraft:diamond" },
+    "B": { "item": "create:brass_sheet" }
+  },
+  "result": { "id": "create_stats:photovoltaic_array", "count": 1 },
+  "show_notification": true
+}

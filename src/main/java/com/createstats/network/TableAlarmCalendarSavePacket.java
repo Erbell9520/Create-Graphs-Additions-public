@@ -14,7 +14,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TableAlarmCalendarSavePacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<TableAlarmCalendarSavePacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "table_alarm_calendar_save"));
     public static final StreamCodec<FriendlyByteBuf, TableAlarmCalendarSavePacket> STREAM_CODEC =

@@ -1,0 +1,30 @@
+{
+  "parent": "create_stats:transport/hazard_lights",
+  "display": {
+    "icon": {
+      "id": "create_stats:vehicle_light_white"
+    },
+    "title": {
+      "translate": "advancement.create_stats.transport.hail.title",
+      "fallback": "Flash the Brights"
+    },
+    "description": {
+      "translate": "advancement.create_stats.transport.hail.description",
+      "fallback": "Take the wheel of a Mk IV and let its lamps greet you. On the road that means 'move', and everyone knows it."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "greeted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "greeted"
+    ]
+  ]
+}

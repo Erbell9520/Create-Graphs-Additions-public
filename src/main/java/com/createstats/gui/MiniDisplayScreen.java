@@ -15,7 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 public class MiniDisplayScreen extends Screen {
-
     private static final int PANEL_BG = 0xF0181818;
     private static final int BORDER = 0xFF444444;
     private static final int TEXT = 0xFFDDCCAA;
@@ -173,8 +172,8 @@ public class MiniDisplayScreen extends Screen {
 
     private void applyAndClose() {
         PacketDistributor.sendToServer(new MiniDisplayConfigPacket(this.miniDisplay.getBlockPos(), this.settings));
-        // Do not apply settings on the client here; the server will validate the packet
-        // and sync the accepted state back via the normal block-entity update path.
+        // server validates and syncs back, don't apply here
+
         this.onClose();
     }
 

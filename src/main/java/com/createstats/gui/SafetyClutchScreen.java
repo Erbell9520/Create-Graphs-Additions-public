@@ -11,7 +11,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 public class SafetyClutchScreen extends Screen {
-
     private static final int PANEL_BG = 0xF0181818;
     private static final int ACCENT = 0xFFCC7700;
     private static final int TEXT = 0xFFDDCCAA;
@@ -32,7 +31,6 @@ public class SafetyClutchScreen extends Screen {
     private boolean thresholdOpen;
     private boolean modeOpen;
 
-    /** Content-Y of the self-monitor info label; set in init(), used in render(). */
     private int selfMonitorLabelY = -1;
 
     public SafetyClutchScreen(SafetyClutchBE clutch) {
@@ -60,10 +58,8 @@ public class SafetyClutchScreen extends Screen {
         final int left = cx - panelW / 2;
         int y = 4;
 
-        // status bar
         y += 14;
 
-        // threshold Section
         addSectionHeader(Component.translatable("gui.create_stats.safety_clutch.section.threshold"), left, y, panelW, this.thresholdOpen, () -> {
             this.thresholdOpen = !this.thresholdOpen;
             this.rebuildWidgets();
@@ -80,7 +76,6 @@ public class SafetyClutchScreen extends Screen {
         }
         y += 4;
 
-        // mode Section
         addSectionHeader(Component.translatable("gui.create_stats.safety_clutch.section.mode"), left, y, panelW, this.modeOpen, () -> {
             this.modeOpen = !this.modeOpen;
             this.rebuildWidgets();
@@ -101,11 +96,9 @@ public class SafetyClutchScreen extends Screen {
             ).bounds(left + 4, screenY(y), panelW - 8, 16).build());
             y += 20;
 
-            // Static info label, not a button; self-monitoring is a fixed behaviour, not a setting
             this.selfMonitorLabelY = y;
             y += 18;
 
-            // Manual control buttons
             final int halfW = (panelW - 12) / 2;
             this.addRenderableWidget(Button.builder(
                     Component.translatable("gui.create_stats.safety_clutch.reset"),
@@ -125,7 +118,6 @@ public class SafetyClutchScreen extends Screen {
         }
         y += 12;
 
-        // apply / Cancel
         final int btnW = 80;
         this.addRenderableWidget(Button.builder(Component.translatable("gui.create_stats.safety_clutch.apply"), b -> applyAndClose())
                 .bounds(cx - btnW - 4, screenY(y), btnW, 20).build());
@@ -169,17 +161,14 @@ public class SafetyClutchScreen extends Screen {
         final int left = cx - panelW / 2;
         final int top = (this.height - this.visibleHeight) / 2;
 
-        // Panel background
         g.fill(left, top, left + panelW, top + this.visibleHeight, PANEL_BG);
         g.fill(left, top, left + panelW, top + 1, BORDER);
         g.fill(left, top + this.visibleHeight - 1, left + panelW, top + this.visibleHeight, BORDER);
         g.fill(left, top, left + 1, top + this.visibleHeight, BORDER);
         g.fill(left + panelW - 1, top, left + panelW, top + this.visibleHeight, BORDER);
 
-        // Title
         g.drawCenteredString(this.font, Component.translatable("gui.create_stats.safety_clutch.header"), cx, top + 5, ACCENT);
 
-        // Status bar
         Component status;
         int statusColor;
         if (!this.clutch.getSettings().isEnabled()) {
@@ -216,20 +205,17 @@ public class SafetyClutchScreen extends Screen {
         }
         g.drawCenteredString(this.font, reasonLine, cx, top + this.visibleHeight - 22, DIM);
 
-        // Slider labels in threshold section
         int y = 4 + 14 + 16;
         if (this.thresholdOpen) {
             drawSliderLabel(g, left, screenY(y), panelW,
                     Component.translatable("gui.create_stats.safety_clutch.trip_at", String.format("%.0f%%", this.settings.getThreshold())));
         }
 
-        // Static self-monitor info label (no interaction, this is a fixed behaviour, not a config)
         if (this.modeOpen && this.selfMonitorLabelY >= 0) {
             g.drawCenteredString(this.font, Component.translatable("gui.create_stats.safety_clutch.self_monitor"),
                     cx, screenY(this.selfMonitorLabelY) + 4, DIM);
         }
 
-        // Scroll bar
         if (this.contentHeight > this.visibleHeight) {
             final int maxS = Math.max(1, this.contentHeight - this.visibleHeight + 20);
             final int barH = Math.max(12, this.visibleHeight * this.visibleHeight / this.contentHeight);

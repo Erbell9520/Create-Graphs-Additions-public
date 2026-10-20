@@ -16,28 +16,28 @@ public class TrainMapData
     private final List<StationEntry> stations;
     private final List<TrainEntry> trains;
     private long serverTick;
-    
+
     public TrainMapData() {
         this.stations = new ArrayList<StationEntry>();
         this.trains = new ArrayList<TrainEntry>();
     }
-    
+
     public List<StationEntry> getStations() {
         return this.stations;
     }
-    
+
     public List<TrainEntry> getTrains() {
         return this.trains;
     }
-    
+
     public long getServerTick() {
         return this.serverTick;
     }
-    
+
     public void setServerTick(long tick) {
         this.serverTick = tick;
     }
-    
+
     public boolean isEmpty() {
         return this.stations.isEmpty() && this.trains.isEmpty();
     }
@@ -82,7 +82,7 @@ public class TrainMapData
             || (filter.startsWith("*") && name.endsWith(filter.substring(1)))
             || (filter.endsWith("*") && name.startsWith(filter.substring(0, filter.length() - 1))));
     }
-     
+
     public CompoundTag write() {
         final CompoundTag root = new CompoundTag();
         root.putLong("tick", this.serverTick);
@@ -98,7 +98,7 @@ public class TrainMapData
         root.put("trains", (Tag)trainList);
         return root;
     }
-    
+
     public static TrainMapData read(CompoundTag root) {
         final TrainMapData data = new TrainMapData();
         data.serverTick = root.getLong("tick");
@@ -112,7 +112,7 @@ public class TrainMapData
         }
         return data;
     }
-    
+
     public static class StationEntry
     {
         public final UUID id;
@@ -121,7 +121,7 @@ public class TrainMapData
         public final double z;
         public final String dimension;
         public final boolean assembling;
-        
+
         public StationEntry(UUID id, String name, double x, double z, String dimension, boolean assembling) {
             this.id = id;
             this.name = name;
@@ -130,7 +130,7 @@ public class TrainMapData
             this.dimension = dimension;
             this.assembling = assembling;
         }
-        
+
         public CompoundTag write() {
             final CompoundTag t = new CompoundTag();
             t.putUUID("id", this.id);
@@ -141,12 +141,12 @@ public class TrainMapData
             t.putBoolean("asm", this.assembling);
             return t;
         }
-        
+
         public static StationEntry read(CompoundTag t) {
             return new StationEntry(t.getUUID("id"), t.getString("name"), t.getDouble("x"), t.getDouble("z"), t.getString("dim"), t.getBoolean("asm"));
         }
     }
-    
+
     public static class TrainEntry
     {
         public final UUID id;
@@ -171,7 +171,7 @@ public class TrainMapData
         public final float segmentProgress;
         public final float signedSpeed;
         public final String routeKey;
-        
+
         public TrainEntry(UUID id, String name, String ownerName, double x, double z, String dimension, float speed, String nextDestination, List<String> scheduleStops, boolean stopped, String currentStationName, boolean waitingForSignal, int ticksWaitingForSignal) {
             this(id, name, ownerName, x, z, dimension, speed, nextDestination, scheduleStops, stopped, currentStationName, waitingForSignal, ticksWaitingForSignal, true, null, null, null, null, null, 0.0f, speed, "");
         }
@@ -200,7 +200,7 @@ public class TrainMapData
             this.signedSpeed = signedSpeed;
             this.routeKey = (routeKey != null) ? routeKey : "";
         }
-        
+
         public CompoundTag write() {
             final CompoundTag t = new CompoundTag();
             t.putUUID("id", this.id);
@@ -233,7 +233,7 @@ public class TrainMapData
             t.put("sched", (Tag)stops);
             return t;
         }
-        
+
         public static TrainEntry read(CompoundTag t) {
             final List<String> stops = new ArrayList<String>();
             final ListTag sched = t.getList("sched", 10);

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "III",
+    "ICI",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "C": {
+      "item": "create_stats:copper_wire"
+    }
+  },
+  "result": {
+    "id": "create_stats:conduit_junction_box",
+    "count": 2
+  },
+  "show_notification": true
+}

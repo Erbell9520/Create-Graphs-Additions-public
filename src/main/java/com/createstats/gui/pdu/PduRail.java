@@ -7,10 +7,7 @@ import net.minecraft.util.Mth;
 
 import java.util.List;
 
-/** [1] */
 public final class PduRail {
-
-    /** One rail entry: which glyph to draw, and the tooltip that names its view. */
     public record Item(String iconId, String tooltip) {
     }
 
@@ -19,7 +16,7 @@ public final class PduRail {
     private final int[] itemTops;
     private int itemH = 22;
     private PduRect bounds = new PduRect(0, 0, 0, 0);
-    /** Eased top of the active item, so the accent bar glides between views. */
+
     private float indicatorY = -1.0f;
 
     public PduRail(Item... items) {
@@ -45,10 +42,9 @@ public final class PduRail {
                      List<Component> tooltipOut) {
         this.bounds = rail;
         g.fill(rail.x(), rail.y(), rail.right(), rail.bottom(), PduTheme.BG_DEEP);
-        // A hairline divides the rail from the content, so the two read as separate columns.
+
         g.fill(rail.right() - 1, rail.y(), rail.right(), rail.bottom(), PduTheme.STROKE);
 
-        // Size items to the rail so five always fit, clamped so they never get cramped or vast.
         this.itemH = Mth.clamp((rail.h() - 2 * PduTheme.BASE) / Math.max(1, items.length), 18, 26);
         final int iconSize = itemH >= 22 ? 16 : 14;
         int y = rail.y() + PduTheme.BASE;
@@ -71,14 +67,16 @@ public final class PduRail {
             y += itemH;
         }
 
-        // The accent bar on the active item's inner edge, eased into place.
         final float targetY = itemTops[active];
         indicatorY = indicatorY < 0.0f ? targetY : Ease.ease(indicatorY, targetY, 0.30f, partialTick);
         final int barY = Math.round(indicatorY);
         g.fill(rail.x(), barY + 2, rail.x() + 2, barY + itemH - 2, PduTheme.ACCENT);
     }
 
-    /** The item under the cursor, or {@code -1}. */
+    public PduRect itemRect(int i) {
+        return new PduRect(bounds.x(), itemTops[i], bounds.w(), itemH);
+    }
+
     public int itemAt(double mx, double my) {
         if (!bounds.contains(mx, my)) {
             return -1;

@@ -3,7 +3,6 @@ package com.createstats.compat;
 import net.neoforged.fml.ModList;
 
 public final class SimulatedCompat {
-
     public static final String SIMULATED_MOD_ID = "simulated";
     public static final String AERONAUTICS_MOD_ID = "aeronautics";
     public static final String AERONAUTICS_BUNDLED_MOD_ID = "aeronautics_bundled";

@@ -7,7 +7,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 public final class TableAlarmClockClientHooks {
-
     private static final String CLIENT_PACKET_HANDLER = "com.createstats.client.ClientPacketHandler";
 
     private TableAlarmClockClientHooks() {

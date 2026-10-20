@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "MMM",
+    "GLG",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:chain"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "L": {
+      "item": "minecraft:glowstone_dust"
+    }
+  },
+  "result": {
+    "id": "create_stats:pendant_lamp",
+    "count": 4
+  },
+  "show_notification": true
+}

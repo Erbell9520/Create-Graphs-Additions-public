@@ -1,7 +1,6 @@
 package com.createstats.train.manifest;
 
 public enum DeliveryOrderResetMode {
-
     EVERY_ARRIVAL("every_arrival", "Every Arrival", "Arrival", false),
     ONCE("once", "Once", "Once", false),
     MINECRAFT_DAY("minecraft_day", "Every Day", "Day", false),

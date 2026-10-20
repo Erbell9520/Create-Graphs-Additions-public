@@ -24,46 +24,45 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
 
-/** [1] */
 public class FeMotorBlock extends DirectionalKineticBlock implements IBE<FeMotorBE> {
+    // one literal shape per facing, generated off the model. do NOT hand edit these
 
-    // [2]
     private static final VoxelShape NORTH_SHAPE = Shapes.or(
-            Block.box(1, 0, 2, 15, 1.2, 14),  // skid
-            Block.box(3.5, 1.2, 3.2, 12.5, 3.9, 12.8),  // pedestal
-            Block.box(3.3, 3.7, 2.6, 12.7, 12.6, 14),  // drum + ribs
-            Block.box(3, 2.9, 1.1, 13, 12.9, 2.8),  // bezel + hub
-            Block.box(9.4, 11.3, 3.6, 14.5, 13.9, 7));  // terminal + studs
+            Block.box(1, 0, 2, 15, 1.2, 14),
+            Block.box(3.5, 1.2, 3.2, 12.5, 3.9, 12.8),
+            Block.box(3.3, 3.7, 2.6, 12.7, 12.6, 14),
+            Block.box(3, 2.9, 1.1, 13, 12.9, 2.8),
+            Block.box(9.4, 11.3, 3.6, 14.5, 13.9, 7));
     private static final VoxelShape SOUTH_SHAPE = Shapes.or(
-            Block.box(1, 0, 2, 15, 1.2, 14),  // skid
-            Block.box(3.5, 1.2, 3.2, 12.5, 3.9, 12.8),  // pedestal
-            Block.box(3.3, 3.7, 2, 12.7, 12.6, 13.4),  // drum + ribs
-            Block.box(3, 2.9, 13.2, 13, 12.9, 14.9),  // bezel + hub
-            Block.box(1.5, 11.3, 9, 6.6, 13.9, 12.4));  // terminal + studs
+            Block.box(1, 0, 2, 15, 1.2, 14),
+            Block.box(3.5, 1.2, 3.2, 12.5, 3.9, 12.8),
+            Block.box(3.3, 3.7, 2, 12.7, 12.6, 13.4),
+            Block.box(3, 2.9, 13.2, 13, 12.9, 14.9),
+            Block.box(1.5, 11.3, 9, 6.6, 13.9, 12.4));
     private static final VoxelShape EAST_SHAPE = Shapes.or(
-            Block.box(2, 0, 1, 14, 1.2, 15),  // skid
-            Block.box(3.2, 1.2, 3.5, 12.8, 3.9, 12.5),  // pedestal
-            Block.box(2, 3.7, 3.3, 13.4, 12.6, 12.7),  // drum + ribs
-            Block.box(13.2, 2.9, 3, 14.9, 12.9, 13),  // bezel + hub
-            Block.box(9, 11.3, 9.4, 12.4, 13.9, 14.5));  // terminal + studs
+            Block.box(2, 0, 1, 14, 1.2, 15),
+            Block.box(3.2, 1.2, 3.5, 12.8, 3.9, 12.5),
+            Block.box(2, 3.7, 3.3, 13.4, 12.6, 12.7),
+            Block.box(13.2, 2.9, 3, 14.9, 12.9, 13),
+            Block.box(9, 11.3, 9.4, 12.4, 13.9, 14.5));
     private static final VoxelShape WEST_SHAPE = Shapes.or(
-            Block.box(2, 0, 1, 14, 1.2, 15),  // skid
-            Block.box(3.2, 1.2, 3.5, 12.8, 3.9, 12.5),  // pedestal
-            Block.box(2.6, 3.7, 3.3, 14, 12.6, 12.7),  // drum + ribs
-            Block.box(1.1, 2.9, 3, 2.8, 12.9, 13),  // bezel + hub
-            Block.box(3.6, 11.3, 1.5, 7, 13.9, 6.6));  // terminal + studs
+            Block.box(2, 0, 1, 14, 1.2, 15),
+            Block.box(3.2, 1.2, 3.5, 12.8, 3.9, 12.5),
+            Block.box(2.6, 3.7, 3.3, 14, 12.6, 12.7),
+            Block.box(1.1, 2.9, 3, 2.8, 12.9, 13),
+            Block.box(3.6, 11.3, 1.5, 7, 13.9, 6.6));
     private static final VoxelShape UP_SHAPE = Shapes.or(
-            Block.box(1, 2, 0, 15, 14, 1.2),  // skid
-            Block.box(3.5, 3.2, 1.2, 12.5, 12.8, 3.9),  // pedestal
-            Block.box(3.3, 2, 3.7, 12.7, 13.4, 12.6),  // drum + ribs
-            Block.box(3, 13.2, 2.9, 13, 14.9, 12.9),  // bezel + hub
-            Block.box(9.4, 9, 11.3, 14.5, 12.4, 13.9));  // terminal + studs
+            Block.box(1, 2, 0, 15, 14, 1.2),
+            Block.box(3.5, 3.2, 1.2, 12.5, 12.8, 3.9),
+            Block.box(3.3, 2, 3.7, 12.7, 13.4, 12.6),
+            Block.box(3, 13.2, 2.9, 13, 14.9, 12.9),
+            Block.box(9.4, 9, 11.3, 14.5, 12.4, 13.9));
     private static final VoxelShape DOWN_SHAPE = Shapes.or(
-            Block.box(1, 2, 14.8, 15, 14, 16),  // skid
-            Block.box(3.5, 3.2, 12.1, 12.5, 12.8, 14.8),  // pedestal
-            Block.box(3.3, 2.6, 3.4, 12.7, 14, 12.3),  // drum + ribs
-            Block.box(3, 1.1, 3.1, 13, 2.8, 13.1),  // bezel + hub
-            Block.box(9.4, 3.6, 2.1, 14.5, 7, 4.7));  // terminal + studs
+            Block.box(1, 2, 14.8, 15, 14, 16),
+            Block.box(3.5, 3.2, 12.1, 12.5, 12.8, 14.8),
+            Block.box(3.3, 2.6, 3.4, 12.7, 14, 12.3),
+            Block.box(3, 1.1, 3.1, 13, 2.8, 13.1),
+            Block.box(9.4, 3.6, 2.1, 14.5, 7, 4.7));
 
     private final MotorTier tier;
 
@@ -72,12 +71,10 @@ public class FeMotorBlock extends DirectionalKineticBlock implements IBE<FeMotor
         this.tier = tier;
     }
 
-    /** Which grade this is. Read by the block entity for its rated speed, capacity and FE cost. */
     public MotorTier tier() {
         return tier;
     }
 
-    /** [3] */
     @Override
     @SuppressWarnings("deprecation")
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
@@ -91,7 +88,6 @@ public class FeMotorBlock extends DirectionalKineticBlock implements IBE<FeMotor
         };
     }
 
-    /** Single output shaft on FACING only. */
     @Override
     public boolean hasShaftTowards(LevelReader level, BlockPos pos, BlockState state, Direction face) {
         return face == state.getValue(FACING);
@@ -106,7 +102,7 @@ public class FeMotorBlock extends DirectionalKineticBlock implements IBE<FeMotor
     @SuppressWarnings("deprecation")
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof FeMotorBE motor) {
-            motor.dropWiresAndUnlinkAll();   // return the Copper Wires strung to its built-in connector
+            motor.dropWiresAndUnlinkAll();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

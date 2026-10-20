@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SafetyClutchDisplaySource extends DisplaySource implements StatsLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         final BlockEntity be = context.getSourceBlockEntity();

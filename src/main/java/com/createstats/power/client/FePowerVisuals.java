@@ -8,12 +8,9 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-/** [1] */
 public final class FePowerVisuals {
-
-    /** Length of the power-on sequence. */
     private static final long BOOT_MS = 900L;
-    /** Brightness of a screen with no power at all. Not fully black, so the bezel still reads. */
+
     private static final float DEAD_BRIGHTNESS = 0.06f;
     private static final int MAX_TRACKED = 512;
 
@@ -28,9 +25,8 @@ public final class FePowerVisuals {
     private FePowerVisuals() {
     }
 
-    /** [2] */
     public static float screenBrightness(BlockPos pos, @Nullable FeConsumer fe) {
-        if (fe == null || !fe.feModeEnabled()) {
+        if (fe == null || !fe.requiresPower()) {
             return 1.0f;
         }
         final long now = System.currentTimeMillis();
@@ -48,23 +44,18 @@ public final class FePowerVisuals {
         return 1.0f;
     }
 
-    /** True while the boot sequence is playing, for callers that want to suppress live text. */
     public static boolean isBooting(BlockPos pos, @Nullable FeConsumer fe) {
-        if (fe == null || !fe.feModeEnabled() || !fe.isPowered()) {
+        if (fe == null || !fe.requiresPower() || !fe.isPowered()) {
             return false;
         }
         final State state = STATES.get(pos.asLong());
         return state != null && System.currentTimeMillis() - state.changedAt < BOOT_MS;
     }
 
-    /** True when the consumer is dark: FE mode on and the buffer is empty. */
     public static boolean isDead(@Nullable FeConsumer fe) {
-        return fe != null && fe.feModeEnabled() && !fe.isPowered();
+        return fe != null && fe.requiresPower() && !fe.isPowered();
     }
 
-    // curves
-
-    /** CRT power-on: a dark beat, an inrush flash, a collapse, then a settle to full. */
     private static float bootCurve(float t) {
         if (t < 0.10f) {
             return 0.0f;
@@ -84,10 +75,6 @@ public final class FePowerVisuals {
         return Mth.clamp(0.28f + (t - 0.48f) / 0.52f * 0.72f, 0.0f, 1.0f);
     }
 
-    /**
-     * Unstable supply: a base level that sinks as the buffer empties, punctuated by short dips.
-     * Quantized to ~80 ms slots so the flicker is steady rather than per-frame noise.
-     */
     private static float brownoutFlicker(long now, float fillPct) {
         final float depth = Mth.clamp(fillPct / FeConsumer.LOW_POWER_PCT, 0.0f, 1.0f);
         final float base = 0.45f + 0.50f * depth;
@@ -102,7 +89,6 @@ public final class FePowerVisuals {
         return base;
     }
 
-    /** Deterministic 0..1 hash so every client sees the same flicker pattern for a given slot. */
     private static float hash01(long value) {
         long x = value * 0x9E3779B97F4A7C15L;
         x ^= (x >>> 30);
@@ -110,8 +96,6 @@ public final class FePowerVisuals {
         x ^= (x >>> 27);
         return ((x >>> 40) & 0xFFFF) / 65535.0f;
     }
-
-    // state tracking
 
     private static State trackState(BlockPos pos, boolean powered, long now) {
         final long key = pos.asLong();
@@ -133,7 +117,6 @@ public final class FePowerVisuals {
         return state;
     }
 
-    /** Drop entries for screens that have not rendered recently (out of range, broken, unloaded). */
     private static void prune(long now) {
         STATES.entrySet().removeIf(entry -> now - entry.getValue().lastSeen > 30_000L);
         if (STATES.size() >= MAX_TRACKED) {

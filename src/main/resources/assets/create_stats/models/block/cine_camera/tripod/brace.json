@@ -1,0 +1,78 @@
+{
+ "credit": "gen_cine_camera.py --ship",
+ "textures": {
+  "atlas": "create_stats:block/cine_camera/tripod_atlas",
+  "particle": "create_stats:block/cine_camera/tripod_atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    7.6,
+    -0.2,
+    3.665
+   ],
+   "to": [
+    8.4,
+    0.2,
+    8.0
+   ],
+   "name": "brace",
+   "faces": {
+    "north": {
+     "uv": [
+      9.5,
+      2.625,
+      9.625,
+      2.75
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      9.75,
+      2.625,
+      9.875,
+      2.75
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      5.25,
+      2.125,
+      5.75,
+      2.25
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      5.875,
+      2.125,
+      6.375,
+      2.25
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      9.25,
+      0.0,
+      9.375,
+      0.5
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      9.5,
+      0.0,
+      9.625,
+      0.5
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

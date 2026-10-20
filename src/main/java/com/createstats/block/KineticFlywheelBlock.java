@@ -19,7 +19,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -34,9 +33,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/** [1] */
 public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE<KineticFlywheelBE> {
-
     public static final EnumProperty<VisualState> VISUAL_STATE = EnumProperty.create("visual_state", VisualState.class);
 
     public KineticFlywheelBlock(Properties properties) {
@@ -50,7 +47,6 @@ public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE
         super.createBlockStateDefinition(builder);
     }
 
-    /** Single end-of-line shaft connection on FACING only. */
     @Override
     public boolean hasShaftTowards(LevelReader level, BlockPos pos, BlockState state, Direction face) {
         return face == state.getValue(FACING);
@@ -61,7 +57,6 @@ public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE
         return state.getValue(FACING).getAxis();
     }
 
-    /** Soft emissive glow that ramps with activity (P4 VFX without bespoke textures). */
     public static int getLight(BlockState state) {
         return switch (state.getValue(VISUAL_STATE)) {
             case DISCHARGING -> 8;
@@ -99,13 +94,9 @@ public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE
         com.createstats.util.CreateStatsTooltipHelper.addBlockTooltip(tooltip, "block.create_stats.kinetic_flywheel");
     }
 
-    // ============================ Mass-stage upgrades ============================
-
-    /** Right-click with a Create Flywheel to add a mass stage (heavier wheel, more capacity). */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        // Wrench is handled in onWrenched (pops a stage); let it pass through.
         if (AllItems.WRENCH.isIn(stack)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
@@ -127,7 +118,6 @@ public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
-    /** Empty-hand sneak-right-click pops a mass stage back into the player's inventory. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (player.isShiftKeyDown()
@@ -138,20 +128,6 @@ public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE
             return InteractionResult.sidedSuccess(level.isClientSide());
         }
         return InteractionResult.PASS;
-    }
-
-    /** Non-sneak wrench pops a mass stage (instead of rotating) while any are installed. */
-    @Override
-    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        if (level.getBlockEntity(pos) instanceof KineticFlywheelBE fw && fw.getTier() > 0) {
-            if (!level.isClientSide()) {
-                popOneStage(level, pos, fw, context.getPlayer());
-            }
-            return InteractionResult.sidedSuccess(level.isClientSide());
-        }
-        return super.onWrenched(state, context);
     }
 
     private void popOneStage(Level level, BlockPos pos, KineticFlywheelBE fw, @Nullable Player player) {
@@ -180,7 +156,6 @@ public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE
         }
     }
 
-    /** Drop any installed flywheels when the block is broken (in addition to the block itself). */
     @Override
     protected java.util.List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder params) {
         java.util.List<ItemStack> drops = new java.util.ArrayList<>(super.getDrops(state, params));
@@ -193,7 +168,6 @@ public class KineticFlywheelBlock extends DirectionalKineticBlock implements IBE
         return drops;
     }
 
-    /** Cosmetic blockstate prop driven by {@link KineticFlywheelBE}. */
     public enum VisualState implements StringRepresentable {
         IDLE("idle"),
         CHARGING("charging"),

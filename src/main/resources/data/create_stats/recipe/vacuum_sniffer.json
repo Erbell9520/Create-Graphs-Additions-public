@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "YTY",
+    "KPK",
+    " A "
+  ],
+  "key": {
+    "Y": {
+      "item": "minecraft:yellow_dye"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "K": {
+      "item": "minecraft:dried_kelp"
+    },
+    "P": {
+      "item": "create:propeller"
+    },
+    "A": {
+      "item": "create:andesite_casing"
+    }
+  },
+  "result": {
+    "id": "create_stats:vacuum_sniffer",
+    "count": 1
+  },
+  "show_notification": true
+}

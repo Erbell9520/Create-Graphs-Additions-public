@@ -12,11 +12,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class SafetyClutchConfigPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<SafetyClutchConfigPacket> TYPE = 
+    public static final CustomPacketPayload.Type<SafetyClutchConfigPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "safety_clutch_config"));
-    
-    public static final StreamCodec<FriendlyByteBuf, SafetyClutchConfigPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, SafetyClutchConfigPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), SafetyClutchConfigPacket::new);
 
     public enum Action { UPDATE_SETTINGS, MANUAL_RESET, MANUAL_TRIP }

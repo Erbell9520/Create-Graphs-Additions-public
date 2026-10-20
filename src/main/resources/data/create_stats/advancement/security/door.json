@@ -1,0 +1,61 @@
+{
+  "parent": "create_stats:security/panel",
+  "display": {
+    "icon": {
+      "id": "create_stats:oak_powered_door"
+    },
+    "title": {
+      "translate": "advancement.create_stats.security.door.title",
+      "fallback": "Don't Slam the Door!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.security.door.description",
+      "fallback": "Place a powered door. It closes itself gently, so mum has nothing left to shout about."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "door": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:iron_powered_door",
+                  "create_stats:reinforced_powered_door",
+                  "create_stats:industrial_iron_powered_door",
+                  "create_stats:andesite_powered_door",
+                  "create_stats:brass_powered_door",
+                  "create_stats:copper_powered_door",
+                  "create_stats:zinc_powered_door",
+                  "create_stats:oak_powered_door",
+                  "create_stats:spruce_powered_door",
+                  "create_stats:birch_powered_door",
+                  "create_stats:jungle_powered_door",
+                  "create_stats:acacia_powered_door",
+                  "create_stats:dark_oak_powered_door",
+                  "create_stats:quartz_powered_door",
+                  "create_stats:onyx_powered_door",
+                  "create_stats:salon_powered_door",
+                  "create_stats:crystal_powered_door",
+                  "create_stats:atrium_powered_door"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "door"
+    ]
+  ]
+}

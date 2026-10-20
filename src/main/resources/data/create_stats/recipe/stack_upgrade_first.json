@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "BPB",
+    "AAA"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    }
+  },
+  "result": {
+    "id": "create_stats:stack_upgrade_first",
+    "count": 1
+  }
+}

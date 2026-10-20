@@ -43,7 +43,7 @@ public class NetworkDiscovery
     private static boolean initialized;
     private static final long FALLBACK_NETWORK_ID = Long.MIN_VALUE;
     private static final int PREFERRED_SEED_SEARCH_RADIUS = 4;
-    
+
     private static synchronized void init() {
         if (NetworkDiscovery.initialized) {
             return;
@@ -118,7 +118,7 @@ public class NetworkDiscovery
             }
         }
     }
-    
+
     private static Field findField(Class<?> cls, String name) {
         Class<?> current = cls;
         while (current != null) {
@@ -147,7 +147,7 @@ public class NetworkDiscovery
             }
         }
     }
-    
+
     public static BlockPos findSeed(Level level, BlockPos panelPos, int radius) {
         return findSeed(level, panelPos, radius, null);
     }
@@ -343,11 +343,11 @@ public class NetworkDiscovery
     private static int manhattanDistance(BlockPos a, BlockPos b) {
         return Math.abs(a.getX() - b.getX()) + Math.abs(a.getY() - b.getY()) + Math.abs(a.getZ() - b.getZ());
     }
-    
+
     public static NetworkGraph discover(Level level, BlockPos seedPos) {
         return discover(level, seedPos, (int)ModConfiguration.COMMON.topologyMaxNodes.get());
     }
-    
+
     public static NetworkGraph discover(Level level, BlockPos seedPos, int requestedMaxNodes) {
         init();
         if (NetworkDiscovery.kineticClass == null) {
@@ -435,7 +435,7 @@ public class NetworkDiscovery
         final boolean truncated = !queue.isEmpty() && discoveredNodes.size() >= maxNodes;
         return new NetworkGraph(nodes, edges, graphNetworkId, level.getGameTime(), unloaded, truncated);
     }
-    
+
     private static List<BlockPos> getPotentialNeighbours(Level level, BlockPos pos, BlockEntity kbe) {
         final List<BlockPos> createNeighbours = getCreatePotentialNeighbours(kbe);
         if (createNeighbours != null) {
@@ -527,7 +527,7 @@ public class NetworkDiscovery
             return null;
         }
     }
-    
+
     private static Direction[] getPerpendicularDirections(Direction.Axis axis) {
         return switch (axis) {
             default -> throw new IncompatibleClassChangeError();
@@ -536,7 +536,7 @@ public class NetworkDiscovery
             case Z -> new Direction[] { Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN };
         };
     }
-    
+
     private static Long getNetworkId(BlockEntity be) {
         if (NetworkDiscovery.f_network != null) {
             try {
@@ -550,7 +550,7 @@ public class NetworkDiscovery
         }
         return null;
     }
-    
+
     private static boolean hasNetwork(BlockEntity be) {
         if (NetworkDiscovery.m_hasNetwork != null) {
             try {
@@ -567,7 +567,7 @@ public class NetworkDiscovery
         }
         return false;
     }
-    
+
     private static boolean isSource(BlockEntity be) {
         if (NetworkDiscovery.m_isSource != null) {
             try {
@@ -589,7 +589,7 @@ public class NetworkDiscovery
         }
         return getSourcePos(be) != null;
     }
-    
+
     private static float getSpeed(BlockEntity be) {
         if (NetworkDiscovery.m_getSpeed != null) {
             try {
@@ -602,11 +602,11 @@ public class NetworkDiscovery
         }
         return 0.0f;
     }
-    
+
     private static float getStressImpact(BlockEntity be) {
         return scaleCoefficientBySpeed(be, readFloatField(NetworkDiscovery.f_lastStressApplied, be));
     }
-    
+
     private static float getCapacityProvided(BlockEntity be) {
         return scaleCoefficientBySpeed(be, readFloatField(NetworkDiscovery.f_lastCapacityProvided, be));
     }
@@ -630,7 +630,7 @@ public class NetworkDiscovery
         }
         return coefficient * Math.abs(getSpeed(be));
     }
-    
+
     private static boolean isOverStressed(BlockEntity be) {
         if (NetworkDiscovery.f_overStressed != null) {
             try {
@@ -641,7 +641,7 @@ public class NetworkDiscovery
         }
         return false;
     }
-    
+
     private static float getSpeedModifier(BlockEntity from, BlockEntity to) {
         if (NetworkDiscovery.m_getSpeedModifier != null) {
             try {
@@ -824,7 +824,7 @@ public class NetworkDiscovery
             return (x <= y) ? new EdgeKey(x, y) : new EdgeKey(y, x);
         }
     }
-    
+
     static {
         NetworkDiscovery.initialized = false;
     }

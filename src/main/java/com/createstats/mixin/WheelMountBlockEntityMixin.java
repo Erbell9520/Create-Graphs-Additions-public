@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(targets = "dev.ryanhcode.offroad.content.blocks.wheel_mount.WheelMountBlockEntity", remap = false)
 public abstract class WheelMountBlockEntityMixin {
-
     @Unique
     private static long createStats$lastOverrideLogTick = Long.MIN_VALUE;
     @Unique
@@ -63,14 +62,15 @@ public abstract class WheelMountBlockEntityMixin {
         lastServerSteeringSignalLeft = left;
         lastServerSteeringSignalRight = right;
 
-        // Keep client-facing cached values aligned with server override for smooth display.
         clientSteeringSignal = combined;
         clientSteeringSignalLeft = left;
         clientSteeringSignalRight = right;
 
         if (changed && level != null) {
-            // Mark dirty so normal BE sync path can propagate updated steering values.
+            // setChanged only marks for save, send it like offroad would or the client wheels freeze
+
             blockEntity.setChanged();
+            if (blockEntity instanceof com.simibubi.create.foundation.blockEntity.SyncedBlockEntity synced) synced.sendData();
         }
         if (now - createStats$lastOverrideLogTick >= 20L) {
             createStats$lastOverrideLogTick = now;

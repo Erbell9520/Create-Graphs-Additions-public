@@ -1,5 +1,4 @@
 {
-  "__comment": "FE Fluid Pump MK II: darker heavy-duty housing with copper stubs and a gilded dial, so the higher grade reads at a glance.",
   "parent": "create_stats:block/fluid_pump/housing",
   "render_type": "minecraft:cutout",
   "textures": {

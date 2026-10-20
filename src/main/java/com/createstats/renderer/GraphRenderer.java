@@ -36,7 +36,7 @@ public class GraphRenderer
             drawLine(graphics, (int)x2, (int)y2, (int)x3, (int)y3, color);
         }
     }
-    
+
     public static void drawBarChart(GuiGraphics graphics, float[] data, int color, int x, int y, int width, int height) {
         if (data == null || data.length == 0) {
             return;
@@ -57,7 +57,7 @@ public class GraphRenderer
             graphics.fill(bx, by, bx + barWidth, y + height, color);
         }
     }
-    
+
     public static void drawGauge(GuiGraphics graphics, float value, float maxValue, int color, int centerX, int centerY, int radius) {
         if (maxValue <= 0.0f) {
             maxValue = 1.0f;
@@ -69,7 +69,7 @@ public class GraphRenderer
         final int textWidth = text.length() * 3;
         graphics.drawString(Minecraft.getInstance().font, text, centerX - textWidth, centerY - 4, color, false);
     }
-    
+
     public static void drawNumeric(GuiGraphics graphics, float value, String unit, int color, int x, int y, int width, int height) {
         String text;
         if (Math.abs(value) >= 1000.0f) {
@@ -94,7 +94,7 @@ public class GraphRenderer
             graphics.drawCenteredString(font, unit, x + width / 2, y + height - 10, -5592406);
         }
     }
-    
+
     public static void drawGrid(GuiGraphics graphics, int x, int y, int width, int height, int divisions, int gridColor) {
         final float xStep = width / (float)divisions;
         final float yStep = height / (float)divisions;
@@ -103,7 +103,7 @@ public class GraphRenderer
             graphics.fill(x, y + (int)(i * yStep), x + width, y + (int)(i * yStep) + 1, gridColor);
         }
     }
-    
+
     public static void drawAxes(GuiGraphics graphics, String xLabel, String yLabel, int x, int y, int width, int height, int textColor) {
         final Font font = Minecraft.getInstance().font;
         if (xLabel != null) {
@@ -115,7 +115,7 @@ public class GraphRenderer
         graphics.fill(x, y, x + 1, y + height, textColor);
         graphics.fill(x, y + height, x + width, y + height + 1, textColor);
     }
-    
+
     public static void drawMinMaxAvg(GuiGraphics graphics, float min, float max, float avg, int x, int y, int width, int height, float dataMin, float dataMax, int textColor) {
         final Font font = Minecraft.getInstance().font;
         float range = dataMax - dataMin;
@@ -130,7 +130,7 @@ public class GraphRenderer
         graphics.drawString(font, String.format("Avg: %.1f", avg), x + width + 4, avgY - 4, -256);
         graphics.drawString(font, String.format("Min: %.1f", min), x + width + 4, y + height - 8, textColor);
     }
-    
+
     public static void drawPredictionOverlay(GuiGraphics graphics, PredictionResult prediction, float[] data, int x, int y, int width, int height, float yMin, float yMax, int lineColor, double tCritical) {
         if (prediction == null || !prediction.isRenderable()) {
             return;
@@ -172,7 +172,7 @@ public class GraphRenderer
         final int nowX = x + (int)((n - 1) / (double)totalRange * width);
         drawDashedLine(graphics, nowX, y, nowX, y + height, -1996488705, 3, 2);
     }
-    
+
     private static void drawDashedLine(GuiGraphics graphics, int x1, int y1, int x2, int y2, int color, int dashLen, int gapLen) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
@@ -201,7 +201,7 @@ public class GraphRenderer
             ++pixelCount;
         }
     }
-    
+
     private static void drawLine(GuiGraphics graphics, int x1, int y1, int x2, int y2, int color) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
@@ -225,7 +225,7 @@ public class GraphRenderer
             y1 += sy;
         }
     }
-    
+
     private static void drawArc(GuiGraphics graphics, int cx, int cy, int radius, float startRatio, float endRatio, int color) {
         final int segments = 32;
         final double startAngle = 2.356194490192345 + startRatio * 3.141592653589793 * 1.5;

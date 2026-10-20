@@ -3,6 +3,7 @@ package com.createstats.network;
 import com.createstats.blockentity.FreightManifestClipboardBE;
 import com.createstats.train.manifest.DeliveryOrderBoardView;
 import com.createstats.train.manifest.FreightManifestStationResolver;
+import com.createstats.train.manifest.FreightManifest;
 import com.createstats.train.manifest.FreightStationCargoView;
 import com.createstats.train.manifest.FreightStationLink;
 import net.minecraft.core.BlockPos;
@@ -16,11 +17,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RequestFreightManifestClipboardStatePacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<RequestFreightManifestClipboardStatePacket> TYPE = 
+    public static final CustomPacketPayload.Type<RequestFreightManifestClipboardStatePacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "request_freight_manifest_clipboard_state"));
-    
-    public static final StreamCodec<FriendlyByteBuf, RequestFreightManifestClipboardStatePacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, RequestFreightManifestClipboardStatePacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), RequestFreightManifestClipboardStatePacket::new);
 
     private final BlockPos pos;
@@ -56,10 +56,9 @@ public class RequestFreightManifestClipboardStatePacket implements CustomPacketP
                 return;
             }
             FreightStationLink link = clipboard.getStationLink();
-            FreightStationCargoView cargoView = FreightManifestStationResolver.captureCargoView(player.server, link);
-            DeliveryOrderBoardView deliveryBoard = FreightManifestStationResolver.captureDeliveryBoard(player.server, link);
+            FreightManifestStationResolver.StationView view = FreightManifestStationResolver.captureStationView(player.server, link);
             PacketDistributor.sendToPlayer(player,
-                new FreightManifestClipboardStatePacket(packet.pos, cargoView, deliveryBoard));
+                new FreightManifestClipboardStatePacket(packet.pos, view.manifest(), view.cargoView(), view.deliveryBoard()));
         });
     }
 }

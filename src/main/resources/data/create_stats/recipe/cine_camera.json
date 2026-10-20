@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " S ",
+    "PCK",
+    "IAI"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:spyglass"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "K": {
+      "item": "minecraft:clock"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    }
+  },
+  "result": {
+    "id": "create_stats:cine_camera",
+    "count": 1
+  },
+  "show_notification": true
+}

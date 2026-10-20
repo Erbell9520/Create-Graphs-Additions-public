@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    { "id": "#c:crops/sugar_cane", "required": false },
+    { "id": "#c:crops/cactus", "required": false },
+    { "id": "#c:crops/cocoa_bean", "required": false },
+    { "id": "#c:crops/nether_wart", "required": false },
+    { "id": "#c:mushrooms", "required": false },
+    "minecraft:sugar_cane",
+    "minecraft:bamboo",
+    "minecraft:cactus",
+    "minecraft:dried_kelp",
+    "minecraft:sweet_berries",
+    "minecraft:glow_berries",
+    "minecraft:nether_wart",
+    "minecraft:crimson_fungus",
+    "minecraft:warped_fungus",
+    "minecraft:brown_mushroom",
+    "minecraft:red_mushroom",
+    "minecraft:cocoa_beans",
+    "minecraft:chorus_fruit"
+  ]
+}

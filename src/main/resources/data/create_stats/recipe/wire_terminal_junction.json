@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WWW",
+    "BEB",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "item": "create_stats:copper_wire"
+    },
+    "B": {
+      "item": "create_stats:conduit_junction_box"
+    },
+    "E": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "create_stats:wire_terminal_junction",
+    "count": 1
+  },
+  "show_notification": true
+}

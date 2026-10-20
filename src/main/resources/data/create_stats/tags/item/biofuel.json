@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "#create_stats:raw_biofuel",
+    "#create_stats:biofuel/pressed"
+  ]
+}

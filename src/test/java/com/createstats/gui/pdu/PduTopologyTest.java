@@ -14,9 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduTopologyTest {
-
     private static RawNode node(BlockPos pos, Kind kind) {
         return new RawNode(pos, (byte) kind.ordinal(), (byte) 0, false, List.of());
     }
@@ -35,7 +33,6 @@ class PduTopologyTest {
 
     @Test
     void aChainGetsSequentialParents() {
-        // PDU at 0, cable at 1, device at 2, each touching the next.
         final List<RawNode> raws = List.of(
                 node(at(0), Kind.PDU), node(at(1), Kind.CABLE), node(at(2), Kind.DEVICE));
         final Result r = PduTopology.build(raws, at(0), 256);
@@ -47,7 +44,6 @@ class PduTopologyTest {
 
     @Test
     void aForkGivesTwoChildrenTheSameParent() {
-        // PDU at 0, with a device at each of two neighbours.
         final List<RawNode> raws = List.of(
                 node(new BlockPos(0, 64, 0), Kind.PDU),
                 node(new BlockPos(1, 64, 0), Kind.DEVICE),
@@ -60,7 +56,6 @@ class PduTopologyTest {
 
     @Test
     void aConnectorLinkConnectsAcrossOpenAir() {
-        // Two connectors ten blocks apart, not touching, joined only by a wire link.
         final RawNode a = new RawNode(at(0), (byte) Kind.PDU.ordinal(), (byte) 0, false, List.of(at(10)));
         final RawNode b = node(at(10), Kind.CONNECTOR);
         final Result r = PduTopology.build(List.of(a, b), at(0), 256);
@@ -73,7 +68,7 @@ class PduTopologyTest {
         final List<RawNode> raws = List.of(
                 node(at(0), Kind.PDU),
                 node(at(1), Kind.CABLE),
-                node(at(50), Kind.DEVICE)); // an island, touching nothing
+                node(at(50), Kind.DEVICE));
         final Result r = PduTopology.build(raws, at(0), 256);
         assertEquals(2, r.nodes().size(), "the island is not on this branch");
     }

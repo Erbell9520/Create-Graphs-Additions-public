@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "CQC",
+    "AAA"
+  ],
+  "key": {
+    "G": { "item": "minecraft:glass_pane" },
+    "C": { "item": "minecraft:copper_ingot" },
+    "Q": { "item": "minecraft:quartz" },
+    "A": { "item": "create:andesite_alloy" }
+  },
+  "result": { "id": "create_stats:solar_panel", "count": 1 },
+  "show_notification": true
+}

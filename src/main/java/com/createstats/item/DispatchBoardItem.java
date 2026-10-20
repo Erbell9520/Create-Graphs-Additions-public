@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DispatchBoardItem extends FreightManifestClipboardItem {
-
     public DispatchBoardItem(Block block, Properties properties) {
         super(block, properties);
     }

@@ -1,6 +1,5 @@
 package com.createstats.power;
 
-/** [1] */
 public enum PduMode {
     OFF("Off"),
     MANUAL("Manual"),
@@ -16,7 +15,6 @@ public enum PduMode {
         return displayName;
     }
 
-    /** Cycles OFF to MANUAL to AUTO and back, for the one screen button. */
     public PduMode next() {
         return switch (this) {
             case OFF -> MANUAL;
@@ -25,7 +23,6 @@ public enum PduMode {
         };
     }
 
-    /** Ordinal-safe lookup for loading from NBT, defaulting to {@link #MANUAL}. */
     public static PduMode byOrdinal(int ordinal) {
         final PduMode[] values = values();
         return ordinal >= 0 && ordinal < values.length ? values[ordinal] : MANUAL;

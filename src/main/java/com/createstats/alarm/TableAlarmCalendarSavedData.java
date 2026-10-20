@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
 public class TableAlarmCalendarSavedData extends SavedData {
-
     private static final String DATA_NAME = "create_stats_table_alarm_calendar";
     private static final int MAX_EVENTS_PER_PLAYER = 64;
 

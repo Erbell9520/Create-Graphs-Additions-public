@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 public class PilotHelmetData {
-
     public enum Mode {
         OTOMOBIL("Otomobil"),
         TANK("Tank"),
@@ -24,7 +23,6 @@ public class PilotHelmetData {
         }
     }
 
-    /** [1] */
     public enum NightVisionMode {
         CLASSIC("Classic"),
         TACTICAL("Tactical NVG");
@@ -121,7 +119,7 @@ public class PilotHelmetData {
     private float hudScaleFactor = 1.0f;
     private boolean nightVisionEnabled = false;
     private NightVisionMode nightVisionMode = NightVisionMode.CLASSIC;
-    /** [2] */
+
     private int helmetEnergyFE = 0;
     private final LinkedNode fccLink = new LinkedNode();
     private final LinkedNode battleBridgeLink = new LinkedNode();
@@ -158,14 +156,11 @@ public class PilotHelmetData {
         if (tag.contains("VignetteStrength")) {
             data.vignetteStrength = clampVignette(tag.getInt("VignetteStrength"));
         } else if (tag.contains("VignetteEnabled")) {
-            // Back-compat: previous bool flag mapped to 5% (the prior baked-in level).
             data.vignetteStrength = tag.getBoolean("VignetteEnabled") ? 5 : 0;
         }
         if (tag.contains("HudScaleFactor")) {
-            // Stored as float; back-compat tolerates the older int-typed key as well.
             data.hudScaleFactor = clampHudScale(tag.getFloat("HudScaleFactor"));
         } else if (tag.contains("HudScalePercent")) {
-            // Back-compat: prior slider value (0..100, 20% == 1x).
             int pct = tag.getInt("HudScalePercent");
             data.hudScaleFactor = clampHudScale(pct / 20.0f);
         }
@@ -276,10 +271,6 @@ public class PilotHelmetData {
         this.nightVisionMode = mode != null ? mode : NightVisionMode.CLASSIC;
     }
 
-    /**
-     * Bookkeeping value for the not-yet-wired Forge-Energy slot. See
-     * {@link #helmetEnergyFE} field comment. Currently never decremented.
-     */
     public int getHelmetEnergyFE() {
         return this.helmetEnergyFE;
     }

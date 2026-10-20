@@ -31,7 +31,7 @@ public class AlarmSettingsScreen extends Screen
     private int scrollOffset;
     private int contentHeight;
     private int visibleHeight;
-    
+
     public AlarmSettingsScreen(StatsAlarmBE alarm) {
         super(Component.literal("Alarm Settings"));
         this.soundOpen = true;
@@ -44,7 +44,7 @@ public class AlarmSettingsScreen extends Screen
         this.alarm = alarm;
         this.settings = AlarmSettings.load(alarm.getAlarmSettings().save());
     }
-    
+
     protected void init() {
         super.init();
         this.clearWidgets();
@@ -207,12 +207,12 @@ public class AlarmSettingsScreen extends Screen
             this.scrollOffset = maxS;
         }
     }
-    
+
     private void addSectionHeader(String id, String label, int x, int y, int w, boolean open, Runnable toggle) {
         final String arrow = open ? "\u25bc " : "\u25b6 ";
         this.addRenderableWidget(Button.builder(Component.literal(arrow + label), b -> toggle.run()).bounds(x, this.screenY(y), w, 14).build());
     }
-    
+
     private int addSliderRow(int left, int y, int panelW, String label, String valueText, Runnable onMinus, Runnable onPlus) {
         final int btnW = 20;
         final int innerW = panelW - 8;
@@ -220,16 +220,16 @@ public class AlarmSettingsScreen extends Screen
         this.addRenderableWidget(Button.builder(Component.literal("+"), b -> onPlus.run()).bounds(left + 4 + innerW - btnW, this.screenY(y), btnW, 16).build());
         return y + 20;
     }
-    
+
     private void applyAndClose() {
         PacketDistributor.sendToServer(new AlarmConfigPacket(this.alarm.getBlockPos(), this.settings));
         this.alarm.setAlarmSettings(this.settings);
         this.onClose();
     }
-    
+
     public void render(GuiGraphics g, int mx, int my, float pt) {
         this.renderTransparentBackground(g);
-        // FE Dependent Mode panel in the free screen corner (self-gating).
+
         com.createstats.power.client.FeStatusWidget.draw(g, this.font, this.width - 130, 8, 120, this.alarm.feConsumer());
         final int cx = this.width / 2;
         final int panelW = 260;
@@ -317,14 +317,14 @@ public class AlarmSettingsScreen extends Screen
     private int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }
-    
+
     private void drawSliderLabel(GuiGraphics g, int left, int y, int panelW, String label, String value) {
         final int innerLeft = left + 28;
         final int innerRight = left + panelW - 28;
         final int centerX = (innerLeft + innerRight) / 2;
         g.drawCenteredString(this.font, "§7" + label + ": §f" + value, centerX, y + 4, -2236946);
     }
-    
+
     public boolean isPauseScreen() {
         return false;
     }

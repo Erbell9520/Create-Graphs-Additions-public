@@ -1,98 +1,136 @@
 package com.createstats.client;
 
 import com.createstats.ModConfiguration;
+import com.createstats.blockentity.FlywheelVoice;
 import com.createstats.blockentity.KineticFlywheelBE;
 import com.createstats.registry.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.player.Player;
 
-import java.util.HashSet;
-import java.util.Set;
+// ONE loop for every flywheel. one per block comb filtered into that awful jet sound
+public final class FlywheelSoundInstance extends AbstractTickableSoundInstance {
+    private static final int GRACE_TICKS = 3;
 
-/** [1] */
-public class FlywheelSoundInstance extends AbstractTickableSoundInstance {
+    private static final int RETRY_TICKS = 20;
 
-    private static final Set<BlockPos> ACTIVE = new HashSet<>();
-    private static final double MAX_DISTANCE_SQR = 48.0 * 48.0;
+    private static FlywheelSoundInstance current;
+    private static long retryAt = Long.MIN_VALUE;
 
-    private final KineticFlywheelBE be;
+    private static double weight;
+    private static double weightedX;
+    private static double weightedY;
+    private static double weightedZ;
+    private static double weightedPitch;
+    private static float loudest;
+    private static int voices;
 
-    private FlywheelSoundInstance(KineticFlywheelBE be) {
-        super(ModSounds.FLYWHEEL_LOOP.get(), SoundSource.BLOCKS, RandomSource.create());
-        this.be = be;
-        BlockPos pos = be.getBlockPos();
-        this.x = pos.getX() + 0.5;
-        this.y = pos.getY() + 0.5;
-        this.z = pos.getZ() + 0.5;
+    private float targetVolume;
+    private float targetPitch = 1.0f;
+    private int quietTicks;
+    private boolean placed;
+
+    private FlywheelSoundInstance() {
+        super(ModSounds.FLYWHEEL_LOOP.get(), SoundSource.BLOCKS, SoundInstance.createUnseededRandom());
         this.looping = true;
         this.delay = 0;
-        // [2]
-        this.volume = 0.45f;
+        this.volume = 0.0f;
         this.pitch = 1.0f;
+        this.relative = false;
     }
 
-    /** Start a hum for this flywheel if one is not already playing at its position. */
-    public static void startIfNeeded(KineticFlywheelBE be) {
-        if (ModConfiguration.CLIENT.flywheelSoundVolume.get() <= 0.0) {
+    @Override
+    public boolean canStartSilent() {
+        return true;
+    }
+
+    public static void report(KineticFlywheelBE be) {
+        float activity = be.getHumActivity();
+        if (activity < FlywheelVoice.ACTIVITY_FLOOR || !ensurePlaying()) {
             return;
         }
         BlockPos pos = be.getBlockPos();
-        if (ACTIVE.contains(pos)) {
-            return;
+        weight += activity;
+        weightedX += activity * (pos.getX() + 0.5);
+        weightedY += activity * (pos.getY() + 0.5);
+        weightedZ += activity * (pos.getZ() + 0.5);
+        weightedPitch += activity * FlywheelVoice.humPitch(be.getRotorFraction());
+        loudest = Math.max(loudest, activity);
+        voices++;
+    }
+
+    private static boolean ensurePlaying() {
+        Minecraft mc = Minecraft.getInstance();
+        SoundManager sounds = mc.getSoundManager();
+        if (current != null && !current.isStopped() && sounds.isActive(current)) {
+            return true;
         }
-        ACTIVE.add(pos);
-        Minecraft.getInstance().getSoundManager().play(new FlywheelSoundInstance(be));
+        long now = mc.level != null ? mc.level.getGameTime() : 0L;
+        if (now < retryAt) {
+            return false;
+        }
+        clearReports();
+        FlywheelSoundInstance fresh = new FlywheelSoundInstance();
+        sounds.play(fresh);
+        if (!sounds.isActive(fresh)) {
+            retryAt = now + RETRY_TICKS;
+            current = null;
+            return false;
+        }
+        current = fresh;
+        return true;
+    }
+
+    private static void clearReports() {
+        weight = 0.0;
+        weightedX = 0.0;
+        weightedY = 0.0;
+        weightedZ = 0.0;
+        weightedPitch = 0.0;
+        loudest = 0.0f;
+        voices = 0;
     }
 
     @Override
     public void tick() {
-        Player player = Minecraft.getInstance().player;
-        if (be.isRemoved() || be.getLevel() == null || player == null) {
-            stopNow();
-            return;
-        }
-        KineticFlywheelBE.Mode mode = be.getMode();
-        boolean active = mode != KineticFlywheelBE.Mode.IDLE;
-        double distSqr = player.distanceToSqr(this.x, this.y, this.z);
-
-        if (!active || distSqr > MAX_DISTANCE_SQR) {
-            this.volume = Math.max(0.0f, this.volume - 0.08f);
-            if (this.volume <= 0.001f) {
-                stopNow();
+        if (voices > 0 && weight > 0.0) {
+            targetVolume = Math.min(1.0f, FlywheelVoice.humVolume(loudest, configVolume(), voices));
+            targetPitch = (float) (weightedPitch / weight);
+            double tx = weightedX / weight;
+            double ty = weightedY / weight;
+            double tz = weightedZ / weight;
+            if (!placed) {
+                this.x = tx;
+                this.y = ty;
+                this.z = tz;
+                this.pitch = targetPitch;
+                placed = true;
+            } else {
+                this.x += (tx - this.x) * 0.25;
+                this.y += (ty - this.y) * 0.25;
+                this.z += (tz - this.z) * 0.25;
             }
-            return;
+            quietTicks = 0;
+        } else if (++quietTicks > GRACE_TICKS) {
+            targetVolume = 0.0f;
         }
+        clearReports();
 
-        // [3]
-        float speed = mode == KineticFlywheelBE.Mode.DISCHARGING
-            ? Math.abs(be.effectiveOutputRpm())
-            : Math.min(KineticFlywheelBE.OUTPUT_RPM, Math.abs(be.getSpeed()));
-        float frac = clamp(speed / KineticFlywheelBE.OUTPUT_RPM, 0.0f, 1.0f);
-        this.pitch = 0.55f + 0.9f * frac;
-
-        float cfg = (float) (double) ModConfiguration.CLIENT.flywheelSoundVolume.get();
-        if (cfg <= 0.0f) {
-            this.volume = Math.max(0.0f, this.volume - 0.08f);
-            if (this.volume <= 0.001f) {
-                stopNow();
+        this.volume += (targetVolume - this.volume) * (targetVolume > this.volume ? 0.06f : 0.12f);
+        this.pitch += (targetPitch - this.pitch) * 0.08f;
+        if (targetVolume <= 0.0f && this.volume < 0.004f) {
+            this.volume = 0.0f;
+            stop();
+            if (current == this) {
+                current = null;
             }
-            return;
         }
-        float base = mode == KineticFlywheelBE.Mode.DISCHARGING ? 0.85f : 0.65f;
-        float target = base * clamp(0.5f + frac, 0.5f, 1.0f) * cfg;
-        this.volume += (target - this.volume) * 0.14f;
     }
 
-    private void stopNow() {
-        ACTIVE.remove(be.getBlockPos());
-        this.stop();
-    }
-
-    private static float clamp(float v, float lo, float hi) {
-        return Math.max(lo, Math.min(hi, v));
+    static float configVolume() {
+        return (float) (double) ModConfiguration.CLIENT.flywheelSoundVolume.get();
     }
 }

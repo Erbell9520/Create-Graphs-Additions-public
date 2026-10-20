@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "digit_3": "create_stats:block/oven_digit_3",
+    "particle": "create_stats:block/oven_digit_3"
+  },
+  "elements": [
+    {
+      "__comment": "digit",
+      "from": [
+        -0.475,
+        -0.85,
+        -0.12
+      ],
+      "to": [
+        0.475,
+        0.85,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#digit_3"
+        }
+      }
+    }
+  ]
+}

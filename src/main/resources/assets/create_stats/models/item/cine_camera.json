@@ -1,0 +1,67 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "minecraft:builtin/entity",
+    "gui_light": "front",
+    "textures": {
+      "particle": "create_stats:block/cine_camera/tripod_atlas"
+    },
+    "display": {
+      "thirdperson_righthand": {
+        "rotation": [
+          75,
+          45,
+          0
+        ],
+        "translation": [
+          0,
+          2.5,
+          0
+        ],
+        "scale": [
+          0.375,
+          0.375,
+          0.375
+        ]
+      },
+      "firstperson_righthand": {
+        "rotation": [
+          0,
+          45,
+          0
+        ],
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.4,
+          0.4,
+          0.4
+        ]
+      }
+    }
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "create_stats:item/cine_camera"
+      }
+    },
+    "ground": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "create_stats:item/cine_camera"
+      }
+    },
+    "fixed": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "create_stats:item/cine_camera"
+      }
+    }
+  }
+}

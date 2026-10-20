@@ -51,7 +51,7 @@ public class CalculatorBE extends BlockEntity
     private int multiblockHeight;
     private String lastPressedToken;
     private long lastPressedTick;
-    
+
     public CalculatorBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super((BlockEntityType)type, pos, state);
         this.expression = "31";
@@ -69,15 +69,15 @@ public class CalculatorBE extends BlockEntity
         this.lastPressedToken = "";
         this.lastPressedTick = Long.MIN_VALUE / 4L;
     }
-    
+
     public boolean isController() {
         return this.isController;
     }
-    
+
     public BlockPos getControllerPos() {
         return this.controllerPos;
     }
-    
+
     public CalculatorBE getControllerBE() {
         if (this.isController) {
             return this;
@@ -91,31 +91,31 @@ public class CalculatorBE extends BlockEntity
         }
         return this;
     }
-    
+
     public int getMultiblockWidth() {
         return this.multiblockWidth;
     }
-    
+
     public int getMultiblockHeight() {
         return this.multiblockHeight;
     }
-    
+
     public String getExpression() {
         return this.expression;
     }
-    
+
     public String getLastResultText() {
         return this.lastResultText;
     }
-    
+
     public String getErrorMessage() {
         return this.errorMessage;
     }
-    
+
     public boolean isScientificMode() {
         return this.scientificMode;
     }
-    
+
     public List<String> getHistory() {
         return Collections.unmodifiableList(this.history);
     }
@@ -123,15 +123,15 @@ public class CalculatorBE extends BlockEntity
     public List<String> getPinnedFormulas() {
         return Collections.unmodifiableList(this.pinnedFormulas);
     }
-    
+
     public double getPlotMinX() {
         return this.plotMinX;
     }
-    
+
     public double getPlotMaxX() {
         return this.plotMaxX;
     }
-    
+
     public String getRenderedPressedToken(long currentTick) {
         if (this.lastPressedToken == null || this.lastPressedToken.isEmpty()) {
             return "";
@@ -141,27 +141,27 @@ public class CalculatorBE extends BlockEntity
         }
         return this.lastPressedToken;
     }
-    
+
     public void setExpression(String expression) {
         this.expression = trimExpression(expression);
         this.markTextureDirtyClient();
     }
-    
+
     public void setLastResultText(String resultText) {
         this.lastResultText = trimText(resultText, 96);
         this.markTextureDirtyClient();
     }
-    
+
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = trimText(CalculatorBE.formatErrorMessage(errorMessage), 96);
         this.markTextureDirtyClient();
     }
-    
+
     public void setScientificMode(boolean scientificMode) {
         this.scientificMode = scientificMode;
         this.markTextureDirtyClient();
     }
-    
+
     public void setPlotRange(double minX, double maxX) {
         if (maxX <= minX) {
             maxX = minX + 1.0;
@@ -169,14 +169,14 @@ public class CalculatorBE extends BlockEntity
         this.plotMinX = minX;
         this.plotMaxX = maxX;
     }
-    
+
     public void clearEntry() {
         this.expression = "";
         this.lastResultText = "";
         this.errorMessage = "";
         this.markTextureDirtyClient();
     }
-    
+
     public void clearHistory() {
         this.history.clear();
         this.markTextureDirtyClient();
@@ -198,16 +198,14 @@ public class CalculatorBE extends BlockEntity
         this.pinnedFormulas.clear();
         this.markTextureDirtyClient();
     }
-    
-    /** [1] */
+
     public boolean pressFaceButton(String token) {
         final CalculatorBE controller = this.getControllerBE();
         if (controller != this) {
             return controller.pressFaceButton(token);
         }
-        // If this block is a multiblock member whose controller BE is gone,
-        // getControllerBE() falls back to returning self. Refuse to process
-        // the press rather than silently mutating stale member state.
+        // stale member, controller gone. refuse instead of mutating junk
+
         if (!this.isController) {
             return false;
         }
@@ -235,7 +233,7 @@ public class CalculatorBE extends BlockEntity
         this.syncState();
         return true;
     }
-    
+
     public boolean evaluateExpression() {
         if (this.expression == null || this.expression.trim().isEmpty()) {
             this.errorMessage = CalculatorBE.formatErrorMessage("Expression is empty");
@@ -258,12 +256,12 @@ public class CalculatorBE extends BlockEntity
             return false;
         }
     }
-    
+
     public void applyClientState(CompoundTag tag) {
         this.loadCalculatorState(tag);
         this.syncState();
     }
-    
+
     public CompoundTag saveCalculatorState() {
         final CompoundTag tag = new CompoundTag();
         tag.putString("Expression", this.expression);
@@ -286,7 +284,7 @@ public class CalculatorBE extends BlockEntity
         tag.put("PinnedFormulas", pinnedTag);
         return tag;
     }
-    
+
     public void loadCalculatorState(CompoundTag tag) {
         this.expression = trimExpression(tag.getString("Expression"));
         this.lastResultText = trimText(tag.getString("Result"), 96);
@@ -319,7 +317,7 @@ public class CalculatorBE extends BlockEntity
         }
         this.trimPinnedFormulas();
     }
-    
+
     private void addHistoryEntry(String entry) {
         final String trimmed = trimText(entry, 128);
         if (trimmed.isEmpty()) {
@@ -329,7 +327,7 @@ public class CalculatorBE extends BlockEntity
         this.history.add(0, trimmed);
         this.trimHistory();
     }
-    
+
     private void trimHistory() {
         while (this.history.size() > MAX_HISTORY) {
             this.history.remove(this.history.size() - 1);
@@ -341,11 +339,11 @@ public class CalculatorBE extends BlockEntity
             this.pinnedFormulas.remove(this.pinnedFormulas.size() - 1);
         }
     }
-    
+
     private static String trimExpression(String text) {
         return trimText(text, 256);
     }
-    
+
     private static String trimText(String text, int maxLength) {
         if (text == null) {
             return "";
@@ -375,7 +373,7 @@ public class CalculatorBE extends BlockEntity
             default -> message;
         };
     }
-    
+
     private void syncState() {
         this.setChanged();
         if (this.level == null) {
@@ -388,13 +386,13 @@ public class CalculatorBE extends BlockEntity
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
-    
+
     private void markTextureDirtyClient() {
         if (this.level != null && this.level.isClientSide()) {
             CalculatorTextureManager.markDirty(this.getControllerBE().getBlockPos());
         }
     }
-    
+
     public void onRemoved() {
         if (this.level == null || this.level.isClientSide()) {
             return;
@@ -431,7 +429,7 @@ public class CalculatorBE extends BlockEntity
             }
         }
     }
-    
+
     public void detectAndFormMultiblock() {
         if (this.level == null || this.level.isClientSide()) {
             return;
@@ -543,7 +541,7 @@ public class CalculatorBE extends BlockEntity
             this.level.sendBlockUpdated(pos4, calculator.getBlockState(), calculator.getBlockState(), 3);
         }
     }
-    
+
     public List<BlockPos> getMultiblockMembers() {
         final List<BlockPos> members = new ArrayList<BlockPos>();
         final BlockPos origin = (this.controllerPos != null) ? this.controllerPos : this.worldPosition;
@@ -564,7 +562,7 @@ public class CalculatorBE extends BlockEntity
         }
         return members;
     }
-    
+
     public AABB getRenderBoundingBox() {
         AABB box = new AABB(this.worldPosition);
         for (BlockPos pos : this.getMultiblockMembers()) {
@@ -572,14 +570,14 @@ public class CalculatorBE extends BlockEntity
         }
         return box.inflate(1.0);
     }
-    
+
     public void setRemoved() {
         if (this.level != null && this.level.isClientSide()) {
             CalculatorTextureManager.cleanup(this.getControllerBE().getBlockPos());
         }
         super.setRemoved();
     }
-    
+
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("CalculatorState", this.saveCalculatorState());
@@ -590,7 +588,7 @@ public class CalculatorBE extends BlockEntity
         tag.putInt("MBWidth", this.multiblockWidth);
         tag.putInt("MBHeight", this.multiblockHeight);
     }
-    
+
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains("CalculatorState")) {
@@ -614,32 +612,32 @@ public class CalculatorBE extends BlockEntity
             this.markTextureDirtyClient();
         }
     }
-    
+
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
         this.saveAdditional(tag, registries);
         return tag;
     }
-    
+
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return (Packet<ClientGamePacketListener>)ClientboundBlockEntityDataPacket.create((BlockEntity)this);
     }
-    
+
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider registries) {
         final CompoundTag tag = pkt.getTag();
         if (tag != null) {
             this.handleUpdateTag(tag, registries);
         }
     }
-    
+
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
         this.loadAdditional(tag, registries);
     }
-    
+
     private static long packHV(int h, int v) {
         return (long)h << 32 | ((long)v & 0xFFFFFFFFL);
     }
-    
+
     private static int dotAlongAxis(BlockPos pos, Direction axis) {
         return pos.getX() * axis.getStepX() + pos.getZ() * axis.getStepZ();
     }

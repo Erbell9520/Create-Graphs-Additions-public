@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/security_relay"
+    },
+    "facing=east": {
+      "model": "create_stats:block/security_relay",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/security_relay",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/security_relay",
+      "y": 270
+    }
+  }
+}

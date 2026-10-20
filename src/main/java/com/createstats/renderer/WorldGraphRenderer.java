@@ -15,10 +15,10 @@ import net.neoforged.api.distmarker.OnlyIn;
 public final class WorldGraphRenderer
 {
     public static final RenderType GRAPH_QUADS;
-    
+
     private WorldGraphRenderer() {
     }
-    
+
     public static void fillRect(PoseStack ps, MultiBufferSource buf, float x, float y, float w, float h, int color, float z) {
         final VertexConsumer vc = buf.getBuffer(WorldGraphRenderer.GRAPH_QUADS);
         final Matrix4f mat = ps.last().pose();
@@ -31,15 +31,15 @@ public final class WorldGraphRenderer
         vc.addVertex(mat, x + w, y + h, z).setColor(r, g, b, a);
         vc.addVertex(mat, x + w, y, z).setColor(r, g, b, a);
     }
-    
+
     public static void hLine(PoseStack ps, MultiBufferSource buf, float x, float y, float w, int color, float thickness, float z) {
         fillRect(ps, buf, x, y - thickness / 2.0f, w, thickness, color, z);
     }
-    
+
     public static void vLine(PoseStack ps, MultiBufferSource buf, float x, float y, float h, int color, float thickness, float z) {
         fillRect(ps, buf, x - thickness / 2.0f, y, thickness, h, color, z);
     }
-    
+
     public static void thickLine(PoseStack ps, MultiBufferSource buf, float x1, float y1, float x2, float y2, int color, float thickness, float z) {
         final VertexConsumer vc = buf.getBuffer(WorldGraphRenderer.GRAPH_QUADS);
         final Matrix4f mat = ps.last().pose();
@@ -60,11 +60,11 @@ public final class WorldGraphRenderer
         vc.addVertex(mat, x2 - nx, y2 - ny, z).setColor(r, g, b, a);
         vc.addVertex(mat, x2 + nx, y2 + ny, z).setColor(r, g, b, a);
     }
-    
+
     public static void drawDot(PoseStack ps, MultiBufferSource buf, float cx, float cy, float radius, int color, float z) {
         fillRect(ps, buf, cx - radius, cy - radius, radius * 2.0f, radius * 2.0f, color, z);
     }
-    
+
     public static void drawGrid(PoseStack ps, MultiBufferSource buf, float x, float y, float w, float h, int hDivs, int vDivs, int color, float z) {
         final float thickness = 0.3f;
         for (int i = 1; i < hDivs; ++i) {
@@ -76,13 +76,13 @@ public final class WorldGraphRenderer
             vLine(ps, buf, gx, y, h, color, thickness, z);
         }
     }
-    
+
     public static void drawAxes(PoseStack ps, MultiBufferSource buf, float x, float y, float w, float h, int color, float z) {
         final float thickness = 0.6f;
         vLine(ps, buf, x, y, h, color, thickness, z);
         hLine(ps, buf, x, y + h, w, color, thickness, z);
     }
-    
+
     public static void drawLineChart(PoseStack ps, MultiBufferSource buf, float[] data, float x, float y, float w, float h, int color, float thickness, float z, float minVal, float maxVal) {
         if (data.length < 2) {
             return;
@@ -117,11 +117,11 @@ public final class WorldGraphRenderer
             thickLine(ps, buf, px1, py1, px2, py2, color, thickness, z);
         }
     }
-    
+
     public static void drawLineChart(PoseStack ps, MultiBufferSource buf, float[] data, float x, float y, float w, float h, int color, float thickness, float z) {
         drawLineChart(ps, buf, data, x, y, w, h, color, thickness, z, Float.NaN, Float.NaN);
     }
-    
+
     public static void drawBarChart(PoseStack ps, MultiBufferSource buf, float[] data, int maxBars, float x, float y, float w, float h, int color, float z) {
         if (data.length == 0) {
             return;
@@ -152,7 +152,7 @@ public final class WorldGraphRenderer
             fillRect(ps, buf, bx, y + h - barH, bw, barH, color, z);
         }
     }
-    
+
     public static void drawArc(PoseStack ps, MultiBufferSource buf, float cx, float cy, float radius, float startAngle, float endAngle, int color, float thickness, int segments, float z) {
         for (int i = 0; i < segments; ++i) {
             final float a1 = startAngle + (endAngle - startAngle) * i / segments;
@@ -164,7 +164,7 @@ public final class WorldGraphRenderer
             thickLine(ps, buf, x1, y1, x2, y2, color, thickness, z);
         }
     }
-    
+
     public static void fillArc(PoseStack ps, MultiBufferSource buf, float cx, float cy, float innerR, float outerR, float startAngle, float endAngle, int color, int segments, float z) {
         final VertexConsumer vc = buf.getBuffer(WorldGraphRenderer.GRAPH_QUADS);
         final Matrix4f mat = ps.last().pose();
@@ -185,11 +185,11 @@ public final class WorldGraphRenderer
             vc.addVertex(mat, cx + cos2 * innerR, cy - sin2 * innerR, z).setColor(r, g, b, a);
         }
     }
-    
+
     public static float[] argb(int color) {
         return new float[] { (color >> 24 & 0xFF) / 255.0f, (color >> 16 & 0xFF) / 255.0f, (color >> 8 & 0xFF) / 255.0f, (color & 0xFF) / 255.0f };
     }
-    
+
     public static int lerpColor(int colorA, int colorB, float t) {
         t = Math.max(0.0f, Math.min(1.0f, t));
         final int aA = colorA >> 24 & 0xFF;
@@ -206,26 +206,26 @@ public final class WorldGraphRenderer
         final int b = (int)(bA + (bB - bA) * t);
         return a << 24 | r << 16 | g << 8 | b;
     }
-    
+
     public static int withAlpha(int color, int alpha) {
         return alpha << 24 | (color & 0xFFFFFF);
     }
-    
+
     static {
         GRAPH_QUADS = (RenderType)RenderType.create("create_stats_graph", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(Shards.POS_COLOR_SHADER).setLayeringState(Shards.POLY_OFFSET).setTransparencyState(Shards.TRANSLUCENT).setCullState(Shards.NOCULL).createCompositeState(false));
     }
-    
+
     private static class Shards extends RenderStateShard
     {
         static final RenderStateShard.ShaderStateShard POS_COLOR_SHADER;
         static final RenderStateShard.LayeringStateShard POLY_OFFSET;
         static final RenderStateShard.TransparencyStateShard TRANSLUCENT;
         static final RenderStateShard.CullStateShard NOCULL;
-        
+
         private Shards() {
             super((String)null, (Runnable)null, (Runnable)null);
         }
-        
+
         static {
             POS_COLOR_SHADER = Shards.POSITION_COLOR_SHADER;
             POLY_OFFSET = Shards.POLYGON_OFFSET_LAYERING;

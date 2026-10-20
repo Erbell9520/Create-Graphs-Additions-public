@@ -6,9 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduHistoryTest {
-
     @Test
     void partialFillBeforeTheFirstWrapReadsInOrder() {
         final PduHistory h = new PduHistory();
@@ -24,7 +22,7 @@ class PduHistoryTest {
     @Test
     void wrapsAtTheBoundaryKeepingChronologicalOrderNotStorageOrder() {
         final PduHistory h = new PduHistory();
-        // One more than a full buffer, so slot 0 has been overwritten and the oldest held is sample 1.
+
         for (int i = 0; i < PduHistory.SIZE + 1; i++) {
             h.record(i, i * 2, 0);
         }

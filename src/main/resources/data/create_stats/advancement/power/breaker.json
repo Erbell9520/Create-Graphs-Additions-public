@@ -1,0 +1,45 @@
+{
+  "parent": "create_stats:power/breaker_trip",
+  "display": {
+    "icon": {
+      "id": "create_stats:main_breaker"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.breaker.title",
+      "fallback": "Flip the Fuse Back Up"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.breaker.description",
+      "fallback": "Flip a Main Breaker by hand. Now go and find out who did it."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "breaker": {
+      "trigger": "minecraft:any_block_use",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:main_breaker",
+                  "create_stats:creative_main_breaker"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "breaker"
+    ]
+  ]
+}

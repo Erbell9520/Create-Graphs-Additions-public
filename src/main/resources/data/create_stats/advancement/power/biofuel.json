@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:compacted_biofuel"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.biofuel.title",
+      "fallback": "Just Like Grandma's Stove"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.biofuel.description",
+      "fallback": "Press Compacted Biofuel. Grandma's village stove has run on dried dung cakes for sixty years."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "biofuel": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:compacted_biofuel"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "biofuel"
+    ]
+  ]
+}

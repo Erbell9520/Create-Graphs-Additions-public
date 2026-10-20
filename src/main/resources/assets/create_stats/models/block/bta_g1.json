@@ -1,0 +1,1026 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "shell": "create_stats:block/bta_g1_shell",
+    "alu": "create_stats:block/bta_g1_alu",
+    "brass": "create_stats:block/bta_g1_brass",
+    "leather": "create_stats:block/bta_g1_leather",
+    "desk": "create_stats:block/bta_g1_desk",
+    "cluster": "create_stats:block/bta_g1_cluster",
+    "front": "create_stats:block/bta_g1_front",
+    "side": "create_stats:block/bta_g1_side",
+    "rear": "create_stats:block/bta_g1_rear",
+    "visor": "create_stats:block/bta_g1_visor",
+    "flank": "create_stats:block/bta_g1_flank",
+    "back": "create_stats:block/bta_g1_back",
+    "enamel_red": "create_stats:block/bta_g1_enamel_red",
+    "enamel_black": "create_stats:block/bta_g1_enamel_black",
+    "needle": "create_stats:block/bta_g1_needle",
+    "lit": "create_stats:block/bta_g1_lit",
+    "glass": "create_stats:block/bta_g1_glass",
+    "wheel_flat": "create_stats:block/bta_g1_wheel_flat",
+    "particle": "create_stats:block/bta_g1_shell"
+  },
+  "elements": [
+    {
+      "name": "plinth",
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        1,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        },
+        "down": {
+          "texture": "#shell",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "cabinet",
+      "from": [
+        1.5,
+        1,
+        1.5
+      ],
+      "to": [
+        14.5,
+        4.5,
+        14.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rear",
+          "uv": [
+            1.5,
+            6,
+            14.5,
+            9.5
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            1.5,
+            6,
+            14.5,
+            9.5
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            1.5,
+            6,
+            14.5,
+            9.5
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            1.5,
+            6,
+            14.5,
+            9.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck",
+      "from": [
+        1,
+        4.5,
+        1
+      ],
+      "to": [
+        15,
+        5.5,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass"
+        },
+        "south": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#desk",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        },
+        "down": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "back_wall",
+      "from": [
+        1,
+        5.5,
+        1.5
+      ],
+      "to": [
+        15,
+        14.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#back",
+          "uv": [
+            1,
+            3.5,
+            15,
+            12.5
+          ]
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "brow",
+      "from": [
+        1,
+        14.5,
+        1.5
+      ],
+      "to": [
+        15,
+        16,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu"
+        },
+        "south": {
+          "texture": "#visor",
+          "uv": [
+            1,
+            11,
+            15,
+            12.5
+          ]
+        },
+        "east": {
+          "texture": "#alu"
+        },
+        "west": {
+          "texture": "#alu"
+        },
+        "up": {
+          "texture": "#visor",
+          "uv": [
+            1,
+            3,
+            15,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_west_0",
+      "from": [
+        1,
+        5.5,
+        3
+      ],
+      "to": [
+        2,
+        14.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#flank",
+          "uv": [
+            1,
+            3.5,
+            3.5,
+            12.5
+          ]
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_west_1",
+      "from": [
+        1,
+        5.5,
+        5.5
+      ],
+      "to": [
+        2,
+        12.5,
+        6.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_west_2",
+      "from": [
+        1,
+        5.5,
+        6.5
+      ],
+      "to": [
+        2,
+        10.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_west_3",
+      "from": [
+        1,
+        5.5,
+        7.5
+      ],
+      "to": [
+        2,
+        8.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_east_0",
+      "from": [
+        14,
+        5.5,
+        3
+      ],
+      "to": [
+        15,
+        14.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#flank",
+          "uv": [
+            1,
+            3.5,
+            3.5,
+            12.5
+          ]
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_east_1",
+      "from": [
+        14,
+        5.5,
+        5.5
+      ],
+      "to": [
+        15,
+        12.5,
+        6.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_east_2",
+      "from": [
+        14,
+        5.5,
+        6.5
+      ],
+      "to": [
+        15,
+        10.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "cheek_east_3",
+      "from": [
+        14,
+        5.5,
+        7.5
+      ],
+      "to": [
+        15,
+        8.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#shell"
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "knee",
+      "from": [
+        2,
+        5.5,
+        3
+      ],
+      "to": [
+        14,
+        8,
+        8
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell"
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            2,
+            10.5,
+            14,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "kick_rail",
+      "from": [
+        2.5,
+        5.5,
+        8
+      ],
+      "to": [
+        13.5,
+        6,
+        8.5
+      ],
+      "faces": {
+        "south": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "gland_body",
+      "from": [
+        6,
+        8,
+        0.5
+      ],
+      "to": [
+        10,
+        11,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu"
+        },
+        "east": {
+          "texture": "#alu"
+        },
+        "west": {
+          "texture": "#alu"
+        },
+        "up": {
+          "texture": "#alu"
+        },
+        "down": {
+          "texture": "#alu"
+        }
+      }
+    },
+    {
+      "name": "gland_nut",
+      "from": [
+        7,
+        8.5,
+        0
+      ],
+      "to": [
+        9,
+        10.5,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#brass"
+        },
+        "down": {
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "bezel_top",
+      "from": [
+        2,
+        14.5,
+        8
+      ],
+      "to": [
+        9,
+        15,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu",
+          "uv": [
+            7,
+            1,
+            14,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            1,
+            9,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#alu",
+          "uv": [
+            7.5,
+            1,
+            8,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#alu",
+          "uv": [
+            8,
+            1,
+            8.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            8,
+            9,
+            8.5
+          ]
+        },
+        "down": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            7.5,
+            9,
+            8
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    },
+    {
+      "name": "bezel_bottom",
+      "from": [
+        2,
+        8,
+        8
+      ],
+      "to": [
+        9,
+        8.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu",
+          "uv": [
+            7,
+            7.5,
+            14,
+            8
+          ]
+        },
+        "south": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            7.5,
+            9,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#alu",
+          "uv": [
+            7.5,
+            7.5,
+            8,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#alu",
+          "uv": [
+            8,
+            7.5,
+            8.5,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            8,
+            9,
+            8.5
+          ]
+        },
+        "down": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            7.5,
+            9,
+            8
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    },
+    {
+      "name": "bezel_left",
+      "from": [
+        2,
+        8.5,
+        8
+      ],
+      "to": [
+        2.5,
+        14.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu",
+          "uv": [
+            13.5,
+            1.5,
+            14,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            1.5,
+            2.5,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#alu",
+          "uv": [
+            7.5,
+            1.5,
+            8,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#alu",
+          "uv": [
+            8,
+            1.5,
+            8.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            8,
+            2.5,
+            8.5
+          ]
+        },
+        "down": {
+          "texture": "#alu",
+          "uv": [
+            2,
+            7.5,
+            2.5,
+            8
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    },
+    {
+      "name": "bezel_right",
+      "from": [
+        8.5,
+        8.5,
+        8
+      ],
+      "to": [
+        9,
+        14.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu",
+          "uv": [
+            7,
+            1.5,
+            7.5,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#alu",
+          "uv": [
+            8.5,
+            1.5,
+            9,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#alu",
+          "uv": [
+            7.5,
+            1.5,
+            8,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#alu",
+          "uv": [
+            8,
+            1.5,
+            8.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#alu",
+          "uv": [
+            8.5,
+            8,
+            9,
+            8.5
+          ]
+        },
+        "down": {
+          "texture": "#alu",
+          "uv": [
+            8.5,
+            7.5,
+            9,
+            8
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    },
+    {
+      "name": "panel",
+      "from": [
+        2,
+        8,
+        7.5
+      ],
+      "to": [
+        14,
+        15,
+        8
+      ],
+      "faces": {
+        "south": {
+          "texture": "#cluster",
+          "uv": [
+            2,
+            4.5,
+            14,
+            11.5
+          ]
+        },
+        "east": {
+          "texture": "#shell"
+        },
+        "west": {
+          "texture": "#shell"
+        },
+        "up": {
+          "texture": "#shell"
+        },
+        "down": {
+          "texture": "#shell"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    },
+    {
+      "name": "column",
+      "from": [
+        4.5,
+        5.5,
+        10
+      ],
+      "to": [
+        6,
+        7.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#alu"
+        },
+        "south": {
+          "texture": "#alu"
+        },
+        "east": {
+          "texture": "#alu"
+        },
+        "west": {
+          "texture": "#alu"
+        },
+        "up": {
+          "texture": "#alu"
+        }
+      },
+      "rotation": {
+        "origin": [
+          5.25,
+          5.5,
+          10.75
+        ],
+        "axis": "x",
+        "angle": 22.5
+      }
+    },
+    {
+      "name": "column_collar",
+      "from": [
+        4,
+        5.5,
+        9.5
+      ],
+      "to": [
+        6.5,
+        6,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass"
+        },
+        "south": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#brass"
+        }
+      }
+    }
+  ]
+}

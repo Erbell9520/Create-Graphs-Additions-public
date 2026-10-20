@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TableAlarmCalendarDataPacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<TableAlarmCalendarDataPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "table_alarm_calendar_data"));
     public static final StreamCodec<FriendlyByteBuf, TableAlarmCalendarDataPacket> STREAM_CODEC =

@@ -10,7 +10,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 
 public class DeliveryOrderBoard {
-
     private final Map<UUID, DeliveryOrderLineState> lineStates;
 
     public DeliveryOrderBoard() {

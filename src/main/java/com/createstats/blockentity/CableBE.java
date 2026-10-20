@@ -5,6 +5,7 @@ import com.createstats.power.CableLinks;
 import com.createstats.power.CableTier;
 import com.createstats.power.FeGridMember;
 import com.createstats.power.FeWireNetwork;
+import com.createstats.power.IndoorCableRunBudget;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,66 +20,108 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** [1] */
+// one segment one circuit. used to carry 8 channels, half the leftovers are from that
 public class CableBE extends BlockEntity implements FeGridMember,
+        com.createstats.power.BoreLinks.Host,
         com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation {
-
-    /** [2] */
     public static final int SEGMENT_BUFFER = 25;
 
     @Nullable
     private FeWireNetwork network;
 
+    @Nullable
+    private IndoorCableRunBudget runBudget;
+
+    private final java.util.List<BlockPos> bores = new ArrayList<>(0);
+
     private int energy;
-    /** Signed FE moved through this segment on the last solve. Drives the readout and the pulse. */
+
     private int lastFlow;
 
-    // diagnostics, synced
-    /** [3] */
     private int load;
-    /** True when this segment is being asked for at least its full rating. Drawn hot. */
+
     private boolean overloaded;
-    /** Segments in the whole run, and the weakest rate anywhere on it. Only moves when the run does. */
+
+    private int carried;
+
     private int runSegments = 1;
     private int runWeakestRate;
+
+    private int branchCeiling = com.createstats.power.FeGridSolver.NO_CEILING;
 
     private int lastSyncedLoad = -1;
     private int lastSyncedShape = Integer.MIN_VALUE;
     private int ticksSinceSync;
-    /** Sixteen steps of load, matching {@link #load}. */
+
+    private final com.createstats.client.FlowPhase flowPhase = new com.createstats.client.FlowPhase();
+
+    private final com.createstats.power.WireJoints joints = new com.createstats.power.WireJoints();
+
     private static final int LOAD_STEPS = 15;
-    /** A still cable still says something once every two seconds, as drift insurance. */
+
     private static final int SYNC_HEARTBEAT_TICKS = 40;
 
-    /** Exposed so third-party machines can push energy into a run the way they would into a pipe. */
     private final IEnergyStorage energyView = new IEnergyStorage() {
+        private int limit(int wanted, boolean arriving) {
+            final int rated = Math.min(Math.max(0, wanted), transferRate());
+            if (runBudget == null || level == null || !FeWireNetwork.cableLimitEnabled()) {
+                return rated;
+            }
+            final long now = level.getGameTime();
+            return Math.min(rated, arriving
+                    ? runBudget.intakeRemaining(now) : runBudget.outflowRemaining(now));
+        }
+
+        private void book(int moved, boolean simulate, boolean arriving) {
+            if (simulate || moved <= 0 || runBudget == null || level == null
+                    || !FeWireNetwork.cableLimitEnabled()) {
+                return;
+            }
+            final long now = level.getGameTime();
+            if (arriving) {
+                runBudget.spendIntake(now, moved);
+            } else {
+                runBudget.spendOutflow(now, moved);
+            }
+        }
+
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
-            final int room = Math.min(Math.min(maxReceive, transferRate()), SEGMENT_BUFFER - energy);
-            if (room <= 0) {
-                return 0;
-            }
-            if (!simulate) {
+            final int limit = limit(maxReceive, true);
+            final int room = Math.max(0, Math.min(limit, SEGMENT_BUFFER - energy));
+            if (room > 0 && !simulate) {
                 energy += room;
                 setChanged();
             }
-            return room;
+            if (room >= limit || network == null) {
+                book(room, simulate, true);
+                return room;
+            }
+
+            final int moved = room + network.takeFromExternal(nodeKey(), limit - room, simulate, level);
+            book(moved, simulate, true);
+            return moved;
         }
 
         @Override
         public int extractEnergy(int maxExtract, boolean simulate) {
-            final int taken = Math.min(Math.min(maxExtract, transferRate()), energy);
-            if (taken <= 0) {
-                return 0;
-            }
-            if (!simulate) {
+            final int limit = limit(maxExtract, false);
+            final int taken = Math.max(0, Math.min(limit, energy));
+            if (taken > 0 && !simulate) {
                 energy -= taken;
                 setChanged();
             }
-            return taken;
+            if (taken >= limit || network == null) {
+                book(taken, simulate, false);
+                return FeWireNetwork.noteSeamTransfer(network, level, simulate, taken, nodeKey());
+            }
+            final int moved = taken + network.giveToExternal(nodeKey(), limit - taken, simulate, level);
+            book(moved, simulate, false);
+            return FeWireNetwork.noteSeamTransfer(network, level, simulate, moved, nodeKey());
         }
 
         @Override
@@ -104,7 +147,7 @@ public class CableBE extends BlockEntity implements FeGridMember,
 
     public CableBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-        // [4]
+
         this.ticksSinceSync = Math.floorMod(pos.hashCode(), SYNC_HEARTBEAT_TICKS);
     }
 
@@ -112,24 +155,24 @@ public class CableBE extends BlockEntity implements FeGridMember,
         return energyView;
     }
 
-    /** This segment's grade, which decides what it carries and how wide it is drawn. */
     public CableTier tier() {
         return getBlockState().getBlock() instanceof CableBlock cable ? cable.tier() : CableTier.SURFACE;
     }
 
-    /** The circuit this segment is on. Two colours that touch are two circuits, not one. */
     public net.minecraft.world.item.DyeColor colour() {
         return getBlockState().getBlock() instanceof CableBlock
                 ? getBlockState().getValue(CableBlock.COLOR)
                 : net.minecraft.world.item.DyeColor.ORANGE;
     }
 
-    /** [5] */
     public void tick() {
         if (level == null || level.isClientSide()) {
             return;
         }
         if (network == null || network.isDirty()) {
+            if (com.createstats.power.BoreLinks.prune(level, this)) {
+                return;
+            }
             FeWireNetwork.buildFrom(this);
             measureRun();
         }
@@ -139,25 +182,35 @@ public class CableBE extends BlockEntity implements FeGridMember,
         syncDiagnosticsIfDue();
     }
 
-    /** [6] */
     private void measureRun() {
-        int segments = 0;
-        int weakest = Integer.MAX_VALUE;
-        if (network != null) {
-            for (com.createstats.power.FeGridMember member : network.members()) {
-                if (member instanceof CableBE cable) {
-                    segments++;
-                    weakest = Math.min(weakest, cable.transferRate());
-                }
-            }
+        if (runBudget == null) {
+            runSegments = 1;
+            runWeakestRate = transferRate();
+            return;
         }
-        runSegments = Math.max(1, segments);
-        runWeakestRate = weakest == Integer.MAX_VALUE ? transferRate() : weakest;
+        refreshRunWeakestRate();
     }
 
-    /** Adopt the network this segment was found to belong to. Called only by {@link FeWireNetwork}. */
     public void adoptNetwork(FeWireNetwork network) {
         this.network = network;
+        refreshRunWeakestRate();
+    }
+
+    public void adoptRunBudget(IndoorCableRunBudget budget, int segments) {
+        this.runBudget = budget;
+        this.runSegments = Math.max(1, segments);
+        refreshRunWeakestRate();
+    }
+
+    private void refreshRunWeakestRate() {
+        if (runBudget == null) {
+            runWeakestRate = transferRate();
+            return;
+        }
+        final int common = network == null ? com.createstats.power.FeGridSolver.NO_CEILING
+                : network.conduitCeiling();
+        runWeakestRate = common >= com.createstats.power.FeGridSolver.NO_CEILING
+                ? runBudget.ratePerTick() : Math.min(runBudget.ratePerTick(), common);
     }
 
     @Nullable
@@ -173,61 +226,112 @@ public class CableBE extends BlockEntity implements FeGridMember,
         }
     }
 
-    // diagnostics
+    @Override
+    public BlockPos borePosition() {
+        return worldPosition;
+    }
 
-    /** How hard this segment is working, 0 to 1. Read by the renderer on both sides. */
+    @Override
+    public java.util.List<BlockPos> bores() {
+        return bores;
+    }
+
+    @Override
+    public boolean addBore(BlockPos far) {
+        if (bores.contains(far)) {
+            return false;
+        }
+        bores.add(far.immutable());
+        return true;
+    }
+
+    @Override
+    public boolean removeBore(BlockPos far) {
+        return bores.remove(far);
+    }
+
+    @Override
+    public void invalidate(Level owner) {
+        setChanged();
+        invalidateNetwork();
+        if (owner != null && !owner.isClientSide()) {
+            owner.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
+        }
+    }
+
+    @Nullable
+    public BlockPos boreTowards(Direction towards) {
+        for (BlockPos far : bores) {
+            if (com.createstats.power.BoreLinks.axisBetween(worldPosition, far) == towards) {
+                return far;
+            }
+        }
+        return null;
+    }
+
     public float loadFraction() {
         return Math.max(0.0f, Math.min(1.0f, load / (float) LOAD_STEPS));
     }
 
-    /** True when the run wants at least everything this segment can carry. Drawn hot. */
+    public com.createstats.client.FlowPhase flowPhase() {
+        return flowPhase;
+    }
+
+    public com.createstats.power.WireJoints joints() {
+        return joints;
+    }
+
     public boolean isOverloaded() {
         return overloaded;
     }
 
-    /** [7] */
     private void syncDiagnosticsIfDue() {
         final int rate = Math.max(1, transferRate());
-        final int magnitude = Math.abs(lastFlow);
-        final int step = Math.min(LOAD_STEPS, magnitude * LOAD_STEPS / rate);
+        final int magnitude = carrying();
+        final int step = com.createstats.power.FeRates.loadStep(magnitude, rate, LOAD_STEPS);
         final boolean hot = magnitude >= rate;
-        final int shape = runSegments * 31 + runWeakestRate;
+        final int ceiling = network == null ? com.createstats.power.FeGridSolver.NO_CEILING
+                : network.supplyCeiling(level);
+        final int shape = (runSegments * 31 + runWeakestRate) * 31 + ceiling;
+
+        final boolean live = magnitude > 0;
         ticksSinceSync++;
         if (step == lastSyncedLoad && hot == overloaded && shape == lastSyncedShape
-                && ticksSinceSync < SYNC_HEARTBEAT_TICKS) {
+                && live == (carried > 0) && ticksSinceSync < SYNC_HEARTBEAT_TICKS) {
             return;
         }
         load = step;
+        carried = magnitude;
         overloaded = hot;
+        branchCeiling = ceiling;
         lastSyncedLoad = step;
         lastSyncedShape = shape;
         ticksSinceSync = 0;
         setChanged();
-        // Flag 2: clients only. A cable getting busier is not a redstone event.
+
         level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
     }
 
-    /** [8] */
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         final int rate = transferRate();
-        tooltip.add(Component.literal("    ").append(
-                Component.literal(tier().getDisplayName()).withStyle(ChatFormatting.GRAY)));
-        tooltip.add(Component.literal("    ").append(Component
-                .literal(String.format(Locale.ROOT, "Carrying %,d of %,d FE/t", Math.abs(lastFlow), rate))
-                .withStyle(overloaded ? ChatFormatting.RED
-                        : lastFlow != 0 ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY)));
-        tooltip.add(Component.literal("    ").append(Component
-                .literal(String.format(Locale.ROOT, "Run: %d segments, %s", runSegments,
-                        runWeakestRate < rate
-                                ? String.format(Locale.ROOT, "throttled to %,d FE/t by a thinner grade",
-                                        runWeakestRate)
-                                : "no thinner grade on it"))
-                .withStyle(runWeakestRate < rate ? ChatFormatting.YELLOW : ChatFormatting.DARK_GRAY)));
+        tooltip.add(com.createstats.power.FeGoggle.title(tier().getDisplayName()));
+
+        tooltip.add(com.createstats.power.FeGoggle.carrying(carried, rate));
+        tooltip.add(com.createstats.power.FeGoggle.capacity(rate));
+
+        final int weakest = runWeakestRate > 0 ? runWeakestRate : rate;
+        if (weakest < rate) {
+            tooltip.add(com.createstats.power.FeGoggle.warn(String.format(Locale.ROOT,
+                    "Run of %d throttled to %,d FE/t by a thinner grade", runSegments, weakest)));
+        }
+
+        if (branchCeiling < rate) {
+            tooltip.add(com.createstats.power.FeGoggle.warn(String.format(Locale.ROOT,
+                    "Branch held to %,d FE/t by an inline limiter", Math.max(0, branchCeiling))));
+        }
         return true;
     }
-
-    // feGridMember
 
     @Override
     public long nodeKey() {
@@ -253,13 +357,11 @@ public class CableBE extends BlockEntity implements FeGridMember,
         return SEGMENT_BUFFER;
     }
 
-    /** FE per tick one block of this grade moves. The whole difference between the three grades. */
     @Override
     public int transferRate() {
         return tier().rate(PowerConnectorBE.baseTransferRate());
     }
 
-    /** [9] */
     @Override
     @Nullable
     public IEnergyStorage attachedStorage() {
@@ -276,46 +378,66 @@ public class CableBE extends BlockEntity implements FeGridMember,
         this.lastFlow = flow;
     }
 
-    /** Everything moving through this position on the last solve. */
     public int lastFlow() {
         return lastFlow;
     }
 
-    // rendering
+    public int carrying() {
+        if (network == null || level == null) {
+            return 0;
+        }
+        final long now = level.getGameTime();
+        final int mine = network.flowThrough(nodeKey(), now);
+        return mine == com.createstats.power.FeFlowGraph.UNKNOWN
+                ? network.throughputFePerTick(now) : mine;
+    }
 
-    /** [10] */
     public CableLinks.Link link(Direction face, Direction towards) {
         return level == null ? CableLinks.Link.NONE
                 : CableLinks.of(CableBlock.linkViewOf(level), worldPosition, face, towards);
     }
 
-    /**
-     * True when the cable this run joins in {@code towards} is a <b>thinner</b> grade than this one.
-     *
-     * <p>This is what closes the see-through step where two grades meet. Where a run carries straight
-     * on from a Surface Cable into a Bus Duct, the two bars are different sizes, and the heavier one's
-     * end was left open on the assumption the neighbour filled it, which a thinner neighbour cannot:
-     * the ring around the thin cord became a hole into the hollow of the thick one. So the heavier side
-     * caps its end here, and the thinner run plugs into the centre of that cap, which reads as the
-     * reducer it actually is instead of a gap.</p>
-     *
-     * @param kind the already-resolved link, so this does not recompute it
-     */
-    public boolean neighborThinner(Direction face, Direction towards, CableLinks.Link kind) {
+    public record WrappedDevice(BlockPos pos, Direction fromSide) {
+    }
+
+    public List<WrappedDevice> wrappedDevices() {
+        if (level == null) {
+            return List.of();
+        }
+        final BlockState state = getBlockState();
+        final List<WrappedDevice> out = new ArrayList<>(2);
+        for (Direction face : Direction.values()) {
+            if (!CableBlock.hasFace(state, face)) {
+                continue;
+            }
+            for (Direction towards : Direction.values()) {
+                if (link(face, towards) != CableLinks.Link.DEVICE_WRAP) {
+                    continue;
+                }
+                final BlockPos at = worldPosition.relative(towards).relative(face);
+                final Direction fromSide = face.getOpposite();
+                if (out.stream().noneMatch(w -> w.pos().equals(at))) {
+                    out.add(new WrappedDevice(at, fromSide));
+                }
+            }
+        }
+        return out;
+    }
+
+    public boolean neighborOtherGrade(Direction face, Direction towards, CableLinks.Link kind) {
         if (level == null) {
             return false;
         }
         final BlockPos ahead = switch (kind) {
             case FLAT -> worldPosition.relative(towards);
             case CONVEX -> worldPosition.relative(towards).relative(face);
-            default -> null;   // a turn into a wall or a machine has no coplanar grade step to close
+            default -> null;
         };
         return ahead != null
                 && level.getBlockEntity(ahead) instanceof CableBE other
-                && other.tier().ordinal() < tier().ordinal();
+                && other.tier() != tier();
     }
 
-    /** [11] */
     public float reachInto(Direction towards) {
         final float minimum = 1.0f / 16.0f;
         if (level == null) {
@@ -330,11 +452,9 @@ public class CableBE extends BlockEntity implements FeGridMember,
         final double depth = towards.getAxisDirection() == Direction.AxisDirection.POSITIVE
                 ? shape.min(axis)
                 : 1.0 - shape.max(axis);
-        // [12]
+
         return (float) Math.max(minimum, Math.min(0.4, depth));
     }
-
-    // persistence
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
@@ -342,15 +462,18 @@ public class CableBE extends BlockEntity implements FeGridMember,
         tag.putInt("Energy", energy);
         tag.putInt("Flow", lastFlow);
         tag.putByte("Load", (byte) load);
+        tag.putInt("Carried", carried);
         tag.putBoolean("Hot", overloaded);
         tag.putInt("RunN", runSegments);
         tag.putInt("RunMin", runWeakestRate);
+        tag.putInt("BranchCap", branchCeiling);
+        com.createstats.power.BoreLinks.save(tag, bores);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        // [13]
+
         if (tag.contains("StrandEnergy")) {
             final int[] stored = tag.getIntArray("StrandEnergy");
             energy = stored.length > 0 ? Math.max(0, Math.min(SEGMENT_BUFFER, stored[0])) : 0;
@@ -358,12 +481,17 @@ public class CableBE extends BlockEntity implements FeGridMember,
             energy = Math.max(0, Math.min(SEGMENT_BUFFER, tag.getInt("Energy")));
         }
         load = Math.max(0, Math.min(LOAD_STEPS, tag.getByte("Load")));
+        carried = Math.max(0, tag.getInt("Carried"));
         overloaded = tag.getBoolean("Hot");
         lastFlow = tag.getInt("Flow");
         runSegments = Math.max(1, tag.getInt("RunN"));
         runWeakestRate = Math.max(0, tag.getInt("RunMin"));
-        // What was loaded is what the client already has, so a freshly loaded chunk does not
-        // immediately resend everything it just read off disk.
+
+        branchCeiling = tag.contains("BranchCap") ? tag.getInt("BranchCap")
+                : com.createstats.power.FeGridSolver.NO_CEILING;
+        bores.clear();
+        bores.addAll(com.createstats.power.BoreLinks.load(tag));
+
         lastSyncedLoad = load;
         lastSyncedShape = runSegments * 31 + runWeakestRate;
     }
@@ -375,7 +503,6 @@ public class CableBE extends BlockEntity implements FeGridMember,
         return tag;
     }
 
-    /** [14] */
     @Override
     public net.minecraft.network.protocol.Packet<
             net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket() {

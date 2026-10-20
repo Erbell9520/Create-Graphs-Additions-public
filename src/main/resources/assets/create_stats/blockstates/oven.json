@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/oven"
+    },
+    "facing=east": {
+      "model": "create_stats:block/oven",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/oven",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/oven",
+      "y": 270
+    }
+  }
+}

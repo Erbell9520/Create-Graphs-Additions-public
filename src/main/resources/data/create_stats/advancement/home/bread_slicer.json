@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:home/coffee",
+  "display": {
+    "icon": {
+      "id": "create_stats:bread_slicer"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.bread_slicer.title",
+      "fallback": "Halk Ekmek"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.bread_slicer.description",
+      "fallback": "Place a Bread Slicer. Bread queue at seven, like a true İstanbul local."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "slicer": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:bread_slicer"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "slicer"
+    ]
+  ]
+}

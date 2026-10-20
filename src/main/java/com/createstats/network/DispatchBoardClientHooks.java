@@ -4,13 +4,13 @@ import com.createstats.train.manifest.DeliveryOrderBoardView;
 import com.createstats.train.manifest.FreightManifest;
 import com.createstats.train.manifest.FreightStationCargoView;
 import com.createstats.train.manifest.FreightStationLink;
+import com.createstats.train.manifest.StationTrainRoster;
 import java.lang.reflect.Method;
 import net.minecraft.core.BlockPos;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 public final class DispatchBoardClientHooks {
-
     private static final String CLIENT_SCREEN_HELPER = "com.createstats.client.ClientScreenHelper";
     private static final String CLIENT_PACKET_HANDLER = "com.createstats.client.ClientPacketHandler";
 
@@ -18,16 +18,22 @@ public final class DispatchBoardClientHooks {
     }
 
     public static void openDispatchBoard(BlockPos pos, FreightStationLink stationLink, FreightManifest manifest,
-                                         FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard, boolean canEdit) {
+                                         FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard,
+                                         StationTrainRoster stationRoster, boolean canEdit) {
         invoke(CLIENT_SCREEN_HELPER, "openDispatchBoard",
-            new Class<?>[]{BlockPos.class, FreightStationLink.class, FreightManifest.class, FreightStationCargoView.class, DeliveryOrderBoardView.class, boolean.class},
-            pos, stationLink, manifest, cargoView, deliveryBoard, canEdit);
+            new Class<?>[]{BlockPos.class, FreightStationLink.class, FreightManifest.class,
+                FreightStationCargoView.class, DeliveryOrderBoardView.class, StationTrainRoster.class, boolean.class},
+            pos, stationLink, manifest, cargoView, deliveryBoard, stationRoster, canEdit);
     }
 
-    public static void handleDispatchBoardState(BlockPos pos, FreightManifest manifest, FreightStationCargoView cargoView, DeliveryOrderBoardView deliveryBoard) {
+    public static void handleDispatchBoardState(BlockPos pos, FreightManifest manifest,
+                                                FreightStationCargoView cargoView,
+                                                DeliveryOrderBoardView deliveryBoard,
+                                                StationTrainRoster stationRoster) {
         invoke(CLIENT_PACKET_HANDLER, "handleDispatchBoardState",
-            new Class<?>[]{BlockPos.class, FreightManifest.class, FreightStationCargoView.class, DeliveryOrderBoardView.class},
-            pos, manifest, cargoView, deliveryBoard);
+            new Class<?>[]{BlockPos.class, FreightManifest.class, FreightStationCargoView.class,
+                DeliveryOrderBoardView.class, StationTrainRoster.class},
+            pos, manifest, cargoView, deliveryBoard, stationRoster);
     }
 
     private static void invoke(String className, String methodName, Class<?>[] parameterTypes, Object... args) {

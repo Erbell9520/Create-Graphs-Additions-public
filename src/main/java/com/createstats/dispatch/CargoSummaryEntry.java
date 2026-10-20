@@ -4,12 +4,7 @@ import com.createstats.train.manifest.FreightManifestResourceKey;
 import com.createstats.train.manifest.ManifestCargoKind;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * A single cargo summary slot for the board's cargo region.
- * Pairs a resource key with its total amount on the train.
- */
 public class CargoSummaryEntry {
-
     private final FreightManifestResourceKey resourceKey;
     private final int amount;
 
@@ -34,10 +29,6 @@ public class CargoSummaryEntry {
         return this.amount;
     }
 
-    /**
-     * Compact display string, e.g. "64 Iron Ingot" or "4000 mB Water".
-     * Uses the resource ID path as a fallback display name.
-     */
     public String getCompactLabel() {
         String name = this.resourceKey.getResourceId().getPath().replace('_', ' ');
         if (this.resourceKey.getCargoKind() == ManifestCargoKind.FLUID) {

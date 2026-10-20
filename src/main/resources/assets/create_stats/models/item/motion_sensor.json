@@ -1,0 +1,433 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_stats:block/motion_sensor_shell",
+    "shell": "create_stats:block/motion_sensor_shell",
+    "face": "create_stats:block/motion_sensor_face",
+    "window": "create_stats:block/motion_sensor_window"
+  },
+  "elements": [
+    {
+      "name": "backplate",
+      "from": [
+        5.5,
+        4.0,
+        5.3689
+      ],
+      "to": [
+        10.5,
+        13.0,
+        6.2689
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            3.0,
+            10.5,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            5.3689,
+            3.0,
+            6.2689,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            5.3689,
+            3.0,
+            6.2689,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            5.3689,
+            10.5,
+            6.2689
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            5.5,
+            5.3689,
+            10.5,
+            6.2689
+          ]
+        }
+      }
+    },
+    {
+      "name": "body",
+      "from": [
+        5.0,
+        4.0,
+        6.2689
+      ],
+      "to": [
+        11.0,
+        12.0,
+        8.2689
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            4.0,
+            11.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#face",
+          "uv": [
+            5.0,
+            4.0,
+            11.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            6.2689,
+            4.0,
+            8.2689,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            6.2689,
+            4.0,
+            8.2689,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            6.2689,
+            11.0,
+            8.2689
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            6.2689,
+            11.0,
+            8.2689
+          ]
+        }
+      }
+    },
+    {
+      "name": "vent_cap",
+      "from": [
+        5.4,
+        12.0,
+        6.2689
+      ],
+      "to": [
+        10.6,
+        13.4,
+        7.8689
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shell",
+          "uv": [
+            5.4,
+            2.5999999999999996,
+            10.6,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            5.4,
+            2.5999999999999996,
+            10.6,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            6.2689,
+            2.5999999999999996,
+            7.8689,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            6.2689,
+            2.5999999999999996,
+            7.8689,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.4,
+            6.2689,
+            10.6,
+            7.8689
+          ]
+        }
+      }
+    },
+    {
+      "name": "brow",
+      "from": [
+        5.0,
+        9.0,
+        8.2689
+      ],
+      "to": [
+        11.0,
+        10.0,
+        9.6689
+      ],
+      "faces": {
+        "south": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            6.0,
+            11.0,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            8.2689,
+            6.0,
+            9.6689,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            8.2689,
+            6.0,
+            9.6689,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            8.2689,
+            11.0,
+            9.6689
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            8.2689,
+            11.0,
+            9.6689
+          ]
+        }
+      }
+    },
+    {
+      "name": "dome",
+      "from": [
+        5.0,
+        5.0,
+        8.2689
+      ],
+      "to": [
+        11.0,
+        9.0,
+        9.1689
+      ],
+      "faces": {
+        "south": {
+          "texture": "#window",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#shell",
+          "uv": [
+            8.2689,
+            7.0,
+            9.1689,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#shell",
+          "uv": [
+            8.2689,
+            7.0,
+            9.1689,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            8.2689,
+            11.0,
+            9.1689
+          ]
+        },
+        "down": {
+          "texture": "#shell",
+          "uv": [
+            5.0,
+            8.2689,
+            11.0,
+            9.1689
+          ]
+        }
+      },
+      "rotation": {
+        "angle": -22.5,
+        "axis": "x",
+        "origin": [
+          8.0,
+          9.0,
+          8.2689
+        ]
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.45
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        13,
+        7
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

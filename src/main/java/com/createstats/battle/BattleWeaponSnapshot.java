@@ -38,7 +38,6 @@ public record BattleWeaponSnapshot(
         int missingBreechBlocks,
         int missingMountBlocks,
         int missingLoaderBlocks) {
-
     public static BattleWeaponSnapshot empty() {
         return new BattleWeaponSnapshot(
                 false,

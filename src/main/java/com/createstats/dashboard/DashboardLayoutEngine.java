@@ -17,18 +17,18 @@ public final class DashboardLayoutEngine
 {
     public static final int MIN_BLOCKS_THRESHOLD = 6;
     public static final int MIN_DIMENSION = 3;
-    
+
     private DashboardLayoutEngine() {
     }
-    
+
     private static int getMinBlocksThreshold() {
         return (int)ModConfiguration.COMMON.dashboardMinBlocks.get();
     }
-    
+
     private static int getMinDimension() {
         return (int)ModConfiguration.COMMON.dashboardMinDimension.get();
     }
-    
+
     public static boolean shouldActivate(StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels) {
         final StatsDisplaySettings settings = be.getSettings();
         final StatsDisplaySettings.DisplayMode mode = settings.getDisplayMode();
@@ -58,7 +58,7 @@ public final class DashboardLayoutEngine
         org.slf4j.LoggerFactory.getLogger("CreateStats").debug("[Dashboard] shouldActivate={}: mode=AUTO, {}x{} blocks={} ch={} minDim={}", result, mbW, mbH, blocks, chCount, minDim);
         return result;
     }
-    
+
     public static DashboardLayout compute(int texW, int texH, StatsDisplayPanelBE be, List<StatsDisplayPanelBE.DataChannel> channels) {
         final StatsDisplaySettings settings = be.getSettings();
         final List<DashboardZone> zones = new ArrayList<DashboardZone>();
@@ -138,7 +138,7 @@ public final class DashboardLayoutEngine
         assignChannelsToZones(channels, zones, settings);
         return new DashboardLayout(zones);
     }
-    
+
     private static void assignChannelsToZones(List<StatsDisplayPanelBE.DataChannel> channels, List<DashboardZone> zones, StatsDisplaySettings settings) {
         final List<StatsDisplayPanelBE.DataChannel> scored = new ArrayList<StatsDisplayPanelBE.DataChannel>(channels);
         scored.sort((a, b) -> Float.compare(ChannelPriorityScorer.computePriority(b), ChannelPriorityScorer.computePriority(a)));
@@ -191,7 +191,7 @@ public final class DashboardLayoutEngine
             sparkZones.get(j).assignedChannel = scored.get(j);
         }
     }
-    
+
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }

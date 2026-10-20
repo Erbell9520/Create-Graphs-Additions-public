@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:dried_kelp_block",
+    "minecraft:bamboo_block",
+    "minecraft:stripped_bamboo_block",
+    "minecraft:nether_wart_block",
+    "minecraft:warped_wart_block"
+  ]
+}

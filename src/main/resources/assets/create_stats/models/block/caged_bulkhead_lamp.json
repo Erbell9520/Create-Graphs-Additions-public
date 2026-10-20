@@ -2,8 +2,9 @@
   "parent": "minecraft:block/block",
   "textures": {
     "housing": "create_stats:block/lamp_housing",
+    "gland": "create_stats:block/lamp_gland",
     "cage": "create_stats:block/lamp_cage",
-    "diffuser": "create_stats:block/lamp_diffuser",
+    "brass": "create_stats:block/lamp_brass",
     "particle": "create_stats:block/lamp_housing"
   },
   "elements": [
@@ -146,6 +147,75 @@
       }
     },
     {
+      "__comment": "gland",
+      "from": [
+        6.6,
+        0.4,
+        1.0
+      ],
+      "to": [
+        9.4,
+        1.9,
+        2.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#gland"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#gland"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#gland"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#gland"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#gland"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#gland"
+        }
+      }
+    },
+    {
       "__comment": "collar",
       "from": [
         4.4,
@@ -211,81 +281,6 @@
             7
           ],
           "texture": "#cage"
-        }
-      }
-    },
-    {
-      "__comment": "glass",
-      "from": [
-        5.2,
-        3.2,
-        5.2
-      ],
-      "to": [
-        10.8,
-        7.2,
-        10.8
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            6,
-            4
-          ],
-          "texture": "#diffuser",
-          "tintindex": 0
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            6,
-            4
-          ],
-          "texture": "#diffuser",
-          "tintindex": 0
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            6,
-            4
-          ],
-          "texture": "#diffuser",
-          "tintindex": 0
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            6,
-            4
-          ],
-          "texture": "#diffuser",
-          "tintindex": 0
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            6,
-            6
-          ],
-          "texture": "#diffuser",
-          "tintindex": 0
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            6,
-            6
-          ],
-          "texture": "#diffuser",
-          "tintindex": 0
         }
       }
     },
@@ -562,6 +557,282 @@
             1
           ],
           "texture": "#cage"
+        }
+      }
+    },
+    {
+      "__comment": "nut_nw",
+      "from": [
+        4.3,
+        3.2,
+        4.3
+      ],
+      "to": [
+        5.4,
+        3.6,
+        5.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "__comment": "nut_ne",
+      "from": [
+        10.6,
+        3.2,
+        4.3
+      ],
+      "to": [
+        11.7,
+        3.6,
+        5.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "__comment": "nut_sw",
+      "from": [
+        4.3,
+        3.2,
+        10.6
+      ],
+      "to": [
+        5.4,
+        3.6,
+        11.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "__comment": "nut_se",
+      "from": [
+        10.6,
+        3.2,
+        10.6
+      ],
+      "to": [
+        11.7,
+        3.6,
+        11.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
         }
       }
     },

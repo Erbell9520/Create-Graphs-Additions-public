@@ -3,14 +3,11 @@ package com.createstats.gui.pdu;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
-/** [1] */
 public final class PduSegmented {
-
     private final String[] options;
     private int selected;
     private boolean focused;
 
-    /** Segment x starts, cached from draw. Length is {@code options.length + 1}; the last is the end. */
     private final int[] segStarts;
     private int segTop;
     private int segHeight;
@@ -46,7 +43,6 @@ public final class PduSegmented {
         this.focused = focused;
     }
 
-    /** Total pixel width the control needs, so a toolbar can budget space before drawing. */
     public int width(Font font) {
         int w = 0;
         for (String o : options) {
@@ -72,8 +68,7 @@ public final class PduSegmented {
                     active ? PduTheme.BG_RAISED : hovered ? PduTheme.BG_PANEL : PduTheme.BG_DEEP);
             g.drawString(font, options[i], cx + 6, y + (height - 8) / 2,
                     active ? PduTheme.TEXT : PduTheme.TEXT_DIM, false);
-            // Active underline in brass: the same active cue the rail and the tabs use, so "which one
-            // is selected" reads the same way everywhere on the screen.
+
             if (active) {
                 g.fill(cx + 4, y + height - 2, cx + w - 4, y + height - 1, PduTheme.ACCENT);
             }
@@ -86,7 +81,10 @@ public final class PduSegmented {
         }
     }
 
-    /** The segment under the cursor, or {@code -1}. The screen decides whether that selects or reverses. */
+    public PduRect segmentRect(int i) {
+        return new PduRect(segStarts[i], segTop, segStarts[i + 1] - segStarts[i], segHeight);
+    }
+
     public int segmentAt(double mx, double my) {
         if (options.length == 0 || my < segTop || my >= segTop + segHeight) {
             return -1;

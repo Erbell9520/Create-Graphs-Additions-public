@@ -28,7 +28,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class SafetyClutchLinkCardItem extends Item {
-
     private static final String TAG_KEY = "SafetyClutchLinkCard";
 
     public SafetyClutchLinkCardItem(Properties properties) {

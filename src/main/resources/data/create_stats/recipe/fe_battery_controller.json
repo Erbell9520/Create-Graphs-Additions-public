@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CGC",
+    "BKB",
+    "CGC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "G": {
+      "item": "create_stats:power_connector"
+    },
+    "B": {
+      "item": "create:brass_ingot"
+    },
+    "K": {
+      "item": "create_stats:capacitor_bank"
+    }
+  },
+  "result": {
+    "id": "create_stats:fe_battery_controller",
+    "count": 1
+  },
+  "show_notification": true
+}

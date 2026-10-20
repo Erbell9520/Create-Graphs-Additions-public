@@ -8,10 +8,10 @@ public final class CreateThemeDecorator
     private static final int BRASS_DIM = -7640812;
     private static final int COPPER = -4689101;
     private static final int DARK_IRON = -13882320;
-    
+
     private CreateThemeDecorator() {
     }
-    
+
     public static void decorate(NativeImage image, int bgColor, int contentX, int contentY, int contentW, int contentH) {
         final int w = image.getWidth();
         final int h = image.getHeight();
@@ -25,7 +25,7 @@ public final class CreateThemeDecorator
         final int wrenchSize = Math.max(6, Math.min(w, h) / 12);
         drawWrenchIcon(image, bgColor, w - wrenchSize - 6, 6, wrenchSize);
     }
-    
+
     private static void drawCogWatermark(NativeImage image, int bgColor, int cx, int cy, int radius) {
         final int imgW = image.getWidth();
         final int imgH = image.getHeight();
@@ -81,7 +81,7 @@ public final class CreateThemeDecorator
             }
         }
     }
-    
+
     private static void drawPipeBorder(NativeImage image, int bgColor, int x, int y, int w, int h) {
         final int thickness = Math.max(2, Math.min(w, h) / 48);
         final int ironColor = opaqueBlend(bgColor, -13882320, 0.85);
@@ -122,7 +122,7 @@ public final class CreateThemeDecorator
             drawRivet(image, x + w - 1 - thickness / 2, y + i, rivetR, abgrRivet);
         }
     }
-    
+
     private static void drawRivet(NativeImage image, int cx, int cy, int r, int abgr) {
         final int imgW = image.getWidth();
         final int imgH = image.getHeight();
@@ -134,7 +134,7 @@ public final class CreateThemeDecorator
             }
         }
     }
-    
+
     private static void drawCornerGear(NativeImage image, int bgColor, int x, int y, int size, boolean flipX, boolean flipY) {
         final int imgW = image.getWidth();
         final int imgH = image.getHeight();
@@ -170,7 +170,7 @@ public final class CreateThemeDecorator
             }
         }
     }
-    
+
     private static void drawWrenchIcon(NativeImage image, int bgColor, int x, int y, int size) {
         final int imgW = image.getWidth();
         final int imgH = image.getHeight();
@@ -203,7 +203,7 @@ public final class CreateThemeDecorator
             }
         }
     }
-    
+
     private static int opaqueBlend(int bgArgb, int fgArgb, double opacity) {
         final int bgR = bgArgb >> 16 & 0xFF;
         final int bgG = bgArgb >> 8 & 0xFF;
@@ -216,7 +216,7 @@ public final class CreateThemeDecorator
         final int b = (int)(bgB + (fgB - bgB) * opacity);
         return 0xFF000000 | r << 16 | g << 8 | b;
     }
-    
+
     private static void safePx(NativeImage image, int x, int y, int imgW, int imgH, int abgr) {
         if (x >= 0 && x < imgW && y >= 0 && y < imgH) {
             image.setPixelRGBA(x, y, abgr);

@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class AutoTransmissionClutchSettings {
-
     private static final float SU_MIN = 1.0f;
     private static final float SU_MAX = 65536.0f;
     private static final float PCT_MIN = 1.0f;
@@ -20,7 +19,7 @@ public class AutoTransmissionClutchSettings {
     private boolean enabled;
 
     public AutoTransmissionClutchSettings() {
-        this.limitMode = LimitMode.SU;
+        this.limitMode = LimitMode.PERCENTAGE;
         this.suLowerBound = 128.0f;
         this.suUpperBound = 256.0f;
         this.percentageLowerBound = 50.0f;
@@ -71,9 +70,16 @@ public class AutoTransmissionClutchSettings {
         }
     }
 
-    // Backwards compatibility: single "limit value" maps to upper bound
     public float getLimitValue() { return this.getUpperBound(); }
     public void setLimitValue(float v) { setUpperBound(v); }
+
+    public float getPercentageLowerBound() { return this.percentageLowerBound; }
+    public float getPercentageUpperBound() { return this.percentageUpperBound; }
+
+    public void setPercentageBand(float lower, float upper) {
+        this.limitMode = LimitMode.PERCENTAGE;
+        setBoundsForMode(LimitMode.PERCENTAGE, lower, upper);
+    }
 
     public float getMinimumRPM() { return this.minimumRPM; }
     public void setMinimumRPM(float v) {
@@ -145,6 +151,9 @@ public class AutoTransmissionClutchSettings {
 
     public static AutoTransmissionClutchSettings load(CompoundTag tag) {
         final AutoTransmissionClutchSettings s = new AutoTransmissionClutchSettings();
+        // no mode in the save = from before modes, that was SU
+
+        s.limitMode = LimitMode.SU;
         try { s.limitMode = LimitMode.valueOf(tag.getString("LimitMode")); } catch (Exception ignored) {}
         boolean loadedModeSpecificBounds = false;
         if (tag.contains("SULowerBound") || tag.contains("SUUpperBound")
@@ -176,7 +185,6 @@ public class AutoTransmissionClutchSettings {
             if (tag.contains("LowerBound")) {
                 s.setLowerBound(tag.getFloat("LowerBound"));
             } else if (tag.contains("LimitValue")) {
-                // Legacy migration: single limit becomes upper bound
                 s.setUpperBound(tag.getFloat("LimitValue"));
                 s.setLowerBound(s.getUpperBound() * 0.75f);
             }

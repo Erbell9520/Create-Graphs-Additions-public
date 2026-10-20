@@ -1,10 +1,12 @@
 package com.createstats.blockentity;
 
+import com.createstats.advancement.ModAdvancements;
 import com.createstats.antenna.AntennaRange;
 import com.createstats.antenna.AntennaTier;
 import com.createstats.antenna.RangeAttachment;
 import com.createstats.block.DispatchBoardBlock;
 import com.createstats.dispatch.DispatchBoardSnapshot;
+import com.createstats.train.egg.ManifestEgg;
 import com.createstats.train.manifest.DeliveryOrderBoardView;
 import com.createstats.train.manifest.FreightManifest;
 import com.createstats.train.manifest.FreightManifestSavedData;
@@ -45,12 +47,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com.createstats.power.IFeConsumer {
-
-    /** FE Dependent Mode buffer (drained by the multiblock controller only). Receive-only. */
     private final com.createstats.power.FeConsumer feConsumer = com.createstats.power.FeConsumer
             .forBlockEntity(this, com.createstats.power.FeProfiles.settings(com.createstats.power.FeProfiles.KEY_DISPATCH_BOARD));
 
-    /** [1] */
     public com.createstats.power.FeConsumer feConsumer() {
         if (!this.isController) {
             final DispatchBoardBE controller = this.getControllerBE();
@@ -69,7 +68,14 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
     private static final String TAG_TOTAL_ORDERS = "TotalOrders";
     private static final String TAG_COMPLETED_ORDERS = "CompletedOrders";
     private static final String TAG_DISMISSED_ORDERS = "DismissedOrders";
-    private static final int REFRESH_INTERVAL_TICKS = 20;
+    private static final String TAG_MANIFEST_SHOW_UNTIL = "ManifestShowUntil";
+
+    private static final int REFRESH_IDLE_TICKS = 40;
+    private static final int REFRESH_ACTIVE_TICKS = 10;
+
+    private static final int SCREEN_REFRESH_MAX_AGE_TICKS = 5;
+
+    private static final int SCREEN_ROSTER_MAX_AGE_TICKS = 20;
     private static final String UNLINKED_STATUS = "Dispatch board is not linked.";
 
     public static final int MAX_WALL_SIZE = 8;
@@ -85,26 +91,29 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
     private int completedOrders;
     private int dismissedOrders;
 
-    // Full snapshot state (transient, recaptured every tick, not persisted to disk)
     private FreightManifest manifest;
     private FreightStationCargoView cargoView;
     private DeliveryOrderBoardView deliveryBoard;
 
-    // Station train roster (transient, recaptured periodically from Create's train graph)
     private StationTrainRoster stationRoster;
 
-    // Assembled board snapshot (transient, rebuilt after each refresh from raw state)
     private DispatchBoardSnapshot boardSnapshot;
 
-    // Visit history (persisted, tracks train arrivals/departures at this station)
     private List<TrainVisitRecord> visitHistory = new ArrayList<>();
     private UUID lastSeenTrainId;
 
-    // Multiblock controller/member state
+    private long manifestShowUntil;
+
     private boolean isController;
     private BlockPos controllerPos;
     private int multiblockWidth;
     private int multiblockHeight;
+
+    private int refreshCooldown;
+    private int rosterCooldown;
+    private long lastRefreshTick = Long.MIN_VALUE;
+
+    private int lastSyncSignature = Integer.MIN_VALUE;
 
     private boolean postLoadValidated = false;
     private int postLoadRetryTicks = 0;
@@ -125,6 +134,8 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         this.multiblockWidth = 1;
         this.multiblockHeight = 1;
         this.antennaTier = AntennaTier.NONE;
+        this.refreshCooldown = Math.floorMod(pos.hashCode(), REFRESH_IDLE_TICKS) + 1;
+        this.rosterCooldown = 1;
     }
 
     public void tick() {
@@ -134,29 +145,66 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         if (!this.postLoadValidated) {
             this.runPostLoadValidation();
         }
-        // Any board in the assembly is a valid charging point for the shared bank, even though
-        // only the controller ever spends from it.
+
         com.createstats.power.FePowerFx.chargeFromNeighbors(this.level, this.worldPosition, this.feConsumer());
         if (!this.isController) {
             return;
         }
-        // FE Dependent Mode gate: the controller pays the drain; a dead board stops refreshing
-        // its train and cargo summaries. Each refresh also pays a burst.
+
         final boolean fePowered = this.feConsumer.serviceTick(true);
         com.createstats.power.FePowerFx.handleTransition(this.level, this.worldPosition, this.feConsumer);
         if (!fePowered) {
             return;
         }
-        if (this.level.getGameTime() % REFRESH_INTERVAL_TICKS != 0L) {
+        if (--this.refreshCooldown > 0) {
             return;
         }
+
         if (!this.feConsumer.spendBurst()) {
+            this.refreshCooldown = 1;
+            return;
+        }
+        this.refreshSummary();
+        this.refreshCooldown = this.trainPresent ? REFRESH_ACTIVE_TICKS : REFRESH_IDLE_TICKS;
+    }
+
+    // one capture per refresh window, the open screen polled a full capture several times a sec
+    public void refreshSummaryIfStale() {
+        if (this.level != null && this.lastRefreshTick != Long.MIN_VALUE
+                && this.level.getGameTime() - this.lastRefreshTick < SCREEN_REFRESH_MAX_AGE_TICKS) {
             return;
         }
         this.refreshSummary();
     }
 
-    // multiblock accessors
+    public void refreshRosterForScreenIfStale() {
+        if (this.level == null || this.level.isClientSide() || this.level.getServer() == null
+                || !this.stationLink.isLinked()) {
+            return;
+        }
+        long now = this.level.getGameTime();
+        if (this.stationRoster.getCaptureTick() > 0L
+                && now - this.stationRoster.getCaptureTick() < SCREEN_ROSTER_MAX_AGE_TICKS) {
+            return;
+        }
+        ServerLevel stationLevel = FreightManifestStationResolver.resolveStationLevel(
+                this.level.getServer(), this.stationLink);
+        if (stationLevel == null) {
+            this.stationRoster = StationTrainRoster.empty(now);
+            this.rebuildSnapshot();
+            return;
+        }
+        GlobalStation station = FreightManifestStationResolver.resolveStation(stationLevel, this.stationLink);
+        if (station == null) {
+            this.stationRoster = StationTrainRoster.empty(now);
+            this.rebuildSnapshot();
+            return;
+        }
+        String liveStationName = station.name != null ? station.name : this.stationLink.getStationName();
+        this.stationRoster = StationTrainRoster.capture(
+                this.level.getServer(), station, liveStationName, this.visitHistory, now);
+        this.rebuildSnapshot();
+    }
 
     public boolean isController() {
         return this.isController;
@@ -166,10 +214,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         return this.controllerPos;
     }
 
-    /**
-     * Returns the controller block entity. If this is already the controller, returns itself.
-     * For members, resolves the controller from controllerPos.
-     */
     public DispatchBoardBE getControllerBE() {
         if (this.isController) {
             return this;
@@ -204,9 +248,7 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
             return members;
         }
         Direction facing = myState.getValue(DispatchBoardBlock.FACING);
-        // DispatchBoard FACING = display direction (opposite of StatsDisplayPanel).
-        // CounterClockWise places the controller at the correct corner so the
-        // BER quad extends over the multiblock in the right direction.
+
         Direction right = facing.getCounterClockWise();
         for (int dy = 0; dy < this.multiblockHeight; dy++) {
             for (int dx = 0; dx < this.multiblockWidth; dx++) {
@@ -243,8 +285,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         this.notifyUpdate();
     }
 
-    // multiblock formation
-
     public void detectAndFormMultiblock() {
         if (this.level == null || this.level.isClientSide()) {
             return;
@@ -256,7 +296,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         Direction facing = myState.getValue(DispatchBoardBlock.FACING);
         Direction right = facing.getCounterClockWise();
 
-        // Flood-fill to find all connected dispatch board blocks with the same facing
         Set<BlockPos> connected = new HashSet<>();
         Queue<BlockPos> toCheck = new LinkedList<>();
         toCheck.add(this.worldPosition);
@@ -279,7 +318,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
             }
         }
 
-        // Project onto (h, v) coordinate space relative to a reference point
         BlockPos ref = connected.iterator().next();
         int refH = dotAlongAxis(ref, right);
         int refV = ref.getY();
@@ -296,7 +334,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
             maxV = Math.max(maxV, v);
         }
 
-        // Find largest rectangle, capped at MAX_WALL_SIZE x MAX_WALL_SIZE
         int bestArea = 0, bestRH = minH, bestRV = minV, bestRW = 1, bestRHt = 1;
         for (int sv = minV; sv <= maxV; sv++) {
             for (int sh = minH; sh <= maxH; sh++) {
@@ -332,13 +369,32 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
             }
         }
 
-        // Controller is the bottom-left block (lowest Y, then leftmost along right axis)
         BlockPos ctrlPos = inRect.stream()
                 .min(Comparator.<BlockPos, Integer>comparing(Vec3i::getY)
                         .thenComparing(bp -> dotAlongAxis(bp, right)))
                 .orElse(this.worldPosition);
 
-        // Apply multiblock state to all connected blocks
+        FreightStationLink inheritedLink = null;
+        AntennaTier inheritedTier = AntennaTier.NONE;
+        for (BlockPos p : inRect) {
+            if (!(this.level.getBlockEntity(p) instanceof DispatchBoardBE panel)) {
+                continue;
+            }
+            if (panel.antennaTier.ordinal() > inheritedTier.ordinal()) {
+                inheritedTier = panel.antennaTier;
+            }
+            if (!panel.stationLink.isLinked()) {
+                continue;
+            }
+            if (p.equals(ctrlPos)) {
+                inheritedLink = panel.stationLink;
+                break;
+            }
+            if (inheritedLink == null || panel.isController) {
+                inheritedLink = panel.stationLink;
+            }
+        }
+
         for (BlockPos p : connected) {
             BlockEntity be = this.level.getBlockEntity(p);
             if (be instanceof DispatchBoardBE panel) {
@@ -347,6 +403,18 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
                     panel.controllerPos = ctrlPos;
                     panel.multiblockWidth = w;
                     panel.multiblockHeight = h2;
+                    if (panel.isController) {
+                        if (inheritedLink != null) {
+                            panel.stationLink = inheritedLink.copy();
+                        }
+                        if (inheritedTier.ordinal() > panel.antennaTier.ordinal()) {
+                            panel.antennaTier = inheritedTier;
+                        }
+
+                        panel.refreshCooldown = 1;
+                        panel.lastRefreshTick = Long.MIN_VALUE;
+                        panel.lastSyncSignature = Integer.MIN_VALUE;
+                    }
                 } else {
                     panel.isController = true;
                     panel.controllerPos = p;
@@ -355,13 +423,11 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
                 }
                 panel.setChanged();
                 this.level.sendBlockUpdated(p, panel.getBlockState(), panel.getBlockState(), 3);
-                // feConsumer() resolves differently once the controller changes, so the cached
-                // energy capability at this position has to be dropped.
+
                 this.level.invalidateCapabilities(p);
             }
         }
-        // Pool member charge into the new controller so a merge never strands FE in a buffer that
-        // is about to go dormant behind the shared bank.
+
         if (this.level.getBlockEntity(ctrlPos) instanceof DispatchBoardBE controller) {
             for (BlockPos memberPos : inRect) {
                 if (!memberPos.equals(ctrlPos)
@@ -372,15 +438,13 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         }
     }
 
-    /**
-     * Called when this block is removed from the world.
-     * Resets all members to independent 1x1 controllers, then re-forms the remaining group.
-     */
     public void onRemoved() {
         if (this.level == null || this.level.isClientSide()) {
             return;
         }
         List<BlockPos> members = this.getMultiblockMembers();
+
+        FreightStationLink survivingLink = this.stationLink.isLinked() ? this.stationLink.copy() : null;
         this.isController = true;
         this.controllerPos = this.worldPosition;
         this.multiblockWidth = 1;
@@ -390,17 +454,19 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
             if (pos.equals(this.worldPosition)) continue;
             BlockEntity be = this.level.getBlockEntity(pos);
             if (!(be instanceof DispatchBoardBE panel)) continue;
+            if (survivingLink != null && !panel.stationLink.isLinked()) {
+                panel.stationLink = survivingLink.copy();
+            }
             panel.isController = true;
             panel.controllerPos = pos;
             panel.multiblockWidth = 1;
             panel.multiblockHeight = 1;
             panel.setChanged();
             this.level.sendBlockUpdated(pos, panel.getBlockState(), panel.getBlockState(), 3);
-            // Each board owns its own buffer again, so re-resolve the energy capability.
+
             this.level.invalidateCapabilities(pos);
         }
 
-        // Trigger re-formation for remaining blocks
         for (BlockPos pos : members) {
             if (pos.equals(this.worldPosition)) continue;
             BlockEntity be = this.level.getBlockEntity(pos);
@@ -457,7 +523,7 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
             this.postLoadValidated = true;
             return;
         }
-        // Member validation
+
         if (this.controllerPos == null) {
             this.postLoadValidated = true;
             return;
@@ -492,8 +558,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
     private static int dotAlongAxis(BlockPos pos, Direction axis) {
         return pos.getX() * axis.getStepX() + pos.getZ() * axis.getStepZ();
     }
-
-    // freight data accessors
 
     public FreightStationLink getStationLink() {
         return this.stationLink.copy();
@@ -555,7 +619,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         return copy;
     }
 
-    /** [2] */
     public DispatchBoardSnapshot getBoardSnapshot() {
         if (!this.isController) {
             DispatchBoardBE controller = this.getControllerBE();
@@ -569,9 +632,19 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         return this.boardSnapshot;
     }
 
+    public long getManifestShowUntil() {
+        final DispatchBoardBE controller = this.getControllerBE();
+        return controller == this ? this.manifestShowUntil : controller.manifestShowUntil;
+    }
+
     public void setStationLink(FreightStationLink stationLink) {
         this.stationLink = stationLink.copy();
-        this.refreshSummary();
+
+        if (this.isController) {
+            this.lastRefreshTick = Long.MIN_VALUE;
+            this.lastSyncSignature = Integer.MIN_VALUE;
+            this.refreshSummary();
+        }
         this.notifyUpdate();
     }
 
@@ -590,21 +663,17 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
             boardView = DeliveryOrderBoardView.empty(this.level.getGameTime(), this.summaryStatus);
         } else {
             MinecraftServer server = this.level.getServer();
-            boardView = FreightManifestStationResolver.captureDeliveryBoard(server, this.stationLink);
-            capturedCargoView = FreightManifestStationResolver.captureCargoView(server, this.stationLink);
+
+            FreightManifestStationResolver.StationView stationView =
+                    FreightManifestStationResolver.captureStationView(server, this.stationLink);
+            boardView = stationView.deliveryBoard();
+            capturedCargoView = stationView.cargoView();
+            capturedManifest = stationView.manifest();
             ServerLevel stationLevel = FreightManifestStationResolver.resolveStationLevel(server, this.stationLink);
             if (stationLevel != null && this.stationLink.getStationId() != null) {
-                FreightManifest resolved = FreightManifestSavedData.get(stationLevel).getManifest(this.stationLink.getStationId());
-                if (resolved != null) {
-                    capturedManifest = resolved.copy();
-                }
-                // Resolve station for train tracking and roster capture
-                StationBlockEntity stationBE = FreightManifestStationResolver.resolveStationBlockEntity(stationLevel, this.stationLink);
-                if (stationBE != null) {
-                    resolvedStation = stationBE.getStation();
-                    if (resolvedStation != null) {
-                        presentTrain = resolvedStation.getPresentTrain();
-                    }
+                resolvedStation = FreightManifestStationResolver.resolveStation(stationLevel, this.stationLink);
+                if (resolvedStation != null) {
+                    presentTrain = resolvedStation.getPresentTrain();
                 }
             }
         }
@@ -613,13 +682,20 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         this.cargoView = capturedCargoView;
         this.deliveryBoard = boardView;
 
-        // Track train arrivals/departures for visit history
         long gameTick = this.level != null ? this.level.getGameTime() : 0L;
-        this.trackTrainVisit(presentTrain, gameTick);
+        boolean historyChanged = this.trackTrainVisit(presentTrain, gameTick);
 
-        // Refresh station roster on a slower interval
+        if (resolvedStation == null && (this.stationRoster.getPresentTrain() != null
+                || !this.stationRoster.getAssociatedTrains().isEmpty())) {
+            this.stationRoster = StationTrainRoster.empty(gameTick);
+        }
+
+        long elapsed = this.lastRefreshTick == Long.MIN_VALUE
+                ? ROSTER_REFRESH_INTERVAL_TICKS : Math.max(0L, gameTick - this.lastRefreshTick);
+        this.rosterCooldown -= (int) Math.min(Integer.MAX_VALUE, elapsed);
         if (resolvedStation != null && this.level != null && this.level.getServer() != null
-                && gameTick % ROSTER_REFRESH_INTERVAL_TICKS == 0) {
+                && this.rosterCooldown <= 0 && this.showsRoster()) {
+            this.rosterCooldown = ROSTER_REFRESH_INTERVAL_TICKS;
             String liveStationName = resolvedStation.name != null
                     ? resolvedStation.name : this.stationLink.getStationName();
             this.stationRoster = StationTrainRoster.capture(
@@ -627,11 +703,96 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
                     liveStationName, this.visitHistory, gameTick);
         }
 
-        this.applySummary(boardView);
-        // Always sync to client, line details, cargo, and roster can change
-        // even when scalar summary counts stay the same.
-        this.notifyUpdate();
+        boolean summaryChanged = this.applySummary(boardView) || historyChanged;
+        this.lastRefreshTick = gameTick;
         this.rebuildSnapshot();
+
+        // only broadcast when it'd draw differently, it resent the whole board every second
+
+        int signature = this.computeSyncSignature();
+        if (signature != this.lastSyncSignature) {
+            this.lastSyncSignature = signature;
+            if (summaryChanged) {
+                this.setChanged();
+            }
+            this.sendToClients();
+        }
+    }
+
+    private boolean showsRoster() {
+        return com.createstats.dispatch.BoardTier
+                .fromSize(this.multiblockWidth, this.multiblockHeight).showsTrainRoster();
+    }
+
+    private int computeSyncSignature() {
+        int h = this.stationLink.isLinked() ? this.stationLink.getStationName().hashCode() : 0;
+        h = h * 31 + (this.trainPresent ? 1 : 0) + (this.arrivalTrackingActive ? 2 : 0);
+        h = h * 31 + this.trainName.hashCode();
+        h = h * 31 + this.summaryStatus.hashCode();
+        h = h * 31 + this.totalOrders;
+        h = h * 31 + this.completedOrders;
+        h = h * 31 + this.dismissedOrders;
+        h = h * 31 + this.multiblockWidth * 31 + this.multiblockHeight;
+        h = h * 31 + this.antennaTier.ordinal();
+        for (com.createstats.train.manifest.DeliveryOrderLineView line : this.deliveryBoard.getLineViews()) {
+            h = h * 31 + line.getLineId().hashCode();
+            h = h * 31 + line.getDeliveredAmount();
+            h = h * 31 + line.getTargetAmount();
+            h = h * 31 + line.getFreightAmount();
+            h = h * 31 + (line.isDismissed() ? 1 : 0);
+            h = h * 31 + line.getDisplayName().hashCode();
+            h = h * 31 + line.getOperation().ordinal() * 31 + line.getResetMode().ordinal();
+            h = h * 31 + line.getResetIntervalValue();
+            h = h * 31 + (line.getTicksUntilReset() > 0L ? 1 : 0);
+        }
+        for (java.util.Map.Entry<com.createstats.train.manifest.FreightManifestResourceKey, Integer> entry
+                : this.cargoView.getFreightTotals().getAmounts().entrySet()) {
+            h += entry.getKey().hashCode() * 31 + entry.getValue();
+        }
+        List<com.createstats.train.manifest.DeliveryOrderHistoryEntry> history = this.deliveryBoard.getHistoryEntries();
+        h = h * 31 + history.size();
+        if (!history.isEmpty()) {
+            com.createstats.train.manifest.DeliveryOrderHistoryEntry latest = history.get(0);
+            h = h * 31 + (int) latest.getTick();
+            h = h * 31 + latest.getType().ordinal();
+            h = h * 31 + latest.getTitle().hashCode();
+            h = h * 31 + latest.getDetail().hashCode();
+        }
+        com.createstats.train.manifest.TrainSummarySnapshot present = this.stationRoster.getPresentTrain();
+        h = hashTrainSnapshot(h, present);
+        for (com.createstats.train.manifest.TrainSummarySnapshot train
+                : this.stationRoster.getAssociatedTrains()) {
+            h = hashTrainSnapshot(h, train);
+        }
+        for (TrainVisitRecord visit : this.visitHistory) {
+            h = h * 31 + visit.getTrainId().hashCode();
+            h = h * 31 + visit.getTrainName().hashCode();
+            h = h * 31 + Long.hashCode(visit.getArrivalTick());
+            h = h * 31 + Long.hashCode(visit.getDepartureTick());
+        }
+        h = h * 31 + Long.hashCode(this.manifestShowUntil);
+        return h;
+    }
+
+    private static int hashTrainSnapshot(int seed,
+            @Nullable com.createstats.train.manifest.TrainSummarySnapshot train) {
+        int h = seed * 31 + (train == null ? 0 : 1);
+        if (train == null) {
+            return h;
+        }
+        h = h * 31 + train.getTrainId().hashCode();
+        h = h * 31 + train.getTrainName().hashCode();
+        h = h * 31 + train.getCarriageCount();
+        h = h * 31 + Float.floatToIntBits(train.getSpeed());
+        h = h * 31 + train.getNextDestination().hashCode();
+        h = h * 31 + (train.isStoppedAtStation() ? 1 : 0);
+        h = h * 31 + (train.isWaitingForSignal() ? 1 : 0);
+        h = h * 31 + (train.isInboundToStation() ? 1 : 0);
+        for (java.util.Map.Entry<com.createstats.train.manifest.FreightManifestResourceKey, Integer> entry
+                : train.getCargoSnapshot().getAmounts().entrySet()) {
+            h += entry.getKey().hashCode() * 31 + entry.getValue();
+        }
+        return h;
     }
 
     private boolean applySummary(DeliveryOrderBoardView boardView) {
@@ -652,10 +813,6 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         return changed;
     }
 
-    /**
-     * Rebuilds the cached board snapshot from the current raw state.
-     * Called after every successful refreshSummary cycle and lazily on first access.
-     */
     private void rebuildSnapshot() {
         this.boardSnapshot = DispatchBoardSnapshot.assemble(
                 this.multiblockWidth, this.multiblockHeight,
@@ -663,43 +820,58 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
                 this.cargoView, this.stationRoster, this.visitHistory);
     }
 
-    /**
-     * Detects train arrivals and departures by comparing the present train UUID
-     * across refresh ticks. Creates visit records on arrival and closes them on departure.
-     */
-    private void trackTrainVisit(@Nullable Train presentTrain, long gameTick) {
+    private boolean trackTrainVisit(@Nullable Train presentTrain, long gameTick) {
         UUID currentTrainId = presentTrain != null ? presentTrain.id : null;
+        boolean changed = false;
 
-        // Detect departure (previously present train is gone)
         if (this.lastSeenTrainId != null && !this.lastSeenTrainId.equals(currentTrainId)) {
             for (TrainVisitRecord visit : this.visitHistory) {
                 if (visit.getTrainId().equals(this.lastSeenTrainId) && visit.isStillPresent()) {
                     visit.setDepartureTick(gameTick);
+                    changed = true;
                     break;
                 }
             }
         }
 
-        // Detect arrival (new train that wasn't here before)
         if (currentTrainId != null && !currentTrainId.equals(this.lastSeenTrainId)) {
             String name = presentTrain.name != null ? presentTrain.name.getString() : "Train";
             this.visitHistory.add(0, new TrainVisitRecord(currentTrainId, name, gameTick, -1L));
             while (this.visitHistory.size() > MAX_VISIT_HISTORY) {
                 this.visitHistory.remove(this.visitHistory.size() - 1);
             }
+            this.greetManifest(name, presentTrain.carriages.size(), gameTick);
+            changed = true;
         }
 
         this.lastSeenTrainId = currentTrainId;
+
+        return changed;
+    }
+
+    // the six girls. powered only, unpowered is NO POWER over everything
+    private void greetManifest(String trainName, int carriages, long gameTick) {
+        if (!ManifestEgg.isManifest(trainName, carriages) || !(this.level instanceof ServerLevel serverLevel)
+                || !this.feConsumer().isPowered()) {
+            return;
+        }
+        this.manifestShowUntil = ManifestEgg.showUntil(gameTick);
+        ModAdvancements.awardNearby(serverLevel, this.worldPosition,
+                ManifestEgg.AUDIENCE_RADIUS + Math.max(this.multiblockWidth, this.multiblockHeight),
+                ModAdvancements.MANIFEST_YAAA);
     }
 
     private void notifyUpdate() {
         this.setChanged();
-        if (this.level != null) {
-            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
-        }
+        this.sendToClients();
     }
 
-    // NBT persistence
+    private void sendToClients() {
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(),
+                    net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        }
+    }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
@@ -725,7 +897,9 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         tag.putInt("MBWidth", this.multiblockWidth);
         tag.putInt("MBHeight", this.multiblockHeight);
         tag.putString("AntennaTier", this.antennaTier.name());
-        // Sync full board data so the client can build a real snapshot
+    }
+
+    private void writeSyncPayload(CompoundTag tag, HolderLookup.Provider registries) {
         if (this.deliveryBoard != null) {
             tag.put("DeliveryBoard", this.deliveryBoard.save(registries));
         }
@@ -735,6 +909,7 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         if (this.stationRoster != null) {
             tag.put("StationRoster", this.stationRoster.save());
         }
+        tag.putLong(TAG_MANIFEST_SHOW_UNTIL, this.manifestShowUntil);
     }
 
     @Override
@@ -760,7 +935,7 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
                 this.visitHistory.add(TrainVisitRecord.load(visitHistoryTag.getCompound(i)));
             }
         }
-        // Recover lastSeenTrainId from any open (still-present) visit record
+
         this.lastSeenTrainId = null;
         for (TrainVisitRecord visit : this.visitHistory) {
             if (visit.isStillPresent()) {
@@ -779,7 +954,7 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         this.antennaTier = AntennaTier.byName(tag.getString("AntennaTier"));
         if (this.multiblockWidth <= 0) this.multiblockWidth = 1;
         if (this.multiblockHeight <= 0) this.multiblockHeight = 1;
-        // Restore full board data for client-side snapshot assembly
+
         if (tag.contains("DeliveryBoard")) {
             this.deliveryBoard = DeliveryOrderBoardView.load(tag.getCompound("DeliveryBoard"), registries);
         }
@@ -789,7 +964,10 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
         if (tag.contains("StationRoster")) {
             this.stationRoster = StationTrainRoster.load(tag.getCompound("StationRoster"));
         }
-        // Invalidate cached snapshot so it rebuilds from the newly loaded data
+        if (tag.contains(TAG_MANIFEST_SHOW_UNTIL)) {
+            this.manifestShowUntil = tag.getLong(TAG_MANIFEST_SHOW_UNTIL);
+        }
+
         this.boardSnapshot = null;
     }
 
@@ -797,6 +975,7 @@ public class DispatchBoardBE extends BlockEntity implements RangeAttachment, com
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         this.saveAdditional(tag, registries);
+        this.writeSyncPayload(tag, registries);
         return tag;
     }
 

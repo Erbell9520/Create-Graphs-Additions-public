@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SmartGearshiftDisplaySource extends DisplaySource implements StatsLinkSource {
-
     @Override
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         BlockEntity be = context.getSourceBlockEntity();

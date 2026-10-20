@@ -6,13 +6,10 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.Locale;
 
-/** [1] */
 public final class PduBalanceBar {
-
     private PduBalanceBar() {
     }
 
-    /** [2] */
     static String emptyStateText(int deviceCount) {
         if (deviceCount <= 0) {
             return "No devices on the branch";
@@ -72,7 +69,6 @@ public final class PduBalanceBar {
             x += bandW;
         }
 
-        // The supply rule: a hard vertical boundary at the point served draw ends.
         final int ruleX = left + Math.round(barW * (served / (float) total));
         g.fill(ruleX, barY - 3, ruleX + 1, barY + barH + 3, PduTheme.TEXT);
         if (served < total) {
@@ -82,7 +78,6 @@ public final class PduBalanceBar {
         }
     }
 
-    /** Diagonal hatch as a second channel over the shed portion, drawn as short stepped fills to batch. */
     private static void hatch(GuiGraphics g, int x0, int y0, int x1, int y1) {
         if (x1 <= x0) {
             return;

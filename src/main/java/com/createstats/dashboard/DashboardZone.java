@@ -11,7 +11,7 @@ public class DashboardZone
     public final int height;
     public StatsDisplayPanelBE.DataChannel assignedChannel;
     public int sparklineIndex;
-    
+
     public DashboardZone(ZoneType type, int x, int y, int w, int h) {
         this.type = type;
         this.x = x;
@@ -19,18 +19,18 @@ public class DashboardZone
         this.width = w;
         this.height = h;
     }
-    
+
     public enum ZoneType
     {
-        HEADER, 
-        MAIN, 
-        SIDE_LEFT, 
-        SIDE_RIGHT, 
-        BOTTOM, 
-        CORNER_TL, 
-        CORNER_TR, 
-        CORNER_BL, 
-        CORNER_BR, 
+        HEADER,
+        MAIN,
+        SIDE_LEFT,
+        SIDE_RIGHT,
+        BOTTOM,
+        CORNER_TL,
+        CORNER_TR,
+        CORNER_BL,
+        CORNER_BR,
         SPARKLINE;
     }
 }

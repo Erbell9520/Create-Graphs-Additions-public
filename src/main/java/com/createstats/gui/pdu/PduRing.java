@@ -1,8 +1,6 @@
 package com.createstats.gui.pdu;
 
-/** [1] */
 public final class PduRing {
-
     private final float[] data;
     private int count;
     private int head;
@@ -31,7 +29,6 @@ public final class PduRing {
         }
     }
 
-    /** Sample {@code i}, from 0 for the oldest held value to {@code count - 1} for the newest. */
     public float at(int i) {
         if (i < 0 || i >= count) {
             throw new IndexOutOfBoundsException("sample " + i + " of " + count);
@@ -44,7 +41,6 @@ public final class PduRing {
         return count == 0 ? 0.0f : at(count - 1);
     }
 
-    /** The largest value held, or 0 when empty. The sparkline auto ranges its y axis to this. */
     public float max() {
         float m = 0.0f;
         for (int i = 0; i < count; i++) {

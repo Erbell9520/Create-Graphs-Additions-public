@@ -1,5 +1,4 @@
 {
-  "__comment": "FE Fluid Pump MK I: industrial-iron housing with copper pipe stubs and a brass grille.",
   "parent": "create_stats:block/fluid_pump/housing",
   "render_type": "minecraft:cutout",
   "textures": {

@@ -11,7 +11,7 @@ public final class InstrumentStyleOptionKeys
     public static final String SHOW_NUMERIC_CARDS = "show_numeric_cards";
     public static final String SHOW_DECOR_TRIM = "show_decor_trim";
     public static final String HIGH_CONTRAST_TEXT = "high_contrast_text";
-    
+
     private InstrumentStyleOptionKeys() {
     }
 }

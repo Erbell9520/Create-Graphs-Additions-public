@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:home/coffee",
+  "display": {
+    "icon": {
+      "id": "create_stats:air_fryer"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.air_fryer.title",
+      "fallback": "Air Fryer Mum"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.air_fryer.description",
+      "fallback": "Get an Air Fryer. Everything goes in it now. Even the tea, probably."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "fryer": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:air_fryer"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "fryer"
+    ]
+  ]
+}

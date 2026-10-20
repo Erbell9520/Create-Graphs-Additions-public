@@ -19,11 +19,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 import org.joml.Matrix4f;
 
-/** [1] */
 @OnlyIn(Dist.CLIENT)
 public class FlowMeterRenderer implements BlockEntityRenderer<FlowMeterBE> {
-
-    private static final int IDLE_COLOR = 0x3EB4CC; // calm techy cyan when no fluid / idle
+    private static final int IDLE_COLOR = 0x3EB4CC;
 
     public FlowMeterRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -52,7 +50,7 @@ public class FlowMeterRenderer implements BlockEntityRenderer<FlowMeterBE> {
         final float cb = (color & 0xFF) / 255.0f;
 
         final float time = be.getLevel() != null ? (float) (be.getLevel().getGameTime() % 100000L) + partialTick : partialTick;
-        // 0..1 loudness from the rate (log so small flows still read, big flows saturate).
+
         final float intensity = flowing
                 ? Mth.clamp((float) (Math.log1p(rate) / Math.log1p(80.0)), 0.18f, 1.0f)
                 : 0.0f;
@@ -69,7 +67,6 @@ public class FlowMeterRenderer implements BlockEntityRenderer<FlowMeterBE> {
         final VertexConsumer vc = buffer.getBuffer(RenderType.lightning());
         final Matrix4f mat = ms.last().pose();
 
-        // sight-glass glow (fluid colour): one band per face, no overlapping layers (no z-fight)
         final float g0 = 6.4f / 16.0f;
         final float g1 = 9.6f / 16.0f;
         final float lo = 2.42f / 16.0f;
@@ -77,10 +74,7 @@ public class FlowMeterRenderer implements BlockEntityRenderer<FlowMeterBE> {
         final float glassAlpha = flowing ? (0.60f * intensity + 0.32f) : (0.16f + 0.10f * (float) Math.sin(time * 0.16f));
         band(vc, mat, lo, hi, g0, g1, cr, cg, cb, glassAlpha);
 
-        // satisfactory-style flow rings: bright brass collars that slide along the pipe in the flow
-        // direction and bulge outward as they pass, so it visibly "pumps" the fluid along ---
         if (flowing) {
-            // [2]
             float dir = dirSign >= 0 ? 1.0f : -1.0f;
             if (axis == Direction.Axis.X) {
                 dir = -dir;
@@ -90,9 +84,9 @@ public class FlowMeterRenderer implements BlockEntityRenderer<FlowMeterBE> {
             for (int i = 0; i < rings; i++) {
                 final float phase = (time * speed + i / (float) rings) % 1.0f;
                 final float y = dir >= 0 ? phase : (1.0f - phase);
-                final float bulge = (float) Math.sin(phase * Math.PI); // small at the ends, fat in the middle
-                final float radius = 0.265f + 0.060f * bulge;          // expands as it travels
-                final float half = 0.05f + 0.055f * bulge;             // and grows taller
+                final float bulge = (float) Math.sin(phase * Math.PI);
+                final float radius = 0.265f + 0.060f * bulge;
+                final float half = 0.05f + 0.055f * bulge;
                 final float a = (0.45f + 0.35f * intensity) * (0.35f + 0.65f * bulge);
                 final float rr = Math.min(1.0f, 0.85f + 0.15f * cr);
                 final float gg = Math.min(1.0f, 0.66f + 0.22f * cg);
@@ -104,19 +98,18 @@ public class FlowMeterRenderer implements BlockEntityRenderer<FlowMeterBE> {
         ms.popPose();
     }
 
-    /** A glowing band wrapping the 4 vertical faces of a square column between y0..y1, spanning lo..hi. */
     private static void band(VertexConsumer vc, Matrix4f m, float lo, float hi, float y0, float y1,
                              float r, float g, float b, float a) {
         if (a <= 0.001f) {
             return;
         }
-        // north (z = lo)
+
         quad(vc, m, lo, y0, lo, hi, y0, lo, hi, y1, lo, lo, y1, lo, r, g, b, a);
-        // south (z = hi)
+
         quad(vc, m, hi, y0, hi, lo, y0, hi, lo, y1, hi, hi, y1, hi, r, g, b, a);
-        // west (x = lo)
+
         quad(vc, m, lo, y0, hi, lo, y0, lo, lo, y1, lo, lo, y1, hi, r, g, b, a);
-        // east (x = hi)
+
         quad(vc, m, hi, y0, lo, hi, y0, hi, hi, y1, hi, hi, y1, lo, r, g, b, a);
     }
 
@@ -124,7 +117,8 @@ public class FlowMeterRenderer implements BlockEntityRenderer<FlowMeterBE> {
                              float x0, float y0, float z0, float x1, float y1, float z1,
                              float x2, float y2, float z2, float x3, float y3, float z3,
                              float r, float g, float b, float a) {
-        // [3]
+        // lightning() culls back faces, emit both windings. the flicker was a second band, not this
+
         vc.addVertex(m, x0, y0, z0).setColor(r, g, b, a);
         vc.addVertex(m, x1, y1, z1).setColor(r, g, b, a);
         vc.addVertex(m, x2, y2, z2).setColor(r, g, b, a);

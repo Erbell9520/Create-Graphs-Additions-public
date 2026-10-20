@@ -1,0 +1,28 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_stats:cake_batter"
+    },
+    {
+      "item": "create_stats:cinnamon"
+    },
+    {
+      "item": "create_stats:cinnamon"
+    },
+    {
+      "item": "create_stats:cinnamon"
+    },
+    {
+      "item": "create_stats:cinnamon"
+    }
+  ],
+  "results": [
+    {
+      "amount": 1000,
+      "id": "create_stats:cinnamon_cake_batter"
+    }
+  ]
+}

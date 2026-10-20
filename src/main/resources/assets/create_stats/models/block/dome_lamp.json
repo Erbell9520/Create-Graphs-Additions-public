@@ -3,7 +3,6 @@
   "textures": {
     "brass": "create_stats:block/lamp_brass",
     "enamel": "create_stats:block/lamp_enamel",
-    "diffuser": "create_stats:block/lamp_diffuser",
     "particle": "create_stats:block/lamp_brass"
   },
   "elements": [
@@ -146,166 +145,223 @@
       }
     },
     {
-      "__comment": "glass_a",
+      "__comment": "screw_n",
       "from": [
-        4.6,
+        7.4,
+        1.0,
+        4.4
+      ],
+      "to": [
+        8.6,
         1.6,
-        4.6
-      ],
-      "to": [
-        11.4,
-        3.0,
-        11.4
+        5.0
       ],
       "faces": {
         "north": {
           "uv": [
             0,
             0,
-            7,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "south": {
           "uv": [
             0,
             0,
-            7,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "east": {
           "uv": [
             0,
             0,
-            7,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "west": {
           "uv": [
             0,
             0,
-            7,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "up": {
           "uv": [
             0,
             0,
-            7,
-            7
+            1,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "down": {
           "uv": [
             0,
             0,
-            7,
-            7
+            1,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         }
       }
     },
     {
-      "__comment": "glass_b",
+      "__comment": "screw_w",
       "from": [
-        5.6,
-        3.0,
-        5.6
+        4.4,
+        1.0,
+        7.4
       ],
       "to": [
-        10.4,
-        4.2,
-        10.4
+        5.0,
+        1.6,
+        8.6
       ],
       "faces": {
         "north": {
           "uv": [
             0,
             0,
-            5,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "south": {
           "uv": [
             0,
             0,
-            5,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "east": {
           "uv": [
             0,
             0,
-            5,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "west": {
           "uv": [
             0,
             0,
-            5,
+            1,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "up": {
           "uv": [
             0,
             0,
-            5,
-            5
+            1,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "down": {
           "uv": [
             0,
             0,
-            5,
-            5
+            1,
+            1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         }
       }
     },
     {
-      "__comment": "glass_c",
+      "__comment": "screw_e",
       "from": [
-        6.8,
-        4.2,
-        6.8
+        11.0,
+        1.0,
+        7.4
       ],
       "to": [
-        9.2,
+        11.6,
+        1.6,
+        8.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "__comment": "finial",
+      "from": [
+        7.2,
         4.9,
-        9.2
+        7.2
+      ],
+      "to": [
+        8.8,
+        5.6,
+        8.8
       ],
       "faces": {
         "north": {
@@ -315,8 +371,7 @@
             2,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "south": {
           "uv": [
@@ -325,8 +380,7 @@
             2,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "east": {
           "uv": [
@@ -335,8 +389,7 @@
             2,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "west": {
           "uv": [
@@ -345,8 +398,7 @@
             2,
             1
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "up": {
           "uv": [
@@ -355,8 +407,7 @@
             2,
             2
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         },
         "down": {
           "uv": [
@@ -365,8 +416,7 @@
             2,
             2
           ],
-          "texture": "#diffuser",
-          "tintindex": 0
+          "texture": "#brass"
         }
       }
     }

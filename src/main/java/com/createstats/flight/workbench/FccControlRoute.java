@@ -21,7 +21,6 @@ public record FccControlRoute(
         FccRouteKind routeKind,
         boolean systemOwned
 ) {
-
     public FccControlRoute {
         if (id == null) throw new IllegalArgumentException("id");
         if (targetGroupId == null) throw new IllegalArgumentException("targetGroupId");

@@ -4,7 +4,6 @@ import java.util.UUID;
 import net.minecraft.nbt.CompoundTag;
 
 public class DeliveryOrderLineState {
-
     private final UUID lineId;
     private int deliveredAmount;
     private boolean dismissed;

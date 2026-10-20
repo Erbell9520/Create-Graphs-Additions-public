@@ -9,10 +9,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** [1] */
 public record PduHistoryPacket(BlockPos pduPos, int range, boolean full,
                                short[] supply, short[] demand, byte[] shed) implements CustomPacketPayload {
-
     public static PduHistoryPacket full(BlockPos pos, int range, short[] supply, short[] demand, byte[] shed) {
         return new PduHistoryPacket(pos, range, true, supply, demand, shed);
     }
@@ -63,7 +61,7 @@ public record PduHistoryPacket(BlockPos pduPos, int range, boolean full,
 
     public static void handle(PduHistoryPacket packet, IPayloadContext ctx) {
         // Routed through the reflection guarded client hook, so this class stays loadable on a
-        // dedicated server where the screen classes are absent.
+
         ctx.enqueueWork(() -> StatsClientHooks.handlePduHistory(
                 packet.pduPos(), packet.range(), packet.full(), packet.supply(), packet.demand(), packet.shed()));
     }

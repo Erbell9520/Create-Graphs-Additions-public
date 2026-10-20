@@ -5,6 +5,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.107'
 }
 
+// bump mod_version on every build. every. single. one.
 version = mod_version
 group = mod_group_id
 
@@ -73,7 +74,7 @@ repositories {
         url = 'https://maven.ithundxr.dev/snapshots'
     }
     maven {
-        // GeckoLib (optional dependency) - animated pilot helmet visor.
+        // geckolib, optional (helmet visor)
         name = 'GeckoLib'
         url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
         content {
@@ -82,7 +83,6 @@ repositories {
         }
     }
     maven {
-        // JEI (optional dependency) - recipe catalysts + ingredient-list filtering.
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
     }
@@ -112,12 +112,6 @@ repositories {
             includeGroup 'dev.ryanhcode.sable-companion'
         }
     }
-    // LambDynamicLights (REQUIRED dependency): frame-perfect, shaderpack-correct dynamic lighting
-    // used by the Stage Light's projected world light. API jar is published here.
-    maven {
-        name = 'Gegy'
-        url = 'https://maven.gegy.dev'
-    }
     mavenCentral()
 }
 
@@ -127,37 +121,22 @@ dependencies {
     compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
     runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
-    // Simulated is only published publicly as the bundled Create Aeronautics artifact.
+    // simulated only ships inside the aeronautics jar
     compileOnly("maven.modrinth:create-aeronautics:${simulated_version}")
-    // GeckoLib: OPTIONAL dependency for the animated pilot-helmet visor. compileOnly so the mod
-    // compiles against the API; runtimeOnly so the dev client can exercise the animated path. NOT
-    // jarJar'd - players install GeckoLib themselves; without it the helmet falls back to vanilla
-    // armor layers (see com.createstats.compat.geckolib + the ModList.isLoaded("geckolib") guard).
+    // optional, no geckolib = plain armor layers on the helmet
     compileOnly("software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}")
     runtimeOnly("software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}")
-    // JEI: OPTIONAL dependency. Recipe-catalyst registration (Induction Heater on Campfire Cooking
-    // pages) and hiding experimental items from the ingredient list. compileOnly so the mod compiles
-    // against the API; runtimeOnly so the dev client can exercise it. NOT jarJar'd - players install
-    // JEI themselves. Without it, com.createstats.compat.jei.CreateStatsJeiPlugin is simply never
-    // instantiated (JEI discovers @JeiPlugin classes via its own bytecode scan; we never reference
-    // this class ourselves).
+    // optional too, the Stats app on the link tablet
+    compileOnly("maven.modrinth:redstone-link-tablet:${linktablet_version}")
+    runtimeOnly("maven.modrinth:redstone-link-tablet:${linktablet_version}")
+    // jei, optional. it finds the plugin on its own
     compileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}")
     runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
-    // sable-companion: thin official API wrapper over Sable physics engine.
-    // Bundled via jarJar so the mod works whether or not Sable itself is installed
-    // (companion ships a no-op DefaultSableCompanion fallback).
+    // bundled, does nothing when sable isn't there
     jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version_range}")) {
         version {
             prefer sable_companion_version
-        }
-    }
-    // LambDynamicLights API: REQUIRED dependency for the Stage Light's dynamic world lighting.
-    // compileOnly so we build against the API; the player installs the full LambDynamicLights mod.
-    // On NeoForge the API jar must be requested with the 'mojmap' mappings attribute.
-    compileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:${lambdynamiclights_version}") {
-        attributes {
-            attribute(Attribute.of('net.minecraft.mappings', String), 'mojmap')
         }
     }
     testImplementation platform('org.junit:junit-bom:5.10.2')
@@ -221,4 +200,6 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('test').configure {
     useJUnitPlatform()
+    // freeze the page animations, otherwise the art tests flake
+    systemProperty 'create_stats.frozenAnimationClock', '250'
 }

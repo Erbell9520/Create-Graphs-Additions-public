@@ -12,11 +12,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class StatusTowerLightConfigPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<StatusTowerLightConfigPacket> TYPE = 
+    public static final CustomPacketPayload.Type<StatusTowerLightConfigPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "status_tower_light_config"));
-    
-    public static final StreamCodec<FriendlyByteBuf, StatusTowerLightConfigPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, StatusTowerLightConfigPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), StatusTowerLightConfigPacket::new);
 
     private final BlockPos pos;

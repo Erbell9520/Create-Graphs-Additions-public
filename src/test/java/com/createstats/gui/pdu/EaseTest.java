@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class EaseTest {
-
     @Test
     void convergesToTheTargetFromBelow() {
         float v = 0.0f;
@@ -35,7 +33,6 @@ class EaseTest {
 
     @Test
     void aLargerFrameDeltaStepsFurther() {
-        // [2]
         final float shortFrame = Ease.ease(0.0f, 100.0f, 0.1f, 0.5f);
         final float longFrame = Ease.ease(0.0f, 100.0f, 0.1f, 1.0f);
         assertTrue(longFrame > shortFrame);
@@ -43,8 +40,6 @@ class EaseTest {
 
     @Test
     void aStalledFrameArrivesExactlyAndNeverOvershoots() {
-        // rate * partialTick well over 1 would fling the value past its target if the step were not
-        // clamped. Clamped, the most a step may do is land exactly on target.
         final float v = Ease.ease(0.0f, 100.0f, 5.0f, 1.0f);
         assertEquals(100.0f, v, 0.0001f);
     }
@@ -56,8 +51,6 @@ class EaseTest {
 
     @Test
     void aNonPositiveFrameDeltaStillProgressesRatherThanStalling() {
-        // partialTick can arrive as zero on the very first frame; treat it as one tick so the glide
-        // starts instead of freezing at its initial value.
         final float v = Ease.ease(0.0f, 100.0f, 0.3f, 0.0f);
         assertTrue(v > 0.0f);
     }

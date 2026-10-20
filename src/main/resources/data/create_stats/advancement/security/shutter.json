@@ -1,0 +1,46 @@
+{
+  "parent": "create_stats:security/panel",
+  "display": {
+    "icon": {
+      "id": "create_stats:blast_shutter"
+    },
+    "title": {
+      "translate": "advancement.create_stats.security.shutter.title",
+      "fallback": "Shutters Down"
+    },
+    "description": {
+      "translate": "advancement.create_stats.security.shutter.description",
+      "fallback": "Place a shutter. Closed for tea, back in five minutes."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "shutter": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:blast_shutter",
+                  "create_stats:window_shutter",
+                  "create_stats:garage_door_header"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "shutter"
+    ]
+  ]
+}

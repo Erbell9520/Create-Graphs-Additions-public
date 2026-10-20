@@ -20,7 +20,6 @@ import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public final class MiniDisplayTextureManager {
-
     private static final Map<net.minecraft.core.BlockPos, TextureEntry> TEXTURES = new HashMap<>();
     private static final int BASE_TEXTURE_WIDTH = 128;
     private static final int TEXTURE_HEIGHT = 128;

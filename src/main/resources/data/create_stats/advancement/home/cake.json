@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:home/coffee",
+  "display": {
+    "icon": {
+      "id": "create_stats:strawberry_cake"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.cake.title",
+      "fallback": "Guests Are Coming!"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.cake.description",
+      "fallback": "Bake a cake. Guests are coming, so the good plates come out of the cabinet."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "cake": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:blueberry_cake",
+              "create_stats:cacao_cake",
+              "create_stats:carrot_cake",
+              "create_stats:cinnamon_cake",
+              "create_stats:strawberry_cake",
+              "create_stats:vanilla_cake"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "cake"
+    ]
+  ]
+}

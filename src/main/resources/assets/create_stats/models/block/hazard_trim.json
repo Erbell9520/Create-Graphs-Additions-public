@@ -1,0 +1,288 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "tread": "create_stats:block/deco_tread",
+    "steel_dark": "create_stats:block/deco_steel_dark",
+    "hazard": "create_stats:block/deco_hazard",
+    "steel_lit": "create_stats:block/deco_steel_lit",
+    "particle": "create_stats:block/deco_tread"
+  },
+  "elements": [
+    {
+      "__comment": "deck",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        1.0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            15.0,
+            16,
+            16
+          ],
+          "texture": "#tread"
+        },
+        "south": {
+          "uv": [
+            0,
+            15.0,
+            16,
+            16
+          ],
+          "texture": "#tread"
+        },
+        "east": {
+          "uv": [
+            0,
+            15.0,
+            16,
+            16
+          ],
+          "texture": "#tread"
+        },
+        "west": {
+          "uv": [
+            0,
+            15.0,
+            16,
+            16
+          ],
+          "texture": "#tread"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#tread"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#tread"
+        }
+      }
+    },
+    {
+      "__comment": "band",
+      "from": [
+        0,
+        1.0,
+        0
+      ],
+      "to": [
+        16,
+        1.4,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14.6,
+            16,
+            15.0
+          ],
+          "texture": "#steel_dark"
+        },
+        "south": {
+          "uv": [
+            0,
+            14.6,
+            16,
+            15.0
+          ],
+          "texture": "#steel_dark"
+        },
+        "east": {
+          "uv": [
+            0,
+            14.6,
+            5,
+            15.0
+          ],
+          "texture": "#steel_dark"
+        },
+        "west": {
+          "uv": [
+            11,
+            14.6,
+            16,
+            15.0
+          ],
+          "texture": "#steel_dark"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            5
+          ],
+          "texture": "#hazard"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            5
+          ],
+          "texture": "#steel_dark"
+        }
+      }
+    },
+    {
+      "__comment": "kerb",
+      "from": [
+        0,
+        1.4,
+        0
+      ],
+      "to": [
+        16,
+        1.5,
+        1.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14.5,
+            16,
+            14.6
+          ],
+          "texture": "#hazard"
+        },
+        "south": {
+          "uv": [
+            0,
+            14.5,
+            16,
+            14.6
+          ],
+          "texture": "#steel_dark"
+        },
+        "east": {
+          "uv": [
+            0,
+            14.5,
+            1.2,
+            14.6
+          ],
+          "texture": "#steel_dark"
+        },
+        "west": {
+          "uv": [
+            14.8,
+            14.5,
+            16,
+            14.6
+          ],
+          "texture": "#steel_dark"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            1.2
+          ],
+          "texture": "#hazard"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            1.2
+          ],
+          "texture": "#steel_dark"
+        }
+      }
+    },
+    {
+      "__comment": "edge",
+      "from": [
+        0,
+        1.0,
+        4.6
+      ],
+      "to": [
+        16,
+        1.45,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14.55,
+            16,
+            15.0
+          ],
+          "texture": "#steel_lit"
+        },
+        "south": {
+          "uv": [
+            0,
+            14.55,
+            16,
+            15.0
+          ],
+          "texture": "#steel_lit"
+        },
+        "east": {
+          "uv": [
+            4.6,
+            14.55,
+            5,
+            15.0
+          ],
+          "texture": "#steel_lit"
+        },
+        "west": {
+          "uv": [
+            11,
+            14.55,
+            11.4,
+            15.0
+          ],
+          "texture": "#steel_lit"
+        },
+        "up": {
+          "uv": [
+            0,
+            4.6,
+            16,
+            5
+          ],
+          "texture": "#steel_lit"
+        },
+        "down": {
+          "uv": [
+            0,
+            4.6,
+            16,
+            5
+          ],
+          "texture": "#steel_lit"
+        }
+      }
+    }
+  ]
+}

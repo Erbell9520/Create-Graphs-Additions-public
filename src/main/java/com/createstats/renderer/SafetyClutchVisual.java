@@ -27,8 +27,6 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class SafetyClutchVisual extends KineticBlockEntityVisual<SafetyClutchBE> implements SimpleDynamicVisual {
-
-    // Gauge center on top face: model coords (8, 15, 8) = face center
     private static final float NEEDLE_PIVOT_X = 8.0f / 16.0f;
     private static final float NEEDLE_PIVOT_Z = 8.0f / 16.0f;
     private static final float NEEDLE_START_ANGLE = (float) (Math.PI * 5.0 / 4.0);

@@ -21,10 +21,10 @@ import org.joml.Matrix4f;
 public class CalculatorRenderer implements BlockEntityRenderer<CalculatorBE>
 {
     private static final float FACE_EPSILON = 1.0f / 512.0f;
-    
+
     public CalculatorRenderer(BlockEntityRendererProvider.Context context) {
     }
-    
+
     public void render(CalculatorBE be, float partialTick, PoseStack ps, MultiBufferSource buf, int packedLight, int packedOverlay) {
         if (!be.isController()) {
             return;
@@ -52,7 +52,7 @@ public class CalculatorRenderer implements BlockEntityRenderer<CalculatorBE>
         this.renderFaceQuad(ps, buf, texture, be.getMultiblockWidth(), be.getMultiblockHeight(), packedLight, packedOverlay);
         ps.popPose();
     }
-    
+
     private void renderFaceQuad(PoseStack ps, MultiBufferSource buf, ResourceLocation texture, int width, int height, int packedLight, int packedOverlay) {
         final VertexConsumer vc = buf.getBuffer(RenderType.entityCutoutNoCull(texture));
         final PoseStack.Pose pose = ps.last();
@@ -68,15 +68,15 @@ public class CalculatorRenderer implements BlockEntityRenderer<CalculatorBE>
         this.vertex(vc, pose, x1, y0, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, packedLight, packedOverlay, 255, 255, 255, 255);
         this.vertex(vc, pose, x1, y1, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, packedLight, packedOverlay, 255, 255, 255, 255);
     }
-    
+
     private void vertex(VertexConsumer vc, PoseStack.Pose pose, float x, float y, float z, float u, float v, float nx, float ny, float nz, int packedLight, int packedOverlay, int r, int g, int b, int a) {
         vc.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v).setOverlay(packedOverlay).setLight(packedLight).setNormal(pose, nx, ny, nz);
     }
-    
+
     public boolean shouldRenderOffScreen(CalculatorBE be) {
         return true;
     }
-    
+
     public int getViewDistance() {
         return com.createstats.ModConfiguration.cappedViewDistance(64);
     }

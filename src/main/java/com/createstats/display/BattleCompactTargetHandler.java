@@ -13,7 +13,6 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 
 public final class BattleCompactTargetHandler {
-
     public static final String SOURCE_TYPE = "Battle Bridge";
     public static final String ALERT_METRIC = "battle_alert_pct";
     public static final String INTEGRITY_METRIC = "battle_integrity_pct";

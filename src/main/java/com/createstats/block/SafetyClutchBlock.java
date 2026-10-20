@@ -2,8 +2,6 @@ package com.createstats.block;
 
 import com.createstats.blockentity.SafetyClutchBE;
 import com.createstats.registry.ModBlockEntities;
-import com.createstats.util.ClientScreenAccess;
-import com.simibubi.create.AllItems;
 import com.simibubi.create.content.kinetics.RotationPropagator;
 import com.simibubi.create.content.kinetics.base.AbstractEncasedShaftBlock;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -12,6 +10,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -35,7 +35,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class SafetyClutchBlock extends AbstractEncasedShaftBlock implements IBE<SafetyClutchBE> {
-
     public static final BooleanProperty TRIPPED = BooleanProperty.create("tripped");
 
     public SafetyClutchBlock(Properties properties) {
@@ -52,19 +51,26 @@ public class SafetyClutchBlock extends AbstractEncasedShaftBlock implements IBE<
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        if (AllItems.WRENCH.isIn(stack)) {
+        if (!stack.isEmpty() || hand != InteractionHand.MAIN_HAND) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        InteractionResult result = onBlockEntityUse(level, pos, clutch -> {
-            if (level.isClientSide()) {
-                ClientScreenAccess.openSafetyClutch(clutch);
+        boolean trip = player.isShiftKeyDown();
+        if (!trip && !state.getValue(TRIPPED)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!level.isClientSide()) {
+            onBlockEntityUse(level, pos, clutch -> {
+                if (trip) {
+                    clutch.manualTrip();
+                } else {
+                    clutch.manualReset();
+                }
                 return InteractionResult.SUCCESS;
-            }
-            return InteractionResult.CONSUME;
-        });
-        if (result == InteractionResult.SUCCESS) return ItemInteractionResult.SUCCESS;
-        if (result == InteractionResult.CONSUME) return ItemInteractionResult.CONSUME;
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            });
+
+            level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6f, trip ? 0.5f : 0.7f);
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override

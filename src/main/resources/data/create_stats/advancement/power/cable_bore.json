@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:cable_bore"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.cable_bore.title",
+      "fallback": "Through the Neighbour's Wall"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.cable_bore.description",
+      "fallback": "Get a Cable Bore. The neighbour finds out at the next building meeting."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "bore": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:cable_bore"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "bore"
+    ]
+  ]
+}

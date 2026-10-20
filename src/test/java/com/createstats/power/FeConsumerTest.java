@@ -9,19 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Pure-logic tests for the FE Dependent Mode consumer component. Uses a hand-rolled Settings so
- * no Minecraft or config bootstrap is required.
- */
 class FeConsumerTest {
-
     private static final class TestSettings implements FeConsumer.Settings {
         boolean enabled = true;
         int capacity = 1000;
         int idle = 5;
         int active = 20;
         int burst = 100;
-        /** [1] */
+
         int rebootPct = 0;
 
         @Override
@@ -57,8 +52,6 @@ class FeConsumerTest {
 
     @Test
     void disabledModeDoesNotDrainButStillAcceptsFe() {
-        // With FE mode off: no drain, block always powered, HUD reads 100%, but the buffer still
-        // accepts FE (so wiring is visible before the mode is enabled).
         TestSettings settings = new TestSettings();
         settings.enabled = false;
         FeConsumer fe = new FeConsumer(settings);
@@ -68,7 +61,7 @@ class FeConsumerTest {
         assertTrue(fe.isPowered());
         assertEquals(100.0f, fe.hudBufferPct(), 0.001f);
         assertEquals(0, fe.getEnergyStored());
-        // Reception is intentionally NOT gated on the mode.
+
         assertTrue(fe.canReceive());
         assertEquals(500, fe.receiveEnergy(500, false));
         assertEquals(500, fe.getEnergyStored());
@@ -120,9 +113,9 @@ class FeConsumerTest {
         settings.active = 20;
         FeConsumer fe = new FeConsumer(settings);
         fe.receiveEnergy(50, false);
-        assertTrue(fe.serviceTick(true));   // 30 left
-        assertTrue(fe.serviceTick(true));   // 10 left
-        assertFalse(fe.serviceTick(true));  // cannot cover 20: cutoff, buffer forced to 0
+        assertTrue(fe.serviceTick(true));
+        assertTrue(fe.serviceTick(true));
+        assertFalse(fe.serviceTick(true));
         assertEquals(0, fe.getEnergyStored());
         assertFalse(fe.isPowered());
         assertEquals(-1, fe.pollTransition());
@@ -172,10 +165,10 @@ class FeConsumerTest {
         fe.receiveEnergy(100, false);
         assertTrue(fired.get() > 0);
         int after = fired.get();
-        assertTrue(fe.serviceTick(true));   // 40 left: fill pct changed
+        assertTrue(fe.serviceTick(true));
         assertTrue(fired.get() > after);
         after = fired.get();
-        assertFalse(fe.serviceTick(true));  // cutoff: powered flip
+        assertFalse(fe.serviceTick(true));
         assertTrue(fired.get() > after);
     }
 
@@ -186,15 +179,15 @@ class FeConsumerTest {
         settings.active = 20;
         FeConsumer fe = new FeConsumer(settings);
         fe.receiveEnergy(1000, false);
-        // Active with a 2x load: spends 40, not 20.
+
         assertTrue(fe.serviceTick(true, 2.0f));
         assertEquals(40, fe.measuredDrainFePerTick());
         assertEquals(2.0f, fe.appliedLoadMultiplier(), 0.001f);
-        // Idle ignores the multiplier entirely, so many sources never penalise an idle block.
+
         assertTrue(fe.serviceTick(false, 8.0f));
         assertEquals(5, fe.measuredDrainFePerTick());
         assertEquals(1.0f, fe.appliedLoadMultiplier(), 0.001f);
-        // Multipliers below 1 cannot make a block cheaper than its configured active drain.
+
         assertTrue(fe.serviceTick(true, 0.25f));
         assertEquals(20, fe.measuredDrainFePerTick());
     }
@@ -205,11 +198,11 @@ class FeConsumerTest {
         settings.active = 20;
         FeConsumer fe = new FeConsumer(settings);
         fe.receiveEnergy(300, false);
-        // Input is rolled over into the readable meter by the next serviceTick.
+
         assertTrue(fe.serviceTick(true));
         assertEquals(300, fe.measuredInputFePerTick());
         assertEquals(20, fe.measuredDrainFePerTick());
-        // With no new input the meter reads zero on the following tick.
+
         assertTrue(fe.serviceTick(true));
         assertEquals(0, fe.measuredInputFePerTick());
     }
@@ -221,28 +214,26 @@ class FeConsumerTest {
         assertEquals(1.80f, FeLoadCurve.multiplier(2, 0.85), 0.01f);
         assertEquals(7.08f, FeLoadCurve.multiplier(10, 0.85), 0.02f);
         assertEquals(12.76f, FeLoadCurve.multiplier(20, 0.85), 0.05f);
-        // Each extra source must cost strictly less than the one before it.
+
         float previousStep = Float.MAX_VALUE;
         for (int n = 2; n <= 20; n++) {
             float step = FeLoadCurve.multiplier(n, 0.85) - FeLoadCurve.multiplier(n - 1, 0.85);
             assertTrue(step < previousStep, "marginal cost should shrink at n=" + n);
             previousStep = step;
         }
-        // An exponent of 1.0 is exactly linear.
+
         assertEquals(10.0f, FeLoadCurve.multiplier(10, 1.0), 0.001f);
     }
 
     @Test
     void rebootThresholdHoldsBlockDownWhileItCharges() {
-        // [2]
         TestSettings settings = new TestSettings();
         settings.capacity = 1000;
         settings.active = 100;
         settings.rebootPct = 25;
         FeConsumer fe = new FeConsumer(settings);
         fe.receiveEnergy(1000, false);
-        // Ten ticks of 100 spend the buffer exactly, and all ten are covered. The cutoff is the
-        // eleventh, the first tick with nothing left to pay with.
+
         for (int i = 0; i < 10; i++) {
             assertTrue(fe.serviceTick(true), "tick " + i + " is still funded");
         }
@@ -251,15 +242,13 @@ class FeConsumerTest {
         assertFalse(fe.serviceTick(true));
         assertFalse(fe.isPowered());
 
-        // 150 FE covers the 100/t drain outright, but sits under the 25 percent reboot bar.
         fe.receiveEnergy(150, false);
         assertFalse(fe.serviceTick(true), "must stay down below the reboot threshold");
         assertTrue(fe.isRecharging());
-        // Critically, the tick must not burn the reserve being accumulated, or it could never climb.
+
         assertEquals(150, fe.getEnergyStored(), "charging reserve must not be drained");
         assertEquals(0, fe.measuredDrainFePerTick());
 
-        // Crossing the bar wakes it, once.
         fe.receiveEnergy(100, false);
         assertTrue(fe.serviceTick(true));
         assertTrue(fe.isPowered());
@@ -277,7 +266,7 @@ class FeConsumerTest {
         fe.receiveEnergy(60, false);
         assertTrue(fe.serviceTick(true));
         assertFalse(fe.serviceTick(true));
-        // With the threshold off, one tick of drain is enough to come straight back.
+
         fe.receiveEnergy(60, false);
         assertTrue(fe.serviceTick(true));
         assertFalse(fe.isRecharging());
@@ -285,8 +274,6 @@ class FeConsumerTest {
 
     @Test
     void transitionBeatsSurviveOnePairThenGoQuietWhileFlapping() {
-        // A cutoff and the recovery right after it must both play however fast the player fixes
-        // the supply. A consumer that keeps cycling must fall silent instead of machine-gunning.
         TestSettings settings = new TestSettings();
         settings.capacity = 100;
         settings.active = 60;
@@ -302,7 +289,6 @@ class FeConsumerTest {
         assertTrue(fe.serviceTick(true));
         assertEquals(1, fe.pollTransition(), "the immediate recovery beat plays too");
 
-        // Third flip inside the same burst: state still flips, but no beat is emitted.
         assertFalse(fe.serviceTick(true));
         assertFalse(fe.isPowered(), "state must still change, only the effect is suppressed");
         assertEquals(0, fe.pollTransition());
@@ -320,7 +306,7 @@ class FeConsumerTest {
         fe.receiveEnergy(1000, false);
         assertFalse(fe.spendBurst());
         assertTrue(fe.isBurstStarved(), "a fully charged block that can never afford its burst must say so");
-        // An affordable burst clears the flag again.
+
         settings.burst = 100;
         assertTrue(fe.spendBurst());
         assertFalse(fe.isBurstStarved());
@@ -328,19 +314,17 @@ class FeConsumerTest {
 
     @Test
     void clientMirrorReportsServerTuningNotLocalConfig() {
-        // The client must believe the snapshot even when its own settings disagree, because the
-        // mod's config is COMMON and NeoForge does not sync it.
         TestSettings localSettings = new TestSettings();
         localSettings.enabled = false;
         localSettings.capacity = 10;
         localSettings.active = 1;
         FeConsumer mirror = new FeConsumer(localSettings);
-        assertFalse(mirror.feModeEnabled());
+        assertFalse(mirror.requiresPower());
 
         mirror.applyClientSnapshot(new FePowerSnapshot(true, false, true,
                 24_000, 96_000, 150, 600, 8_000, 25, 600, 4_096, 1.8f, FePriority.HIGH, true, FeLock.NONE));
 
-        assertTrue(mirror.feModeEnabled(), "server says the mode is on");
+        assertTrue(mirror.requiresPower(), "server says this block pays for its power");
         assertEquals(FePriority.HIGH, mirror.priority(), "priority mirrors from the server");
         assertTrue(mirror.isLoadShed(), "shed flag mirrors from the server");
         assertEquals(96_000, mirror.getMaxEnergyStored());
@@ -370,8 +354,6 @@ class FeConsumerTest {
         assertEquals(fe.fillPct(), mirror.fillPct(), 0.001f);
         assertEquals(snapshot.syncSignature(), mirror.snapshot().syncSignature());
 
-        // Garbage in a payload cannot reach a GUI: energy is clamped into the buffer, the
-        // multiplier is floored at 1, and a NaN is replaced rather than propagated.
         FePowerSnapshot hostile = new FePowerSnapshot(true, true, false,
                 Integer.MAX_VALUE, 1_000, -5, -5, -5, 999, -1, -1, Float.NaN, FePriority.NORMAL, false, FeLock.NONE);
         assertEquals(1_000, hostile.energy());
@@ -384,8 +366,6 @@ class FeConsumerTest {
 
     @Test
     void syncSignatureIgnoresNoiseButCatchesRealChange() {
-        // The throttle must let a steady machine go completely silent, while never sitting on a
-        // power flip.
         FePowerSnapshot base = new FePowerSnapshot(true, true, false,
                 50_000, 100_000, 100, 400, 0, 25, 400, 0, 1.0f, FePriority.NORMAL, false, FeLock.NONE);
         FePowerSnapshot oneFeLess = new FePowerSnapshot(true, true, false,
@@ -403,8 +383,6 @@ class FeConsumerTest {
 
     @Test
     void mergingPoolsChargeIntoTheSharedBank() {
-        // A panel joining a multiblock must hand its charge to the controller, not strand it in a
-        // buffer that is about to go dormant.
         TestSettings settings = new TestSettings();
         settings.capacity = 1000;
         FeConsumer member = new FeConsumer(settings);
@@ -416,7 +394,6 @@ class FeConsumerTest {
         assertEquals(0, member.getEnergyStored());
         assertEquals(500, controller.getEnergyStored(), "charge is conserved across the merge");
 
-        // A bank with no room keeps the remainder rather than voiding it.
         FeConsumer full = new FeConsumer(settings);
         full.receiveEnergy(1000, false);
         FeConsumer donor = new FeConsumer(settings);
@@ -428,7 +405,6 @@ class FeConsumerTest {
 
     @Test
     void pooledCapacityScalesWithAssemblySizeButDrainDoesNot() {
-        // [3]
         final int[] panels = {1};
         TestSettings base = new TestSettings();
         base.capacity = 64_000;
@@ -444,11 +420,9 @@ class FeConsumerTest {
         assertEquals(400, pooled.activeDrain(), "but cost the same to run");
         assertEquals(100, pooled.idleDrain());
 
-        // The consequence that matters: a bigger display is more resilient, never more fragile.
         assertTrue(576_000 / 400.0f > 64_000 / 400.0f);
     }
 
-    /** Mirrors FeProfiles.pooled without needing a config bootstrap. */
     private static FeConsumer.Settings pooledFor(FeConsumer.Settings base, java.util.function.IntSupplier units) {
         return new FeConsumer.Settings() {
             @Override
@@ -489,5 +463,34 @@ class FeConsumerTest {
         assertFalse(fe.isBrownout());
         settings.enabled = false;
         assertFalse(fe.isBrownout());
+    }
+
+    @Test
+    void suppressionFollowsTheShedFlagAndTheLock() {
+        FeConsumer fe = new FeConsumer(new TestSettings());
+        assertFalse(fe.isSuppressed());
+
+        fe.setLoadShed(true);
+        assertTrue(fe.isSuppressed());
+
+        fe.setLock(FeLock.FORCE_ON);
+        assertFalse(fe.isSuppressed(), "force on pins a device the controller wanted to shed");
+
+        fe.setLock(FeLock.FORCE_OFF);
+        assertTrue(fe.isSuppressed());
+
+        fe.setLock(FeLock.NONE);
+        fe.setLoadShed(false);
+        assertFalse(fe.isSuppressed());
+    }
+
+    @Test
+    void shedDoesNotStopAnOrdinaryConsumerDead() {
+        TestSettings settings = new TestSettings();
+        FeConsumer fe = new FeConsumer(settings);
+        fe.receiveEnergy(settings.capacity, false);
+        fe.setLoadShed(true);
+        assertTrue(fe.serviceTick(true));
+        assertEquals(settings.active, fe.measuredDrainFePerTick());
     }
 }

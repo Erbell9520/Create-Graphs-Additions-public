@@ -20,8 +20,10 @@ public class GradeHistory
     private String worstGrade;
     private float worstScore;
     private EfficiencyScore latestScore;
-    private EfficiencyGrader.ODEState odeState;
-    
+    private ODEState odeState;
+    // real elapsed time, not the nominal cadence
+    private long lastGradedTick;
+
     public GradeHistory() {
         this.sessionStartGrade = null;
         this.sessionStartScore = 0.0f;
@@ -33,10 +35,11 @@ public class GradeHistory
         this.worstGrade = null;
         this.worstScore = Float.MAX_VALUE;
         this.latestScore = null;
-        this.odeState = new EfficiencyGrader.ODEState();
+        this.lastGradedTick = 0L;
+        this.odeState = new ODEState();
         (this.scoreHistory = new TimeSeriesStore(1080)).setSampleIntervalTicks(200);
     }
-    
+
     public void recordScore(EfficiencyScore score, long gameTick) {
         final float composite = score.compositeScore();
         final String grade = score.grade();
@@ -58,7 +61,7 @@ public class GradeHistory
             this.sessionStartScore = composite;
         }
     }
-    
+
     public void detectNewSession(long currentTick) {
         if (currentTick <= 0L) {
             return;
@@ -74,11 +77,11 @@ public class GradeHistory
             this.sessionStartTick = currentTick;
         }
     }
-    
+
     public float[] getSparklineData(int maxPoints) {
         return this.scoreHistory.getDataWindow(maxPoints);
     }
-    
+
     @Nullable
     public String getSessionChangeText() {
         if (this.sessionStartGrade == null || this.currentGrade == null) {
@@ -92,38 +95,48 @@ public class GradeHistory
         }
         return this.sessionStartGrade + " -> " + this.currentGrade;
     }
-    
+
     public boolean hasImproved() {
         return this.currentScore > this.sessionStartScore;
     }
-    
+
     @Nullable
     public String getCurrentGrade() {
         return this.currentGrade;
     }
-    
+
     public float getCurrentScore() {
         return this.currentScore;
     }
-    
+
     @Nullable
     public String getBestGrade() {
         return this.bestGrade;
     }
-    
+
     public float getBestScore() {
         return this.bestScore;
     }
-    
+
     @Nullable
     public EfficiencyScore getLatestScore() {
         return this.latestScore;
     }
-    
-    public EfficiencyGrader.ODEState getODEState() {
+
+    public ODEState getODEState() {
         return this.odeState;
     }
-    
+
+    public int consumeElapsedTicks(long gameTick) {
+        final long previous = this.lastGradedTick;
+        this.lastGradedTick = gameTick;
+        if (previous <= 0L || gameTick <= previous) {
+            return EfficiencyGrader.DEFAULT_INTERVAL_TICKS;
+        }
+        final long delta = gameTick - previous;
+        return (int) Math.min(Integer.MAX_VALUE, delta);
+    }
+
     public CompoundTag save() {
         return this.savePreview(this.scoreHistory.getSampleCount());
     }
@@ -153,12 +166,12 @@ public class GradeHistory
             tag.putFloat("WorstScore", this.worstScore);
         }
         if (this.latestScore != null) {
-            tag.put("LatestScore", (Tag)this.latestScore.save());
+            tag.put("LatestScore", (Tag)EfficiencyNbt.saveScore(this.latestScore));
         }
-        tag.put("ODEState", (Tag)this.odeState.save());
+        tag.put("ODEState", (Tag)EfficiencyNbt.saveState(this.odeState));
         return tag;
     }
-    
+
     public static GradeHistory load(CompoundTag tag) {
         final GradeHistory h = new GradeHistory();
         if (tag.contains("ScoreHistory")) {
@@ -191,10 +204,10 @@ public class GradeHistory
             h.worstScore = tag.getFloat("WorstScore");
         }
         if (tag.contains("LatestScore")) {
-            h.latestScore = EfficiencyScore.load(tag.getCompound("LatestScore"));
+            h.latestScore = EfficiencyNbt.loadScore(tag.getCompound("LatestScore"));
         }
         if (tag.contains("ODEState")) {
-            h.odeState = EfficiencyGrader.ODEState.load(tag.getCompound("ODEState"));
+            h.odeState = EfficiencyNbt.loadState(tag.getCompound("ODEState"));
         }
         return h;
     }

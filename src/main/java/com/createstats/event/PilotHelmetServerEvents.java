@@ -14,14 +14,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-/** [1] */
 @EventBusSubscriber(modid = CreateStats.MOD_ID)
 public final class PilotHelmetServerEvents {
-
-    /** How often to refresh the NV effect. 10 ticks = twice per second. */
     private static final int REFRESH_INTERVAL_TICKS = 10;
 
-    /** [2] */
+    // under the 280 tick "external NV" threshold, over a missed refresh
     private static final int REFRESH_DURATION_TICKS = 220;
 
     private PilotHelmetServerEvents() {
@@ -32,7 +29,7 @@ public final class PilotHelmetServerEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        // Cheap throttle: only enter the rest of the logic every N ticks.
+
         if (player.tickCount % REFRESH_INTERVAL_TICKS != 0) {
             return;
         }
@@ -47,7 +44,6 @@ public final class PilotHelmetServerEvents {
             return;
         }
 
-        // [3]
         MobEffectInstance current = player.getEffect(MobEffects.NIGHT_VISION);
         if (current != null && current.getDuration() > REFRESH_DURATION_TICKS + 60) {
             data.setNightVisionEnabled(false);
@@ -58,14 +54,12 @@ public final class PilotHelmetServerEvents {
             return;
         }
 
-        // Refresh. ambient=false, visible=false, showIcon=false keeps the HUD
-        // clean, we draw our own NV indicator from the helmet HUD overlay.
         player.addEffect(new MobEffectInstance(
             MobEffects.NIGHT_VISION,
             REFRESH_DURATION_TICKS,
             0,
-            /* ambient */ false,
-            /* visible */ false,
-            /* showIcon */ false));
+             false,
+             false,
+             false));
     }
 }

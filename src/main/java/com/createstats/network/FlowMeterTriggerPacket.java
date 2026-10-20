@@ -10,9 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** [1] */
 public class FlowMeterTriggerPacket implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<FlowMeterTriggerPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "flow_meter_trigger"));
 

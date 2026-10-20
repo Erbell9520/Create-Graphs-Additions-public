@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:machines/induction_range",
+  "display": {
+    "icon": {
+      "id": "create_stats:seismic_scanner"
+    },
+    "title": {
+      "translate": "advancement.create_stats.machines.seismic.title",
+      "fallback": "Treasure Hunter"
+    },
+    "description": {
+      "translate": "advancement.create_stats.machines.seismic.description",
+      "fallback": "Place a Seismic Scanner. There is definitely Ottoman gold under the village. Definitely."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "scanner": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:seismic_scanner"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "scanner"
+    ]
+  ]
+}

@@ -22,7 +22,6 @@ public record FccGroup(
     String zoneKey,
     boolean systemOwned
 ) {
-
     public FccGroup {
         if (id == null) throw new IllegalArgumentException("id");
         if (label == null || label.isEmpty()) throw new IllegalArgumentException("label");

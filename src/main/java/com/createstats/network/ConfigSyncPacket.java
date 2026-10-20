@@ -81,10 +81,10 @@ public class ConfigSyncPacket implements CustomPacketPayload
     private CompoundTag customScreenLayoutTag;
     private CompoundTag customScreenStateTag;
     private boolean customScreenLayoutEnabled;
-    
+
     public static final CustomPacketPayload.Type<ConfigSyncPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "config_sync"));
     public static final StreamCodec<FriendlyByteBuf, ConfigSyncPacket> STREAM_CODEC = StreamCodec.of((buf, pkt) -> pkt.encode(buf), ConfigSyncPacket::new);
-    
+
     private ConfigSyncPacket(BlockPos pos, ConfigType configType) {
         this.hiddenChannelIds = new HashSet<String>();
         this.dashboardMainChannelId = "";
@@ -98,13 +98,13 @@ public class ConfigSyncPacket implements CustomPacketPayload
         this.pos = pos;
         this.configType = configType;
     }
-    
+
     public static ConfigSyncPacket scanToggle(BlockPos pos, boolean enabled) {
         final ConfigSyncPacket pkt = new ConfigSyncPacket(pos, ConfigType.SCAN_TOGGLE);
         pkt.scanEnabled = enabled;
         return pkt;
     }
-    
+
     public static ConfigSyncPacket alertConfig(BlockPos pos, String channelId, float threshold, boolean above, boolean enabled) {
         final ConfigSyncPacket pkt = new ConfigSyncPacket(pos, ConfigType.ALERT_CONFIG);
         pkt.channelId = channelId;
@@ -113,7 +113,7 @@ public class ConfigSyncPacket implements CustomPacketPayload
         pkt.alertEnabled = enabled;
         return pkt;
     }
-    
+
     public static ConfigSyncPacket redstoneConfig(BlockPos pos, String channelId, float threshold, boolean above, boolean enabled, int mode) {
         final ConfigSyncPacket pkt = new ConfigSyncPacket(pos, ConfigType.REDSTONE_CONFIG);
         pkt.redstoneChannelId = channelId;
@@ -123,13 +123,13 @@ public class ConfigSyncPacket implements CustomPacketPayload
         pkt.redstoneMode = mode;
         return pkt;
     }
-    
+
     public static ConfigSyncPacket themeChange(BlockPos pos, DisplayTheme theme) {
         final ConfigSyncPacket pkt = new ConfigSyncPacket(pos, ConfigType.THEME_CHANGE);
         pkt.themeOrdinal = theme.ordinal();
         return pkt;
     }
-    
+
     public static ConfigSyncPacket settingsChange(BlockPos pos, StatsDisplaySettings settings) {
         final ConfigSyncPacket pkt = new ConfigSyncPacket(pos, ConfigType.SETTINGS_CHANGE);
         pkt.graphTypeOrdinal = settings.getGraphType().ordinal();
@@ -177,13 +177,13 @@ public class ConfigSyncPacket implements CustomPacketPayload
         pkt.customScreenLayoutEnabled = settings.isCustomScreenLayoutEnabled();
         return pkt;
     }
-    
+
     public static ConfigSyncPacket predictionToggle(BlockPos pos, boolean enabled) {
         final ConfigSyncPacket pkt = new ConfigSyncPacket(pos, ConfigType.PREDICTION_TOGGLE);
         pkt.predictionEnabled = enabled;
         return pkt;
     }
-    
+
     public ConfigSyncPacket(FriendlyByteBuf buf) {
         this.hiddenChannelIds = new HashSet<String>();
         this.dashboardMainChannelId = "";
@@ -278,7 +278,7 @@ public class ConfigSyncPacket implements CustomPacketPayload
             }
         }
     }
-    
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(this.pos);
         buf.writeEnum((Enum)this.configType);
@@ -364,12 +364,12 @@ public class ConfigSyncPacket implements CustomPacketPayload
             }
         }
     }
-    
+
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    
+
     public static void handle(ConfigSyncPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             final ServerPlayer player = (ServerPlayer) ctx.player();
@@ -528,14 +528,14 @@ public class ConfigSyncPacket implements CustomPacketPayload
             }
         });
     }
-    
+
     public enum ConfigType
     {
-        SCAN_TOGGLE, 
-        ALERT_CONFIG, 
-        REDSTONE_CONFIG, 
-        THEME_CHANGE, 
-        SETTINGS_CHANGE, 
+        SCAN_TOGGLE,
+        ALERT_CONFIG,
+        REDSTONE_CONFIG,
+        THEME_CHANGE,
+        SETTINGS_CHANGE,
         PREDICTION_TOGGLE;
     }
 }

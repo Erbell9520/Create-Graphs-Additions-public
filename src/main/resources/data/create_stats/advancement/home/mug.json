@@ -1,0 +1,39 @@
+{
+  "parent": "create_stats:home/coffee",
+  "display": {
+    "icon": {
+      "id": "create_stats:ceramic_mug"
+    },
+    "title": {
+      "translate": "advancement.create_stats.home.mug.title",
+      "fallback": "Flip the Cup"
+    },
+    "description": {
+      "translate": "advancement.create_stats.home.mug.description",
+      "fallback": "Drink from a mug. Now turn it over: auntie will read your fortune."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "mug": {
+      "trigger": "minecraft:using_item",
+      "conditions": {
+        "item": {
+          "items": [
+            "create_stats:ceramic_mug",
+            "create_stats:enamel_mug",
+            "create_stats:steel_mug"
+          ]
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "mug"
+    ]
+  ]
+}

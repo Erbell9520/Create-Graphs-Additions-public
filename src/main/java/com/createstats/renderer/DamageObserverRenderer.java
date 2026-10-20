@@ -2,111 +2,111 @@ package com.createstats.renderer;
 
 import com.createstats.block.DamageObserverBlock;
 import com.createstats.blockentity.DamageObserverBE;
+import com.createstats.registry.ModBlocks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-
-import java.util.Objects;
 
 @OnlyIn(Dist.CLIENT)
 public class DamageObserverRenderer implements BlockEntityRenderer<DamageObserverBE> {
-    private static final ResourceLocation BLANK_TEXTURE = Objects.requireNonNull(ResourceLocation.tryParse("create_stats:textures/special/blank.png"));
+    private static final int FULL_BRIGHT = 0xF000F0;
+    private static final float LIFT = 0.02f / 16f;
 
     public DamageObserverRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     @Override
-    public void render(DamageObserverBE observer, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay) {
-        BlockState state = observer.getBlockState();
-        if (!(state.getBlock() instanceof DamageObserverBlock)) {
-            return;
-        }
-        Direction facing = state.getValue(DamageObserverBlock.FACING);
-        boolean wallMount = state.getValue(DamageObserverBlock.WALL_MOUNT);
-        long gameTime = observer.getLevel() != null ? observer.getLevel().getGameTime() : 0L;
-        float time = gameTime + partialTick;
-        int baseColor = healthColor(observer.getHealthPercent(), observer.getMissingBlocks());
-
-        poseStack.pushPose();
-        poseStack.translate(0.5, 0.0, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(rotationFor(facing)));
-        poseStack.translate(-0.5, 0.0, -0.5);
-        VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(BLANK_TEXTURE));
-        Matrix4f matrix = poseStack.last().pose();
-        Matrix3f normal = poseStack.last().normal();
-
-        float ledZ = wallMount ? 0.56f : 0.9f;
-        float ledY = wallMount ? 0.74f : 0.78f;
-        renderPixelStrip(consumer, matrix, normal, ledY, ledZ, time, baseColor, observer.getMissingBlocks());
-        renderLensPulse(consumer, matrix, normal, wallMount ? 0.51f : 0.84f, ledZ + 0.02f, time, baseColor, observer.getMissingBlocks());
-        poseStack.popPose();
+    public boolean shouldRenderOffScreen(DamageObserverBE be) {
+        return true;
     }
 
-    private static void renderPixelStrip(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, float y, float z, float time, int baseColor, int missingBlocks) {
-        for (int index = 0; index < 7; index++) {
-            int color = pixelColor(baseColor, index, time, missingBlocks);
-            int red = color >> 16 & 0xFF;
-            int green = color >> 8 & 0xFF;
-            int blue = color & 0xFF;
-            int alpha = 145 + Math.floorMod((int) time + index * 31, 90);
-            float x = 0.26f + index * 0.08f;
-            HologramRenderHelper.emitCube(consumer, matrix, normal, x, y, z, 0.013f, red, green, blue, alpha, HologramRenderHelper.FULL_BRIGHT);
+    @Override
+    public AABB getRenderBoundingBox(DamageObserverBE be) {
+        return new AABB(be.getBlockPos()).inflate(be.cover() + 1);
+    }
+
+    @Override
+    public void render(DamageObserverBE be, float partialTick, PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
+        BlockState state = be.getBlockState();
+        long clock = be.getLevel() == null ? 0L : be.getLevel().getGameTime();
+        int colour = colour(be.permille());
+        boolean blinkOff = be.lastLossAt() >= 0 && clock - be.lastLossAt() < 60 && (clock / 5) % 2 == 1;
+        if (blinkOff) colour = 0xFF3A2020;
+
+        pose.pushPose();
+        Direction facing = state.hasProperty(DamageObserverBlock.FACING) ? state.getValue(DamageObserverBlock.FACING) : Direction.NORTH;
+        pose.translate(0.5, 0.5, 0.5);
+        pose.mulPose(Axis.YP.rotationDegrees(180f - facing.toYRot()));
+        pose.translate(-0.5, -0.5, -0.5);
+        Matrix4f m = pose.last().pose();
+        VertexConsumer vc = buffers.getBuffer(RenderType.textBackground());
+        float a = 7f / 16f;
+        float b = 9f / 16f;
+        if (state.hasProperty(DamageObserverBlock.WALL_MOUNT) && state.getValue(DamageObserverBlock.WALL_MOUNT)) {
+            float z = 3f / 16f + LIFT;
+            quad(vc, m, a, a, z, b, a, z, b, b, z, a, b, z, colour);
+        } else if (state.hasProperty(DamageObserverBlock.CEILING) && state.getValue(DamageObserverBlock.CEILING)) {
+            float y = 13f / 16f - LIFT;
+            quad(vc, m, a, y, a, b, y, a, b, y, b, a, y, b, colour);
+        } else {
+            float y = 3f / 16f + LIFT;
+            quad(vc, m, a, y, a, b, y, a, b, y, b, a, y, b, colour);
+        }
+        pose.popPose();
+
+        if (showsVolume(be)) {
+            int r = be.cover();
+            VertexConsumer lines = buffers.getBuffer(RenderType.lines());
+            LevelRenderer.renderLineBox(pose, lines, -r, -r, -r, r + 1, r + 1, r + 1,
+                    ((colour >> 16) & 0xFF) / 255f, ((colour >> 8) & 0xFF) / 255f, (colour & 0xFF) / 255f, 0.8f);
         }
     }
 
-    private static void renderLensPulse(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, float y, float z, float time, int baseColor, int missingBlocks) {
-        int red = baseColor >> 16 & 0xFF;
-        int green = baseColor >> 8 & 0xFF;
-        int blue = baseColor & 0xFF;
-        float pulse = (float) ((Math.sin(time * 0.18f) + 1.0f) * 0.5f);
-        float radius = 0.055f + pulse * (missingBlocks > 0 ? 0.025f : 0.014f);
-        int alpha = missingBlocks > 0 ? 120 : 82;
-        for (int segment = 0; segment < 18; segment++) {
-            float angle = (float) (Math.PI * 2.0 * segment / 18.0);
-            float x = 0.5f + (float) Math.cos(angle) * radius;
-            float dotY = y + (float) Math.sin(angle) * radius;
-            HologramRenderHelper.emitCube(consumer, matrix, normal, x, dotY, z, 0.006f, red, green, blue, alpha, HologramRenderHelper.FULL_BRIGHT);
-        }
-        HologramRenderHelper.emitCube(consumer, matrix, normal, 0.5f, y, z, 0.018f, red, green, blue, 170, HologramRenderHelper.FULL_BRIGHT);
+    private static int colour(int permille) {
+        if (permille < 0) return 0xFF8A9490;
+        if (permille >= 1000) return 0xFF4CC45A;
+        if (permille >= 900) return 0xFFE0A000;
+        return 0xFFE0402C;
     }
 
-    private static int pixelColor(int baseColor, int index, float time, int missingBlocks) {
-        if (missingBlocks > 0 && Math.floorMod((int) time / 4 + index, 3) == 0) {
-            return 0xFF5D69;
+    private static boolean showsVolume(DamageObserverBE be) {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        if (player == null) return false;
+        if (player.getMainHandItem().is(ModBlocks.DAMAGE_OBSERVER.asItem()) || player.getOffhandItem().is(ModBlocks.DAMAGE_OBSERVER.asItem())) {
+            return true;
         }
-        if (Math.floorMod((int) time / 5 + index, 5) == 0) {
-            return 0x4AD9FF;
-        }
-        return baseColor;
+        HitResult hit = mc.hitResult;
+        return hit instanceof BlockHitResult bh && hit.getType() == HitResult.Type.BLOCK && bh.getBlockPos().equals(be.getBlockPos());
     }
 
-    private static int rotationFor(Direction facing) {
-        return switch (facing) {
-            case SOUTH -> 180;
-            case EAST -> 90;
-            case WEST -> 270;
-            default -> 0;
-        };
-    }
-
-    private static int healthColor(double healthPercent, int missingBlocks) {
-        if (healthPercent >= 85.0 && missingBlocks == 0) {
-            return 0x62E8A3;
-        }
-        if (healthPercent >= 55.0) {
-            return 0xFFC15E;
-        }
-        return 0xFF5D69;
+    private static void quad(VertexConsumer vc, Matrix4f m, float x0, float y0, float z0, float x1, float y1, float z1,
+                             float x2, float y2, float z2, float x3, float y3, float z3, int argb) {
+        int r = (argb >> 16) & 0xFF;
+        int g = (argb >> 8) & 0xFF;
+        int b = argb & 0xFF;
+        vc.addVertex(m, x0, y0, z0).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
+        vc.addVertex(m, x1, y1, z1).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
+        vc.addVertex(m, x2, y2, z2).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
+        vc.addVertex(m, x3, y3, z3).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
+        vc.addVertex(m, x3, y3, z3).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
+        vc.addVertex(m, x2, y2, z2).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
+        vc.addVertex(m, x1, y1, z1).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
+        vc.addVertex(m, x0, y0, z0).setColor(r, g, b, 255).setLight(FULL_BRIGHT);
     }
 }

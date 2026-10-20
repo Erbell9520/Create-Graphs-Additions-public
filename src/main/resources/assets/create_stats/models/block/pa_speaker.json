@@ -1,0 +1,1048 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "mount_back": "create_stats:block/pa_mount_back",
+    "mount_steel": "create_stats:block/pa_mount_steel",
+    "speaker_cap": "create_stats:block/pa_speaker_cap",
+    "speaker_grille": "create_stats:block/pa_speaker_grille",
+    "speaker_shell": "create_stats:block/pa_speaker_shell",
+    "speaker_trim": "create_stats:block/pa_speaker_trim"
+  },
+  "elements": [
+    {
+      "__comment": "backplate",
+      "from": [
+        2.0,
+        0.0,
+        2.0
+      ],
+      "to": [
+        14.0,
+        1.0,
+        14.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.0,
+            15.0,
+            14.0,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "south": {
+          "uv": [
+            2.0,
+            15.0,
+            14.0,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "east": {
+          "uv": [
+            2.0,
+            15.0,
+            14.0,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "west": {
+          "uv": [
+            2.0,
+            15.0,
+            14.0,
+            16.0
+          ],
+          "texture": "#mount_back"
+        },
+        "up": {
+          "uv": [
+            2.0,
+            2.0,
+            14.0,
+            14.0
+          ],
+          "texture": "#mount_back"
+        },
+        "down": {
+          "uv": [
+            2.0,
+            2.0,
+            14.0,
+            14.0
+          ],
+          "texture": "#mount_back"
+        }
+      }
+    },
+    {
+      "__comment": "bracket left",
+      "from": [
+        3.2,
+        1.0,
+        4.5
+      ],
+      "to": [
+        5.2,
+        2.4,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.2,
+            13.6,
+            5.2,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            3.2,
+            13.6,
+            5.2,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            13.6,
+            11.5,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            13.6,
+            11.5,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            3.2,
+            4.5,
+            5.2,
+            11.5
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            3.2,
+            4.5,
+            5.2,
+            11.5
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "bracket right",
+      "from": [
+        10.8,
+        1.0,
+        4.5
+      ],
+      "to": [
+        12.8,
+        2.4,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.8,
+            13.6,
+            12.8,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            10.8,
+            13.6,
+            12.8,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            13.6,
+            11.5,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            13.6,
+            11.5,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            10.8,
+            4.5,
+            12.8,
+            11.5
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            10.8,
+            4.5,
+            12.8,
+            11.5
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "terminal boss",
+      "from": [
+        6.5,
+        1.0,
+        2.2
+      ],
+      "to": [
+        9.5,
+        3.2,
+        4.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            12.8,
+            9.5,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "south": {
+          "uv": [
+            6.5,
+            12.8,
+            9.5,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "east": {
+          "uv": [
+            2.2,
+            12.8,
+            4.6,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "west": {
+          "uv": [
+            2.2,
+            12.8,
+            4.6,
+            15.0
+          ],
+          "texture": "#mount_steel"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            2.2,
+            9.5,
+            4.6
+          ],
+          "texture": "#mount_steel"
+        },
+        "down": {
+          "uv": [
+            6.5,
+            2.2,
+            9.5,
+            4.6
+          ],
+          "texture": "#mount_steel"
+        }
+      }
+    },
+    {
+      "__comment": "cabinet lower a",
+      "from": [
+        2.4,
+        2.4,
+        4.0
+      ],
+      "to": [
+        13.6,
+        7.6,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.4,
+            8.4,
+            13.6,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            2.4,
+            8.4,
+            13.6,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            4.0,
+            8.4,
+            12.0,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            4.0,
+            8.4,
+            12.0,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            2.4,
+            4.0,
+            13.6,
+            12.0
+          ],
+          "texture": "#speaker_shell"
+        },
+        "down": {
+          "uv": [
+            2.4,
+            4.0,
+            13.6,
+            12.0
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "cabinet lower b",
+      "from": [
+        4.0,
+        2.4,
+        2.4
+      ],
+      "to": [
+        12.0,
+        7.6,
+        13.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.0,
+            8.4,
+            12.0,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            4.0,
+            8.4,
+            12.0,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            2.4,
+            8.4,
+            13.6,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            2.4,
+            8.4,
+            13.6,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            4.0,
+            2.4,
+            12.0,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        },
+        "down": {
+          "uv": [
+            4.0,
+            2.4,
+            12.0,
+            13.6
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "cabinet upper a",
+      "from": [
+        2.8,
+        7.6,
+        4.2
+      ],
+      "to": [
+        13.2,
+        9.2,
+        11.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.8,
+            6.8,
+            13.2,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            2.8,
+            6.8,
+            13.2,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            4.2,
+            6.8,
+            11.8,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            4.2,
+            6.8,
+            11.8,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            2.8,
+            4.2,
+            13.2,
+            11.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "down": {
+          "uv": [
+            2.8,
+            4.2,
+            13.2,
+            11.8
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "cabinet upper b",
+      "from": [
+        4.2,
+        7.6,
+        2.8
+      ],
+      "to": [
+        11.8,
+        9.2,
+        13.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.2,
+            6.8,
+            11.8,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            4.2,
+            6.8,
+            11.8,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            2.8,
+            6.8,
+            13.2,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            2.8,
+            6.8,
+            13.2,
+            8.4
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            4.2,
+            2.8,
+            11.8,
+            13.2
+          ],
+          "texture": "#speaker_shell"
+        },
+        "down": {
+          "uv": [
+            4.2,
+            2.8,
+            11.8,
+            13.2
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "bezel north",
+      "from": [
+        2.8,
+        9.2,
+        2.8
+      ],
+      "to": [
+        13.2,
+        10.8,
+        4.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.8,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            2.8,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            2.8,
+            5.2,
+            4.4,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            2.8,
+            5.2,
+            4.4,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            2.8,
+            2.8,
+            13.2,
+            4.4
+          ],
+          "texture": "#speaker_trim"
+        },
+        "down": {
+          "uv": [
+            2.8,
+            2.8,
+            13.2,
+            4.4
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "bezel south",
+      "from": [
+        2.8,
+        9.2,
+        11.6
+      ],
+      "to": [
+        13.2,
+        10.8,
+        13.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.8,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            2.8,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            11.6,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            11.6,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            2.8,
+            11.6,
+            13.2,
+            13.2
+          ],
+          "texture": "#speaker_trim"
+        },
+        "down": {
+          "uv": [
+            2.8,
+            11.6,
+            13.2,
+            13.2
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "bezel west",
+      "from": [
+        2.8,
+        9.2,
+        4.4
+      ],
+      "to": [
+        4.4,
+        10.8,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.8,
+            5.2,
+            4.4,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            2.8,
+            5.2,
+            4.4,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            4.4,
+            5.2,
+            11.6,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            4.4,
+            5.2,
+            11.6,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            2.8,
+            4.4,
+            4.4,
+            11.6
+          ],
+          "texture": "#speaker_trim"
+        },
+        "down": {
+          "uv": [
+            2.8,
+            4.4,
+            4.4,
+            11.6
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "bezel east",
+      "from": [
+        11.6,
+        9.2,
+        4.4
+      ],
+      "to": [
+        13.2,
+        10.8,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.6,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "south": {
+          "uv": [
+            11.6,
+            5.2,
+            13.2,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "east": {
+          "uv": [
+            4.4,
+            5.2,
+            11.6,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "west": {
+          "uv": [
+            4.4,
+            5.2,
+            11.6,
+            6.8
+          ],
+          "texture": "#speaker_shell"
+        },
+        "up": {
+          "uv": [
+            11.6,
+            4.4,
+            13.2,
+            11.6
+          ],
+          "texture": "#speaker_trim"
+        },
+        "down": {
+          "uv": [
+            11.6,
+            4.4,
+            13.2,
+            11.6
+          ],
+          "texture": "#speaker_shell"
+        }
+      }
+    },
+    {
+      "__comment": "cone a",
+      "from": [
+        3.9,
+        9.2,
+        5.2
+      ],
+      "to": [
+        12.1,
+        10.1,
+        10.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.9,
+            5.9,
+            12.1,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "south": {
+          "uv": [
+            3.9,
+            5.9,
+            12.1,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "east": {
+          "uv": [
+            5.2,
+            5.9,
+            10.8,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "west": {
+          "uv": [
+            5.2,
+            5.9,
+            10.8,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "up": {
+          "uv": [
+            3.9,
+            5.2,
+            12.1,
+            10.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "down": {
+          "uv": [
+            3.9,
+            5.2,
+            12.1,
+            10.8
+          ],
+          "texture": "#speaker_grille"
+        }
+      }
+    },
+    {
+      "__comment": "cone b",
+      "from": [
+        5.2,
+        9.2,
+        3.9
+      ],
+      "to": [
+        10.8,
+        10.1,
+        12.1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.2,
+            5.9,
+            10.8,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "south": {
+          "uv": [
+            5.2,
+            5.9,
+            10.8,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "east": {
+          "uv": [
+            3.9,
+            5.9,
+            12.1,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "west": {
+          "uv": [
+            3.9,
+            5.9,
+            12.1,
+            6.8
+          ],
+          "texture": "#speaker_grille"
+        },
+        "up": {
+          "uv": [
+            5.2,
+            3.9,
+            10.8,
+            12.1
+          ],
+          "texture": "#speaker_grille"
+        },
+        "down": {
+          "uv": [
+            5.2,
+            3.9,
+            10.8,
+            12.1
+          ],
+          "texture": "#speaker_grille"
+        }
+      }
+    },
+    {
+      "__comment": "dust cap",
+      "from": [
+        6.9,
+        10.1,
+        6.9
+      ],
+      "to": [
+        9.1,
+        10.6,
+        9.1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.9,
+            5.4,
+            9.1,
+            5.9
+          ],
+          "texture": "#speaker_cap"
+        },
+        "south": {
+          "uv": [
+            6.9,
+            5.4,
+            9.1,
+            5.9
+          ],
+          "texture": "#speaker_cap"
+        },
+        "east": {
+          "uv": [
+            6.9,
+            5.4,
+            9.1,
+            5.9
+          ],
+          "texture": "#speaker_cap"
+        },
+        "west": {
+          "uv": [
+            6.9,
+            5.4,
+            9.1,
+            5.9
+          ],
+          "texture": "#speaker_cap"
+        },
+        "up": {
+          "uv": [
+            6.9,
+            6.9,
+            9.1,
+            9.1
+          ],
+          "texture": "#speaker_cap"
+        },
+        "down": {
+          "uv": [
+            6.9,
+            6.9,
+            9.1,
+            9.1
+          ],
+          "texture": "#speaker_cap"
+        }
+      }
+    }
+  ]
+}

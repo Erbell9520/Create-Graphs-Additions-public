@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:stats/alarm",
+  "display": {
+    "icon": {
+      "id": "create_stats:table_alarm_clock"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.alarm_clock.title",
+      "fallback": "Up Before the Karabasan"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.alarm_clock.description",
+      "fallback": "Place an Alarm Clock. Up at three, before the Karabasan can sit on your chest."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "clock": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:table_alarm_clock"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "clock"
+    ]
+  ]
+}

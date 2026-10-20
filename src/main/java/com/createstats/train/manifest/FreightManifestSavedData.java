@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
 public class FreightManifestSavedData extends SavedData {
-
     private static final String DATA_NAME = "create_stats_freight_manifests";
 
     private final Map<UUID, FreightManifestStationState> stations;
@@ -57,6 +56,28 @@ public class FreightManifestSavedData extends SavedData {
         return state == null ? new DeliveryOrderBoard() : state.getPersistentOrders();
     }
 
+    // read without creating, getOrCreate is a write dressed up as a read
+    @Nullable
+    public FreightManifestStationState getStationState(UUID stationId) {
+        return this.stations.get(stationId);
+    }
+
+    @Nullable
+    public static FreightManifestSavedData peek(ServerLevel level) {
+        return level.getDataStorage().get(
+            new SavedData.Factory<>(FreightManifestSavedData::new, FreightManifestSavedData::load), DATA_NAME);
+    }
+
+    public java.util.List<UUID> getStationsWithOpenVisit() {
+        java.util.List<UUID> open = new java.util.ArrayList<>();
+        for (Map.Entry<UUID, FreightManifestStationState> entry : this.stations.entrySet()) {
+            if (entry.getValue().getVisitTrainId() != null) {
+                open.add(entry.getKey());
+            }
+        }
+        return open;
+    }
+
     public FreightManifestStationState getOrCreateStationState(UUID stationId) {
         return this.stations.computeIfAbsent(stationId, id -> new FreightManifestStationState());
     }
@@ -64,6 +85,20 @@ public class FreightManifestSavedData extends SavedData {
     public void putManifest(UUID stationId, FreightManifest manifest, long currentTick) {
         this.getOrCreateStationState(stationId).setManifest(manifest, currentTick);
         this.setDirty();
+    }
+
+    public void reconcileStationId(UUID linkedId, UUID liveId) {
+        if (linkedId.equals(liveId)) {
+            return;
+        }
+        if (this.stations.containsKey(liveId)) {
+            return;
+        }
+        FreightManifestStationState linkedState = this.stations.remove(linkedId);
+        if (linkedState != null) {
+            this.stations.put(liveId, linkedState);
+            this.setDirty();
+        }
     }
 
     @Override

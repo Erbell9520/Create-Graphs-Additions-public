@@ -38,9 +38,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.List;
 
-/** [1] */
+// the default pipe interactions would turn it into a plain pipe and eat the meter, so they're off
 public class FlowMeterBlock extends AxisPipeBlock implements IBE<FlowMeterBE>, SimpleWaterloggedBlock {
-
     public FlowMeterBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, Boolean.FALSE));
@@ -62,7 +61,6 @@ public class FlowMeterBlock extends AxisPipeBlock implements IBE<FlowMeterBE>, S
                 .setValue(BlockStateProperties.WATERLOGGED, waterlogged);
     }
 
-    // Line the meter up with whatever it is being spliced into instead of the log-style clicked face.
     private Axis chooseAxis(BlockPlaceContext context) {
         final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
@@ -128,7 +126,6 @@ public class FlowMeterBlock extends AxisPipeBlock implements IBE<FlowMeterBE>, S
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hitResult) {
-        // Do not let copper casing convert the meter into an encased fluid pipe.
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 

@@ -1,71 +1,47 @@
-# Create Stats & Numbers
+# Create: Stats & Power
 
-Create Stats & Numbers is a NeoForge 1.21.1 addon for Create on Minecraft 1.21.1. It adds factory displays, an FE power grid, operator tools, and vehicle systems.
+A NeoForge addon for Create on Minecraft 1.21.1. It started as a few stat panels and kind of got out of hand: there's a whole FE power grid now, displays for everything, a security system, vehicles that drive themselves, and a coffee machine.
 
-> **Note:** this mod was built with AI used as a development tool, and most in-source comments and explanations (see `NOTES.md`) were written by it. Feel free to ignore this, it has no effect on how the mod works.
+> **Note:** this mod was built with AI used as a development tool, and most in-source comments were written by it. Feel free to ignore this, it has no effect on how the mod works.
 
-## Features
+## What's in it
 
-**Power & wiring**
-Surface cable, cable tray, bus duct, and wire terminals for point-to-point runs; capacitor banks for buffering; three grades of FE dynamo and FE motor; two grades of FE fluid pump; and the Power Distribution Unit, a priority-tiered load shedding panel with an Active Auto mode that sheds low-priority devices automatically when supply runs short.
+**Power**
+Surface cable, cable trays, bus ducts, indoor cable, copper wire with connectors, bores through walls. Dynamos, biofuel burners, solar panels, capacitor banks, the Starter Capacitor. The Power Distribution Unit sheds low priority loads when supply runs short, the Battery Controller manages a reserve between banks and boards, and the Power Meter, Power Limiter and Main Breaker sit inline where you want them. Plays along with Create: New Age and Create Crafts & Additions wiring.
 
-**Displays & monitoring**
-Stats display panels, holographic projectors, stats recorders, alarms, mini displays, data dials, production detectors, and a battle screen / damage observer suite for section-based damage monitoring.
+**Displays**
+Stats Display Mk III wall panels and consoles (live graphs, alerts, a compose editor, special pages for stress, power, storage, trains, diesel, Refined Storage, flight and seismic surveys), holographic projectors, e-ink panels, data dials, the Inventory Display, dispatch boards and a railway map.
 
-**Lighting & switches**
-Stage lights and status tower lights, a set of static fixtures (bulkhead, high bay, strip, dome, sconce, panel), and a matching family of wall switches (rocker, toggle, double, isolator, push button).
+**Home & security**
+Lamps, dimmers and switches, a Smart Home Panel with a floor plan of your house, powered doors, garage doors, blast shutters, sensors, lockers, the Security Relay, the Mob Repeller and the Storm Coil. Kitchen stuff too: oven, toaster, air fryer, coffee machine, water cooler, bread slicer.
 
-**Logistics & control**
-Factory Logic Controller, Dispatch Board, Load Balancer, Calculator, Freight Manifest Clipboard, Flow Meter, Overflow Gate.
+**Vehicles**
+The VCC Mk IV for ground vehicles and the VCC Mk IV Aerial for airships (Sable / Create Aeronautics), trailers, vehicle lights, driver and aviator helmets, the Surveyor's Staff for drawing routes vehicles follow on their own, the Cine Camera for filming them.
 
-**Drivetrain control**
-Safety Clutch, Auto Transmission Clutch, Control Clutch, Smart Gearshift, Kinetic Flywheel.
+**Machines and tools**
+Induction heater, range and smelter, arc furnace, bulk washer, vacuum machines, Seismic Scanner, Spark Crown chunk loader, Power Track for electric trains, clutches and gearshifts, topology scanners, the Battle Bridge for ships with guns.
 
-**Vehicle & flight control**
-Flight Control Computer, RPM Governor, VCC Mk II cockpit console, and a Path Scanner / Pathfinder Computer pair for route guidance.
+There's an in-game Student's Manual and Ponder scenes for a lot of it.
 
-**Heating**
-Induction Heater and Induction Range, FE-powered cooking appliances that plug into the same power grid.
-
-**Antennas**
-Longer-range and special-dimension signal links for wireless devices.
-
-## Main Gameplay Loops
-
-### Power Management
-Wire generators and machines into a Power Distribution Unit, set a priority tier per device, then let Active Auto shed the lowest-priority loads first when generation can't cover everything.
-
-### Factory Displays
-Place a display target, feed it with a Display Link, then open the screen to choose what you want to see.
-
-### Battle Monitoring
-Place Damage Observers on important ship or machine sections, link them into a Battle Screen Display, then use the screen as the damage overview.
-
-### Vehicle Routing
-Let a Path Scanner read the loaded terrain ahead, send that scan to a Pathfinder Computer, then forward route guidance from Pathfinder to the Flight Control Computer.
-
-### Flight Control
-Place RPM Governors on the shafts you want controlled, bind them in the Flight Control Computer, then enable the mode you want to test.
-
-## Target Versions
+## Versions
 
 - Minecraft 1.21.1
 - NeoForge 21.1.219
-- Create 6.0.9-215
+- Create 6.0.9 (up to 6.1)
+
+## Optional mods
+
+Picked up when installed, nothing breaks without them: Create Aeronautics / Sable, Create Crafts & Additions, Create: New Age, Create Big Cannons, Create Propulsion, Offroad, Refined Storage 2, JEI, GeckoLib, Redstone Link Tablet, Electro Energetics.
 
 ## Building
 
-Requires JDK 21.
+JDK 21.
 
 ```powershell
 .\gradlew.bat build
 ```
 
-The built jar is written to build/libs.
-
-## Optional Compatibility
-
-Some integration paths are enabled only when their companion mods are present, including Create Addition and Simulated or Aeronautics companion support.
+The jar ends up in `build/libs`.
 
 ## License
 

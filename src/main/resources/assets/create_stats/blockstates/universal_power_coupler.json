@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,mode=pull": {
+      "model": "create_stats:block/universal_power_coupler"
+    },
+    "facing=north,mode=push": {
+      "model": "create_stats:block/universal_power_coupler"
+    },
+    "facing=east,mode=pull": {
+      "model": "create_stats:block/universal_power_coupler",
+      "y": 90
+    },
+    "facing=east,mode=push": {
+      "model": "create_stats:block/universal_power_coupler",
+      "y": 90
+    },
+    "facing=south,mode=pull": {
+      "model": "create_stats:block/universal_power_coupler",
+      "y": 180
+    },
+    "facing=south,mode=push": {
+      "model": "create_stats:block/universal_power_coupler",
+      "y": 180
+    },
+    "facing=west,mode=pull": {
+      "model": "create_stats:block/universal_power_coupler",
+      "y": 270
+    },
+    "facing=west,mode=push": {
+      "model": "create_stats:block/universal_power_coupler",
+      "y": 270
+    }
+  }
+}

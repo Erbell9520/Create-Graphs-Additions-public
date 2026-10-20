@@ -1,0 +1,12 @@
+{
+  "sources": [
+    {
+      "type": "single",
+      "resource": "create_stats:fluid/cake_batter_still"
+    },
+    {
+      "type": "single",
+      "resource": "create_stats:fluid/cake_batter_flow"
+    }
+  ]
+}

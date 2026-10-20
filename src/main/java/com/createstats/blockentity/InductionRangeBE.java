@@ -1,12 +1,14 @@
 package com.createstats.blockentity;
 
 import com.createstats.block.InductionRangeBlock;
+import com.createstats.power.ApplianceStatus;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -28,43 +30,44 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.Optional;
 
-/** [1] */
 public class InductionRangeBE extends BlockEntity
         implements com.createstats.power.FeGridMember,
         com.createstats.power.FeManagedLoad,
-        com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation {
-
-    /** [2] */
+        com.createstats.power.Gateable,
+        com.createstats.power.Adjustable,
+        com.createstats.power.HomeAppliance,
+        com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation,
+        com.createstats.util.CopyableSettings {
     public static final int DRAW_HIGH = 256;
     public static final int DRAW_MEDIUM = DRAW_HIGH / 4;
     public static final int DRAW_LOW = DRAW_HIGH / 16;
 
-    /** [3] */
     private static final int BUFFER = 2000;
 
-    /** Campfire speed, then double, then a bit over triple. Matches the Induction Heater's curve. */
     private static final float COOK_RATE_LOW = 1.0f;
     private static final float COOK_RATE_MEDIUM = 2.0f;
     private static final float COOK_RATE_HIGH = 10.0f / 3.0f;
     private static final int COOK_TICKS = 600;
-    /** One batch. Eight is what fits on the trivet without the pile hiding the block. */
+
     public static final int STACK_LIMIT = 8;
 
     private int energy;
-    /** FE that arrived since the last tick, and the settled per-tick figure it feeds. */
+
     private int intakeAccumulator;
     private int measuredIntake;
-    /** What the element actually spent last tick, which is the setting unless starved. */
+
     private int measuredDraw;
-    /** [4] */
+
     private int ratedDraw;
-    /** Tier and lock as set from the panel. See {@link com.createstats.power.FeManagedLoad}. */
+
     private final com.createstats.power.FeManagedState managed = new com.createstats.power.FeManagedState();
-    /** What the player asked for: 0 off, 1 low, 2 medium, 3 high. Persisted. */
+
     private int setting;
-    /** The setting it is allowed to hold, which is {@link #setting} unless redstone or the panel says no. */
+
+    private boolean gated;
+
     private int allowedSetting;
-    /** What it is actually managing, which is the setting unless the supply fell short. */
+
     private HeatLevel achieved = HeatLevel.NONE;
 
     private ItemStack cookStack = ItemStack.EMPTY;
@@ -74,7 +77,6 @@ public class InductionRangeBE extends BlockEntity
     private RecipeManager.CachedCheck<SingleRecipeInput, SmeltingRecipe> smeltCheck;
     private RecipeManager.CachedCheck<SingleRecipeInput, BlastingRecipe> blastCheck;
 
-    /** [5] */
     private final IItemHandler itemHandle = new IItemHandler() {
         @Override
         public int getSlots() {
@@ -108,7 +110,7 @@ public class InductionRangeBE extends BlockEntity
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (!cooked || cookStack.isEmpty()) {
-                return ItemStack.EMPTY;   // never pull food off the heat before it is done
+                return ItemStack.EMPTY;
             }
             final int taken = Math.min(amount, cookStack.getCount());
             final ItemStack out = cookStack.copyWithCount(taken);
@@ -147,7 +149,6 @@ public class InductionRangeBE extends BlockEntity
                 (be, side) -> be.itemHandle());
     }
 
-    /** Receive only: a range is a load and never a source for anything else. */
     private final IEnergyStorage energyView = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
@@ -193,9 +194,6 @@ public class InductionRangeBE extends BlockEntity
         super(type, pos, state);
     }
 
-    // grid membership, and the bank
-
-    /** [6] */
     @org.jetbrains.annotations.Nullable
     private com.createstats.power.FeWireNetwork network;
 
@@ -218,7 +216,6 @@ public class InductionRangeBE extends BlockEntity
         return 0;
     }
 
-    /** Generous, so a whole bank refills within a tick or two of supply returning. */
     @Override
     public int transferRate() {
         return 512;
@@ -242,7 +239,12 @@ public class InductionRangeBE extends BlockEntity
         this.network = network;
     }
 
-    /** Forces rediscovery, for when a unit joins or leaves a bank. */
+    @Override
+    @javax.annotation.Nullable
+    public com.createstats.power.FeWireNetwork network() {
+        return this.network;
+    }
+
     public void invalidateNetwork() {
         if (network != null) {
             network.markDirty();
@@ -254,14 +256,10 @@ public class InductionRangeBE extends BlockEntity
         return energyView;
     }
 
-    // the dial
-
-    /** 0 off, 1 low, 2 medium, 3 high. */
     public int setting() {
         return setting;
     }
 
-    /** [7] */
     public HeatLevel requested() {
         return heatFor(allowedSetting);
     }
@@ -274,16 +272,11 @@ public class InductionRangeBE extends BlockEntity
         return drawFor(setting);
     }
 
-    /**
-     * The steady cost of the setting this element is allowed to hold, which is zero while redstone is
-     * cutting it. This is what the Power Distribution Unit budgets against.
-     */
     @Override
     public int ratedDrawFePerTick() {
         return ratedDraw;
     }
 
-    /** What the element actually spent last tick, which is what the panel shows. */
     @Override
     public int measuredDrawFePerTick() {
         return measuredDraw;
@@ -309,7 +302,7 @@ public class InductionRangeBE extends BlockEntity
     public void setManagedLock(com.createstats.power.FeLock lock) {
         managed.setLock(lock);
         setChanged();
-        refresh();   // a force-off goes cold now, rather than after the buffer runs down
+        refresh();
     }
 
     @Override
@@ -326,16 +319,138 @@ public class InductionRangeBE extends BlockEntity
         return managed.isShed();
     }
 
-    /** True when the supply cannot hold the setting, so the block is running cooler than asked. */
     public boolean isStarved() {
         return achieved.ordinal() < requested().ordinal();
     }
 
-    /** Advances the dial one step and wraps. Called from a bare right click. */
     public void cycleSetting() {
         setting = (setting + 1) % 4;
         setChanged();
         refresh();
+    }
+
+    @Override
+    public void setGated(boolean gated) {
+        if (this.gated == gated) {
+            return;
+        }
+        this.gated = gated;
+        setChanged();
+        refresh();
+    }
+
+    @Override
+    public boolean isGated() {
+        return gated;
+    }
+
+    @Override
+    public int getMode() {
+        return setting;
+    }
+
+    @Override
+    public void setMode(int mode) {
+        final int next = Math.max(0, Math.min(3, mode));
+        if (next == setting) {
+            return;
+        }
+        setting = next;
+        setChanged();
+        refresh();
+    }
+
+    @Override
+    public java.util.List<net.minecraft.network.chat.Component> modeLabels() {
+        return java.util.List.of(
+                net.minecraft.network.chat.Component.translatable("mode.create_stats.induction_range.off"),
+                net.minecraft.network.chat.Component.translatable("mode.create_stats.induction_range.low"),
+                net.minecraft.network.chat.Component.translatable("mode.create_stats.induction_range.medium"),
+                net.minecraft.network.chat.Component.translatable("mode.create_stats.induction_range.high"));
+    }
+
+    @Override
+    public String settingsKey() {
+        return "create_stats:induction_range";
+    }
+
+    @Override
+    public void writeSettings(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.putInt("Setting", setting);
+    }
+
+    @Override
+    public boolean applySettings(CompoundTag tag, HolderLookup.Provider registries,
+                                 @org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player,
+                                 boolean simulate) {
+        if (!tag.contains("Setting")) {
+            return false;
+        }
+        if (!simulate) {
+            setMode(tag.getInt("Setting"));
+        }
+        return true;
+    }
+
+    @Override
+    public void writeFreshDefaults(CompoundTag tag) {
+        tag.putInt("Tier", com.createstats.power.FePriority.DEFAULT.ordinal());
+    }
+
+    @Override
+    public com.createstats.power.HomeAppliance.Category applianceCategory() {
+        return com.createstats.power.HomeAppliance.Category.KITCHEN;
+    }
+
+    @Override
+    @org.jetbrains.annotations.Nullable
+    public ApplianceStatus applianceStatus() {
+        final Component done = Component.translatable("status.create_stats.home.range_done");
+        if (!cookStack.isEmpty() && !cooked) {
+            if (achieved == HeatLevel.NONE) {
+                final Component why;
+                if (gated) {
+                    why = Component.translatable("status.create_stats.home.paused_off");
+                } else if (managed.isSuppressed()) {
+                    why = Component.translatable("status.create_stats.home.paused_pdu");
+                } else if (level != null && level.hasNeighborSignal(worldPosition)) {
+                    why = Component.translatable("status.create_stats.home.paused_redstone");
+                } else if (setting == 0) {
+                    why = Component.translatable("status.create_stats.home.paused_dial");
+                } else {
+                    why = Component.translatable("status.create_stats.home.paused_power");
+                }
+                return new ApplianceStatus(why, cookFraction(), true, done);
+            }
+            if (resultFor(cookStack, achieved) == null) {
+                return new ApplianceStatus(Component.translatable("status.create_stats.home.needs_heat"),
+                        ApplianceStatus.NO_PROGRESS, true, done);
+            }
+            final int percent = Math.round(cookFraction() * 100.0f);
+            return new ApplianceStatus(isStarved()
+                    ? Component.translatable("status.create_stats.home.cooking_slow", percent)
+                    : Component.translatable("status.create_stats.home.cooking", percent),
+                    cookFraction(), true, done);
+        }
+        if (isGated() || isManagedShed()
+                || (ratedDrawFePerTick() > 0 && measuredDrawFePerTick() <= 0)) {
+            return null;
+        }
+        if (managed.isSuppressed()) {
+            return ApplianceStatus.idle(Component.translatable("status.create_stats.home.held_pdu"));
+        }
+        if (cooked && !cookStack.isEmpty()) {
+            return ApplianceStatus.idle(Component.translatable("status.create_stats.home.done_count",
+                    cookStack.getCount()));
+        }
+        if (setting == 0) {
+            return ApplianceStatus.idle(Component.translatable("status.create_stats.home.dial_off"));
+        }
+        if (level != null && level.hasNeighborSignal(worldPosition)) {
+            return ApplianceStatus.idle(Component.translatable("status.create_stats.home.held_redstone"));
+        }
+        return ApplianceStatus.idle(Component.translatable("status.create_stats.home.hob_on",
+                modeLabels().get(setting)));
     }
 
     public static HeatLevel heatFor(int setting) {
@@ -356,31 +471,29 @@ public class InductionRangeBE extends BlockEntity
         };
     }
 
-    // tick
-
     public void tick() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        // [8]
+
         if (network == null || network.isDirty()) {
             com.createstats.power.FeWireNetwork.buildFrom(this);
         }
         if (network != null) {
             network.solveOnce(level);
         }
-        // [9]
+
         if (network == null || !network.isPduManaged(level.getGameTime())) {
             setManagedShed(false);
         }
-        // [10]
-        final boolean cut = level.hasNeighborSignal(worldPosition) || managed.isSuppressed();
+
+        final boolean cut = level.hasNeighborSignal(worldPosition) || managed.isSuppressed() || gated;
         final int wanted = cut ? 0 : setting;
         allowedSetting = wanted;
-        // [11]
-        ratedDraw = drawFor(wanted);
 
-        // [12]
+        final boolean ratedCut = level.hasNeighborSignal(worldPosition) || managed.isForcedOff() || gated;
+        ratedDraw = drawFor(ratedCut ? 0 : setting);
+
         int level0 = wanted;
         while (level0 > 0 && energy < drawFor(level0)) {
             level0--;
@@ -390,10 +503,10 @@ public class InductionRangeBE extends BlockEntity
             energy -= measuredDraw;
             setChanged();
         }
-        // Sampled once a tick rather than smoothed: the reading is meant to answer "is my supply
-        // keeping up", and an averaged number hides exactly the dips that question is about.
+
         measuredIntake = intakeAccumulator;
         intakeAccumulator = 0;
+        syncTelemetryIfDue();
         final HeatLevel now = heatFor(level0);
         if (now != achieved) {
             achieved = now;
@@ -402,7 +515,6 @@ public class InductionRangeBE extends BlockEntity
         tickCooking(now);
     }
 
-    /** Writes the achieved heat and the starved flag into the blockstate, and nothing else. */
     private void refresh() {
         if (level == null || level.isClientSide() || !(getBlockState().getBlock() instanceof InductionRangeBlock)) {
             return;
@@ -417,8 +529,6 @@ public class InductionRangeBE extends BlockEntity
                 .setValue(BlazeBurnerBlock.HEAT_LEVEL, achieved)
                 .setValue(InductionRangeBlock.STARVED, starved), Block.UPDATE_ALL);
     }
-
-    // cooking
 
     private void tickCooking(HeatLevel heat) {
         if (cookStack.isEmpty() || cooked || level == null) {
@@ -439,7 +549,7 @@ public class InductionRangeBE extends BlockEntity
         }
         final ItemStack result = resultFor(cookStack, heat);
         if (result == null) {
-            cookProgress = 0.0f;   // the dial dropped below what this item needs; wait, do not burn it
+            cookProgress = 0.0f;
             return;
         }
         result.setCount(cookStack.getCount());
@@ -457,7 +567,7 @@ public class InductionRangeBE extends BlockEntity
         sync();
     }
 
-    /** [13] */
+    // low = campfire, medium = create's heated, high = superheated
     @javax.annotation.Nullable
     private ItemStack resultFor(ItemStack input, HeatLevel heat) {
         if (level == null || input.isEmpty() || heat == HeatLevel.NONE) {
@@ -505,7 +615,6 @@ public class InductionRangeBE extends BlockEntity
         return blastCheck;
     }
 
-    /** True when anything this hob can ever do would process the item, whatever it is set to now. */
     public boolean isProcessable(ItemStack stack) {
         if (level == null || stack.isEmpty()) {
             return false;
@@ -516,7 +625,6 @@ public class InductionRangeBE extends BlockEntity
                 || blastCheck().getRecipeFor(in, level).isPresent();
     }
 
-    /** Kept for the block's hand interaction, which should accept anything the hob might process. */
     public boolean isCookable(ItemStack stack) {
         return isProcessable(stack);
     }
@@ -533,12 +641,10 @@ public class InductionRangeBE extends BlockEntity
         return cookStack;
     }
 
-    /** Progress toward done, for the renderer and the goggle overlay. */
     public float cookFraction() {
         return cookStack.isEmpty() ? 0.0f : Math.min(1.0f, cookProgress / COOK_TICKS);
     }
 
-    /** Accepts up to a stack of one cookable item. Returns how many were taken. */
     public int placeFood(ItemStack offered) {
         if (!isCookable(offered)) {
             return 0;
@@ -563,7 +669,6 @@ public class InductionRangeBE extends BlockEntity
         return taken;
     }
 
-    /** Hands back whatever is on the hob, cooked or not. Pulling early loses the progress. */
     public ItemStack takeFood() {
         final ItemStack out = cookStack;
         cookStack = ItemStack.EMPTY;
@@ -593,47 +698,47 @@ public class InductionRangeBE extends BlockEntity
         }
     }
 
-    /** [14] */
+    private int lastSyncedTelemetry = Integer.MIN_VALUE;
+    private int ticksSinceTelemetrySync;
+
+    private void syncTelemetryIfDue() {
+        ticksSinceTelemetrySync++;
+        final int shown = measuredDraw * 31 + measuredIntake;
+        final int bucket = Math.max(1, Math.abs(shown) / 16);
+        if (Math.abs(shown - lastSyncedTelemetry) < bucket && ticksSinceTelemetrySync < 20) {
+            return;
+        }
+        lastSyncedTelemetry = shown;
+        ticksSinceTelemetrySync = 0;
+        sync();
+    }
+
     @Override
     public boolean addToGoggleTooltip(java.util.List<net.minecraft.network.chat.Component> tooltip,
                                       boolean isPlayerSneaking) {
         final java.util.Locale l = java.util.Locale.ROOT;
-        tooltip.add(pad(net.minecraft.network.chat.Component.literal("Induction Range")
-                .withStyle(net.minecraft.ChatFormatting.GRAY)));
+        tooltip.add(com.createstats.power.FeGoggle.title("Induction Range"));
 
-        final HeatLevel want = requested();
         final String setting = switch (setting()) {
             case 1 -> "Low";
             case 2 -> "Medium";
             case 3 -> "High";
             default -> "Off";
         };
+        final boolean off = setting() == 0;
         final boolean starved = isStarved();
-        tooltip.add(pad(net.minecraft.network.chat.Component.literal(
-                starved ? "Set to " + setting + ", holding " + name(achieved) + " only"
-                        : "Set to " + setting)
-                .withStyle(starved ? net.minecraft.ChatFormatting.GOLD
-                        : net.minecraft.ChatFormatting.GRAY)));
-
-        tooltip.add(pad(net.minecraft.network.chat.Component.literal(measuredDraw > 0
-                ? String.format(l, "Drawing: %,d FE/t", measuredDraw) : "Idle")
-                .withStyle(measuredDraw > 0 ? net.minecraft.ChatFormatting.GREEN
-                        : net.minecraft.ChatFormatting.DARK_GRAY)));
-        tooltip.add(pad(net.minecraft.network.chat.Component.literal(
-                String.format(l, "Supply: %,d FE/t", measuredIntake))
-                .withStyle(measuredIntake < measuredDraw ? net.minecraft.ChatFormatting.GOLD
-                        : net.minecraft.ChatFormatting.AQUA)));
-        tooltip.add(pad(net.minecraft.network.chat.Component.literal(
-                String.format(l, "Buffer: %,d / %,d FE", energy, BUFFER))
-                .withStyle(net.minecraft.ChatFormatting.AQUA)));
+        tooltip.add(com.createstats.power.FeGoggle.loadState(off, true, starved));
+        tooltip.add(com.createstats.power.FeGoggle.dim("Set to " + setting
+                + (starved ? ", holding " + name(achieved) + " only" : "")));
+        if (!off) {
+            tooltip.add(com.createstats.power.FeGoggle.supplyDemand(measuredIntake, ratedDrawFePerTick()));
+        }
 
         if (!cookStack.isEmpty()) {
-            tooltip.add(pad(net.minecraft.network.chat.Component.literal(cooked
-                    ? "Batch ready: " + cookStack.getCount()
-                    : String.format(l, "Cooking %d, %d%%", cookStack.getCount(),
-                            Math.round(cookFraction() * 100.0f)))
-                    .withStyle(cooked ? net.minecraft.ChatFormatting.GREEN
-                            : net.minecraft.ChatFormatting.YELLOW)));
+            tooltip.add(cooked
+                    ? com.createstats.power.FeGoggle.ok("Batch ready: " + cookStack.getCount())
+                    : com.createstats.power.FeGoggle.warn(String.format(l, "Cooking %d, %d%%",
+                            cookStack.getCount(), Math.round(cookFraction() * 100.0f))));
         }
         return true;
     }
@@ -652,16 +757,18 @@ public class InductionRangeBE extends BlockEntity
         };
     }
 
-    // persistence
-
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("Energy", energy);
         tag.putInt("Setting", setting);
+        tag.putBoolean("Gated", gated);
         tag.putInt("Tier", managed.priorityOrdinal());
         tag.putInt("Lock", managed.lockOrdinal());
         tag.putInt("Achieved", achieved.ordinal());
+        tag.putInt("MDraw", measuredDraw);
+        tag.putInt("MIntake", measuredIntake);
+        tag.putInt("RDraw", ratedDraw);
         tag.putFloat("Cook", cookProgress);
         tag.putBoolean("Cooked", cooked);
         if (!cookStack.isEmpty()) {
@@ -674,10 +781,14 @@ public class InductionRangeBE extends BlockEntity
         super.loadAdditional(tag, registries);
         energy = Math.max(0, Math.min(BUFFER, tag.getInt("Energy")));
         setting = Math.max(0, Math.min(3, tag.getInt("Setting")));
-        allowedSetting = setting;   // the first tick re-derives it from redstone and the panel
+        gated = tag.getBoolean("Gated");
+        allowedSetting = setting;
         managed.load(tag.getInt("Tier"), tag.getInt("Lock"));
         final HeatLevel[] levels = HeatLevel.values();
         achieved = levels[Math.max(0, Math.min(levels.length - 1, tag.getInt("Achieved")))];
+        measuredDraw = Math.max(0, tag.getInt("MDraw"));
+        measuredIntake = Math.max(0, tag.getInt("MIntake"));
+        ratedDraw = Math.max(0, tag.getInt("RDraw"));
         cookProgress = tag.getFloat("Cook");
         cooked = tag.getBoolean("Cooked");
         cookStack = tag.contains("Food")

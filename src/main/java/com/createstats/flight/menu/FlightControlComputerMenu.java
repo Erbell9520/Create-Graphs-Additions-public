@@ -19,9 +19,7 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
-/** [1] */
 public class FlightControlComputerMenu extends AbstractContainerMenu {
-
     public static final int ROW_COUNT      = FlightControlComputerBE.ROW_COUNT;
     public static final int SLOT_COUNT     = FlightControlComputerBE.SLOT_COUNT;
     public static final int MIN_VISIBLE_ROWS = FlightControlComputerBE.MIN_VISIBLE_CARD_ROWS;
@@ -81,7 +79,6 @@ public class FlightControlComputerMenu extends AbstractContainerMenu {
                         FlightControlComputerBE.getLinkedControllerSlotIndex(button, true), LINKED_CONTROLLER_SLOT_B_X, y));
                 }
 
-        // Player main inventory (3 rows × 9 cols) + hotbar.
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 9; c++) {
                 this.addSlot(new Slot(inv, c + r * 9 + 9, PLAYER_INV_X + c * 18, PLAYER_INV_Y + r * 18));
@@ -173,7 +170,7 @@ public class FlightControlComputerMenu extends AbstractContainerMenu {
 
         if (index < MENU_CARD_SLOT_COUNT) {
             if (!slot.isActive()) return ItemStack.EMPTY;
-            // Card slot → player inventory.
+
             if (!this.moveItemStackTo(stackInSlot, PLAYER_SLOT_START, this.slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
@@ -183,9 +180,6 @@ public class FlightControlComputerMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            // Player inventory → first matching FCC card slot.
-            // moveItemStackTo respects each slot's mayPlace, so prop cards land in even
-            // indices and governor cards in odd indices automatically.
             if (!this.moveItemStackTo(stackInSlot, 0, MENU_CARD_SLOT_COUNT, false)) {
                 if (!this.moveItemStackTo(stackInSlot, MENU_LINKED_CONTROLLER_SLOT_START, PLAYER_SLOT_START, false)) {
                     return ItemStack.EMPTY;

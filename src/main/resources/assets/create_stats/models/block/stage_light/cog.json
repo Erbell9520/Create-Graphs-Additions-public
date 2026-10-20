@@ -1,5 +1,4 @@
 {
-  "__comment": "Stage Light pan drive COG (brass). Rendered by the BER and spun as the head pans, so the mover reads as a real geared, motorised mechanism. FACING=up reference; seats just under the yoke ring on the bearing collar.",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

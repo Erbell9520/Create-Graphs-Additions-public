@@ -1,0 +1,77 @@
+{
+  "textures": {
+    "chip": "create_stats:block/vcc_mk3_chip",
+    "particle": "create_stats:block/vcc_mk3_chip"
+  },
+  "elements": [
+    {
+      "name": "part",
+      "from": [
+        -2.3,
+        -0.2,
+        0.0
+      ],
+      "to": [
+        2.3,
+        0.2,
+        0.14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "texture": "#chip"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "texture": "#chip"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "texture": "#chip"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "texture": "#chip"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "texture": "#chip"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "texture": "#chip"
+        }
+      }
+    }
+  ]
+}

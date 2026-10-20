@@ -8,7 +8,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 public class FreightStationLink {
-
     @Nullable
     private UUID stationId;
     private String stationName;

@@ -1,0 +1,142 @@
+{
+  "textures": {
+    "particle": "create_stats:block/power_track/lens_amber",
+    "lens": "create_stats:block/power_track/lens_amber"
+  },
+  "elements": [
+    {
+      "name": "lit_a",
+      "from": [
+        6.875,
+        16.375,
+        6.125
+      ],
+      "to": [
+        9.125,
+        18.625,
+        9.875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.875,
+            6.875,
+            9.125,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "south": {
+          "uv": [
+            6.875,
+            6.875,
+            9.125,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "east": {
+          "uv": [
+            6.125,
+            6.875,
+            9.875,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "west": {
+          "uv": [
+            6.125,
+            6.875,
+            9.875,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    },
+    {
+      "name": "lit_b",
+      "from": [
+        6.125,
+        16.375,
+        6.875
+      ],
+      "to": [
+        9.875,
+        18.625,
+        9.125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.125,
+            6.875,
+            9.875,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "south": {
+          "uv": [
+            6.125,
+            6.875,
+            9.875,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "east": {
+          "uv": [
+            6.875,
+            6.875,
+            9.125,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "west": {
+          "uv": [
+            6.875,
+            6.875,
+            9.125,
+            9.125
+          ],
+          "texture": "#lens",
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    }
+  ]
+}

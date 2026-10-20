@@ -4,6 +4,7 @@ import com.createstats.antenna.AntennaTier;
 import com.createstats.antenna.RangeAttachment;
 import com.createstats.blockentity.DispatchBoardBE;
 import com.createstats.blockentity.HolographicProjectorBE;
+import com.createstats.blockentity.ProductionDetectorBE;
 import com.createstats.blockentity.StatsDisplayPanelBE;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -65,7 +66,8 @@ public final class AntennaRendererHelper {
 
     private static void renderMountedAntenna(BlockEntity be, PoseStack ps, MultiBufferSource buf, AntennaTier tier, int packedLight, int packedOverlay) {
         VertexConsumer vc = buf.getBuffer(RenderType.entityCutout(BLANK_TEXTURE));
-        // [1]
+        // world light on the structure, full bright only on the tips. the old full bright pass looked floaty
+
         int light = packedLight;
         Matrix4f pose = ps.last().pose();
         if (be instanceof StatsDisplayPanelBE panel) {
@@ -83,7 +85,12 @@ public final class AntennaRendererHelper {
             return;
         }
         if (be instanceof HolographicProjectorBE) {
-            drawAntenna(vc, pose, tier, 10.0f, 8.7f, 10.0f, light, packedOverlay, false);
+            drawAntenna(vc, pose, tier, 5.0f, 0.0f, 10.6f, light, packedOverlay, false);
+            return;
+        }
+        if (be instanceof ProductionDetectorBE) {
+            drawAntenna(vc, pose, tier, 8.0f, 30.8f, 3.1f, light, packedOverlay, false);
+            drawHangingCap(vc, pose, light, packedOverlay);
             return;
         }
         drawAntenna(vc, pose, tier, 9.8f, 14.0f, 9.8f, light, packedOverlay, false);
@@ -91,42 +98,51 @@ public final class AntennaRendererHelper {
 
     private static void drawAntenna(VertexConsumer vc, Matrix4f pose, AntennaTier tier, float x, float y, float z,
                                     int light, int packedOverlay, boolean railMounted) {
-        // Silhouette + palette mirror the textured item models (small/advanced/trt_signal_antenna.json):
-        // andesite plinth -> brass collar -> chunky segmented mast -> cross-dipole arms -> seated emissive head.
         float height = tier == AntennaTier.SMALL ? 10.0f : tier == AntennaTier.ADVANCED ? 11.0f : 12.5f;
         int mast = tier == AntennaTier.SMALL ? BRASS : COPPER;
         int accent = tier == AntennaTier.SMALL ? EMERALD : tier == AntennaTier.ADVANCED ? REDSTONE : OXIDIZED_TEAL;
         int collar = railMounted ? ANDESITE_EDGE : BRASS;
-        // Grounded base: an overhanging andesite flange + plinth so the antenna clamps onto its host.
+
         cuboidPx(vc, pose, x - 0.4f, y - 0.1f, z - 0.4f, x + 6.4f, y + 0.6f, z + 4.4f, DARK_CASING, light, packedOverlay);
         cuboidPx(vc, pose, x + 0.0f, y + 0.0f, z + 0.0f, x + 6.0f, y + 1.8f, z + 4.0f, ANDESITE_CASING, light, packedOverlay);
-        // Brass collar (wide, reads as a real mounting flange).
+
         cuboidPx(vc, pose, x + 0.6f, y + 1.6f, z + 0.6f, x + 5.4f, y + 3.4f, z + 3.4f, collar, light, packedOverlay);
-        // Chunky segmented mast (1.7px wide): lower stalk, a darker mid insulator band, then the upper stalk.
+
         float midA = y + height * 0.5f;
         float midB = midA + 1.0f;
         cuboidPx(vc, pose, x + 2.15f, y + 3.2f, z + 1.15f, x + 3.85f, midA, z + 2.85f, mast, light, packedOverlay);
         cuboidPx(vc, pose, x + 1.95f, midA, z + 0.95f, x + 4.05f, midB, z + 3.05f, DARK_CASING, light, packedOverlay);
         cuboidPx(vc, pose, x + 2.15f, midB, z + 1.15f, x + 3.85f, y + height, z + 2.85f, mast, light, packedOverlay);
-        // Cross-dipole arms near the top (brass, thicker so they don't look spindly).
+
         cuboidPx(vc, pose, x - 0.5f, y + height - 3.4f, z + 1.4f, x + 6.5f, y + height - 1.9f, z + 2.6f, BRASS, light, packedOverlay);
         if (tier != AntennaTier.SMALL) {
             cuboidPx(vc, pose, x + 2.4f, y + height - 3.4f, z - 1.5f, x + 3.6f, y + height - 1.9f, z + 5.5f, BRASS, light, packedOverlay);
         }
-        // Brass insulator shoulder that the emissive head sits on (kills the "floating cube" look).
+
         cuboidPx(vc, pose, x + 1.9f, y + height - 0.4f, z + 0.9f, x + 4.1f, y + height + 0.4f, z + 3.1f, BRASS_LIGHT, light, packedOverlay);
-        // Seated emissive head (full-bright) so the tier reads at a glance and glows at night.
+
         cuboidPx(vc, pose, x + 2.2f, y + height + 0.4f, z + 1.2f, x + 3.8f, y + height + 1.9f, z + 2.8f, accent, FULL_BRIGHT, packedOverlay);
         if (tier == AntennaTier.TRT) {
             cuboidPx(vc, pose, x + 2.55f, y + height + 1.9f, z + 1.55f, x + 3.45f, y + height + 2.8f, z + 2.45f, TRT_CORE, FULL_BRIGHT, packedOverlay);
         }
     }
 
+    private static void drawHangingCap(VertexConsumer vc, Matrix4f pose, int light, int packedOverlay) {
+        final int chain = 0x7A705C;
+        final int brass = 0xC7A04A;
+        final int slot = 0x8E6B28;
+        cuboidPx(vc, pose, 12.55f, 30.05f, 4.95f, 13.55f, 30.3f, 5.25f, chain, light, packedOverlay);
+        cuboidPx(vc, pose, 13.6f, 30.05f, 5.0f, 14.6f, 30.35f, 5.2f, chain, light, packedOverlay);
+        cuboidPx(vc, pose, 14.6f, 28.75f, 4.95f, 14.9f, 30.35f, 5.25f, chain, light, packedOverlay);
+        cuboidPx(vc, pose, 14.6f, 27.3f, 4.2f, 15.3f, 28.7f, 5.9f, brass, light, packedOverlay);
+        cuboidPx(vc, pose, 15.3f, 27.7f, 4.6f, 15.5f, 28.3f, 5.5f, slot, light, packedOverlay);
+    }
+
     private static void drawTopStatusTab(VertexConsumer vc, Matrix4f pose, AntennaTier tier, float x, float y, float z,
                                          int light, int packedOverlay) {
         int accent = tier == AntennaTier.SMALL ? EMERALD : tier == AntennaTier.ADVANCED ? REDSTONE : OXIDIZED_TEAL;
         cuboidPx(vc, pose, x + 0.0f, y + 0.0f, z + 0.0f, x + 6.5f, y + 0.7f, z + 2.1f, ANDESITE_CASING, light, packedOverlay);
-        // Emissive status bead.
+
         cuboidPx(vc, pose, x + 0.7f, y + 0.7f, z + 0.35f, x + 2.1f, y + 1.45f, z + 1.75f, accent, FULL_BRIGHT, packedOverlay);
         cuboidPx(vc, pose, x + 2.8f, y + 0.7f, z + 0.45f, x + 5.8f, y + 1.15f, z + 1.65f, BRASS_LIGHT, light, packedOverlay);
     }

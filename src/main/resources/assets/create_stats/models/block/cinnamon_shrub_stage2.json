@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "create_stats:block/cinnamon_shrub_stage2"
+  }
+}

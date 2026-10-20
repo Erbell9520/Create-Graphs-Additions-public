@@ -1,0 +1,45 @@
+{
+  "parent": "create_stats:stats/display",
+  "display": {
+    "icon": {
+      "id": "create_stats:holographic_projector"
+    },
+    "title": {
+      "translate": "advancement.create_stats.stats.hologram.title",
+      "fallback": "From GORA"
+    },
+    "description": {
+      "translate": "advancement.create_stats.stats.hologram.description",
+      "fallback": "Place a Holographic Projector. Arif would sell it as a UFO photo."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "hologram": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:holographic_projector",
+                  "create_stats:holographic_projector_mk3"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "hologram"
+    ]
+  ]
+}

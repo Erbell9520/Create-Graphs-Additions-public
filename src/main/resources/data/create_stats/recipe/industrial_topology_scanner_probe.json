@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " N ",
+    "IRI",
+    "PPP"
+  ],
+  "key": {
+    "N": { "item": "create:sturdy_sheet" },
+    "I": { "tag": "c:plates/iron" },
+    "R": { "item": "create_stats:advanced_topology_scanner_probe" },
+    "P": { "item": "create:precision_mechanism" }
+  },
+  "result": {
+    "id": "create_stats:industrial_topology_scanner_probe",
+    "count": 1
+  },
+  "show_notification": true
+}

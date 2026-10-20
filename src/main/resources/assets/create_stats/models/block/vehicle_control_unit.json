@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "casing": "create:block/andesite_casing",
+    "deck": "create_stats:block/vcc_mk3_deck",
+    "glass": "create_stats:block/vcc_mk3_glass",
+    "bezel": "create_stats:block/vcc_mk3_bezel",
+    "particle": "create:block/andesite_casing"
+  },
+  "elements": [
+    {
+      "name": "base",
+      "from": [1, 0, 1],
+      "to": [15, 7, 15],
+      "faces": {
+        "north": { "uv": [1, 9, 15, 16], "texture": "#casing" },
+        "east": { "uv": [1, 9, 15, 16], "texture": "#casing" },
+        "south": { "uv": [1, 9, 15, 16], "texture": "#casing" },
+        "west": { "uv": [1, 9, 15, 16], "texture": "#casing" },
+        "up": { "uv": [1, 1, 15, 15], "texture": "#deck" },
+        "down": { "uv": [1, 1, 15, 15], "texture": "#casing", "cullface": "down" }
+      }
+    },
+    {
+      "name": "screen_housing_toward_the_nose",
+      "from": [2, 7, 2],
+      "to": [14, 13, 6],
+      "faces": {
+        "north": { "uv": [2, 3, 14, 9], "texture": "#casing" },
+        "east": { "uv": [2, 3, 6, 9], "texture": "#casing" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#glass" },
+        "west": { "uv": [2, 3, 6, 9], "texture": "#casing" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#bezel" }
+      }
+    }
+  ]
+}

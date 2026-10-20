@@ -38,10 +38,10 @@ import java.util.Locale;
 @OnlyIn(Dist.CLIENT)
 public final class PilotHelmetHudOverlay {
     private static final double MAX_LINK_DISTANCE_SQR = 256.0D * 256.0D;
-    /** Telemetry older than this is treated as a lost stream (dashes + SIGNAL STALE banner). */
+
     private static final double TELEMETRY_STALE_SECONDS = 1.5D;
     private static final int BATTLE_STRIP_WIDTH = 180;
-    private static final int BATTLE_STRIP_HEIGHT = 28;
+    private static final int BATTLE_STRIP_HEIGHT = com.createstats.battle.client.HelmetBattleStrip.HEIGHT;
     private static final int HUD = 0xFFB8FFE8;
     private static final int HUD_DIM = 0xC07FE2C8;
     private static final int HUD_TEXT = 0xFFE8FFF4;
@@ -55,7 +55,6 @@ public final class PilotHelmetHudOverlay {
     @Nullable
     private static BlockPos subscribedFccPos;
 
-    // Cached previous velocity sample for G-load derivation.
     private static long gLoadPrevTimeNanos;
     private static float gLoadPrevVelX;
     private static float gLoadPrevVelY;
@@ -66,8 +65,6 @@ public final class PilotHelmetHudOverlay {
     }
 
     public static void tick() {
-        // Flush staged OTOMOBIL stat deltas from the client tick, not the render loop. The call
-        // no-ops unless dirty and is internally throttled to one write per 5 s.
         com.createstats.client.hud.OtomobilPersistedStats.saveThrottled();
         Minecraft minecraft = Minecraft.getInstance();
         HelmetContext context = resolveContext(minecraft);
@@ -98,14 +95,13 @@ public final class PilotHelmetHudOverlay {
 
     public static void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
         Minecraft minecraft = Minecraft.getInstance();
-        // [1]
+
         if (minecraft.screen == null) {
             renderNightVisionOverlayIfActive(graphics, minecraft);
         }
 
         HelmetContext context = resolveContext(minecraft);
         if (context == null || minecraft.screen != null) {
-            // [2]
             if (minecraft.screen == null && PilotHelmetVisorState.isLocalVisorDeployed()) {
                 renderVisorStandbyBadge(graphics, minecraft);
             }
@@ -122,7 +118,7 @@ public final class PilotHelmetHudOverlay {
         FccTelemetryPacket telemetry = telemetryFrame != null ? telemetryFrame.packet() : FccClientState.helmetTelemetry();
         FccGuiSnapshot snapshot = FccClientState.helmetSnapshot();
         boolean hasTelemetry = telemetryFrame != null || telemetry != null;
-        // [3]
+
         boolean telemetryStale = hasTelemetry
             && FccClientState.helmetTelemetryAgeSeconds() > TELEMETRY_STALE_SECONDS;
         boolean craftDataLive = hasTelemetry && !telemetryStale;
@@ -138,7 +134,8 @@ public final class PilotHelmetHudOverlay {
         float displayVelX = telemetryFrame != null ? telemetryFrame.velX() : telemetry != null ? telemetry.velX() : 0.0f;
         float displayVelY = telemetryFrame != null ? telemetryFrame.velY() : telemetry != null ? telemetry.velY() : 0.0f;
         float displayVelZ = telemetryFrame != null ? telemetryFrame.velZ() : telemetry != null ? telemetry.velZ() : 0.0f;
-        // [4]
+        // craft fields never fall back to your own body. stale = NaN = dashes
+
         double displaySpeed = craftDataLive
             ? Math.sqrt(displayVelX * displayVelX + displayVelY * displayVelY + displayVelZ * displayVelZ)
             : Double.NaN;
@@ -153,12 +150,11 @@ public final class PilotHelmetHudOverlay {
             renderCanopyVignette(graphics, width, height, context.vignetteStrength());
         }
 
-        // [5]
+        // scale each element around its own anchor, center scaling pushed corners off screen
+
         float hudScale = Math.max(1.0f, Math.min(3.0f, context.hudScaleFactor()));
 
         if (context.mode() == PilotHelmetData.Mode.OTOMOBIL || context.mode() == PilotHelmetData.Mode.TANK) {
-            // TANK gets the ground-vehicle HUD in tank trim (per-side track power instead of a
-            // steering wheel) rather than silently reusing the jet-fighter attitude symbology.
             com.createstats.client.hud.OtomobilHud.render(
                 graphics, minecraft, context.statsDisplayPos(),
                 width, height, centerX, centerY, hudScale,
@@ -196,25 +192,25 @@ public final class PilotHelmetHudOverlay {
         }
         scaleAt(graphics, 18, 18, hudScale, () ->
             renderFccStrip(graphics, minecraft.font, 18, 18, telemetry, snapshot));
-        // [6]
+
         java.util.List<com.createstats.client.hud.HudWarnings.Entry> figCautions =
             com.createstats.client.hud.HudWarnings.collect(snapshot);
         if (!figCautions.isEmpty()) {
             scaleAt(graphics, 18, 66, hudScale, () ->
                 com.createstats.client.hud.HudWarnings.render(graphics, minecraft.font, 18, 66, figCautions, 4));
         }
-        // Clamp using the SCALED footprint so the strip stays on-screen at high HUD scale
-        // (scaleAt grows it around its top-left anchor by up to 3x).
+
         int scaledStripW = Math.round(BATTLE_STRIP_WIDTH * hudScale);
         int scaledStripH = Math.round(BATTLE_STRIP_HEIGHT * hudScale);
         int battleStripX = Mth.clamp(centerX + 72, 18, Math.max(18, width - scaledStripW - 18));
         int battleStripY = Mth.clamp(centerY - 72, 18, Math.max(18, height - scaledStripH - 18));
+        long battleClock = minecraft.level == null ? 0L : minecraft.level.getGameTime();
         scaleAt(graphics, battleStripX, battleStripY, hudScale, () ->
-            renderBattleStrip(graphics, minecraft.font, battleStripX, battleStripY, context.battleObserver()));
-        // Battle symbology stays unscaled, chevrons are world-projected and must stay
-        // pinned to the real-world target positions regardless of HUD scale.
-        renderBattleSymbology(graphics, minecraft, width, height, context.battleObserver());
-        // Side telemetry: split chips so each side grows around its OWN edge anchor.
+            com.createstats.battle.client.HelmetBattleStrip.render(graphics, minecraft.font, battleStripX, battleStripY,
+                context.battleReport(), battleClock));
+
+        renderBattleTarget(graphics, minecraft, width, height, context.battleReport());
+
         int sideLeftX = 18;
         int sideRightX = width - 74;
         int sideY = centerY - 16;
@@ -223,13 +219,9 @@ public final class PilotHelmetHudOverlay {
         scaleAt(graphics, sideRightX, sideY, hudScale, () ->
             renderAltGChip(graphics, minecraft.font, sideRightX, sideY, displayAltitude, gLoad, craftDataLive));
         scaleAt(graphics, centerX, height - 18, hudScale, () ->
-            renderStatusLine(graphics, minecraft.font, centerX, height - 18, telemetry, context.battleObserver()));
+            renderStatusLine(graphics, minecraft.font, centerX, height - 18, telemetry, context.battleReport(), battleClock));
     }
 
-    /**
-     * Push a pose that scales drawing around the (anchorX, anchorY) screen pixel, run
-     * the draw block, then pop. At scale==1 this is a no-op fast path.
-     */
     private static void scaleAt(GuiGraphics graphics, float anchorX, float anchorY, float scale, Runnable draw) {
         if (Math.abs(scale - 1.0f) < 0.001f) {
             draw.run();
@@ -243,7 +235,6 @@ public final class PilotHelmetHudOverlay {
         graphics.pose().popPose();
     }
 
-    /** [7] */
     private static void renderVisorStandbyBadge(GuiGraphics graphics, Minecraft minecraft) {
         final Font font = minecraft.font;
         final String label = "\u25bc VISOR DOWN";
@@ -268,14 +259,14 @@ public final class PilotHelmetHudOverlay {
         }
         PilotHelmetData data = PilotHelmetItem.getData(helmetStack);
         PilotHelmetData.Mode mode = data.getMode();
-        // [8]
+
         if (!PilotHelmetVisorState.effectiveDeployed(player, helmetStack)) {
             return null;
         }
 
         BlockPos fccPos = resolveFccPos(minecraft.level, player, data.getFccLink());
         BattleScreenDisplayBE battleDisplay = resolveBattleDisplay(minecraft.level, player, data.getBattleBridgeLink());
-        BattleScreenDisplayBE.LinkedObserver battleObserver = priorityWeaponObserver(battleDisplay);
+        com.createstats.battle.core.BattleReport battleReport = battleDisplay == null ? null : battleDisplay.report();
         BlockPos statsDisplayPos = isLinkAvailable(minecraft.level, player, data.getStatsDisplayLink())
             ? data.getStatsDisplayLink().getTargetPos() : null;
         if (mode == PilotHelmetData.Mode.FIGHTER) {
@@ -283,16 +274,15 @@ public final class PilotHelmetHudOverlay {
                 return null;
             }
         } else if (mode == PilotHelmetData.Mode.OTOMOBIL || mode == PilotHelmetData.Mode.TANK) {
-            // [9]
             if (fccPos == null && statsDisplayPos == null) {
                 return null;
             }
-        } else { // COMMERCIAL - airliner glass cockpit, driven by FCC flight telemetry
+        } else {
             if (fccPos == null) {
                 return null;
             }
         }
-        return new HelmetContext(player, mode, fccPos, battleDisplay, battleObserver, statsDisplayPos,
+        return new HelmetContext(player, mode, fccPos, battleDisplay, battleReport, statsDisplayPos,
             data.getVignetteStrength(), data.getHudScaleFactor());
     }
 
@@ -306,11 +296,17 @@ public final class PilotHelmetHudOverlay {
 
     @Nullable
     private static BattleScreenDisplayBE resolveBattleDisplay(Level level, Player player, PilotHelmetData.LinkedNode link) {
-        if (!isLinkAvailable(level, player, link)) {
+        if (link == null || !link.isLinked() || link.getTargetPos() == null || link.getDimensionId() == null
+            || !level.dimension().location().equals(link.getDimensionId())) {
             return null;
         }
-        BlockEntity blockEntity = level.getBlockEntity(link.getTargetPos());
-        return blockEntity instanceof BattleScreenDisplayBE display && !display.isRemoved() ? display : null;
+        BlockEntity blockEntity = com.createstats.flight.bridge.SableBridge.getBlockEntityOnContraption(level, link.getTargetPos());
+        if (!(blockEntity instanceof BattleScreenDisplayBE display) || display.isRemoved()) {
+            return null;
+        }
+
+        Vec3 at = com.createstats.flight.bridge.SableBridge.worldPointOf(display, Vec3.atCenterOf(display.getBlockPos()));
+        return at == null || player.distanceToSqr(at) <= MAX_LINK_DISTANCE_SQR ? display : null;
     }
 
     private static boolean isLinkAvailable(Level level, Player player, PilotHelmetData.LinkedNode link) {
@@ -322,25 +318,6 @@ public final class PilotHelmetHudOverlay {
         }
         BlockPos pos = link.getTargetPos();
         return player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= MAX_LINK_DISTANCE_SQR;
-    }
-
-    @Nullable
-    private static BattleScreenDisplayBE.LinkedObserver priorityWeaponObserver(@Nullable BattleScreenDisplayBE display) {
-        if (display == null) {
-            return null;
-        }
-        List<BattleScreenDisplayBE.LinkedObserver> observers = display.getLinkedObservers();
-        if (observers == null || observers.isEmpty()) {
-            return null;
-        }
-        return observers.stream()
-            .filter(observer -> observer.weapon().detected())
-            .max(Comparator
-                .comparingInt((BattleScreenDisplayBE.LinkedObserver observer) -> observer.weapon().autoAim().targetLocked() ? 3
-                    : observer.weapon().autoAim().targetPresent() ? 2 : observer.weapon().autoFireEnabled() ? 1 : 0)
-                .thenComparingInt(observer -> observer.weapon().ammoRounds())
-                .thenComparingDouble(observer -> observer.healthPercent()))
-            .orElse(null);
     }
 
     private static void renderFccStrip(GuiGraphics graphics, Font font, int x, int y,
@@ -357,7 +334,7 @@ public final class PilotHelmetHudOverlay {
         graphics.drawString(font, "THR " + thrust, x + 6, y + 14, HUD_TEXT, false);
         graphics.drawString(font, "LIFT " + lift, x + 58, y + 14, HUD_TEXT, false);
         graphics.drawString(font, "MODE " + autoMode, x + 116, y + 14, HUD_TEXT, false);
-        // [10]
+
         if (snapshot != null) {
             boolean armed = snapshot.mode() != com.createstats.flight.FlightMode.OFF;
             graphics.drawString(font, armed ? "ARMED" : "SAFE", x + 6, y + 27, armed ? OK : HUD_DIM, false);
@@ -371,7 +348,6 @@ public final class PilotHelmetHudOverlay {
         }
     }
 
-    /** Signed trim percent from the first control labelled with "trim", or null when absent. */
     @Nullable
     private static Float extractTrimPercent(FccGuiSnapshot snapshot) {
         for (FccGuiControlEntry entry : snapshot.controlEntries()) {
@@ -383,131 +359,12 @@ public final class PilotHelmetHudOverlay {
         return null;
     }
 
-    /** Count of cockpit controls currently deflected off their neutral value. */
     private static int countActiveControls(FccGuiSnapshot snapshot) {
         int active = 0;
         for (FccGuiControlEntry entry : snapshot.controlEntries()) {
             if (Math.abs(normalizeSigned(entry)) > 0.02f) active++;
         }
         return active;
-    }
-
-    private static void renderBattleStrip(GuiGraphics graphics, Font font, int x, int y,
-                                          @Nullable BattleScreenDisplayBE.LinkedObserver observer) {
-        int gap = 6;
-        int cellWidth = (BATTLE_STRIP_WIDTH - gap * 2) / 3;
-        BattleScreenDisplayBE.WeaponSnapshot weapon = observer != null ? observer.weapon() : null;
-        BattleScreenDisplayBE.AutoAimSnapshot autoAim = weapon != null ? weapon.autoAim() : null;
-
-        renderBattleCell(graphics, font, x, y, cellWidth, "HULL",
-            observer == null ? "--" : Math.round(observer.healthPercent()) + "%",
-            observer == null ? HUD_DIM : battleHullColor(observer));
-        renderBattleCell(graphics, font, x + cellWidth + gap, y, cellWidth, "GUN",
-            battleGunText(weapon), battleGunColor(weapon));
-        renderBattleCell(graphics, font, x + (cellWidth + gap) * 2, y, cellWidth, "TRK",
-            battleTrackText(autoAim), battleTrackColor(autoAim));
-    }
-
-    private static void renderBattleCell(GuiGraphics graphics, Font font, int x, int y, int width,
-                                         String label, String value, int valueColor) {
-        graphics.fill(x, y, x + width, y + BATTLE_STRIP_HEIGHT, 0x22040A10);
-        graphics.fill(x, y, x + width, y + 1, 0x343A4C54);
-        graphics.fill(x, y + BATTLE_STRIP_HEIGHT - 1, x + width, y + BATTLE_STRIP_HEIGHT, 0x22000000);
-        graphics.drawString(font, label, x + 4, y + 3, HUD_DIM, false);
-        graphics.drawString(font, trim(font, value, width - 8), x + 4, y + 15, valueColor, false);
-    }
-
-    private static String battleGunText(@Nullable BattleScreenDisplayBE.WeaponSnapshot weapon) {
-        if (weapon == null || !weapon.detected()) {
-            return "STBY";
-        }
-        if (weapon.missingBlocks() > 0) {
-            return "DMG";
-        }
-        if (!weapon.autoAim().blockedReason().isBlank()) {
-            return "NO FIRE";
-        }
-        String readiness = weapon.readiness().toUpperCase(Locale.ROOT);
-        if (readiness.contains("READY")) {
-            return "READY";
-        }
-        if (readiness.contains("LOAD")) {
-            return "LOAD";
-        }
-        if (readiness.contains("OFF")) {
-            return "OFF";
-        }
-        if (readiness.contains("DAM")) {
-            return "DMG";
-        }
-        return readiness.isBlank() ? "ARM" : readiness;
-    }
-
-    private static int battleGunColor(@Nullable BattleScreenDisplayBE.WeaponSnapshot weapon) {
-        if (weapon == null || !weapon.detected()) {
-            return HUD_DIM;
-        }
-        if (weapon.missingBlocks() > 0) {
-            return TARGET;
-        }
-        if (!weapon.autoAim().blockedReason().isBlank()) {
-            return WARN;
-        }
-        return weapon.readiness().equalsIgnoreCase("READY") ? OK : HUD_TEXT;
-    }
-
-    private static String battleTrackText(@Nullable BattleScreenDisplayBE.AutoAimSnapshot autoAim) {
-        if (autoAim == null || !autoAim.mountAvailable()) {
-            return "STBY";
-        }
-        if (!autoAim.mountRunning()) {
-            return "IDLE";
-        }
-        if (autoAim.targetLocked()) {
-            return "LOCK";
-        }
-        if (autoAim.targetPresent()) {
-            return "ALIGN";
-        }
-        String status = autoAim.statusText().toUpperCase(Locale.ROOT);
-        if (status.contains("LOST")) {
-            return "LOST";
-        }
-        if (status.contains("RANGE")) {
-            return "RANGE";
-        }
-        if (status.contains("INVALID")) {
-            return "BAD";
-        }
-        return "SEARCH";
-    }
-
-    private static int battleTrackColor(@Nullable BattleScreenDisplayBE.AutoAimSnapshot autoAim) {
-        if (autoAim == null || !autoAim.mountAvailable()) {
-            return HUD_DIM;
-        }
-        if (!autoAim.mountRunning()) {
-            return WARN;
-        }
-        if (autoAim.targetLocked()) {
-            return OK;
-        }
-        if (autoAim.targetPresent()) {
-            return WARN;
-        }
-        String status = autoAim.statusText().toUpperCase(Locale.ROOT);
-        return status.contains("LOST") || status.contains("INVALID") ? WARN : HUD_TEXT;
-    }
-
-    private static int battleHullColor(BattleScreenDisplayBE.LinkedObserver observer) {
-        double health = observer.healthPercent();
-        if (health <= 35.0f) {
-            return TARGET;
-        }
-        if (health <= 65.0f) {
-            return WARN;
-        }
-        return HUD_TEXT;
     }
 
     private static void renderHeadingTape(GuiGraphics graphics, Font font, int centerX, int y, int width, float heading) {
@@ -594,133 +451,10 @@ public final class PilotHelmetHudOverlay {
         drawLine(graphics, fpmX, fpmY + 5, fpmX, fpmY + 14, HUD);
     }
 
-    private static void renderBattleSymbology(GuiGraphics graphics, Minecraft minecraft, int screenWidth, int screenHeight,
-                                               @Nullable BattleScreenDisplayBE.LinkedObserver observer) {
-        if (observer == null || !observer.weapon().detected()) {
-            return;
-        }
-        BattleScreenDisplayBE.AutoAimSnapshot autoAim = observer.weapon().autoAim();
-        float hitChance = computeHitChance(autoAim);
-        boolean helmetLock = autoAim.targetPresent() && hitChance >= HIT_CHANCE_LOCK_THRESHOLD;
-        ScreenPoint aimPoint = projectAimCueToScreen(minecraft, screenWidth, screenHeight, autoAim);
-        if (aimPoint != null) {
-            int aimColor = helmetLock ? OK : autoAim.targetPresent() ? WARN : HUD;
-            drawAimMarker(graphics, aimPoint.x(), aimPoint.y(), helmetLock ? 7 : 6, aimColor);
-        }
-        if (!autoAim.targetPresent()) {
-            return;
-        }
-        Vec3 targetWorld = lockedTargetWorldPoint(autoAim);
-        ScreenPoint targetPoint = null;
-        if (targetWorld != null) {
-            targetPoint = projectWorldPointToScreen(minecraft, screenWidth, screenHeight, targetWorld);
-        }
-        if (targetPoint == null) {
-            targetPoint = projectAnglesToScreen(minecraft, screenWidth, screenHeight, autoAim.targetYawDegrees(), autoAim.targetPitchDegrees());
-        }
-        Font font = minecraft.font;
-        if (targetPoint == null) {
-            renderOffScreenTargetChevron(graphics, font, minecraft, screenWidth, screenHeight, autoAim, targetWorld);
-            return;
-        }
-        int baseSize = helmetLock ? 18 : 22;
-        int pulseSize = baseSize;
-        if (helmetLock) {
-            float pulse = (Mth.sin((float) ((System.currentTimeMillis() % 1000L) / 1000.0f * Math.PI * 2.0f)) + 1.0f) * 0.5f;
-            pulseSize = baseSize + Math.round(pulse * 6.0f);
-        }
-        drawSquare(graphics, targetPoint.x(), targetPoint.y(), pulseSize, TARGET);
-        if (helmetLock) {
-            drawSquare(graphics, targetPoint.x(), targetPoint.y(), pulseSize + 6, TARGET_DIM);
-            drawCornerBrackets(graphics, targetPoint.x(), targetPoint.y(), pulseSize + 10, TARGET);
-        }
-        String label = helmetLock ? "LOCK" : "AIMING";
-        int labelColor = helmetLock ? TARGET : WARN;
-        int labelX = targetPoint.x() - font.width(label) / 2;
-        int labelY = targetPoint.y() - pulseSize / 2 - 14;
-        drawChip(graphics, labelX - 3, labelY - 1, font.width(label) + 6, 11);
-        graphics.drawString(font, label, labelX, labelY, labelColor, true);
-
-        double rangeMeters = autoAim.targetDistance();
-        if (rangeMeters <= 0.0 && targetWorld != null) {
-            Vec3 cam = minecraft.gameRenderer.getMainCamera().getPosition();
-            rangeMeters = targetWorld.distanceTo(cam);
-        }
-        if (rangeMeters > 0.0) {
-            String rngText = String.format(Locale.ROOT, "RNG %.0fm", rangeMeters);
-            int rngX = targetPoint.x() - font.width(rngText) / 2;
-            int rngY = targetPoint.y() + pulseSize / 2 + 4;
-            drawChip(graphics, rngX - 3, rngY - 1, font.width(rngText) + 6, 11);
-            graphics.drawString(font, rngText, rngX, rngY, HUD_TEXT, true);
-            if (!helmetLock) {
-                String pctText = String.format(Locale.ROOT, "%d%%", Math.round(hitChance * 100.0f));
-                int pctX = targetPoint.x() - font.width(pctText) / 2;
-                int pctY = rngY + 11;
-                drawChip(graphics, pctX - 3, pctY - 1, font.width(pctText) + 6, 11);
-                graphics.drawString(font, pctText, pctX, pctY, WARN, true);
-            }
-        }
-    }
-
-    private static float computeHitChance(BattleScreenDisplayBE.AutoAimSnapshot autoAim) {
-        if (!autoAim.targetPresent() || !autoAim.mountAvailable()) {
-            return 0.0f;
-        }
-        float yawErr = Math.abs(autoAim.yawErrorDegrees());
-        float pitchErr = Math.abs(autoAim.pitchErrorDegrees());
-        float err = (float) Math.sqrt(yawErr * yawErr + pitchErr * pitchErr);
-        // 0 deg error -> 100%, 3 deg error -> 0%. Sharp drop-off so 90% requires ~0.3 deg.
-        return Mth.clamp(1.0f - err / 3.0f, 0.0f, 1.0f);
-    }
-
-    @Nullable
-    private static Vec3 lockedTargetWorldPoint(BattleScreenDisplayBE.AutoAimSnapshot autoAim) {
-        BattleScreenDisplayBE.AutoAimTargetOption locked = lockedTarget(autoAim);
-        return locked == null ? null : new Vec3(locked.worldX(), locked.worldY(), locked.worldZ());
-    }
-
-    private static void renderOffScreenTargetChevron(GuiGraphics graphics, Font font, Minecraft minecraft,
-                                                     int screenWidth, int screenHeight,
-                                                     BattleScreenDisplayBE.AutoAimSnapshot autoAim,
-                                                     @Nullable Vec3 targetWorld) {
-        Camera camera = minecraft.gameRenderer.getMainCamera();
-        if (camera == null) {
-            return;
-        }
-        float bearingDeg;
-        if (targetWorld != null) {
-            Vec3 cam = camera.getPosition();
-            float yawDeg = (float) Math.toDegrees(Math.atan2(-(targetWorld.x - cam.x), targetWorld.z - cam.z));
-            bearingDeg = Mth.wrapDegrees(yawDeg - camera.getYRot());
-        } else {
-            bearingDeg = Mth.wrapDegrees(autoAim.targetYawDegrees() - camera.getYRot());
-        }
-        int margin = 28;
-        int cx = screenWidth / 2;
-        int cy = screenHeight / 2;
-        int ringRadiusX = screenWidth / 2 - margin;
-        int ringRadiusY = screenHeight / 2 - margin;
-        float angleRad = (float) Math.toRadians(bearingDeg);
-        float dx = Mth.sin(angleRad);
-        float dy = -Mth.cos(angleRad);
-        // Limit to elliptical edge of safe area
-        float tX = Math.abs(dx) < 1.0E-4f ? Float.POSITIVE_INFINITY : ringRadiusX / Math.abs(dx);
-        float tY = Math.abs(dy) < 1.0E-4f ? Float.POSITIVE_INFINITY : ringRadiusY / Math.abs(dy);
-        float t = Math.min(tX, tY);
-        int x = cx + Math.round(dx * t);
-        int y = cy + Math.round(dy * t);
-        drawChevron(graphics, x, y, angleRad, TARGET);
-        String bearingText = String.format(Locale.ROOT, "%+.0f\u00B0", bearingDeg);
-        int bx = x - font.width(bearingText) / 2;
-        int by = y + 10;
-        drawChip(graphics, bx - 3, by - 1, font.width(bearingText) + 6, 11);
-        graphics.drawString(font, bearingText, bx, by, TARGET, true);
-    }
-
     private static void drawChevron(GuiGraphics graphics, int cx, int cy, float angleRad, int color) {
         float cos = Mth.cos(angleRad);
         float sin = Mth.sin(angleRad);
-        // Build a triangle pointing along (sin, -cos) i.e. the bearing direction.
+
         float[][] pts = { {0.0f, -10.0f}, {-7.0f, 6.0f}, {7.0f, 6.0f} };
         int[] xs = new int[3];
         int[] ys = new int[3];
@@ -738,47 +472,58 @@ public final class PilotHelmetHudOverlay {
     private static void drawCornerBrackets(GuiGraphics graphics, int cx, int cy, int size, int color) {
         int half = size / 2;
         int len = 4;
-        // top-left
+
         drawLine(graphics, cx - half, cy - half, cx - half + len, cy - half, color);
         drawLine(graphics, cx - half, cy - half, cx - half, cy - half + len, color);
-        // top-right
+
         drawLine(graphics, cx + half - len, cy - half, cx + half, cy - half, color);
         drawLine(graphics, cx + half, cy - half, cx + half, cy - half + len, color);
-        // bottom-left
+
         drawLine(graphics, cx - half, cy + half - len, cx - half, cy + half, color);
         drawLine(graphics, cx - half, cy + half, cx - half + len, cy + half, color);
-        // bottom-right
+
         drawLine(graphics, cx + half - len, cy + half, cx + half, cy + half, color);
         drawLine(graphics, cx + half, cy + half - len, cx + half, cy + half, color);
     }
 
-    @Nullable
-    private static ScreenPoint projectAimCueToScreen(Minecraft minecraft, int screenWidth, int screenHeight,
-                                                     BattleScreenDisplayBE.AutoAimSnapshot autoAim) {
-        if (autoAim.mountAvailable()) {
-            ScreenPoint projected = projectAnglesToScreen(minecraft, screenWidth, screenHeight,
-                autoAim.mountYawDegrees(), autoAim.mountPitchDegrees());
-            if (projected != null) {
-                return projected;
+    private static void renderBattleTarget(GuiGraphics graphics, Minecraft minecraft, int width, int height,
+                                           @Nullable com.createstats.battle.core.BattleReport report) {
+        if (report == null || minecraft.level == null) return;
+        com.createstats.battle.core.BattleReport.TargetLine t = report.target();
+        if (!t.present() || t.lostSince() >= 0) return;
+        Vec3 at = null;
+        if (t.kind() == 1) {
+            try {
+                Object sub = com.createstats.flight.bridge.SableBridge.findSubLevelById(minecraft.level, java.util.UUID.fromString(t.shipId()));
+                org.joml.Vector3d c = sub == null ? null : com.createstats.flight.bridge.SableBridge.subLevelWorldCenter(sub);
+                if (c != null) at = new Vec3(c.x, c.y, c.z);
+            } catch (IllegalArgumentException ignored) {
             }
+        } else {
+            net.minecraft.world.entity.Entity e = minecraft.level.getEntity(t.entityId());
+            if (e != null) at = e.getBoundingBox().getCenter();
         }
-        if (Double.isFinite(autoAim.aimForwardWorldX())
-                && Double.isFinite(autoAim.aimForwardWorldY())
-                && Double.isFinite(autoAim.aimForwardWorldZ())) {
-            return projectWorldPointToScreen(minecraft, screenWidth, screenHeight,
-                new Vec3(autoAim.aimForwardWorldX(), autoAim.aimForwardWorldY(), autoAim.aimForwardWorldZ()));
+        if (at == null) return;
+        int red = 0xFFFF5B66;
+        ScreenPoint p = projectWorldPointToScreen(minecraft, width, height, at);
+        if (p != null && p.x() >= 0 && p.x() <= width && p.y() >= 0 && p.y() <= height) {
+            double dist = minecraft.gameRenderer.getMainCamera().getPosition().distanceTo(at);
+            int size = (int) Mth.clamp(900.0 / Math.max(1.0, dist), 14, 48);
+            drawCornerBrackets(graphics, p.x(), p.y(), size, red);
+            String label = com.createstats.battle.client.HelmetBattleStrip.targetLabel(t);
+            graphics.drawString(minecraft.font, label, p.x() - minecraft.font.width(label) / 2, p.y() + size / 2 + 3, red, false);
+            return;
         }
-        return null;
-    }
 
-    @Nullable
-    private static BattleScreenDisplayBE.AutoAimTargetOption lockedTarget(BattleScreenDisplayBE.AutoAimSnapshot autoAim) {
-        for (BattleScreenDisplayBE.AutoAimTargetOption option : autoAim.targetOptions()) {
-            if (option.locked()) {
-                return option;
-            }
-        }
-        return autoAim.targetOptions().isEmpty() ? null : autoAim.targetOptions().get(0);
+        net.minecraft.client.Camera camera = minecraft.gameRenderer.getMainCamera();
+        Vec3 cam = camera.getPosition();
+        float yaw = (float) Math.toDegrees(Math.atan2(-(at.x - cam.x), at.z - cam.z));
+        float rel = Mth.wrapDegrees(yaw - camera.getYRot());
+        float angle = (float) Math.toRadians(rel);
+        int radius = Math.min(width, height) / 3;
+        int cx = width / 2 + Math.round(Mth.sin(angle) * radius);
+        int cy = height / 2 - Math.round(Mth.cos(angle) * radius);
+        drawChevron(graphics, cx, cy, angle, red);
     }
 
     @Nullable
@@ -811,7 +556,7 @@ public final class PilotHelmetHudOverlay {
         float cameraPitch = -camera.getXRot();
         float relativeYaw = Mth.wrapDegrees(worldYawDeg - cameraYaw);
         float relativePitch = Mth.wrapDegrees(worldPitchDeg - cameraPitch);
-        // [11]
+
         if (Math.abs(relativeYaw) >= 85.0f || Math.abs(relativePitch) >= 85.0f) {
             return null;
         }
@@ -841,7 +586,7 @@ public final class PilotHelmetHudOverlay {
         if (fovValue instanceof Number number) {
             base = number.floatValue();
         }
-        // [12]
+
         if (minecraft.player != null) {
             float modifier = minecraft.player.getFieldOfViewModifier();
             if (Float.isFinite(modifier) && modifier > 0.1f) {
@@ -860,7 +605,6 @@ public final class PilotHelmetHudOverlay {
         graphics.drawString(font, spdText, leftX, leftY, noSpeed ? WARN : HUD_TEXT, true);
         boolean steepSink = !noClimb && climb <= -8.0;
         if (steepSink) {
-            // Steep descent gets real size hierarchy, not just a colour swap.
             drawUrgentText(graphics, font, clmText, leftX, leftY + 12, 1.4f, TARGET, -1, true);
         } else {
             graphics.drawString(font, clmText, leftX, leftY + 12, noClimb ? WARN : climb >= 0.0 ? OK : WARN, true);
@@ -885,7 +629,6 @@ public final class PilotHelmetHudOverlay {
         }
     }
 
-    /** [13] */
     private static void drawUrgentText(GuiGraphics graphics, Font font, String text,
                                        float anchorX, float anchorY, float scale, int color,
                                        int align, boolean pulse) {
@@ -912,20 +655,12 @@ public final class PilotHelmetHudOverlay {
 
     private static void renderStatusLine(GuiGraphics graphics, Font font, int centerX, int y,
                                          @Nullable FccTelemetryPacket telemetry,
-                                         @Nullable BattleScreenDisplayBE.LinkedObserver observer) {
+                                         @Nullable com.createstats.battle.core.BattleReport battle, long clock) {
         String left = telemetry != null ? "FCC LINK" : "FCC STBY";
-        String right;
-        if (observer == null) {
-            right = "BATTLE STBY";
-        } else if (observer.weapon().autoAim().targetLocked()) {
-            right = "TARGET LOCKED";
-        } else if (observer.weapon().autoAim().targetPresent()) {
-            right = "TARGET TRACKING";
-        } else {
-            right = trim(font, observer.weapon().autoAim().statusText().isBlank() ? observer.weapon().readiness() : observer.weapon().autoAim().statusText(), 120);
-        }
+        String right = com.createstats.battle.client.HelmetBattleStrip.statusLine(battle, clock);
         String line = left + "   |   " + right;
-        graphics.drawString(font, line, centerX - font.width(line) / 2, y, observer != null && observer.weapon().autoAim().targetLocked() ? TARGET : HUD_DIM, false);
+        graphics.drawString(font, line, centerX - font.width(line) / 2, y,
+            battle == null ? HUD_DIM : com.createstats.battle.client.HelmetBattleStrip.statusColour(battle, clock), false);
     }
 
     private static float computeThrustPercent(@Nullable FccTelemetryPacket telemetry) {
@@ -1086,10 +821,10 @@ public final class PilotHelmetHudOverlay {
         float ax = (velX - gLoadPrevVelX) / dt;
         float ay = (velY - gLoadPrevVelY) / dt;
         float az = (velZ - gLoadPrevVelZ) / dt;
-        // Account for gravity baseline along Y.
+
         float aMag = (float) Math.sqrt(ax * ax + (ay + 9.81f) * (ay + 9.81f) + az * az);
         float gNow = Mth.clamp(aMag / 9.81f, 0.0f, 9.9f);
-        // Exponential smoothing
+
         float alpha = Mth.clamp(dt * 3.0f, 0.05f, 1.0f);
         gLoadSmoothed = gLoadSmoothed + (gNow - gLoadSmoothed) * alpha;
         gLoadPrevTimeNanos = now;
@@ -1108,7 +843,7 @@ public final class PilotHelmetHudOverlay {
         if (tex == null) {
             return;
         }
-        // Single textured quad - one draw call, GPU does all the work.
+
         graphics.blit(tex, 0, 0, 0.0f, 0.0f, width, height, width, height);
     }
 
@@ -1131,12 +866,11 @@ public final class PilotHelmetHudOverlay {
             && cachedVignetteStrength == strength) {
             return cachedVignetteTextureId;
         }
-        // Release the previous backing texture before allocating a new one.
+
         if (cachedVignetteTexture != null) {
             try {
                 Minecraft.getInstance().getTextureManager().release(cachedVignetteTextureId);
             } catch (Throwable ignored) {
-                // best effort
             }
             cachedVignetteTexture.close();
             cachedVignetteTexture = null;
@@ -1145,7 +879,7 @@ public final class PilotHelmetHudOverlay {
         NativeImage image = new NativeImage(NativeImage.Format.RGBA, width, height, true);
         bakeVignettePixels(image, width, height, strength);
         DynamicTexture dyn = new DynamicTexture(image);
-        // [14]
+
         dyn.setFilter(false, false);
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "vignette_dynamic");
         Minecraft.getInstance().getTextureManager().register(id, dyn);
@@ -1171,22 +905,21 @@ public final class PilotHelmetHudOverlay {
             float dy = (y - cy) / visorRy;
             for (int x = 0; x < width; x++) {
                 float dx = (x - cx) / visorRx;
-                // Elliptical distance: 0 at center, 1 on visor edge, >1 outside.
+
                 float d = (float) Math.sqrt(dx * dx + dy * dy);
                 int alpha;
                 if (d <= 1.0f) {
                     alpha = 0;
                 } else {
-                    // Linear feather from 0 at visor edge to maxAlpha at feather/min radii past edge.
                     float over = (d - 1.0f) * Math.min(visorRx, visorRy) / feather;
                     alpha = Math.round(maxAlpha * Math.min(1.0f, over));
                 }
-                // Brow shadow add-on across the top of the screen.
+
                 if (y < browHeight) {
                     int brow = Math.round(browAlpha * (1.0f - y / browHeight));
                     alpha = Math.min(0xFF, alpha + brow);
                 }
-                // NativeImage in RGBA format packs as (A<<24)|(B<<16)|(G<<8)|R little-endian, i.e. ABGR int.
+
                 int abgr = (alpha << 24);
                 image.setPixelRGBA(x, y, abgr);
             }
@@ -1194,7 +927,6 @@ public final class PilotHelmetHudOverlay {
     }
 
     private static void renderBankPointer(GuiGraphics graphics, Font font, int centerX, int y, float rollDeg) {
-        // Horizontal scale tick marks at -45, -30, -15, 0, 15, 30, 45 deg roll.
         int halfWidth = 60;
         drawLine(graphics, centerX - halfWidth, y, centerX + halfWidth, y, HUD_DIM);
         for (int mark = -45; mark <= 45; mark += 15) {
@@ -1204,7 +936,7 @@ public final class PilotHelmetHudOverlay {
         }
         float clampedRoll = Mth.clamp(rollDeg, -45.0f, 45.0f);
         int ptrX = centerX + Math.round(clampedRoll / 45.0f * halfWidth);
-        // Triangle pointing down from the scale line.
+
         boolean extremeBank = Math.abs(rollDeg) >= 45.0f;
         int ptrColor = extremeBank ? TARGET : Math.abs(rollDeg) >= 30.0f ? WARN : HUD;
         drawLine(graphics, ptrX - 4, y - 6, ptrX + 4, y - 6, ptrColor);
@@ -1214,7 +946,6 @@ public final class PilotHelmetHudOverlay {
         int labelX = centerX - font.width(label) / 2;
         drawChip(graphics, labelX - 3, y - 18, font.width(label) + 6, 11);
         if (extremeBank) {
-            // Past the scale's own limit: the readout grows and flashes instead of only recoloring.
             drawUrgentText(graphics, font, label, centerX, y - 20, 1.5f, TARGET, 0, true);
         } else {
             graphics.drawString(font, label, labelX, y - 17, HUD_TEXT, true);
@@ -1258,20 +989,15 @@ public final class PilotHelmetHudOverlay {
         }
     }
 
-    // [15]
+    // NV draws without a vehicle too
 
-    /**
-     * Top-left animated NV badge: a small pulsing ring + "NV" text in green,
-     * sized about 28 px high. Always drawn when NV is enabled.
-     */
     private static void renderNightVisionLogo(GuiGraphics graphics, Font font,
                                               PilotHelmetData.NightVisionMode mode) {
         int x = 12;
         int y = 12;
         int w = 56;
         int h = 26;
-        // Slow 2 Hz sine pulse based on wall-clock for smooth visuals regardless
-        // of game tick rate.
+
         float t = (System.currentTimeMillis() % 100000L) / 1000.0f;
         float pulse = 0.55f + 0.45f * (float) Math.sin(t * 3.0f);
         int alpha = (int) (160 * pulse);
@@ -1288,22 +1014,19 @@ public final class PilotHelmetHudOverlay {
         int subColor = (Math.min(255, (int) (160 * pulse + 30)) << 24) | 0x0078E078;
         graphics.drawString(font, label, x + 6, y + 5, labelColor, false);
         graphics.drawString(font, sub, x + 6 + font.width(label) + 4, y + 7, subColor, false);
-        // Pulsing dot indicator on the right edge.
+
         int dotAlpha = (int) (255 * pulse);
         int dotColor = (dotAlpha << 24) | 0x0042E84A;
         graphics.fill(x + w - 8, y + h / 2 - 2, x + w - 4, y + h / 2 + 2, dotColor);
     }
 
-    /** [16] */
     private static void renderTacticalNvgOverlay(GuiGraphics graphics, int width, int height) {
         ResourceLocation staticLayers = nvgStaticTexture(width, height);
         if (staticLayers != null) {
             graphics.blit(staticLayers, 0, 0, 0.0f, 0.0f, width, height, width, height);
         }
-        // Sparse green noise speckle: a few hundred random-looking pixels per
-        // frame using a time-seeded pseudo-random sequence. Avoids per-pixel
-        // alloc by reusing the same int constants.
-        long seed = System.nanoTime() >>> 18; // shifts roughly per-frame
+
+        long seed = System.nanoTime() >>> 18;
         long s = seed;
         int speckleCount = Math.min(600, (width * height) / 600);
         for (int i = 0; i < speckleCount; i++) {
@@ -1311,7 +1034,7 @@ public final class PilotHelmetHudOverlay {
             int rx = (int) ((s >>> 33) % width);
             s = (s * 6364136223846793005L) + 1442695040888963407L;
             int ry = (int) ((s >>> 33) % height);
-            // Two brightness tiers: bright (rare) and dim (common).
+
             int color = ((s & 0x1F) == 0) ? 0x9098FFA0 : 0x4060D070;
             graphics.fill(rx, ry, rx + 1, ry + 1, color);
         }
@@ -1336,7 +1059,6 @@ public final class PilotHelmetHudOverlay {
             try {
                 Minecraft.getInstance().getTextureManager().release(cachedNvgTextureId);
             } catch (Throwable ignored) {
-                // best effort
             }
             cachedNvgTexture.close();
             cachedNvgTexture = null;
@@ -1345,8 +1067,7 @@ public final class PilotHelmetHudOverlay {
         NativeImage image = new NativeImage(NativeImage.Format.RGBA, width, height, true);
         bakeNvgStaticPixels(image, width, height);
         DynamicTexture dyn = new DynamicTexture(image);
-        // Nearest-neighbour, same reason as the canopy vignette: bilinear upscaling to the
-        // framebuffer bleeds the translucent pixels into a uniform blur.
+
         dyn.setFilter(false, false);
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "nvg_static_dynamic");
         Minecraft.getInstance().getTextureManager().register(id, dyn);
@@ -1357,12 +1078,11 @@ public final class PilotHelmetHudOverlay {
         return id;
     }
 
-    /** [17] */
     private static void bakeNvgStaticPixels(NativeImage image, int width, int height) {
         int cx = width / 2;
         int cy = height / 2;
         int maxR = Math.max(cx, cy);
-        // Vignette ring radii and alphas (band 0..3, inner to outer, rising alpha).
+
         int[] bandR = new int[4];
         int[] bandA = new int[4];
         for (int band = 0; band < 4; band++) {
@@ -1372,12 +1092,11 @@ public final class PilotHelmetHudOverlay {
         for (int y = 0; y < height; y++) {
             boolean scanline = (y % 2) == 0;
             for (int x = 0; x < width; x++) {
-                // Layer 1: faint green tint (ARGB 0x18103808).
                 float a = 0x18 / 255.0f;
                 float r = (0x10 / 255.0f);
                 float g = (0x38 / 255.0f);
                 float b = (0x08 / 255.0f);
-                // Layer 2: scanline rows, translucent black.
+
                 if (scanline) {
                     float sa = 0x22 / 255.0f;
                     float outA = sa + a * (1.0f - sa);
@@ -1386,8 +1105,7 @@ public final class PilotHelmetHudOverlay {
                     b = b * a * (1.0f - sa) / outA;
                     a = outA;
                 }
-                // Layers 3-6: vignette bands (translucent black), one fill per band the pixel
-                // falls outside of.
+
                 for (int band = 0; band < 4; band++) {
                     int r0 = bandR[band];
                     boolean outside = y < cy - r0 || y >= cy + r0 || x < cx - r0 || x >= cx + r0;
@@ -1403,7 +1121,7 @@ public final class PilotHelmetHudOverlay {
                 int ir = Math.min(255, Math.round(r * 255.0f));
                 int ig = Math.min(255, Math.round(g * 255.0f));
                 int ib = Math.min(255, Math.round(b * 255.0f));
-                // NativeImage RGBA packs little-endian as ABGR ints.
+
                 image.setPixelRGBA(x, y, (ia << 24) | (ib << 16) | (ig << 8) | ir);
             }
         }
@@ -1428,7 +1146,7 @@ public final class PilotHelmetHudOverlay {
         PilotHelmetData.Mode mode,
         @Nullable BlockPos fccPos,
         @Nullable BattleScreenDisplayBE battleDisplay,
-        @Nullable BattleScreenDisplayBE.LinkedObserver battleObserver,
+        @Nullable com.createstats.battle.core.BattleReport battleReport,
         @Nullable BlockPos statsDisplayPos,
         int vignetteStrength,
         float hudScaleFactor

@@ -1,7 +1,6 @@
 package com.createstats.train.manifest;
 
 public class FreightManifestValidationResult {
-
     private final boolean valid;
     private final String message;
 

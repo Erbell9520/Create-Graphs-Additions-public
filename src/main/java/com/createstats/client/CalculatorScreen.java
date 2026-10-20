@@ -62,14 +62,14 @@ public class CalculatorScreen extends Screen
     private int resultPulseTicks;
     private int graphPulseTicks;
     private int inputPulseTicks;
-    
+
     public CalculatorScreen(CalculatorBE calculator) {
         super(Component.translatable("gui.create_stats.calculator.title"));
         this.calculator = calculator.getControllerBE();
         this.plotData = new float[0];
         this.plotSamples = 160;
     }
-    
+
     protected void init() {
         super.init();
         this.computeLayout();
@@ -193,12 +193,12 @@ public class CalculatorScreen extends Screen
     private int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }
-    
+
     private void rebuildScreen() {
         this.clearWidgets();
         this.init();
     }
-    
+
     private void addFunctionGrid(int y) {
         final String[][] functions = {
             { "sin", "sin(" }, { "cos", "cos(" }, { "tan", "tan(" },
@@ -216,7 +216,7 @@ public class CalculatorScreen extends Screen
             this.addRenderableWidget(this.button(Component.literal(label), this.keypadX + col * (buttonWidth + gap), y + row * 22, buttonWidth, 18, b -> this.insertToken(token)));
         }
     }
-    
+
     private void addKeypadRow(int x, int y, int width, String[] tokens) {
         final int gap = 6;
         final int buttonWidth = (width - gap * (tokens.length - 1)) / tokens.length;
@@ -250,13 +250,13 @@ public class CalculatorScreen extends Screen
             this.insertToken(token);
         }
     }
-    
+
     private Component modeLabel() {
         return Component.translatable(this.calculator.isScientificMode()
                 ? "gui.create_stats.calculator.mode.scientific"
                 : "gui.create_stats.calculator.mode.simple");
     }
-    
+
     private void insertToken(String token) {
         this.expressionBox.setFocused(true);
         this.expressionBox.insertText(token);
@@ -290,7 +290,7 @@ public class CalculatorScreen extends Screen
         this.plotWidget.setData(this.plotData);
         this.inputPulseTicks = 8;
     }
-    
+
     private void saveEditingState() {
         this.calculator.setExpression(this.expressionBox.getValue());
         final Double min = this.parseRange(this.minXBox.getValue());
@@ -299,14 +299,14 @@ public class CalculatorScreen extends Screen
             this.calculator.setPlotRange(min, max);
         }
     }
-    
+
     private void evaluateExpression() {
         this.saveEditingState();
         this.calculator.evaluateExpression();
         this.syncToServer();
         this.resultPulseTicks = 16;
     }
-    
+
     private void plotExpression() {
         this.saveEditingState();
         final Double min = this.parseRange(this.minXBox.getValue());
@@ -341,7 +341,7 @@ public class CalculatorScreen extends Screen
             this.resultPulseTicks = 16;
         }
     }
-    
+
     private void tryRestorePlot() {
         try {
             this.plotData = this.sampleCurrentPlot(this.calculator.getPlotMinX(), this.calculator.getPlotMaxX());
@@ -356,7 +356,7 @@ public class CalculatorScreen extends Screen
             this.plotWidget.setData(this.plotData);
         }
     }
-    
+
     private Double parseRange(String text) {
         if (text == null || text.isBlank()) {
             return null;
@@ -368,7 +368,7 @@ public class CalculatorScreen extends Screen
             return null;
         }
     }
-    
+
     private String formatRangeValue(double value) {
         try {
             return ExpressionEvaluator.format(value);
@@ -456,18 +456,18 @@ public class CalculatorScreen extends Screen
         }
         this.rebuildScreen();
     }
-    
+
     private void syncToServer() {
         PacketDistributor.sendToServer(new CalculatorStatePacket(this.calculator.getBlockPos(), this.calculator.saveCalculatorState()));
         CalculatorTextureManager.markDirty(this.calculator.getBlockPos());
     }
-    
+
     public void onClose() {
         this.saveEditingState();
         this.syncToServer();
         super.onClose();
     }
-    
+
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 257 || keyCode == 335) {
             this.evaluateExpression();
@@ -508,11 +508,11 @@ public class CalculatorScreen extends Screen
             --this.inputPulseTicks;
         }
     }
-    
+
     public boolean isPauseScreen() {
         return false;
     }
-    
+
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(graphics);
         final int actionY = this.contentTop + 66;
@@ -559,7 +559,7 @@ public class CalculatorScreen extends Screen
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
     }
-    
+
     private void renderHistory(GuiGraphics graphics) {
         final List<String> pinned = this.calculator.getPinnedFormulas();
         graphics.drawString(this.font, Component.translatable("gui.create_stats.calculator.pinned"), this.leftPos + CONTENT_PAD + 10, this.pinnedListY - 12, COLOR_MUTED, false);
@@ -590,7 +590,7 @@ public class CalculatorScreen extends Screen
             y += 13;
         }
     }
-    
+
     private void renderPlotEmptyState(GuiGraphics graphics, int x, int y, int width, int height) {
         graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, COLOR_GLASS_DARK);
         final String line1;
@@ -741,7 +741,7 @@ public class CalculatorScreen extends Screen
     private static int withAlpha(int color, int alpha) {
         return (Math.max(0, Math.min(255, alpha)) << 24) | (color & 0x00FFFFFF);
     }
-    
+
     private void drawPanel(GuiGraphics graphics, int x, int y, int w, int h, int fill, int border) {
         graphics.fill(x, y, x + w, y + h, fill);
         graphics.fill(x, y, x + w, y + 1, border);
@@ -749,14 +749,14 @@ public class CalculatorScreen extends Screen
         graphics.fill(x, y, x + 1, y + h, border);
         graphics.fill(x + w - 1, y, x + w, y + h, border);
     }
-    
+
     private String truncateText(String text, int maxWidth) {
         if (this.font.width(text) <= maxWidth) {
             return text;
         }
         return this.font.plainSubstrByWidth(text, Math.max(0, maxWidth - this.font.width(".."))) + "..";
     }
-    
+
     private boolean tryRestoreHistoryAt(double mouseX, double mouseY) {
         final int x0 = this.leftPos + CONTENT_PAD + 8;
         final int x1 = x0 + this.historyWidth - 16;

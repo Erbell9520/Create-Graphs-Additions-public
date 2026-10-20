@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_stats:block/pa_brain"
+    },
+    "facing=east": {
+      "model": "create_stats:block/pa_brain",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "create_stats:block/pa_brain",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_stats:block/pa_brain",
+      "y": 270
+    }
+  }
+}

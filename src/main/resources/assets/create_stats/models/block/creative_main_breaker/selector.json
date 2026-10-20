@@ -1,0 +1,147 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "tones": "create_stats:block/creative_main_breaker_tones",
+    "particle": "create_stats:block/creative_main_breaker_case"
+  },
+  "elements": [
+    {
+      "name": "paddle",
+      "from": [
+        11.18,
+        5.55,
+        3.6
+      ],
+      "to": [
+        12.02,
+        7.15,
+        5.2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            0.5,
+            7.5,
+            1.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "paddle_tip",
+      "from": [
+        10.84,
+        6.75,
+        3.7
+      ],
+      "to": [
+        12.36,
+        7.15,
+        5.1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            4.5,
+            0.5,
+            5.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            6.5,
+            0.5,
+            7.5,
+            1.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            2.5,
+            0.5,
+            3.5,
+            1.5
+          ]
+        }
+      }
+    }
+  ]
+}

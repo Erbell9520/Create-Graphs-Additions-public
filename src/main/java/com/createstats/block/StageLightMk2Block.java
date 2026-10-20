@@ -23,9 +23,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** [1] */
 public class StageLightMk2Block extends StageLightBlock {
-
     public StageLightMk2Block(BlockBehaviour.Properties properties) {
         super(properties);
     }
@@ -33,7 +31,6 @@ public class StageLightMk2Block extends StageLightBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        // Slot a Beacon as the range upgrade.
         if (stack.is(Items.BEACON)) {
             final BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof StageLightMk2BE mk2 && !mk2.hasBeaconUpgrade()) {
@@ -47,7 +44,7 @@ public class StageLightMk2Block extends StageLightBlock {
             }
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        // Wrench with the upgrade installed and no colour filter pops the Beacon back out.
+        // wrench with no filter pops the beacon back out
         if (AllItems.WRENCH.isIn(stack)) {
             final BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof StageLightMk2BE mk2 && mk2.hasBeaconUpgrade() && !mk2.hasTint()) {

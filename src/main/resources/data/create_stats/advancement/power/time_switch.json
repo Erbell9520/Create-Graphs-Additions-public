@@ -1,0 +1,44 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:time_switch"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.time_switch.title",
+      "fallback": "Be There in Five Minutes"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.time_switch.description",
+      "fallback": "Place a Time Switch. Unlike everyone you know, it shows up on time."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "time_switch": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": [
+                  "create_stats:time_switch"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "time_switch"
+    ]
+  ]
+}

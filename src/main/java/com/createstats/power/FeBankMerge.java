@@ -6,22 +6,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/** [1] */
 public final class FeBankMerge {
-
     private FeBankMerge() {
     }
 
-    /** Sort order for every operation here: bottom up, then a stable horizontal tiebreak. */
     public static final Comparator<BlockPos> ORDER = Comparator
             .<BlockPos>comparingInt(BlockPos::getY)
             .thenComparingInt(BlockPos::getX)
             .thenComparingInt(BlockPos::getZ);
 
-    /**
-     * Splits a connected cluster into merged banks, each within {@code maxFootprint} in x and z and
-     * {@code maxHeight} in y. Input order is irrelevant; the result is always the same.
-     */
     public static List<List<BlockPos>> partition(List<BlockPos> cluster, int maxFootprint, int maxHeight) {
         final List<BlockPos> sorted = new ArrayList<>(cluster);
         sorted.sort(ORDER);
@@ -75,7 +68,7 @@ public final class FeBankMerge {
         return banks;
     }
 
-    /** [2] */
+    // superlinear on purpose, base * n^1.1. merging is a build decision, it should pay a little
     public static int capacity(int blocks, int basePerBlock, double exponent) {
         if (blocks <= 0 || basePerBlock <= 0) {
             return 0;
@@ -87,10 +80,6 @@ public final class FeBankMerge {
         return (int) Math.max(basePerBlock, Math.min(Integer.MAX_VALUE, Math.round(total)));
     }
 
-    /**
-     * Splits a bank's total capacity across its blocks. The remainder goes to the lowest blocks, so
-     * the bottom of a stack is never the one block that cannot quite fill.
-     */
     public static int[] shareCapacity(int totalCapacity, int blocks) {
         final int[] shares = new int[Math.max(0, blocks)];
         if (shares.length == 0) {

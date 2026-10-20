@@ -1178,6 +1178,11 @@ public final class SimulatedCompatHelper {
         }
     }
 
+    // public so the info source and the stats display can't name a group two ways
+    public static String forceGroupKey(@Nullable Object forceGroup) {
+        return normalizeContraptionForceKey(forceGroup);
+    }
+
     private static String normalizeContraptionForceKey(@Nullable Object forceGroup) {
         final String registryKey = resolveForceGroupRegistryKey(forceGroup).toLowerCase();
         final String displayName = resolveForceGroupName(forceGroup).toLowerCase();

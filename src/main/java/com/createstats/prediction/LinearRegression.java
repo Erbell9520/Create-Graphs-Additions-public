@@ -4,7 +4,7 @@ public final class LinearRegression
 {
     private LinearRegression() {
     }
-    
+
     public static RegressionCoefficients compute(float[] data, int offset, int length) {
         final int n = length;
         if (n < 3 || data == null || offset < 0 || offset + length > data.length) {
@@ -45,7 +45,7 @@ public final class LinearRegression
         final double standardError = (n > 2) ? Math.sqrt(SSE / (n - 2)) : 0.0;
         return new RegressionCoefficients(slope, intercept, rSquared, standardError, Sxx, xBar, n);
     }
-    
+
     public static double predictionIntervalHalfWidth(RegressionCoefficients coeffs, double xNew, double tCritical) {
         if (coeffs == null || coeffs.standardError() < 1.0E-12) {
             return 0.0;
@@ -53,14 +53,14 @@ public final class LinearRegression
         final double term = 1.0 + 1.0 / coeffs.n() + Math.pow(xNew - coeffs.xBar(), 2.0) / coeffs.Sxx();
         return tCritical * coeffs.standardError() * Math.sqrt(term);
     }
-    
+
     public static double solveForX(double slope, double intercept, double thresholdY) {
         if (Math.abs(slope) < 1.0E-10) {
             return Double.NaN;
         }
         return (thresholdY - intercept) / slope;
     }
-    
+
     public static float[] exponentialSmooth(float[] data, int offset, int length, float alpha) {
         if (length <= 0 || alpha >= 1.0f) {
             final float[] copy = new float[length];
@@ -74,6 +74,6 @@ public final class LinearRegression
         }
         return smoothed;
     }
-    
+
     public record RegressionCoefficients(double slope, double intercept, double rSquared, double standardError, double Sxx, double xBar, int n) {}
 }

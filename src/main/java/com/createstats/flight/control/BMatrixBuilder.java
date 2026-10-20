@@ -17,89 +17,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Builds the 6×N control-effectiveness matrix (B) from the current contraption
- * geometry and live actuator state.
- *
- * <h2>Frame conventions (MUST hold for B to be valid)</h2>
- * <ul>
- *   <li>{@link FccBinding#prop()} is the propeller-bearing block position in
- *       <b>sub-level (body) local</b> integer coordinates. The applied force
- *       point is taken at the block centre: {@code propPos + (0.5, 0.5, 0.5)}.</li>
- *   <li>{@link SableBridge#centerOfMassLocal(Object)} is in <b>body local</b>.</li>
- *   <li>{@link SableBridge.PropData#thrustDirLocal()} is in <b>body local</b>;
- *       for gyroscopic propellers we ASSUME the local thrust direction already
- *       reflects the active {@code tiltQuat} (Aeronautics applies tilt before
- *       publishing {@code thrustDirection}). If runtime testing disproves this,
- *       set {@link #FORCE_APPLY_GYRO_TILT} to {@code true} so the builder
- *       multiplies by {@code tiltQuat} on top.</li>
- * </ul>
- *
- * <p>Because positions, the thrust direction and the CoM are all in the body
- * frame, {@code r × F} produces a body-frame torque directly, no use of
- * {@link SableBridge#bodyOrientation(Object)} is required for B itself.
- * {@code bodyOrientation} is only consulted for the world-up diagnostic.</p>
- *
- * <h2>Effective gain {@code k} (per unit RPM)</h2>
- * <pre>
-     * k = sign(thrustSigned / governorAppliedRpm when observable, otherwise +1)
- *     * adaptiveGain(sailPower, observed thrust/rpm)
- *
- * F_body = k * thrustDirLocal
- * r_body = (propPos + 0.5) - CoM_local
-     * T_body = r_body × F_body + (yawFactor * |k| * ratio) * thrustDirLocal
- * column_i = [Fx, Fy, Fz, Tx, Ty, Tz]
- * </pre>
- */
 public final class BMatrixBuilder {
-
-    /** Minimum |RPM| to trust the dynamic {@code thrust/rpm} ratio. Below this we use the analytic seed. */
     public static final double RPM_DYNAMIC_THRESHOLD = 2.0;
 
-    /**
-     * Minimum |RPM| required before live telemetry may establish or flip the prop's signed gain.
-     * Near zero, Aeronautics thrust snapshots jitter enough to invert {@code thrust/rpm} even when
-     * the mechanical lift sign has not changed, which destabilizes the B matrix.
-     */
     public static final double RPM_SIGN_UPDATE_THRESHOLD = 24.0;
 
-    /** Sane upper bound on |k| (Newtons per RPM), guards against transient Aeronautics glitches. */
     public static final double K_HARD_CAP = 1.0e4;
 
-    /** Analytic seed coefficient when prop is at rest: {@code k = sailPower * STATIC_K_PER_SAIL}. */
     public static final double STATIC_K_PER_SAIL = 0.25;
-    /** Blend factor for live thrust/RPM adaptation. Small value avoids mid-flight gain jumps. */
+
     private static final double GAIN_EWMA_ALPHA = 0.08;
     private static final Map<Long, GainEstimate> GAIN_ESTIMATES = new HashMap<>();
 
-    /** Evict a single prop's gain estimate (call when a single prop is recalibrated). */
     public static synchronized void evictGainEstimate(long propPosKey) {
         GAIN_ESTIMATES.remove(propPosKey);
     }
 
-    /**
-     * Evict all cached gain estimates so that stale (possibly sign-inverted) estimates from a
-     * previous session do not seed the live EWMA. Retained for callers that reset the readiness
-     * diagnostic; the old per-tick control loop and calibration sweep that once called it are gone.
-     */
     public static synchronized void clearAllGainEstimates() {
         GAIN_ESTIMATES.clear();
     }
 
-    /** Toggle if runtime testing shows {@code thrustDirLocal} does NOT include gyro tilt. */
     public static volatile boolean FORCE_APPLY_GYRO_TILT = false;
 
-    /** Per-second diagnostic logging for B-matrix build (per-prop k/sign/source + vertical auth). */
     public static volatile boolean DIAG_LOG = true;
     private static long lastDiagTickMs = 0L;
 
     private BMatrixBuilder() {}
 
-    /**
-     * Build the B matrix for the given FCC. Returns a usable result whenever any
-     * propeller binding resolved to a live BE; otherwise returns
-     * {@link BMatrix#unable(String)}.
-     */
     public static BMatrix build(Level level, BlockEntity fccBe, List<FccBinding> bindings) {
         if (bindings == null || bindings.isEmpty()) return BMatrix.unable("noBindings");
 
@@ -121,13 +65,11 @@ public final class BMatrixBuilder {
         List<BMatrix.Diagnostic> diags = new ArrayList<>(n);
         int validColumns = 0;
 
-        // Stable order for the structural fingerprint, sort by prop pos then governor pos.
         List<FccBinding> sorted = new ArrayList<>(bindings);
         sorted.sort(Comparator
                 .comparingLong((FccBinding b) -> b.prop().asLong())
                 .thenComparingLong(b -> b.governor().asLong()));
 
-        // Snapshot the gyro flag once so a mid-loop toggle can't produce a mixed matrix.
         final boolean applyGyroTilt = FORCE_APPLY_GYRO_TILT;
 
         for (int i = 0; i < n; i++) {
@@ -157,12 +99,9 @@ public final class BMatrixBuilder {
                 diags.add(new BMatrix.Diagnostic(i, false, "badThrustDir", 0.0, false, false, 0.0, 0.0));
                 continue;
             }
-            // Defensive copy, never mutate bridge-returned vector.
+
             Vector3d dirLocal = new Vector3d(dir);
 
-            // Optional escape hatch: apply gyro tilt explicitly if the bridge data is
-            // empirically untilted. Snapshotted at top of build() so a mid-loop toggle
-            // can't produce a mixed matrix.
             if (applyGyroTilt && pd.isGyro() && pd.tiltQuat() != null) {
                 org.joml.Vector3f tmp = new org.joml.Vector3f(
                         (float) dirLocal.x, (float) dirLocal.y, (float) dirLocal.z);
@@ -170,7 +109,6 @@ public final class BMatrixBuilder {
                 dirLocal.set(tmp.x(), tmp.y(), tmp.z());
             }
 
-            // Normalize. If the published direction is zero-length (rare), skip.
             double dirLen = dirLocal.length();
             if (!Double.isFinite(dirLen) || dirLen < 1.0e-9) {
                 mb.zeroColumn(i);
@@ -187,7 +125,6 @@ public final class BMatrixBuilder {
             if (k > K_HARD_CAP) k = K_HARD_CAP;
             if (k < -K_HARD_CAP) k = -K_HARD_CAP;
 
-            // Force application point, block centre.
             Vector3d propLocal = new Vector3d(
                     propPos.getX() + 0.5,
                     propPos.getY() + 0.5,
@@ -220,10 +157,7 @@ public final class BMatrixBuilder {
             validColumns++;
         }
 
-        // Structural fingerprint, separate pass over the SORTED bindings so reorderings
-        // of the input list do not change the hash. Includes prop pos, governor pos,
-        // sail-power bucket (quantized 0.01), actuator class name, and isGyro flag.
-        long fp = 0xcbf29ce484222325L; // canonical FNV-1a 64 offset basis
+        long fp = 0xcbf29ce484222325L;
         final long FNV_PRIME = 1099511628211L;
         for (FccBinding sb : sorted) {
             fp = mix(fp, FNV_PRIME, sb.prop().asLong());
@@ -272,12 +206,6 @@ public final class BMatrixBuilder {
         return new BMatrix(m, verticalAuth, m.rowNorms(), fp, gravityFallback, diags, null);
     }
 
-    /**
-     * gravityUp_body = inverse(bodyOrientation) * (-normalize(gravityWorld)).
-     * Returns null if gravity OR orientation is unavailable, caller falls back to
-     * body +Y and marks {@code gravityFallbackUsed}. Returning a world-frame up
-     * here would silently mis-credit vertical authority on tilted craft.
-     */
     @Nullable
     private static Vector3d computeBodyUpFromGravity(BlockEntity be, @Nullable Quaterniond bodyToWorld) {
         Vector3d gWorld = SableBridge.gravityWorld(be);
@@ -333,21 +261,14 @@ public final class BMatrixBuilder {
                 double hi = analytic > 1.0e-6 ? analytic * 5.00 : K_HARD_CAP;
                 observedMag = clamp(observedMag, lo, hi);
                 if (usedCalibration) {
-                    // Hard-lock sign to calibrated value; never let live signum invert it.
-                    // Seed EWMA from calibrated magnitude when the cache was just evicted
-                    // so the first live tick does not discard calibration data.
                     double seedMag = calibratedMag;
                     double blendMag = est == null
                             ? seedMag
                             : (1.0 - GAIN_EWMA_ALPHA) * magnitude + GAIN_EWMA_ALPHA * observedMag;
                     magnitude = blendMag;
-                    // sign already = calibratedSign; do NOT overwrite.
-                    // usedCalibration stays true.
                 } else {
                     double observedSign = Math.signum(observed);
-                    // Prop lift sign is a structural property of the binding, not something that
-                    // should flip because thrust telemetry is noisy while the governor dithers
-                    // through zero. Once learned, only allow a sign update at a clearly driven RPM.
+
                     if (observedSign != 0.0 && (est == null || Math.abs(rpm) >= RPM_SIGN_UPDATE_THRESHOLD)) {
                         sign = observedSign;
                     }

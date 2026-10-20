@@ -2,17 +2,12 @@ package com.createstats.power;
 
 import com.createstats.ModConfiguration;
 
-/** [1] */
 public final class FeProfiles {
-
-    // Profile keys, one per consumer family. Mk2 variants that inherit their base class tick
-    // (Stage Light Mk2, Stats Display Mk2) share the base profile on purpose.
     public static final String KEY_FCC = "fcc";
     public static final String KEY_VCC_MK2 = "vccMk2";
     public static final String KEY_PATHFINDER_COMPUTER = "pathfinderComputer";
     public static final String KEY_PATH_SCANNER = "pathScanner";
     public static final String KEY_BATTLE_SCREEN = "battleScreen";
-    public static final String KEY_DAMAGE_OBSERVER = "damageObserver";
     public static final String KEY_HOLOGRAPHIC_PROJECTOR = "holographicProjector";
     public static final String KEY_FACTORY_LOGIC = "factoryLogicController";
     public static final String KEY_STAGE_LIGHT = "stageLight";
@@ -21,32 +16,28 @@ public final class FeProfiles {
     public static final String KEY_STATS_ALARM = "statsAlarm";
     public static final String KEY_DISPATCH_BOARD = "dispatchBoard";
     public static final String KEY_PRODUCTION_DETECTOR = "productionDetector";
+    public static final String KEY_WALL_OUTLET = "wallOutlet";
+    public static final String KEY_CINE_CAMERA = "cineCamera";
+
+    public static final String KEY_TOPOLOGY_SCANNER_FIELD = "topologyScannerField";
+    public static final String KEY_TOPOLOGY_SCANNER_ADVANCED = "topologyScannerAdvanced";
+    public static final String KEY_TOPOLOGY_SCANNER_INDUSTRIAL = "topologyScannerIndustrial";
 
     private FeProfiles() {
     }
 
-    /** Master toggle, {@code power.feDependentMode}. False whenever the config is unavailable. */
-    public static boolean feModeEnabled() {
+    public static boolean creativeEnergy() {
         try {
-            return ModConfiguration.COMMON.feDependentMode.get();
+            return ModConfiguration.COMMON.creativeEnergy.get();
         } catch (RuntimeException ignored) {
-            return false;
+            return true;
         }
     }
 
-    /**
-     * Buffer percent a cut-off consumer must reach before it restarts, {@code power.rebootThresholdPct}.
-     * Server-side only: clients read this off the synced {@link FePowerSnapshot}, never from here.
-     */
-    public static int rebootThresholdPct() {
-        try {
-            return ModConfiguration.COMMON.feRebootThresholdPct.get();
-        } catch (RuntimeException ignored) {
-            return 25;
-        }
+    public static boolean powerRequired() {
+        return !creativeEnergy();
     }
 
-    /** Login reminder toggle, {@code power.showLoginReminder}. */
     public static boolean showLoginReminder() {
         try {
             return ModConfiguration.COMMON.feShowLoginReminder.get();
@@ -55,12 +46,19 @@ public final class FeProfiles {
         }
     }
 
-    /** Config-backed live tuning for one profile key. */
+    public static int rebootThresholdPct() {
+        try {
+            return ModConfiguration.COMMON.feRebootThresholdPct.get();
+        } catch (RuntimeException ignored) {
+            return 25;
+        }
+    }
+
     public static FeConsumer.Settings settings(String key) {
         return new FeConsumer.Settings() {
             @Override
             public boolean enabled() {
-                return feModeEnabled();
+                return powerRequired();
             }
 
             @Override
@@ -89,7 +87,7 @@ public final class FeProfiles {
         };
     }
 
-    /** [2] */
+    // capacity scales with blocks, drain doesn't
     public static FeConsumer.Settings pooled(String key, java.util.function.IntSupplier unitCount) {
         final FeConsumer.Settings base = settings(key);
         return new FeConsumer.Settings() {
@@ -120,7 +118,6 @@ public final class FeProfiles {
         };
     }
 
-    /** Clamps a scaled value into int range, so a huge assembly cannot overflow a buffer size. */
     private static int saturate(long value) {
         return (int) Math.max(0L, Math.min(Integer.MAX_VALUE, value));
     }

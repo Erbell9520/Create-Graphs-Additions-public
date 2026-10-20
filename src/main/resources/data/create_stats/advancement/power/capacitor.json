@@ -1,0 +1,41 @@
+{
+  "parent": "create_stats:power/first_generator",
+  "display": {
+    "icon": {
+      "id": "create_stats:capacitor_bank"
+    },
+    "title": {
+      "translate": "advancement.create_stats.power.capacitor.title",
+      "fallback": "Battery at One Percent"
+    },
+    "description": {
+      "translate": "advancement.create_stats.power.capacitor.description",
+      "fallback": "Get a capacitor or a battery. For the day your phone hits one percent and the charger is upstairs."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "storage": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "create_stats:starter_capacitor",
+              "create_stats:capacitor_bank",
+              "create_stats:fe_battery_controller"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "storage"
+    ]
+  ]
+}

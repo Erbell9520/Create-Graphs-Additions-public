@@ -20,9 +20,7 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-/** [1] */
 public final class GeoPilotHelmetItem extends PilotHelmetItem implements GeoItem {
-
     private static final RawAnimation DEPLOY = RawAnimation.begin().thenPlayAndHold("deploy");
     private static final RawAnimation RETRACT = RawAnimation.begin().thenPlayAndHold("retract");
 
@@ -35,8 +33,6 @@ public final class GeoPilotHelmetItem extends PilotHelmetItem implements GeoItem
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        // 5-tick transition between the stowed (up) and deployed (down) loops gives a smooth
-        // mechanical flip without feeling sluggish.
         controllers.add(new AnimationController<>(this, "visor", 5, state -> {
             final Entity entity = state.getData(DataTickets.ENTITY);
             boolean deployed = false;
@@ -62,11 +58,6 @@ public final class GeoPilotHelmetItem extends PilotHelmetItem implements GeoItem
         return this.renderProvider.get();
     }
 
-    /**
-     * Lazily build and memoize the {@link GeoRenderProvider}. The provider itself caches the single
-     * {@link PilotHelmetGeoArmorRenderer} instance, matching GeckoLib's documented singleton armor
-     * pattern.
-     */
     private static Supplier<Object> newRenderProvider() {
         return com.google.common.base.Suppliers.memoize(() -> new GeoRenderProvider() {
             private PilotHelmetGeoArmorRenderer armorRenderer;

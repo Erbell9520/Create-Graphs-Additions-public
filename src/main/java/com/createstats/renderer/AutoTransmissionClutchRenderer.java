@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.Block;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class AutoTransmissionClutchRenderer extends KineticBlockEntityRenderer<AutoTransmissionClutchBE> {
-
     private static final float NEEDLE_PIVOT_X = 8.0f / 16.0f;
     private static final float NEEDLE_PIVOT_Z = 8.0f / 16.0f;
     private static final float NEEDLE_START_ANGLE = (float) (Math.PI * 5.0 / 4.0);

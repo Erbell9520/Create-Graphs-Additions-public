@@ -12,9 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** [1] */
 class PduDeviceIdsTest {
-
     private static final String RANGE = "Induction Range";
     private static final String LAMP = "Strip Lamp";
 
@@ -68,7 +66,7 @@ class PduDeviceIdsTest {
         for (BlockPos p : present.keySet()) {
             before.put(p, ids.peek(p));
         }
-        // A new range dropped in at a position that sorts in the middle of the existing run.
+
         final BlockPos inserted = new BlockPos(2, 64, -1);
         present.put(inserted, RANGE);
         ids.assignAll(present);
@@ -103,7 +101,7 @@ class PduDeviceIdsTest {
         for (BlockPos p : all.keySet()) {
             before.put(p, ids.peek(p));
         }
-        // The switch opens: the last three drop off the roster entirely for a while.
+
         final Map<BlockPos, String> partial = new LinkedHashMap<>();
         int kept = 0;
         for (Map.Entry<BlockPos, String> e : all.entrySet()) {
@@ -114,7 +112,7 @@ class PduDeviceIdsTest {
         for (int tick = 0; tick < 50; tick++) {
             ids.assignAll(partial);
         }
-        ids.assignAll(all);   // and it closes again
+        ids.assignAll(all);
         for (Map.Entry<BlockPos, Integer> e : before.entrySet()) {
             assertEquals(e.getValue().intValue(), ids.peek(e.getKey()),
                     "device at " + e.getKey() + " changed number across a switch cycle");
@@ -124,7 +122,6 @@ class PduDeviceIdsTest {
     @Test
     @DisplayName("numbering is reproducible from scratch, so a reload lands on the same numbers")
     void aColdStartReproducesTheSameNumbers() {
-        // Deliberately different iteration orders, which is what a fresh HashMap after a reload gives.
         final Map<BlockPos, String> forwards = new LinkedHashMap<>();
         final Map<BlockPos, String> backwards = new LinkedHashMap<>();
         for (int i = 0; i < 6; i++) {
@@ -166,7 +163,7 @@ class PduDeviceIdsTest {
         ids.assignAll(present);
         assertEquals(1, ids.peek(spot));
 
-        present.put(spot, LAMP);   // the range is broken and a lamp goes up in its place
+        present.put(spot, LAMP);
         ids.assignAll(present);
         assertEquals(1, ids.peek(spot), "the lamp is the first lamp, whatever the range was");
         assertNotEquals(RANGE, present.get(spot));
@@ -192,7 +189,7 @@ class PduDeviceIdsTest {
     @DisplayName("the table is bounded, so a long lived panel cannot grow without limit")
     void pruningKeepsTheTableBounded() {
         final PduDeviceIds ids = new PduDeviceIds();
-        // Walk a moving branch past the prune threshold, one new position at a time.
+
         for (int i = 0; i < PduDeviceIds.PRUNE_ABOVE + 200; i++) {
             final Map<BlockPos, String> present = new LinkedHashMap<>();
             present.put(new BlockPos(i, 64, 0), RANGE);

@@ -1,0 +1,112 @@
+{
+ "credit": "gen_staff_redesign.py, sample jacob, written 16 units low (SurveyorStaffRenderer lifts it back)",
+ "textures": {
+  "atlas": "create_stats:item/surveyor_staff/jacob/atlas",
+  "needle": "create_stats:item/surveyor_staff/jacob/needle",
+  "particle": "create_stats:item/surveyor_staff/jacob/atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    7.0,
+    15.95,
+    3.0
+   ],
+   "to": [
+    9.0,
+    15.96,
+    13.0
+   ],
+   "name": "needle",
+   "faces": {
+    "up": {
+     "uv": [
+      7,
+      3,
+      9,
+      13
+     ],
+     "texture": "#needle"
+    },
+    "down": {
+     "uv": [
+      7,
+      3,
+      9,
+      13
+     ],
+     "texture": "#needle"
+    }
+   }
+  },
+  {
+   "from": [
+    7.35,
+    15.96,
+    7.35
+   ],
+   "to": [
+    8.65,
+    16.5,
+    8.65
+   ],
+   "name": "needle cap",
+   "faces": {
+    "north": {
+     "uv": [
+      10.0,
+      4.25,
+      10.125,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "south": {
+     "uv": [
+      10.25,
+      4.25,
+      10.375,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "east": {
+     "uv": [
+      10.5,
+      4.25,
+      10.625,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "west": {
+     "uv": [
+      10.75,
+      4.25,
+      10.875,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "up": {
+     "uv": [
+      11.0,
+      4.25,
+      11.125,
+      4.375
+     ],
+     "texture": "#atlas"
+    },
+    "down": {
+     "uv": [
+      11.25,
+      4.25,
+      11.375,
+      4.375
+     ],
+     "texture": "#atlas"
+    }
+   }
+  }
+ ]
+}

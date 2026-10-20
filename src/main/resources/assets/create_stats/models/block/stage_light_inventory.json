@@ -1,5 +1,4 @@
 {
-  "__comment": "Static assembly of the Stage Light for the inventory/item icon (base + yoke + head in default pose).",
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {

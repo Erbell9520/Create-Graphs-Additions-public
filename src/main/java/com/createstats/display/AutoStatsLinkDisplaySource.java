@@ -32,7 +32,7 @@ public class AutoStatsLinkDisplaySource extends DisplaySource implements StatsLi
         }
         return AutoStatsLinkDisplaySource.EMPTY;
     }
- 
+
     public int getPassiveRefreshTicks() {
         return (int)ModConfiguration.COMMON.statsLinkPassiveRefreshTicks.get();
     }

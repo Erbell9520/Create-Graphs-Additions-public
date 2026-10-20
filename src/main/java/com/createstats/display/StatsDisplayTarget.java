@@ -1,12 +1,19 @@
 package com.createstats.display;
 
+import com.createstats.blockentity.BatteryControllerBE;
 import com.createstats.blockentity.BattleScreenDisplayBE;
+import com.createstats.blockentity.CapacitorBankBE;
 import com.createstats.blockentity.DispatchBoardBE;
+import com.createstats.blockentity.KineticDynamoBE;
+import com.createstats.blockentity.PowerConnectorBE;
+import com.createstats.blockentity.PowerDistributionUnitBE;
 import com.createstats.blockentity.FlowMeterBE;
 import com.createstats.blockentity.InductionHeaterBE;
 import com.simibubi.create.content.redstone.displayLink.target.DisplayTargetStats;
 import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.Collection;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
@@ -52,6 +59,8 @@ import com.createstats.compat.CreateAdditionCompat;
 import com.createstats.compat.CreateAdditionCompatHelper;
 import com.createstats.compat.DieselCompat;
 import com.createstats.compat.DieselCompatHelper;
+import com.createstats.compat.RefinedStorageCompat;
+import com.createstats.compat.RefinedStorageCompatHelper;
 import java.util.Iterator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -79,14 +88,13 @@ public class StatsDisplayTarget extends DisplayTarget
     public static final String STATS_DISPLAY_LINK_KEY = "StatsDisplayLink";
     private long lastLogTick;
     private static final Pattern TUNNEL_ITEM_PATTERN;
-    // per-panel, per-source fractional accumulator for tunnel item totals
-    // outer key = panel BlockPos.asLong(), inner key = source BlockPos.asLong()
+
     private final Map<Long, Map<Long, Double>> tunnelItemAccum = new LinkedHashMap<>();
 
     public StatsDisplayTarget() {
         this.lastLogTick = 0L;
     }
-    
+
     public void acceptText(int line, List<MutableComponent> text, DisplayLinkContext context) {
         final BlockEntity targetBE = context.getTargetBlockEntity();
         final BlockPos sourcePos = context.getSourcePos();
@@ -120,15 +128,36 @@ public class StatsDisplayTarget extends DisplayTarget
                 panelTarget.removeMiniDisplayByPosition(sourcePos);
                 panelTarget.removeFreightManifestByPosition(sourcePos);
                 panelTarget.removeTrainStationByPosition(sourcePos);
-                panelTarget.markStatsDisplayLinkOptInRequired(supportedSourceType);
+                panelTarget.aerialLinks().remove(sourcePos);
+                panelTarget.groundLinks().remove(sourcePos);
+                panelTarget.seismicLinks().remove(sourcePos);
+
+                panelTarget.markStatsDisplayLinkOptInRequired(
+                        isGenericContainerType(supportedSourceType)
+                                ? sourceBE.getBlockState().getBlock().getName().getString()
+                                : supportedSourceType);
                 return;
             }
             panelTarget.clearStatsDisplayLinkOptInRequired();
+            if (sourceBE instanceof com.createstats.aerial.AerialTelemetrySource) {
+                panelTarget.aerialLinks().heartbeat(sourcePos, gameTick);
+                return;
+            }
+            if (sourceBE instanceof com.createstats.ground.GroundTelemetrySource) {
+                panelTarget.groundLinks().heartbeat(sourcePos, gameTick);
+                return;
+            }
+
+            final com.createstats.blockentity.SeismicScannerBE seismicRig = sourceBE == null
+                    || sourceBE instanceof com.createstats.blockentity.SeismicScannerBE
+                    ? com.createstats.blockentity.SeismicLinks.rigAt(targetBE.getLevel(), sourcePos) : null;
+            if (seismicRig != null) {
+                panelTarget.seismicLinks().heartbeat(seismicRig.getBlockPos(), gameTick);
+                return;
+            }
             if (sourceBE instanceof BattleScreenDisplayBE battleScreen) {
-                // [1]
                 panelTarget.setSourceType(BattleCompactTargetHandler.SOURCE_TYPE);
-                // Pull V1/V2 mode selected in the Display Link configuration GUI and
-                // forward it to the panel-side link so the renderer dispatch honours it.
+
                 final int selectedMode = BattleScreenDisplaySource.readMode(context);
                 panelTarget.registerOrUpdateBattleScreen(sourcePos, battleScreen, selectedMode);
                 return;
@@ -204,11 +233,9 @@ public class StatsDisplayTarget extends DisplayTarget
             }
             return;
         }
-        // [2]
+
         if (CargoLinkTargetHandler.isCargoLinkSource(context)) {
             if (panelTarget != null) {
-                // StatsDisplayPanel: rich target, push cargo metrics as data channels.
-                // FreightManifestClipboardBE is already handled above via registerOrUpdateFreightManifest.
                 if (CargoLinkTargetHandler.handleForPanel(panelTarget, sourcePos, sourceBE)) {
                     return;
                 }
@@ -225,11 +252,8 @@ public class StatsDisplayTarget extends DisplayTarget
                 CargoLinkTargetHandler.handleForProjector(projector, sourcePos, sourceBE);
                 return;
             }
-            // DataDial and MiniDisplay already returned above; the following are
-            // unreachable for those types, but guard against future target additions.
         }
-        // Detect station connection BEFORE empty-text check so the train button
-        // still activates even when the station sends no schedule text
+
         if (sourceBE instanceof StationBlockEntity stationBlockEntity && panelTarget != null) {
             StatsDisplayPanelBE panel = panelTarget;
             panel.setSourceType("Train Station");
@@ -238,7 +262,11 @@ public class StatsDisplayTarget extends DisplayTarget
             panel.enableTrainConnection();
             CreateStats.LOGGER.debug("[DisplayTarget] Train station detected: {} -> enabling train connection", sourceBE.getClass().getSimpleName());
         }
-        if (targetBE instanceof StatsRecorderBE recorder && isStatsDisplayLinkSelected(context) && InstrumentSourceHelper.supportsRichAutoRead(sourceBE)) {
+
+        if (targetBE instanceof StatsRecorderBE recorder
+                && (isStatsDisplayLinkSelected(context)
+                        || com.createstats.compat.ElectroEnergeticsCompatHelper.isMeter(sourceBE))
+                && InstrumentSourceHelper.supportsRichAutoRead(sourceBE)) {
             this.autoReadSource(recorder, sourcePos, context);
             return;
         }
@@ -392,6 +420,15 @@ public class StatsDisplayTarget extends DisplayTarget
         if (sourceBE instanceof BattleScreenDisplayBE) {
             return BattleCompactTargetHandler.SOURCE_TYPE;
         }
+        if (sourceBE instanceof com.createstats.aerial.AerialTelemetrySource) {
+            return com.createstats.blockentity.AerialLinks.SOURCE_TYPE;
+        }
+        if (sourceBE instanceof com.createstats.ground.GroundTelemetrySource) {
+            return com.createstats.blockentity.GroundLinks.SOURCE_TYPE;
+        }
+        if (sourceBE instanceof com.createstats.blockentity.SeismicScannerBE) {
+            return com.createstats.blockentity.SeismicLinks.SOURCE_TYPE;
+        }
         if (sourceBE instanceof SafetyClutchBE) {
             return "Safety Clutch";
         }
@@ -416,6 +453,41 @@ public class StatsDisplayTarget extends DisplayTarget
         if (sourceBE instanceof DispatchBoardBE) {
             return "Dispatch Board";
         }
+        // name our own hardware. the fall-through returns a translated name and breaks in every other language
+
+        if (sourceBE instanceof PowerDistributionUnitBE) {
+            return "Power Distribution Unit";
+        }
+        if (sourceBE instanceof BatteryControllerBE) {
+            return "FE Battery Controller";
+        }
+        if (sourceBE instanceof PowerConnectorBE) {
+            return "Power Connector";
+        }
+        if (sourceBE instanceof CapacitorBankBE) {
+            return "Capacitor Bank";
+        }
+        if (sourceBE instanceof KineticDynamoBE) {
+            return "Kinetic Dynamo";
+        }
+
+        if (sourceBE instanceof com.createstats.blockentity.FeMotorBE) {
+            return "FE Motor";
+        }
+        if (sourceBE instanceof com.createstats.blockentity.PowerMeterBE) {
+            return "Power Meter";
+        }
+        if (sourceBE instanceof com.createstats.blockentity.PowerLimiterBE) {
+            return "Power Limiter";
+        }
+        // before the energy fall-through, RS controllers have FE and would get filed under a translated name
+
+        if (RefinedStorageCompat.isAvailable()) {
+            final String rsSourceType = RefinedStorageCompatHelper.getSourceType(sourceBE);
+            if (!rsSourceType.isEmpty()) {
+                return rsSourceType;
+            }
+        }
         if (SimulatedCompat.isAvailable()) {
             final String compatSourceType = SimulatedCompatHelper.getSourceType(sourceBE);
             if (!compatSourceType.isEmpty()) {
@@ -434,6 +506,13 @@ public class StatsDisplayTarget extends DisplayTarget
                 return dieselSourceType;
             }
         }
+        if (com.createstats.compat.NewAgeCompat.isAvailable()) {
+            final String newAgeSourceType =
+                    com.createstats.compat.NewAgeCompatHelper.getSourceType(sourceBE);
+            if (!newAgeSourceType.isEmpty()) {
+                return newAgeSourceType;
+            }
+        }
         if (sourceBE instanceof InductionHeaterBE) {
             return "Induction Heater";
         }
@@ -450,9 +529,37 @@ public class StatsDisplayTarget extends DisplayTarget
         if (className.contains("FactoryPanel")) {
             return "Factory Panel";
         }
+        // last resort: a link straight at the box that holds the stuff
+
+        if (holdsSomething(sourceBE)) {
+            return CONTAINER_SOURCE_TYPE;
+        }
         return "";
     }
-    
+
+    public static final String CONTAINER_SOURCE_TYPE = "Container";
+
+    public static boolean holdsSomething(@Nullable BlockEntity sourceBE) {
+        if (sourceBE == null || sourceBE.getLevel() == null) {
+            return false;
+        }
+        final Level level = sourceBE.getLevel();
+        final BlockPos pos = sourceBE.getBlockPos();
+        if (com.createstats.util.InventoryLookupHelper.resolveItemHandler(level, pos, sourceBE, null)
+                != null) {
+            return true;
+        }
+        return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null) != null;
+    }
+
+    public static boolean isGenericContainerType(String sourceType) {
+        return CONTAINER_SOURCE_TYPE.equals(sourceType);
+    }
+
+    private static boolean isPlainContainer(@Nullable BlockEntity sourceBE) {
+        return CONTAINER_SOURCE_TYPE.equals(getStatsDisplayLinkSourceType(sourceBE));
+    }
+
     private String detectSourceType(BlockEntity sourceBE) {
         final String supportedSourceType = getStatsDisplayLinkSourceType(sourceBE);
         if (!supportedSourceType.isEmpty()) {
@@ -461,10 +568,15 @@ public class StatsDisplayTarget extends DisplayTarget
         if (sourceBE == null) {
             return "";
         }
+
+        final String meter = com.createstats.compat.ElectroEnergeticsCompatHelper.getSourceType(sourceBE);
+        if (!meter.isEmpty()) {
+            return meter;
+        }
         final String className = sourceBE.getClass().getSimpleName();
         return className.replace("BlockEntity", "");
     }
-    
+
     private boolean isAutoReadSource(BlockEntity sourceBE) {
         if (sourceBE == null) {
             return false;
@@ -475,6 +587,14 @@ public class StatsDisplayTarget extends DisplayTarget
         if (InstrumentSourceHelper.supportsRichAutoRead(sourceBE)) {
             return true;
         }
+        if (isPlainContainer(sourceBE)) {
+            return true;
+        }
+
+        if (RefinedStorageCompat.isAvailable()
+                && RefinedStorageCompatHelper.isNetworkBlockEntity(sourceBE)) {
+            return true;
+        }
         final String className = sourceBE.getClass().getSimpleName();
         return className.contains("StressGauge") || className.contains("SpeedGauge") || className.contains("ThresholdSwitch") || className.contains("FluidTank") || className.contains("SmartObserver") || className.contains("Station") || className.contains("FactoryPanel");
     }
@@ -482,7 +602,7 @@ public class StatsDisplayTarget extends DisplayTarget
     private boolean isDataDialAutoReadSource(BlockEntity sourceBE) {
         return InstrumentSourceHelper.supportsCompactAutoRead(sourceBE);
     }
-    
+
     private void autoReadSource(StatsDisplayPanelBE panel, BlockPos sourcePos, DisplayLinkContext context) {
         final BlockEntity sourceBE = context.getSourceBlockEntity();
         if (sourceBE == null) {
@@ -497,11 +617,17 @@ public class StatsDisplayTarget extends DisplayTarget
             this.autoReadThresholdSwitch(panel, sourcePos, sourceBE);
             this.autoReadBoiler(panel, sourcePos, sourceBE);
             this.autoReadContentObserver(panel, sourcePos, sourceBE);
+            this.autoReadContainer(panel, sourcePos, sourceBE);
             this.autoReadProductionDetector(panel, sourcePos, sourceBE);
             this.autoReadTrainStation(panel, sourcePos, sourceBE);
             this.autoReadFactoryPanel(panel, sourcePos, sourceBE);
             this.autoReadFlowMeter(panel, sourcePos, sourceBE);
             this.autoReadInductionHeater(panel, sourcePos, sourceBE);
+            this.autoReadTopologyScanner(panel, sourcePos, sourceBE);
+
+            if (com.createstats.rs.RsLinkReader.emit(panel, sourcePos, sourceBE)) {
+                return;
+            }
             this.autoReadCompat(panel, sourcePos, sourceBE, context.sourceConfig());
         }
         catch (Exception e) {
@@ -550,7 +676,7 @@ public class StatsDisplayTarget extends DisplayTarget
             CreateStats.LOGGER.debug("Recorder auto-read failed for {}: {}", sourceBE.getClass().getSimpleName(), e.getMessage());
         }
     }
-    
+
     private void autoReadSource(HolographicProjectorBE projector, BlockPos sourcePos, DisplayLinkContext context) {
         final BlockEntity sourceBE = context.getSourceBlockEntity();
         if (sourceBE == null) {
@@ -592,7 +718,19 @@ public class StatsDisplayTarget extends DisplayTarget
     }
 
     private void autoReadCompat(IAutoDataReceiver receiver, BlockPos sourcePos, BlockEntity sourceBE, @Nullable CompoundTag sourceConfig) {
+        if (com.createstats.rs.RsLinkReader.emit(receiver, sourcePos, sourceBE)) {
+            return;
+        }
+
+        if (com.createstats.compat.ElectroEnergeticsCompat.isAvailable()
+                && com.createstats.compat.ElectroEnergeticsCompatHelper.emitAutoData(receiver, sourcePos, sourceBE)) {
+            return;
+        }
         if (CreateAdditionCompat.isAvailable() && CreateAdditionCompatHelper.emitAutoData(receiver, sourcePos, sourceBE)) {
+            return;
+        }
+        if (com.createstats.compat.NewAgeCompat.isAvailable()
+                && com.createstats.compat.NewAgeCompatHelper.emitAutoData(receiver, sourcePos, sourceBE)) {
             return;
         }
         if (SimulatedCompat.isAvailable() && SimulatedCompatHelper.emitAutoData(receiver, sourcePos, sourceBE)) {
@@ -602,11 +740,15 @@ public class StatsDisplayTarget extends DisplayTarget
             return;
         }
         final InstrumentSourceHelper.SourceReadout readout = InstrumentSourceHelper.readSource(sourceBE, null);
-        if (readout.sourceKind() == InstrumentSourceHelper.SourceKind.ENERGY_STORAGE && !readout.metrics().isEmpty()) {
+
+        final InstrumentSourceHelper.SourceKind kind = readout.sourceKind();
+        final boolean energyLike = kind == InstrumentSourceHelper.SourceKind.ENERGY_STORAGE
+                || kind == InstrumentSourceHelper.SourceKind.POWER_GRID;
+        if (energyLike && !readout.metrics().isEmpty()) {
             CreateAdditionCompatHelper.emitReadout(receiver, sourcePos, readout);
         }
     }
-    
+
     private boolean isItemThroughputSource(BlockEntity sourceBE) {
         if (sourceBE == null) {
             return false;
@@ -617,7 +759,7 @@ public class StatsDisplayTarget extends DisplayTarget
         final String name = sourceBE.getClass().getSimpleName();
         return name.contains("Tunnel") || name.contains("Chute");
     }
-    
+
     private MetricType detectItemThroughputMetricType(DisplayLinkContext context) {
         try {
             final int interval = context.sourceConfig().getInt("Interval");
@@ -631,7 +773,7 @@ public class StatsDisplayTarget extends DisplayTarget
             return MetricType.ITEMS_PER_MIN;
         }
     }
-    
+
     private String parseItemThroughputName(String text) {
         final String cleaned = text.replaceAll("§[0-9a-fk-or]", "").trim();
         final Matcher m = StatsDisplayTarget.TUNNEL_ITEM_PATTERN.matcher(cleaned);
@@ -807,7 +949,7 @@ public class StatsDisplayTarget extends DisplayTarget
         final String suffix = cleanedText.substring(bulletIndex + 1).trim();
         return suffix.isEmpty() ? null : ("Throughput • " + suffix);
     }
-    
+
     private void autoReadStressGauge(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof StressGaugeBlockEntity gauge) {
             panel.setSourceType("Stressometer");
@@ -825,7 +967,7 @@ public class StatsDisplayTarget extends DisplayTarget
             panel.onAutoData(sourcePos, "Stressometer", "overstressed", "Overstressed", overstressed ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
         }
     }
-    
+
     private void autoReadFlowMeter(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof FlowMeterBE meter) {
             panel.setSourceType("Flow Meter");
@@ -847,7 +989,7 @@ public class StatsDisplayTarget extends DisplayTarget
             panel.onAutoData(sourcePos, "Speedometer", "speed_pct", "Speed %", dialPct, MetricType.GENERIC);
         }
     }
-    
+
     private void autoReadThresholdSwitch(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof ThresholdSwitchBlockEntity tsw) {
             panel.setSourceType("Stockpile Switch");
@@ -863,7 +1005,7 @@ public class StatsDisplayTarget extends DisplayTarget
             panel.onAutoData(sourcePos, "Stockpile Switch", "powered", "Signal Output", powered ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
         }
     }
-    
+
     private void autoReadBoiler(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof FluidTankBlockEntity tank) {
             final FluidTankBlockEntity controller = tank.getControllerBE();
@@ -928,7 +1070,26 @@ public class StatsDisplayTarget extends DisplayTarget
         panel.onAutoData(sourcePos, srcType, "cook_item", cook.isEmpty() ? "Empty" : cook.getHoverName().getString(),
                 cook.getCount(), MetricType.ITEM_COUNT);
     }
-    
+
+    private void autoReadTopologyScanner(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
+        if (!(sourceBE instanceof com.createstats.netscan.NetscanHost host)) {
+            return;
+        }
+        final String srcType = com.createstats.netscan.NetscanLink.SOURCE_TYPE;
+        panel.setSourceType(srcType);
+        panel.registerOrUpdateSource(sourcePos, srcType);
+        final com.createstats.netscan.scan.ScanGraph graph = host.scanEngine().graph();
+        panel.onAutoData(sourcePos, srcType, "elements", "Elements Surveyed", graph.size(), MetricType.GENERIC);
+        panel.onAutoData(sourcePos, srcType, "sources", "Sources", graph.sourceCount(), MetricType.GENERIC);
+        panel.onAutoData(sourcePos, srcType, "machines", "Machines", graph.machineCount(), MetricType.GENERIC);
+        panel.onAutoData(sourcePos, srcType, "stress_su", "Current Stress (SU)", graph.totalStress(), MetricType.STRESS_SU);
+        panel.onAutoData(sourcePos, srcType, "capacity_su", "Capacity (SU)", graph.totalCapacity(), MetricType.STRESS_SU);
+        panel.onAutoData(sourcePos, srcType, "stress_pct", "Stress %", graph.loadFraction() * 100.0f, MetricType.STRESS_PERCENT);
+        panel.onAutoData(sourcePos, srcType, "overstressed", "Overstressed", graph.isOverStressed() ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
+
+        panel.onAutoData(sourcePos, srcType, "truncated", "Survey Truncated", graph.truncated() ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
+    }
+
     private void autoReadContentObserver(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         if (!(sourceBE instanceof SmartObserverBlockEntity)) {
             return;
@@ -1012,7 +1173,7 @@ public class StatsDisplayTarget extends DisplayTarget
                 }
             }
         }
-        // [3]
+
         if (!readAnything) {
             ItemStack filter = this.getTunnelFilterStack(observedBE);
             if (filter.isEmpty()) {
@@ -1039,12 +1200,61 @@ public class StatsDisplayTarget extends DisplayTarget
             panel.onAutoData(sourcePos, srcType, "observer_active", "Observer Active", 1.0f, MetricType.ITEM_COUNT);
         }
     }
-    
+
+    private void autoReadContainer(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
+        if (!isPlainContainer(sourceBE)) {
+            return;
+        }
+        final Level level = sourceBE.getLevel();
+        if (level == null) {
+            return;
+        }
+        final BlockPos pos = sourceBE.getBlockPos();
+        panel.setSourceType(CONTAINER_SOURCE_TYPE);
+        this.recordObservedTarget(panel, sourcePos, CONTAINER_SOURCE_TYPE, level, pos);
+
+        final IItemHandler handler = com.createstats.util.InventoryLookupHelper.resolveItemHandler(
+                level, pos, sourceBE, null);
+        if (handler != null) {
+            this.readItemHandler(panel, sourcePos, CONTAINER_SOURCE_TYPE, handler);
+        }
+        final IFluidHandler fluids = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null);
+        if (fluids != null) {
+            this.readFluidHandler(panel, sourcePos, CONTAINER_SOURCE_TYPE, fluids);
+        }
+    }
+
+    private void readFluidHandler(StatsDisplayPanelBE panel, BlockPos sourcePos, String srcType,
+                                  IFluidHandler handler) {
+        float totalFluid = 0.0f;
+        float totalCapacity = 0.0f;
+        for (int tank = 0; tank < handler.getTanks(); ++tank) {
+            totalCapacity += Math.max(0.0f, (float) handler.getTankCapacity(tank));
+            final FluidStack stack = handler.getFluidInTank(tank);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            totalFluid += stack.getAmount();
+            final String fluidName = stack.getHoverName().getString();
+            panel.onAutoData(sourcePos, srcType, "fluid_" + this.sanitizeId(fluidName),
+                    fluidName + " (mB)", (float) stack.getAmount(), MetricType.FLUID_MB);
+        }
+        if (totalCapacity <= 0.0f && totalFluid <= 0.0f) {
+            return;
+        }
+        panel.onAutoData(sourcePos, srcType, "fluid_amount", "Fluid Amount (mB)", totalFluid, MetricType.FLUID_MB);
+        panel.onAutoData(sourcePos, srcType, "tank_capacity", "Tank Capacity (mB)", totalCapacity, MetricType.FLUID_MB);
+        panel.onAutoData(sourcePos, srcType, "tank_fill", "Tank Fill %",
+                totalCapacity > 0.0f ? totalFluid * 100.0f / totalCapacity : 0.0f, MetricType.FILL_LEVEL);
+    }
+
     private void readItemHandler(StatsDisplayPanelBE panel, BlockPos sourcePos, String srcType, IItemHandler handler) {
         final Map<String, Integer> itemCounts = new LinkedHashMap<String, Integer>();
         final Map<String, String> itemNames = new LinkedHashMap<String, String>();
         int totalItems = 0;
+        int slotCapacity = 0;
         for (int slot = 0; slot < handler.getSlots(); ++slot) {
+            slotCapacity += Math.max(0, handler.getSlotLimit(slot));
             final ItemStack stack = handler.getStackInSlot(slot);
             if (!stack.isEmpty()) {
                 final String registryName = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
@@ -1055,14 +1265,39 @@ public class StatsDisplayTarget extends DisplayTarget
             }
         }
         panel.onAutoData(sourcePos, srcType, "total_items", "Total Items", (float)totalItems, MetricType.ITEM_COUNT);
+
+        panel.onAutoData(sourcePos, srcType, "slot_capacity", "Slot Capacity", (float)slotCapacity, MetricType.ITEM_COUNT);
+        final LinkedHashSet<String> emitted = new LinkedHashSet<String>();
         itemCounts.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()).limit(12L).forEach(entry -> {
             String regName = entry.getKey();
             final String displayName2 = itemNames.get(regName);
             final String metricId = "item_" + this.sanitizeId(regName);
+            emitted.add(metricId);
             panel.onAutoData(sourcePos, srcType, metricId, displayName2, entry.getValue(), MetricType.ITEM_COUNT);
             return;
         });
         panel.onAutoData(sourcePos, srcType, "unique_types", "Unique Types", (float)itemCounts.size(), MetricType.ITEM_COUNT);
+        this.zeroDepartedItems(panel, sourcePos, srcType, emitted);
+    }
+
+    private void zeroDepartedItems(StatsDisplayPanelBE panel, BlockPos sourcePos, String srcType,
+                                   Set<String> emitted) {
+        final SourceConfig config = panel.registerOrUpdateSource(sourcePos, srcType);
+        if (config == null) {
+            return;
+        }
+        for (StatsDisplayPanelBE.DataChannel channel
+                : new ArrayList<>(panel.getChannelsForSource(config.getSourceId()))) {
+            final String metricId = this.extractAutoMetricId(channel.getId());
+            if (metricId == null || !metricId.startsWith("item_") || emitted.contains(metricId)) {
+                continue;
+            }
+            if (channel.getStore().getLatestValue() <= 0.0f) {
+                continue;
+            }
+            panel.onAutoData(sourcePos, srcType, metricId, channel.getLabel(), 0.0f,
+                    MetricType.ITEM_COUNT);
+        }
     }
 
     private void recordObservedTarget(StatsDisplayPanelBE panel, BlockPos sourcePos, String sourceType, Level level, BlockPos targetPos) {
@@ -1128,7 +1363,7 @@ public class StatsDisplayTarget extends DisplayTarget
             if (channel.getStore().getLatestValue() <= 0.0f) continue;
             panel.onAutoData(sourcePos, "Production Detector", metricId2, channel.getLabel(), 0.0f, MetricType.ITEM_COUNT);
         }
-        // Drop any legacy "count_*" channels left from the previous prefix scheme so the Inv tab does not double-count.
+
         for (StatsDisplayPanelBE.DataChannel channel : panel.getChannelsForSource(src.getSourceId())) {
             final String metricId3 = this.extractAutoMetricId(channel.getId());
             if (metricId3 == null || !metricId3.startsWith("count_")) continue;
@@ -1169,7 +1404,7 @@ public class StatsDisplayTarget extends DisplayTarget
         }
         return channelId.substring(idx + 6);
     }
-     
+
     private void autoReadTrainStation(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         if (!(sourceBE instanceof StationBlockEntity stationBlockEntity)) {
             return;
@@ -1179,7 +1414,7 @@ public class StatsDisplayTarget extends DisplayTarget
         panel.registerOrUpdateTrainStation(sourcePos, stationBlockEntity);
         panel.enableTrainConnection();
     }
-    
+
     private void autoReadFactoryPanel(StatsDisplayPanelBE panel, BlockPos sourcePos, BlockEntity sourceBE) {
         final String className = sourceBE.getClass().getSimpleName();
         if (!className.contains("FactoryPanel")) {
@@ -1219,11 +1454,11 @@ public class StatsDisplayTarget extends DisplayTarget
             CreateStats.LOGGER.debug("Factory panel auto-read: {}", e.getMessage());
         }
     }
-    
+
     private String sanitizeId(String name) {
         return name.toLowerCase().replaceAll("[^a-z0-9_]", "_");
     }
-    
+
     private void autoReadStressGauge(HolographicProjectorBE projector, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof StressGaugeBlockEntity gauge) {
             projector.setSourceType("Stressometer");
@@ -1237,7 +1472,7 @@ public class StatsDisplayTarget extends DisplayTarget
             projector.onAutoData(sourcePos, "Stressometer", "overstressed", "Overstressed", gauge.isOverStressed() ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
         }
     }
-    
+
     private void autoReadSpeedGauge(HolographicProjectorBE projector, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof SpeedGaugeBlockEntity gauge) {
             projector.setSourceType("Speedometer");
@@ -1246,7 +1481,7 @@ public class StatsDisplayTarget extends DisplayTarget
             projector.onAutoData(sourcePos, "Speedometer", "speed_pct", "Speed %", gauge.dialTarget * 100.0f, MetricType.GENERIC);
         }
     }
-    
+
     private void autoReadThresholdSwitch(HolographicProjectorBE projector, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof ThresholdSwitchBlockEntity tsw) {
             projector.setSourceType("Stockpile Switch");
@@ -1261,7 +1496,7 @@ public class StatsDisplayTarget extends DisplayTarget
             projector.onAutoData(sourcePos, "Stockpile Switch", "powered", "Signal Output", tsw.isPowered() ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
         }
     }
-    
+
     private void autoReadBoiler(HolographicProjectorBE projector, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof FluidTankBlockEntity tank) {
             String srcType = "Fluid Tank";
@@ -1284,14 +1519,14 @@ public class StatsDisplayTarget extends DisplayTarget
             }
         }
     }
-    
+
     private void autoReadContentObserver(HolographicProjectorBE projector, BlockPos sourcePos, BlockEntity sourceBE) {
         if (sourceBE instanceof SmartObserverBlockEntity observer) {
             projector.setSourceType("Content Observer");
             projector.registerOrUpdateSource(sourcePos, "Content Observer");
         }
     }
-    
+
     private void autoReadTrainStation(HolographicProjectorBE projector, BlockPos sourcePos, BlockEntity sourceBE) {
         final String className = sourceBE.getClass().getSimpleName();
         if (!className.contains("Station")) {
@@ -1507,11 +1742,11 @@ public class StatsDisplayTarget extends DisplayTarget
             CreateStats.LOGGER.debug("Factory panel auto-read (tower light): {}", e.getMessage());
         }
     }
-    
+
     public DisplayTargetStats provideStats(DisplayLinkContext context) {
         return new DisplayTargetStats(4, 1, (DisplayTarget)this);
     }
-    
+
     static {
         TUNNEL_ITEM_PATTERN = Pattern.compile("^\\s*[\\d,.]+\\s+(.+?)\\s*(?:/\\s*(?:s|sec|min|hr|hour))?\\s*$", 2);
     }

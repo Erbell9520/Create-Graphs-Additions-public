@@ -11,13 +11,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/** [1] */
 public final class SubLevels {
-
     private SubLevels() {
     }
 
-    /** All currently-active sub-levels in the given world, or an empty list if Sable is absent. */
     public static List<Object> listActive(ServerLevel level) {
         try {
             Class<?> containerClass = Class.forName("dev.ryanhcode.sable.api.sublevel.SubLevelContainer");
@@ -43,7 +40,6 @@ public final class SubLevels {
         }
     }
 
-    /** Stable identity of a sub-level, or {@code null} if it can't be read. */
     @Nullable
     public static UUID uniqueId(Object subLevel) {
         try {
@@ -54,7 +50,6 @@ public final class SubLevels {
         }
     }
 
-    /** Find the active sub-level with the given id, or {@code null} if it isn't loaded. */
     @Nullable
     public static Object findById(ServerLevel level, UUID id) {
         for (Object subLevel : listActive(level)) {
@@ -65,7 +60,6 @@ public final class SubLevels {
         return null;
     }
 
-    /** World-space centre of a sub-level (origin, falling back to centre-of-mass), or {@code null}. */
     @Nullable
     public static Vec3 centerOf(Object subLevel) {
         Vector3d origin = SableBridge.originWorld(subLevel);

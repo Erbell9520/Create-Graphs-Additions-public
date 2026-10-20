@@ -17,7 +17,6 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class FactoryLogicControllerMenu extends AbstractContainerMenu {
-
     public static final int ROW_COUNT = FactoryLogicControllerBE.RULE_COUNT;
     public static final int ROW_HEIGHT = 32;
     public static final int ROW_START_Y = 90;
@@ -161,13 +160,11 @@ public class FactoryLogicControllerMenu extends AbstractContainerMenu {
         return controller;
     }
 
-    /** A row whose link card targets a Kinetic Flywheel stands alone and uses no machine card. */
     public boolean isRowFlywheelLinked(int row) {
         return this.controller.isRowFlywheelLinked(row);
     }
 
     private static class MachineSelectionSlot extends SlotItemHandler {
-
         private final FactoryLogicControllerMenu menu;
         private final int row;
 
@@ -188,13 +185,12 @@ public class FactoryLogicControllerMenu extends AbstractContainerMenu {
             if (!this.menu.isRowVisible(this.row)) {
                 return false;
             }
-            // A flywheel row stands alone, hide its machine slot unless a card is stranded there.
+
             return !this.menu.isRowFlywheelLinked(this.row) || !this.getItem().isEmpty();
         }
     }
 
     private static class SafetyClutchLinkSlot extends SlotItemHandler {
-
         private final FactoryLogicControllerMenu menu;
         private final int row;
 

@@ -1,8 +1,6 @@
 package com.createstats.flight.control;
 
-/** [1] */
 public final class Matrix6xN {
-
     public static final int ROWS = 6;
     public static final int FX = 0;
     public static final int FY = 1;
@@ -37,14 +35,12 @@ public final class Matrix6xN {
         return data[col * ROWS + row];
     }
 
-    /** Copy column {@code col} into {@code out6} (length must be 6). */
     public void copyColumn(int col, double[] out6) {
         if (col < 0 || col >= cols) throw new IndexOutOfBoundsException("col=" + col);
         if (out6.length != 6) throw new IllegalArgumentException("out6 length != 6");
         System.arraycopy(data, col * ROWS, out6, 0, ROWS);
     }
 
-    /** L2 norm of the given row. */
     public double rowNorm(int row) {
         if (row < 0 || row >= ROWS) throw new IndexOutOfBoundsException("row=" + row);
         double s = 0.0;
@@ -61,7 +57,6 @@ public final class Matrix6xN {
         return out;
     }
 
-    /** L2 norm of column {@code col}. */
     public double columnNorm(int col) {
         if (col < 0 || col >= cols) throw new IndexOutOfBoundsException("col=" + col);
         double s = 0.0;
@@ -73,7 +68,6 @@ public final class Matrix6xN {
         return Math.sqrt(s);
     }
 
-    /** {@code out6 = B * x}. */
     public void multiply(double[] x, double[] out6) {
         if (x.length != cols) throw new IllegalArgumentException("x length != cols");
         if (out6.length != 6) throw new IllegalArgumentException("out6 length != 6");
@@ -86,7 +80,6 @@ public final class Matrix6xN {
         }
     }
 
-    /** {@code outN = B^T * w6}. */
     public void transposeMultiply(double[] w6, double[] outN) {
         if (w6.length != 6) throw new IllegalArgumentException("w6 length != 6");
         if (outN.length != cols) throw new IllegalArgumentException("outN length != cols");
@@ -98,7 +91,6 @@ public final class Matrix6xN {
         }
     }
 
-    /** Defensive copy of underlying storage. */
     public double[] toArrayColumnMajor() { return data.clone(); }
 
     private void check(int row, int col) {
@@ -106,7 +98,6 @@ public final class Matrix6xN {
         if (col < 0 || col >= cols) throw new IndexOutOfBoundsException("col=" + col);
     }
 
-    /** Builder accumulates one column at a time then hands off to an immutable matrix. */
     public static final class Builder {
         private final int cols;
         private final double[] data;
@@ -133,7 +124,6 @@ public final class Matrix6xN {
             return this;
         }
 
-        /** Sets a column to all zeros (used for failed/invalid props). */
         public Builder zeroColumn(int col) {
             return setColumn(col, 0, 0, 0, 0, 0, 0);
         }

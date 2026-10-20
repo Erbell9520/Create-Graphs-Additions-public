@@ -1,0 +1,251 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "screw": "create_stats:block/contactor/screw",
+    "silver": "create_stats:block/contactor/silver",
+    "steel": "create_stats:block/contactor/steel",
+    "particle": "create_stats:block/contactor/phenolic"
+  },
+  "elements": [
+    {
+      "__comment": "bar",
+      "from": [
+        5.95,
+        4.2,
+        7.95
+      ],
+      "to": [
+        10.05,
+        4.72,
+        8.55
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2.5,
+            0.0,
+            6.6,
+            0.6
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1.0,
+            7.5,
+            5.1,
+            8.02
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            6.0,
+            0.0,
+            10.1,
+            0.52
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            11.0,
+            7.5,
+            11.6,
+            8.02
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            10.5,
+            12.0,
+            11.1,
+            12.52
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "__comment": "pin_0",
+      "from": [
+        9.43,
+        4.72,
+        8.03
+      ],
+      "to": [
+        9.87,
+        4.92,
+        8.47
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            4,
+            4,
+            0,
+            0
+          ],
+          "texture": "#screw"
+        },
+        "north": {
+          "uv": [
+            2.5,
+            15.0,
+            2.94,
+            15.2
+          ],
+          "texture": "#silver"
+        },
+        "south": {
+          "uv": [
+            10.5,
+            5.5,
+            10.94,
+            5.7
+          ],
+          "texture": "#silver"
+        },
+        "east": {
+          "uv": [
+            6.5,
+            11.5,
+            6.94,
+            11.7
+          ],
+          "texture": "#silver"
+        },
+        "west": {
+          "uv": [
+            13.0,
+            3.5,
+            13.44,
+            3.7
+          ],
+          "texture": "#silver"
+        }
+      }
+    },
+    {
+      "__comment": "pin_1",
+      "from": [
+        7.78,
+        4.72,
+        8.03
+      ],
+      "to": [
+        8.22,
+        4.92,
+        8.47
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            4,
+            4,
+            0,
+            0
+          ],
+          "texture": "#screw"
+        },
+        "north": {
+          "uv": [
+            14.0,
+            3.5,
+            14.44,
+            3.7
+          ],
+          "texture": "#silver"
+        },
+        "south": {
+          "uv": [
+            8.5,
+            13.5,
+            8.94,
+            13.7
+          ],
+          "texture": "#silver"
+        },
+        "east": {
+          "uv": [
+            5.5,
+            10.5,
+            5.94,
+            10.7
+          ],
+          "texture": "#silver"
+        },
+        "west": {
+          "uv": [
+            6.0,
+            8.0,
+            6.44,
+            8.2
+          ],
+          "texture": "#silver"
+        }
+      }
+    },
+    {
+      "__comment": "pin_2",
+      "from": [
+        6.13,
+        4.72,
+        8.03
+      ],
+      "to": [
+        6.57,
+        4.92,
+        8.47
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            4,
+            4,
+            0,
+            0
+          ],
+          "texture": "#screw"
+        },
+        "north": {
+          "uv": [
+            3.5,
+            11.5,
+            3.94,
+            11.7
+          ],
+          "texture": "#silver"
+        },
+        "south": {
+          "uv": [
+            4.0,
+            9.0,
+            4.44,
+            9.2
+          ],
+          "texture": "#silver"
+        },
+        "east": {
+          "uv": [
+            2.0,
+            12.0,
+            2.44,
+            12.2
+          ],
+          "texture": "#silver"
+        },
+        "west": {
+          "uv": [
+            3.0,
+            13.0,
+            3.44,
+            13.2
+          ],
+          "texture": "#silver"
+        }
+      }
+    }
+  ]
+}

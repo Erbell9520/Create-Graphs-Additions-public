@@ -12,11 +12,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class MiniDisplayConfigPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<MiniDisplayConfigPacket> TYPE = 
+    public static final CustomPacketPayload.Type<MiniDisplayConfigPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "mini_display_config"));
-    
-    public static final StreamCodec<RegistryFriendlyByteBuf, MiniDisplayConfigPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, MiniDisplayConfigPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), MiniDisplayConfigPacket::new);
 
     private final BlockPos pos;

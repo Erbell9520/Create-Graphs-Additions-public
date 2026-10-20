@@ -14,9 +14,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
-/** [1] */
 public final class HingeJointManager extends SavedData {
-
     private static final String DATA_NAME = "create_stats_hinges";
 
     private final Map<UUID, HingeJoint> joints = new HashMap<>();
@@ -54,7 +52,6 @@ public final class HingeJointManager extends SavedData {
         return new ArrayList<>(joints.values());
     }
 
-    /** The joint directly linking these two ships (in either order), or {@code null}. */
     public HingeJoint findJointBetween(UUID a, UUID b) {
         for (HingeJoint joint : joints.values()) {
             if ((joint.subAId.equals(a) && joint.subBId.equals(b))
@@ -65,7 +62,6 @@ public final class HingeJointManager extends SavedData {
         return null;
     }
 
-    /** All joints that involve the given ship (as either side). */
     public List<HingeJoint> jointsInvolving(UUID subId) {
         List<HingeJoint> out = new ArrayList<>();
         for (HingeJoint joint : joints.values()) {
@@ -76,7 +72,6 @@ public final class HingeJointManager extends SavedData {
         return out;
     }
 
-    /** Remove every joint touching the given ship, tearing down their constraints. Returns the count. */
     public int removeJointsInvolving(UUID subId) {
         List<HingeJoint> involved = jointsInvolving(subId);
         for (HingeJoint joint : involved) {
@@ -85,7 +80,6 @@ public final class HingeJointManager extends SavedData {
         return involved.size();
     }
 
-    /** Remove a joint and tear down its live Sable constraint. */
     public void removeJoint(UUID jointId) {
         HingeJoint joint = joints.remove(jointId);
         if (joint != null) {
@@ -95,10 +89,6 @@ public final class HingeJointManager extends SavedData {
         }
     }
 
-    /**
-     * (Re)create the Sable constraint for any joint whose handle is missing/invalid and whose two
-     * ships are both currently loaded. Cheap to call repeatedly; throttle from the caller.
-     */
     public void ensureHandles(ServerLevel level) {
         if (!HingeConstraintBridge.isAvailable() || joints.isEmpty()) {
             return;
@@ -110,7 +100,7 @@ public final class HingeJointManager extends SavedData {
             Object subA = HingeConstraintBridge.subLevelById(level, joint.subAId);
             Object subB = HingeConstraintBridge.subLevelById(level, joint.subBId);
             if (subA == null || subB == null) {
-                joint.handle = null; // one ship not loaded yet; retry later
+                joint.handle = null;
                 continue;
             }
             joint.handle = HingeConstraintBridge.createRotary(level, subA, subB,

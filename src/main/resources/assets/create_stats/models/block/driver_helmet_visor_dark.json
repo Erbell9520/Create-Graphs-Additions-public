@@ -1,0 +1,7 @@
+{
+  "parent": "create_stats:block/driver_helmet_visor",
+  "textures": {
+    "helmet": "create_stats:block/driver_helmet_dark",
+    "particle": "create_stats:block/driver_helmet_dark"
+  }
+}

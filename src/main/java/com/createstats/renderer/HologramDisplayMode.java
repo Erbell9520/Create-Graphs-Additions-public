@@ -5,26 +5,25 @@ public enum HologramDisplayMode
     LINE_3D("Line Style"),
     BAR_3D("Bar Style"),
     GAUGE_3D("Gauge Style"),
-    // [1]
+
     NETWORK("Line (Wide)");
-    
+
     private final String displayName;
-    
+
     private HologramDisplayMode(String displayName) {
         this.displayName = displayName;
     }
-    
+
     public String getDisplayName() {
         return this.displayName;
     }
-    
+
     public HologramDisplayMode next() {
         final HologramDisplayMode[] values = values();
-        // NETWORK is excluded from cycling and is normalised to LINE_3D on load, so
-        // it is never the active mode.  The guard below is a safety net only.
+
         int next = (this.ordinal() + 1) % values.length;
         if (values[next] == NETWORK) {
-            next = 0; // wrap back to LINE_3D
+            next = 0;
         }
         return values[next];
     }

@@ -18,19 +18,17 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
-/** [1] */
+// real slots, active only while bind is showing
 public class VccMk2Menu extends AbstractContainerMenu {
-
     public static final int ROWS = VccMk2BlockEntity.CARD_ROWS;
     public static final int PROP_SLOT_START = 0;
     public static final int GOV_SLOT_START = PROP_SLOT_START + ROWS;
     public static final int FREQ_SLOT_START = GOV_SLOT_START + ROWS;
     public static final int PLAYER_SLOT_START = FREQ_SLOT_START + ROWS * 2;
 
-    // [2]
-    public static final int STAGE_X = 152;   // mirrors VccMk2Screen.NAV_W
-    public static final int STAGE_Y = 26;    // mirrors VccMk2Screen.BAR_H
-    public static final int PAD = 22;        // mirrors VccMk2Screen.PAD
+    public static final int STAGE_X = 152;
+    public static final int STAGE_Y = 26;
+    public static final int PAD = 22;
     public static final int TABLE_TOP = STAGE_Y + 56;
     public static final int ROW_H = 20;
     public static final int COL_PART = STAGE_X + PAD + 22;
@@ -123,12 +121,10 @@ public class VccMk2Menu extends AbstractContainerMenu {
         return pos;
     }
 
-    /** The screen calls this each frame so slots only render / accept clicks on the Bind station. */
     public void setBindActive(boolean active) {
         this.clientBindActive = active;
     }
 
-    /** Server-side this is always true (so interactions validate); client-side it tracks the station. */
     public boolean isBindActive() {
         if (blockEntity != null) {
             Level level = blockEntity.getLevel();
@@ -187,7 +183,6 @@ public class VccMk2Menu extends AbstractContainerMenu {
         return player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0;
     }
 
-    // slot types
     private class PartCardSlot extends SlotItemHandler {
         PartCardSlot(ItemStackHandler handler, int idx, int x, int y) {
             super(handler, idx, x, y);

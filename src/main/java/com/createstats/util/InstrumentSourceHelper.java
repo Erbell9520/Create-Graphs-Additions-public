@@ -10,6 +10,10 @@ import com.createstats.compat.CreateAdditionCompat;
 import com.createstats.compat.CreateAdditionCompatHelper;
 import com.createstats.compat.DieselCompat;
 import com.createstats.compat.DieselCompatHelper;
+import com.createstats.compat.ElectroEnergeticsCompat;
+import com.createstats.compat.ElectroEnergeticsCompatHelper;
+import com.createstats.compat.NewAgeCompat;
+import com.createstats.compat.NewAgeCompatHelper;
 import com.createstats.data.MetricType;
 import com.createstats.display.StatsDisplayTarget;
 import com.simibubi.create.content.fluids.tank.BoilerData;
@@ -41,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 
 public final class InstrumentSourceHelper {
-
     private InstrumentSourceHelper() {
     }
 
@@ -75,6 +78,12 @@ public final class InstrumentSourceHelper {
     }
 
     public static SourceReadout readSource(BlockEntity sourceBE, @Nullable Direction accessFace, Collection<ItemStack> trackedItems) {
+        if (ElectroEnergeticsCompat.isAvailable()) {
+            final SourceReadout meterReadout = ElectroEnergeticsCompatHelper.readSource(sourceBE);
+            if (meterReadout != null) {
+                return meterReadout;
+            }
+        }
         if (DieselCompat.isAvailable()) {
             final SourceReadout dieselReadout = DieselCompatHelper.readSource(sourceBE, accessFace);
             if (dieselReadout != null) {
@@ -85,6 +94,12 @@ public final class InstrumentSourceHelper {
             final SourceReadout createAdditionReadout = CreateAdditionCompatHelper.readSource(sourceBE, accessFace, trackedItems);
             if (createAdditionReadout != null) {
                 return createAdditionReadout;
+            }
+        }
+        if (NewAgeCompat.isAvailable()) {
+            final SourceReadout newAgeReadout = NewAgeCompatHelper.readSource(sourceBE, accessFace, trackedItems);
+            if (newAgeReadout != null) {
+                return newAgeReadout;
             }
         }
         final SourceReadout baseReadout = readBaseSource(sourceBE, accessFace, trackedItems);
@@ -173,16 +188,27 @@ public final class InstrumentSourceHelper {
             return new SourceReadout("Induction Heater", SourceKind.BOILER, metrics);
         }
 
+        // the dynamo is a KineticBlockEntity, this used to match first and hide every energy metric
+
         if (sourceBE instanceof KineticBlockEntity kinetic) {
             final float rpm = Math.abs(kinetic.getSpeed());
             putSample(metrics, "rpm", "RPM", rpm, MetricType.RPM);
             putSample(metrics, "running", "Running", rpm > 0.01f ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
-            if (KineticNetworkMetrics.supportsStressReadout(kinetic)) {
+            final boolean stress = KineticNetworkMetrics.supportsStressReadout(kinetic);
+            if (stress) {
                 putKineticMetrics(metrics, kinetic);
-                return new SourceReadout(resolveSourceType(sourceBE), SourceKind.KINETIC_STRESS, metrics);
+            } else {
+                putSample(metrics, "overstressed", "Overstressed", kinetic.isOverStressed() ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
             }
-            putSample(metrics, "overstressed", "Overstressed", kinetic.isOverStressed() ? 1.0f : 0.0f, MetricType.BOOLEAN_FLAG);
-            return new SourceReadout(resolveSourceType(sourceBE), SourceKind.KINETIC_SPEED, metrics);
+
+            if (!CreateStatsPowerMetrics.collect(sourceBE, metrics)) {
+                final IEnergyStorage shaftEnergy = resolveEnergyStorage(sourceBE, accessFace);
+                if (shaftEnergy != null) {
+                    CreateAdditionCompatHelper.putGenericEnergyMetrics(metrics, sourceBE, shaftEnergy);
+                }
+            }
+            return new SourceReadout(resolveSourceType(sourceBE),
+                    stress ? SourceKind.KINETIC_STRESS : SourceKind.KINETIC_SPEED, metrics);
         }
 
         if (sourceBE instanceof ThresholdSwitchBlockEntity thresholdSwitch) {
@@ -240,7 +266,6 @@ public final class InstrumentSourceHelper {
             return new SourceReadout(resolveSourceType(sourceBE), SourceKind.FLUID_STORAGE, metrics);
         }
 
-        // [1]
         if (CreateStatsPowerMetrics.collect(sourceBE, metrics)) {
             return new SourceReadout(resolveSourceType(sourceBE), CreateStatsPowerMetrics.kindFor(sourceBE), metrics);
         }
@@ -255,6 +280,20 @@ public final class InstrumentSourceHelper {
     }
 
     public static boolean supportsAutoRead(@Nullable BlockEntity sourceBE) {
+        // controller has no capability on purpose, so name it
+
+        if (sourceBE instanceof com.createstats.blockentity.BatteryControllerBE
+                || sourceBE instanceof com.createstats.blockentity.PowerDistributionUnitBE) {
+            return true;
+        }
+
+        if (sourceBE instanceof com.createstats.blockentity.PowerMeterBE) {
+            return true;
+        }
+
+        if (sourceBE instanceof com.createstats.netscan.NetscanHost) {
+            return true;
+        }
         return sourceBE instanceof StressGaugeBlockEntity
                 || sourceBE instanceof SpeedGaugeBlockEntity
                 || sourceBE instanceof ThresholdSwitchBlockEntity
@@ -266,8 +305,17 @@ public final class InstrumentSourceHelper {
                 || sourceBE instanceof InductionHeaterBE
                 || resolveEnergyStorage(sourceBE, null) != null
                 || (CreateAdditionCompat.isAvailable() && CreateAdditionCompatHelper.supportsCompactAutoRead(sourceBE))
+                || (NewAgeCompat.isAvailable() && NewAgeCompatHelper.supportsCompactAutoRead(sourceBE))
+                || (ElectroEnergeticsCompat.isAvailable() && ElectroEnergeticsCompatHelper.isMeter(sourceBE))
                 || (DieselCompat.isAvailable() && DieselCompatHelper.supportsCompactAutoRead(sourceBE))
                 || (SimulatedCompat.isAvailable() && SimulatedCompatHelper.supportsCompactAutoRead(sourceBE));
+    }
+
+    public static boolean isGridWiring(@Nullable BlockEntity sourceBE) {
+        return sourceBE instanceof com.createstats.blockentity.CableBE
+                || sourceBE instanceof com.createstats.blockentity.IndoorCableBE
+                || sourceBE instanceof com.createstats.blockentity.PowerConnectorBE
+                || sourceBE instanceof com.createstats.blockentity.SwitchBE;
     }
 
     public static boolean supportsCompactAutoRead(@Nullable BlockEntity sourceBE) {
@@ -338,7 +386,8 @@ public final class InstrumentSourceHelper {
 
     public static String resolveSourceType(BlockEntity sourceBE) {
         final String mapped = StatsDisplayTarget.getStatsDisplayLinkSourceType(sourceBE);
-        if (!mapped.isEmpty()) {
+
+        if (!mapped.isEmpty() && !StatsDisplayTarget.isGenericContainerType(mapped)) {
             return mapped;
         }
         return sourceBE.getBlockState().getBlock().getName().getString();

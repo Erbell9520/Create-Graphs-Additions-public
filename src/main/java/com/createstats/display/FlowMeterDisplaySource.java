@@ -10,9 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-/** [1] */
 public class FlowMeterDisplaySource extends DisplaySource implements StatsLinkSource {
-
     public List<MutableComponent> provideText(DisplayLinkContext context, DisplayTargetStats stats) {
         final BlockEntity be = context.getSourceBlockEntity();
         if (!(be instanceof FlowMeterBE meter)) {
@@ -33,7 +31,6 @@ public class FlowMeterDisplaySource extends DisplaySource implements StatsLinkSo
         return lines;
     }
 
-    // [2]
     @Override
     public int getPassiveRefreshTicks() {
         return 20;

@@ -1,0 +1,60 @@
+{
+ "credit": "gen_staff_redesign.py, sample jacob, written 16 units low (SurveyorStaffRenderer lifts it back)",
+ "textures": {
+  "atlas": "create_stats:item/surveyor_staff/jacob/atlas",
+  "glass": "create_stats:item/surveyor_staff/jacob/glass",
+  "particle": "create_stats:item/surveyor_staff/jacob/atlas"
+ },
+ "elements": [
+  {
+   "from": [
+    11.2,
+    22.9,
+    18.97
+   ],
+   "to": [
+    12.8,
+    24.5,
+    18.98
+   ],
+   "name": "glass",
+   "faces": {
+    "south": {
+     "uv": [
+      0,
+      0,
+      1.6,
+      1.6
+     ],
+     "texture": "#glass",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    11.2,
+    22.9,
+    18.44
+   ],
+   "to": [
+    12.8,
+    24.5,
+    18.45
+   ],
+   "name": "glass, back",
+   "faces": {
+    "north": {
+     "uv": [
+      0,
+      0,
+      1.6,
+      1.6
+     ],
+     "texture": "#glass",
+     "tintindex": 0
+    }
+   }
+  }
+ ]
+}

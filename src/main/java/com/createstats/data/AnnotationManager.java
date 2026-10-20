@@ -15,11 +15,11 @@ public class AnnotationManager
 {
     public static final int MAX_ANNOTATIONS = 64;
     private final List<Annotation> annotations;
-    
+
     public AnnotationManager() {
         this.annotations = new ArrayList<Annotation>();
     }
-    
+
     public boolean add(Annotation annotation) {
         if (this.annotations.size() >= 64) {
             return false;
@@ -33,11 +33,11 @@ public class AnnotationManager
         this.annotations.sort(Comparator.comparingLong(Annotation::getTickStamp));
         return true;
     }
-    
+
     public boolean remove(UUID id) {
         return this.annotations.removeIf(a -> a.getId().equals(id));
     }
-    
+
     public boolean edit(UUID id, String newLabel, int newColor) {
         for (Annotation a : this.annotations) {
             if (a.getId().equals(id)) {
@@ -55,7 +55,7 @@ public class AnnotationManager
         }
         return false;
     }
-    
+
     public Annotation getById(UUID id) {
         for (Annotation a : this.annotations) {
             if (a.getId().equals(id)) {
@@ -64,11 +64,11 @@ public class AnnotationManager
         }
         return null;
     }
-    
+
     public List<Annotation> getAll() {
         return Collections.unmodifiableList((List<? extends Annotation>)this.annotations);
     }
-    
+
     public List<Annotation> getInRange(long startTick, long endTick) {
         final List<Annotation> result = new ArrayList<Annotation>();
         for (Annotation a : this.annotations) {
@@ -87,15 +87,15 @@ public class AnnotationManager
         }
         return result;
     }
-    
+
     public int size() {
         return this.annotations.size();
     }
-    
+
     public void clear() {
         this.annotations.clear();
     }
-    
+
     public CompoundTag save() {
         final CompoundTag tag = new CompoundTag();
         final ListTag list = new ListTag();
@@ -105,7 +105,7 @@ public class AnnotationManager
         tag.put("List", (Tag)list);
         return tag;
     }
-    
+
     public static AnnotationManager load(CompoundTag tag) {
         final AnnotationManager mgr = new AnnotationManager();
         if (tag.contains("List", 9)) {
@@ -117,14 +117,14 @@ public class AnnotationManager
         }
         return mgr;
     }
-    
+
     public void writeToBuf(FriendlyByteBuf buf) {
         buf.writeVarInt(this.annotations.size());
         for (Annotation a : this.annotations) {
             a.writeToBuf(buf);
         }
     }
-    
+
     public static AnnotationManager readFromBuf(FriendlyByteBuf buf) {
         final AnnotationManager mgr = new AnnotationManager();
         for (int count = buf.readVarInt(), i = 0; i < count; ++i) {

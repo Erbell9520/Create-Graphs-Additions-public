@@ -22,9 +22,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-/** [1] */
 public class RpmGovernorBE extends SplitShaftBlockEntity {
-
     private int commandedRpm;
     private int appliedRpm;
     @Nullable private UUID commanderUuid;
@@ -42,8 +40,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
     public RpmGovernorBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
-
-    // kinetic split-shaft contract
 
     @Override
     public float getRotationSpeedModifier(Direction face) {
@@ -65,7 +61,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
 
     @Nullable
     private Direction getInputFacing() {
-        // [2]
         if (hasSource()) {
             Direction live = getSourceFacing();
             if (live != null) return live;
@@ -79,14 +74,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
         return input == null ? null : input.getOpposite();
     }
 
-    // public command API
-
-    /**
-     * FCC-side entry point. Sets the commanded RPM and (re-)asserts ownership.
-     *
-     * @return {@code true} if the command was accepted; {@code false} if rejected because
-     *         a different live FCC owns this Governor.
-     */
     public boolean setCommand(BlockPos fccPos, UUID fccId, int targetRpm) {
         if (level == null || level.isClientSide) return false;
         if (fccId == null) return false;
@@ -124,9 +111,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
         return true;
     }
 
-    /**
-     * Identity-bearing heartbeat. Only the matching UUID resets the failsafe timer.
-     */
     public boolean heartbeat(BlockPos fccPos, UUID fccId) {
         if (level == null || level.isClientSide) return false;
         if (fccId == null || !fccId.equals(commanderUuid)) return false;
@@ -135,9 +119,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
         return true;
     }
 
-    /**
-     * Voluntary release by the owning FCC. Zeros RPM and clears ownership.
-     */
     public void releaseOwnership(UUID fccId) {
         if (level == null || level.isClientSide) return;
         if (fccId == null || !fccId.equals(commanderUuid)) return;
@@ -217,7 +198,7 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
         if (Math.abs(sourceSpeed) < 1.0e-4f) return 0.0f;
         float modifier = targetRpm / sourceSpeed;
         if (!Float.isFinite(modifier)) return 0.0f;
-        // Guard against tiny source speeds turning into absurd modifiers.
+
         if (modifier > 32.0f) return 32.0f;
         if (modifier < -32.0f) return -32.0f;
         return modifier;
@@ -292,7 +273,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
         setChanged();
     }
 
-    /** [3] */
     private void updateVisualState() {
         if (level == null || level.isClientSide) return;
         BlockState state = getBlockState();
@@ -308,7 +288,7 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
         }
     }
 
-    // tick / failsafe
+    // ---------------------------- Tick / failsafe ----------------------------
 
     @Override
     public void tick() {
@@ -326,7 +306,7 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
                     rpmChanged = true;
                 }
                 if (!rpmChanged && !wasFailSafe) {
-                    sendData(); // surface failsafe flag to client even if RPM was already 0
+                    sendData();
                     setChanged();
                 }
             }
@@ -341,14 +321,11 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
     @Override
     public void initialize() {
         super.initialize();
-        // Reconcile cosmetic blockstate on world load, covers cases where the BE was
-        // saved while ACTIVE but the world tick that turns it back IDLE never fired.
+
         if (level != null && !level.isClientSide) {
             updateVisualState();
         }
     }
-
-    // NBT
 
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
@@ -376,7 +353,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
             appliedRpm = tag.getInt("AppliedRpm");
             failSafeActive = tag.getBoolean("FailSafe");
         } else {
-            // Server side: never resume thrust automatically. Wait for FCC reclaim.
             commandedRpm = 0;
             appliedRpm = 0;
             ticksSinceHeartbeat = 0;
@@ -413,8 +389,6 @@ public class RpmGovernorBE extends SplitShaftBlockEntity {
     private static String fmt(float value) {
         return String.format("%.3f", value);
     }
-
-    // goggle overlay
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {

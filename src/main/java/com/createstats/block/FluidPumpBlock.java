@@ -29,9 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/** [1] */
 public class FluidPumpBlock extends Block implements IBE<FluidPumpBE>, IWrenchable {
-
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
     private final PumpTier tier;
@@ -42,7 +40,6 @@ public class FluidPumpBlock extends Block implements IBE<FluidPumpBE>, IWrenchab
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
     }
 
-    /** Which grade this is. Read by the block entity for its throughput ceiling and dial range. */
     public PumpTier tier() {
         return tier;
     }
@@ -57,7 +54,8 @@ public class FluidPumpBlock extends Block implements IBE<FluidPumpBE>, IWrenchab
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
-        // [2]
+        // prefer the axis where both ends hit a pipe, so tank-pump-pipe just works
+
         Direction best = null;
         int bestScore = -1;
         for (final Direction face : Direction.values()) {
@@ -86,13 +84,10 @@ public class FluidPumpBlock extends Block implements IBE<FluidPumpBE>, IWrenchab
         return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, fromDir.getOpposite()) != null;
     }
 
-    // wrench
-
     @Override
     public BlockState getRotatedBlockState(BlockState originalState, Direction targetedFace) {
         final Direction facing = originalState.getValue(FACING);
-        // Wrenching the pipe faces flips the pump and reverses the flow, like flipping a Mechanical
-        // Pump; wrenching a side spins it about that side.
+
         if (targetedFace.getAxis() == facing.getAxis()) {
             return originalState.setValue(FACING, facing.getOpposite());
         }
@@ -102,7 +97,7 @@ public class FluidPumpBlock extends Block implements IBE<FluidPumpBE>, IWrenchab
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         final InteractionResult result = IWrenchable.super.onWrenched(state, context);
-        // Rotating changes which axis the pump drives, so the pipe runs either side have to be told.
+
         if (result.consumesAction() && !context.getLevel().isClientSide()) {
             final BlockPos pos = context.getClickedPos();
             FluidPropagator.propagateChangedPipe(context.getLevel(), pos,
@@ -115,7 +110,7 @@ public class FluidPumpBlock extends Block implements IBE<FluidPumpBE>, IWrenchab
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock())) {
             if (level.getBlockEntity(pos) instanceof FluidPumpBE pump) {
-                pump.dropWiresAndUnlinkAll();   // return the Copper Wires strung to its built-in connector
+                pump.dropWiresAndUnlinkAll();
             }
             if (!level.isClientSide()) {
                 FluidPropagator.propagateChangedPipe(level, pos, state);

@@ -4,9 +4,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import org.lwjgl.glfw.GLFW;
 
-/** [1] */
+// caret stays at the end, it's a filter not an editor
 public final class PduSearchField {
-
     public static final int HEIGHT = 14;
 
     private final String placeholder;
@@ -39,10 +38,6 @@ public final class PduSearchField {
         text.setLength(0);
     }
 
-    /**
-     * Consumes a typed character, returning whether it was taken, so the screen only swallows
-     * keystrokes a focused field actually wants and everything else still reaches the shortcuts.
-     */
     public boolean charTyped(char c) {
         if (!focused || c < ' ' || c == 127) {
             return false;
@@ -51,7 +46,6 @@ public final class PduSearchField {
         return true;
     }
 
-    /** Handles the editing keys the field owns (backspace). Returns whether the key was consumed. */
     public boolean keyPressed(int keyCode) {
         if (!focused) {
             return false;
@@ -71,7 +65,6 @@ public final class PduSearchField {
         g.fill(x, y, x + w, y + HEIGHT, focused || hovered ? PduTheme.BG_RAISED : PduTheme.BG_PANEL);
         PduTheme.outline(g, x, y, w, HEIGHT, focused ? PduTheme.STROKE_HOT : PduTheme.STROKE);
 
-        // [2]
         PduTheme.outline(g, x + 4, y + 4, 4, 4, PduTheme.TEXT_FAINT);
         g.fill(x + 7, y + 7, x + 9, y + 9, PduTheme.TEXT_FAINT);
 
@@ -98,7 +91,6 @@ public final class PduSearchField {
         }
     }
 
-    /** True if the click landed on the clear button, which empties the field. Test this before {@link #clicked}. */
     public boolean clickedClear(double mx, double my) {
         if (clearBounds.contains(mx, my)) {
             clear();
@@ -107,12 +99,14 @@ public final class PduSearchField {
         return false;
     }
 
-    /** True if the click landed anywhere in the field, which the screen turns into focus. */
+    public PduRect bounds() {
+        return bounds;
+    }
+
     public boolean clicked(double mx, double my) {
         return bounds.contains(mx, my);
     }
 
-    /** The visible tail of the text when it overflows the field, so the newest typing stays in view. */
     private String tail(Font font, int maxW) {
         final String s = text.toString();
         if (font.width(s) <= maxW) {

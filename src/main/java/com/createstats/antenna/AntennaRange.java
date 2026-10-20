@@ -7,21 +7,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 public final class AntennaRange {
-    /** [1] */
     public static final double NETHER_COMPRESSION = 1.0 / 8.0;
 
     private AntennaRange() {
     }
 
-    // pure range math (no world access) - directly unit tested.
-
-    /**
-     * Effective reach in local blocks for the given tier, base range and dimension compression.
-     *
-     * @param baseRange the un-boosted range of the host block
-     * @param tier      the attached antenna tier ({@code null} treated as {@link AntennaTier#NONE})
-     * @param isNether  whether the range is being measured inside the Nether
-     */
     public static double localRange(double baseRange, AntennaTier tier, boolean isNether) {
         AntennaTier resolvedTier = tier == null ? AntennaTier.NONE : tier;
         double range = Math.max(baseRange, baseRange * resolvedTier.getRangeMultiplier());
@@ -31,7 +21,6 @@ public final class AntennaRange {
         return range;
     }
 
-    /** Pure squared-distance reach test for a same-dimension link. */
     public static boolean withinRangeSq(double distanceSq, double baseRange, AntennaTier tier, boolean isNether) {
         if (baseRange <= 0.0) {
             return true;
@@ -40,12 +29,10 @@ public final class AntennaRange {
         return distanceSq <= range * range;
     }
 
-    /** Pure cross-dimension eligibility: only a cross-dimensional tier across the Overworld/Nether pair. */
     public static boolean crossDimEligible(AntennaTier tier, boolean overworldNetherPair) {
         return tier != null && tier.isCrossDimensional() && overworldNetherPair;
     }
 
-    /** Pure Overworld/Nether pairing check on dimension ids (order independent). */
     public static boolean isOverworldNetherPair(ResourceLocation first, ResourceLocation second) {
         if (first == null || second == null) {
             return false;
@@ -55,8 +42,6 @@ public final class AntennaRange {
         return (overworld.equals(first) && nether.equals(second))
                 || (nether.equals(first) && overworld.equals(second));
     }
-
-    // convenience overloads used across the codebase.
 
     public static int scale(int baseRange, AntennaTier tier) {
         AntennaTier resolvedTier = tier == null ? AntennaTier.NONE : tier;
@@ -74,8 +59,6 @@ public final class AntennaRange {
     public static int cappedScanRadius(int baseRange, AntennaTier tier, int maxRange) {
         return Math.max(baseRange, Math.min(maxRange, scale(baseRange, tier)));
     }
-
-    // world-aware wrappers (thin delegations to the pure core above).
 
     public static boolean canReach(ServerLevel sourceLevel, BlockPos sourcePos, ServerLevel targetLevel, BlockPos targetPos,
                                    AntennaTier tier) {

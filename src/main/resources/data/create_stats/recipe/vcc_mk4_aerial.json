@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BMB",
+    "PEP",
+    "BGB"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:plates/brass"
+    },
+    "M": {
+      "item": "create_stats:blank_monitor_bezel"
+    },
+    "P": {
+      "item": "create:propeller"
+    },
+    "E": {
+      "item": "create:precision_mechanism"
+    },
+    "G": {
+      "item": "create_stats:rpm_governor"
+    }
+  },
+  "result": {
+    "id": "create_stats:vcc_mk4_aerial",
+    "count": 1
+  }
+}

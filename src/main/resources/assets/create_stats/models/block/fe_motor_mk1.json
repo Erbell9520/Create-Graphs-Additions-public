@@ -1,5 +1,4 @@
 {
-  "__comment": "FE Motor MK1 skin.",
   "parent": "create_stats:block/fe_motor/housing",
   "textures": {
     "casing": "create_stats:block/motor_casing",

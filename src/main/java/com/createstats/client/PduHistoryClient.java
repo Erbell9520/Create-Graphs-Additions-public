@@ -4,9 +4,7 @@ import com.createstats.gui.PowerDistributionUnitScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 
-/** [1] */
 public final class PduHistoryClient {
-
     private PduHistoryClient() {
     }
 

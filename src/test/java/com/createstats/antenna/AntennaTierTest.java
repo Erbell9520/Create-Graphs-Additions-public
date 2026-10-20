@@ -6,11 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * Pure-logic tests for the antenna tier ladder. No Minecraft world is required.
- */
 class AntennaTierTest {
-
     @Test
     void multipliersMatchTheIntendedLadder() {
         assertEquals(1, AntennaTier.NONE.getRangeMultiplier());

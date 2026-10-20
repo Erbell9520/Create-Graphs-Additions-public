@@ -1,0 +1,285 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "tones": "create_stats:block/main_breaker_tones",
+    "particle": "create_stats:block/main_breaker_case"
+  },
+  "elements": [
+    {
+      "name": "lock",
+      "from": [
+        13.48,
+        1.25,
+        7.45
+      ],
+      "to": [
+        14.08,
+        2.65,
+        8.55
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            8.5,
+            6.5,
+            9.5,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            8.5,
+            6.5,
+            9.5,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            8.5,
+            6.5,
+            9.5,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            8.5,
+            6.5,
+            9.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            10.5,
+            6.5,
+            11.5,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            8.5,
+            6.5,
+            9.5,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "shackle_near",
+      "from": [
+        13.6,
+        2.55,
+        7.59
+      ],
+      "to": [
+        13.86,
+        2.37,
+        7.85
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "shackle_far",
+      "from": [
+        13.7,
+        2.55,
+        8.15
+      ],
+      "to": [
+        13.96,
+        2.37,
+        8.41
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "shackle_crown",
+      "from": [
+        13.6,
+        2.11,
+        7.59
+      ],
+      "to": [
+        13.96,
+        2.37,
+        8.41
+      ],
+      "faces": {
+        "north": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#tones",
+          "uv": [
+            12.5,
+            6.5,
+            13.5,
+            7.5
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -3,18 +3,15 @@ package com.createstats.item;
 import java.util.List;
 import javax.annotation.Nullable;
 import com.createstats.blockentity.FreightManifestClipboardBE;
-import com.createstats.CreateStats;
 import com.createstats.train.manifest.FreightStationLink;
 import com.simibubi.create.content.trains.station.GlobalStation;
 import com.simibubi.create.content.trains.station.StationBlockEntity;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -28,7 +25,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class FreightManifestClipboardItem extends BlockItem {
-
     private static final String TAG_STATION_LINK = "FreightStationLink";
 
     public FreightManifestClipboardItem(Block block, Properties properties) {
@@ -44,8 +40,11 @@ public class FreightManifestClipboardItem extends BlockItem {
         ItemStack stack = context.getItemInHand();
 
         if (be instanceof StationBlockEntity stationBlockEntity) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             GlobalStation station = stationBlockEntity.getStation();
-            if (station == null || station.getBlockEntityPos() == null || station.getBlockEntityDimension() == null) {
+            if (station == null || station.getId() == null) {
                 if (!level.isClientSide() && player != null) {
                     player.displayClientMessage(Component.translatable("message.create_stats.station_link.not_ready").withStyle(ChatFormatting.RED), false);
                 }
@@ -53,26 +52,13 @@ public class FreightManifestClipboardItem extends BlockItem {
             }
 
             String stationName = station.name != null ? station.name : Component.translatable("create_stats.station.unnamed").getString();
-            ResourceLocation dimensionId = station.getBlockEntityDimension().location();
-            FreightStationLink link = new FreightStationLink(station.getId(), stationName, dimensionId, station.getBlockEntityPos());
+            // the clicked block is the truth, old graph data can be (0,0,0)
+            ResourceLocation dimensionId = level.dimension().location();
+            FreightStationLink link = new FreightStationLink(station.getId(), stationName, dimensionId, pos);
             setStationLink(stack, link);
 
             if (!level.isClientSide() && player != null) {
                 player.displayClientMessage(Component.translatable("message.create_stats.clipboard.linked", stationName).withStyle(ChatFormatting.GOLD), false);
-            }
-            if (player instanceof ServerPlayer sp && "Manifest".equalsIgnoreCase(stationName)) {
-                net.minecraft.server.MinecraftServer srv = sp.getServer();
-                if (srv != null) {
-                    AdvancementHolder holder = srv.getAdvancements().get(ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "manifest_yaaa"));
-                    if (holder != null) {
-                        net.minecraft.advancements.AdvancementProgress progress = sp.getAdvancements().getOrStartProgress(holder);
-                        if (!progress.isDone()) {
-                            for (String criterion : progress.getRemainingCriteria()) {
-                                sp.getAdvancements().award(holder, criterion);
-                            }
-                        }
-                    }
-                }
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
         }

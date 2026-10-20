@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,11 +36,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class FreightManifestDeliveryOrderActionPacket implements CustomPacketPayload {
-
-    public static final CustomPacketPayload.Type<FreightManifestDeliveryOrderActionPacket> TYPE = 
+    public static final CustomPacketPayload.Type<FreightManifestDeliveryOrderActionPacket> TYPE =
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("create_stats", "freight_manifest_delivery_order_action"));
-    
-    public static final StreamCodec<FriendlyByteBuf, FreightManifestDeliveryOrderActionPacket> STREAM_CODEC = 
+
+    public static final StreamCodec<FriendlyByteBuf, FreightManifestDeliveryOrderActionPacket> STREAM_CODEC =
         StreamCodec.of((buf, pkt) -> pkt.encode(buf), FreightManifestDeliveryOrderActionPacket::new);
 
     private final BlockPos pos;
@@ -81,18 +79,22 @@ public class FreightManifestDeliveryOrderActionPacket implements CustomPacketPay
             if (player == null) {
                 return;
             }
-            if (player.distanceToSqr(packet.pos.getX() + 0.5, packet.pos.getY() + 0.5, packet.pos.getZ() + 0.5) > 64.0) {
-                return;
-            }
             BlockEntity be = player.level().getBlockEntity(packet.pos);
             FreightStationLink link;
             boolean dispatchBoardSource = false;
             DispatchBoardBE resolvedController = null;
             if (be instanceof FreightManifestClipboardBE clipboard) {
+                if (player.distanceToSqr(packet.pos.getX() + 0.5, packet.pos.getY() + 0.5, packet.pos.getZ() + 0.5) > 64.0) {
+                    return;
+                }
                 link = clipboard.getStationLink();
             } else if (be instanceof DispatchBoardBE clickedBoard) {
-                // Resolve to controller for freight data
+                // board's own range, antennas extend it
+
                 resolvedController = clickedBoard.getControllerBE();
+                if (!resolvedController.isPlayerInInteractionRange(player)) {
+                    return;
+                }
                 link = resolvedController.getStationLink();
                 dispatchBoardSource = true;
             } else {
@@ -107,8 +109,12 @@ public class FreightManifestDeliveryOrderActionPacket implements CustomPacketPay
                 return;
             }
 
+            java.util.UUID stationId = FreightManifestStationResolver.resolveLiveStationId(stationLevel, link);
+            if (stationId == null) {
+                return;
+            }
             FreightManifestSavedData savedData = FreightManifestSavedData.get(stationLevel);
-            FreightManifest manifest = savedData.getManifest(link.getStationId());
+            FreightManifest manifest = savedData.getManifest(stationId);
             if (manifest == null || manifest.isEmpty()) {
                 return;
             }
@@ -118,38 +124,31 @@ public class FreightManifestDeliveryOrderActionPacket implements CustomPacketPay
                 return;
             }
 
-            FreightManifestStationState stationState = savedData.getOrCreateStationState(link.getStationId());
+            FreightManifestStationState stationState = savedData.getOrCreateStationState(stationId);
+
+            GlobalStation station = FreightManifestStationResolver.resolveStation(stationLevel, link);
+            Train presentTrain = station == null ? null : station.getPresentTrain();
+            long currentTick = stationLevel.getGameTime();
+            FreightManifestLogic.evaluateStation(savedData, stationId, presentTrain, currentTick,
+                FreightManifestLogic.findActiveManifestContext(presentTrain));
+
+            manifest = stationState.getManifest();
 
             FreightManifestLine line = packet.lineId == null ? null : findLine(manifest, packet.lineId);
             if (packet.lineId != null && line == null) {
                 return;
             }
 
-            long currentTick = stationLevel.getGameTime();
             boolean changed = false;
             DeliveryOrderBoard persistentBoard = stationState.getMutablePersistentOrders();
-            changed |= FreightManifestLogic.refreshPersistentCycles(manifest, persistentBoard, currentTick, stationState);
 
-            CompoundTag activeContext = null;
-            DeliveryOrderBoard arrivalBoard = null;
-            StationBlockEntity stationBlockEntity = FreightManifestStationResolver.resolveStationBlockEntity(stationLevel, link);
-            if (stationBlockEntity != null) {
-                GlobalStation station = stationBlockEntity.getStation();
-                Train presentTrain = station == null ? null : station.getPresentTrain();
-                activeContext = FreightManifestLogic.findActiveManifestContext(presentTrain);
-                if (activeContext != null) {
-                    arrivalBoard = FreightManifestLogic.loadArrivalBoard(activeContext);
-                }
-            }
+            boolean arrivalLive = presentTrain != null && stationState.isVisitActive(presentTrain.id);
+            DeliveryOrderBoard arrivalBoard = arrivalLive ? stationState.getMutableVisitOrders() : null;
 
             if (packet.lineId == null) {
-                int affected = 0;
-                affected += FreightManifestLogic.applyBulkOrderAction(manifest, persistentBoard, packet.action, currentTick);
+                int affected = FreightManifestLogic.applyBulkOrderAction(manifest, persistentBoard, packet.action, currentTick);
                 if (arrivalBoard != null) {
                     affected += FreightManifestLogic.applyBulkOrderAction(manifest, arrivalBoard, packet.action, currentTick);
-                    if (affected > 0) {
-                        FreightManifestLogic.saveArrivalBoard(activeContext, arrivalBoard);
-                    }
                 }
                 changed |= affected > 0;
                 if (affected > 0) {
@@ -164,18 +163,16 @@ public class FreightManifestDeliveryOrderActionPacket implements CustomPacketPay
                     appendHistory(stationState, line, state, packet.action, currentTick);
                     savedData.setDirty();
                 }
+            } else if (arrivalBoard == null) {
+                player.displayClientMessage(Component.translatable("message.create_stats.freight_manifest.arrival_only_locked")
+                    .withStyle(ChatFormatting.RED), false);
+                return;
             } else {
-                if (activeContext == null || arrivalBoard == null) {
-                    player.displayClientMessage(Component.translatable("message.create_stats.freight_manifest.arrival_only_locked")
-                        .withStyle(ChatFormatting.RED), false);
-                    return;
-                }
                 DeliveryOrderLineState state = arrivalBoard.getOrCreate(packet.lineId, currentTick);
                 boolean lineChanged = FreightManifestLogic.applyOrderAction(line, state, packet.action, currentTick);
                 changed |= lineChanged;
                 if (lineChanged) {
                     appendHistory(stationState, line, state, packet.action, currentTick);
-                    FreightManifestLogic.saveArrivalBoard(activeContext, arrivalBoard);
                     savedData.setDirty();
                 }
             }
@@ -184,17 +181,24 @@ public class FreightManifestDeliveryOrderActionPacket implements CustomPacketPay
                 return;
             }
 
+            if (stationState.retireCompletedOnceOrders()) {
+                savedData.setDirty();
+            }
+
             if (dispatchBoardSource) {
                 if (resolvedController != null) {
                     resolvedController.refreshSummary();
+                    resolvedController.refreshRosterForScreenIfStale();
+
                     PacketDistributor.sendToPlayer(player,
-                        new DispatchBoardStatePacket(resolvedController.getBlockPos(), resolvedController.getManifest(), resolvedController.getCargoView(), resolvedController.getDeliveryBoard()));
+                        new DispatchBoardStatePacket(packet.pos, resolvedController.getManifest(),
+                            resolvedController.getCargoView(), resolvedController.getDeliveryBoard(),
+                            resolvedController.getStationRoster()));
                 }
             } else {
-                FreightStationCargoView cargoView = FreightManifestStationResolver.captureCargoView(player.server, link);
-                DeliveryOrderBoardView deliveryBoard = FreightManifestStationResolver.captureDeliveryBoard(player.server, link);
+                FreightManifestStationResolver.StationView view = FreightManifestStationResolver.captureStationView(stationLevel, link);
                 PacketDistributor.sendToPlayer(player,
-                    new FreightManifestClipboardStatePacket(packet.pos, cargoView, deliveryBoard));
+                    new FreightManifestClipboardStatePacket(packet.pos, view.manifest(), view.cargoView(), view.deliveryBoard()));
             }
         });
     }
@@ -213,7 +217,12 @@ public class FreightManifestDeliveryOrderActionPacket implements CustomPacketPay
         switch (action) {
             case MARK_COMPLETE ->
                 stationState.addHistory(com.createstats.train.manifest.DeliveryOrderHistoryType.MANUAL_COMPLETE,
-                    currentTick, "Marked Complete", FreightManifestLogic.describeLine(line));
+                    currentTick,
+                    line.getResetMode() == com.createstats.train.manifest.DeliveryOrderResetMode.ONCE
+                        ? "One-shot Archived" : "Marked Complete",
+                    FreightManifestLogic.describeLine(line)
+                        + (stationState.getVisitTrainName().isEmpty()
+                            ? "" : " | " + stationState.getVisitTrainName()));
             case RESET_CYCLE ->
                 stationState.addHistory(com.createstats.train.manifest.DeliveryOrderHistoryType.MANUAL_RESET,
                     currentTick, "Manual Reset", FreightManifestLogic.describeLine(line));

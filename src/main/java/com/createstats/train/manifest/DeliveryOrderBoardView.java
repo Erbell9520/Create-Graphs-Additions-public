@@ -10,7 +10,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.nbt.Tag;
 
 public class DeliveryOrderBoardView {
-
     private final boolean trainPresent;
     private final boolean arrivalTrackingActive;
     private final String trainName;
