@@ -110,7 +110,7 @@ public class PowerConnectorRenderer implements BlockEntityRenderer<PowerConnecto
                 && level.getBlockState(pos).getBlock()
                         instanceof com.createstats.block.UniversalPowerCouplerBlock) {
             return com.createstats.power.CouplerSockets.anchor(level.getBlockState(pos),
-                    com.createstats.power.CouplerSockets.endToward(level.getBlockState(pos), pos, from));
+                    com.createstats.power.CouplerSockets.endFor(level, pos, from));
         }
         return attachPoint(level, pos);
     }

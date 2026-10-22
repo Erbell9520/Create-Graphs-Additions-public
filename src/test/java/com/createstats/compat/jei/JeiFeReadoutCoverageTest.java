@@ -41,6 +41,8 @@ class JeiFeReadoutCoverageTest {
             {"create_stats.jei.advanced_power_connector.info", "FeRates.connector(", "ConnectorTier.ADVANCED.maxLinks()"},
             {"create_stats.jei.industrial_power_connector.info", "FeRates.connector(", "ConnectorTier.INDUSTRIAL.maxLinks()"},
             {"create_stats.jei.refined_copper.info", "FeRates.amount(perIngot)", "ArcFurnaceBE.MIN_TAP"},
+            {"create_stats.jei.universal_power_coupler.info", "CouplerRating.rating(", "bestWireConductivity()",
+                    "FeRates.amount(com.createstats.blockentity.UniversalPowerCouplerBE.BUFFER_FE)"},
     };
 
     @Test

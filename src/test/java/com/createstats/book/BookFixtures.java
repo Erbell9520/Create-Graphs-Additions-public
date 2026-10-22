@@ -116,7 +116,7 @@ final class BookFixtures {
                     "create_stats:insulated_wire", "create_stats:shielded_wire", "create_stats:hv_line",
                     "create_stats:power_distribution_unit", "create_stats:power_track", "create_stats:track_feeder",
                     "create_stats:section_insulator", "create_stats:current_collector",
-                    "create_stats:storm_coil", "create_stats:spark_crown");
+                    "create_stats:storm_coil", "create_stats:spark_crown", "create_stats:universal_power_coupler");
             case MACHINES -> List.of("create_stats:seismic_scanner");
             case TRANSPORT -> List.of("create_stats:vcc_mk4_aerial");
             default -> List.<String>of();

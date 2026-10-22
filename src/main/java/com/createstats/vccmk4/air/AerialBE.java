@@ -28,6 +28,7 @@ import com.createstats.vccmk4.air.core.FlightIntent;
 import com.createstats.vccmk4.air.core.HeadingLaw;
 import com.createstats.vccmk4.air.core.HullShape;
 import com.createstats.vccmk4.air.core.LeaveMode;
+import com.createstats.vccmk4.air.core.Levitation;
 import com.createstats.vccmk4.air.core.NavDestination;
 import com.createstats.vccmk4.air.core.NoseRule;
 import com.createstats.vccmk4.air.core.PressureModel;
@@ -229,14 +230,15 @@ public class AerialBE extends BlockEntity implements IHaveGoggleInformation, Aer
     private int airtight = -1;
 
     private int proposedNose;
-    private long lastLog = Long.MIN_VALUE;
+
+    private long lastLog = Long.MIN_VALUE / 2;
     private double size = 8.0;
 
     private final AerialCost cost = new AerialCost();
-    private long lastSnapshot = Long.MIN_VALUE;
+    private long lastSnapshot = Long.MIN_VALUE / 2;
 
     private AerialSnapshot.Terrain patch = AerialSnapshot.Terrain.NONE;
-    private long lastPatch = Long.MIN_VALUE;
+    private long lastPatch = Long.MIN_VALUE / 2;
 
     private long lastDemand = Long.MIN_VALUE;
 
@@ -253,7 +255,8 @@ public class AerialBE extends BlockEntity implements IHaveGoggleInformation, Aer
 
     private List<String> syncLines = List.of();
     private String syncPilot = "";
-    private long lastPublish = Long.MIN_VALUE;
+
+    private long lastPublish = Long.MIN_VALUE / 2;
 
     static final String COCKPIT = "Cockpit";
 
@@ -313,7 +316,12 @@ public class AerialBE extends BlockEntity implements IHaveGoggleInformation, Aer
             command = null;
         } else {
             pilot.rudders(tools.rudders(scan));
-            if (airtight >= 0) pilot.dragPrior(VerticalObserver.physicsDrag(airtight, r.mass));
+
+            Levitation floating = Levitation.of(AerialReflect.floating(SableBridge.serverSubLevelOf(this)), r.sense.g());
+            pilot.levitation(floating);
+            if (airtight >= 0 || floating.any()) {
+                pilot.dragPrior(VerticalObserver.physicsDrag(Math.max(0, airtight), r.mass) + floating.drag());
+            }
 
             staff = AerialReflect.staff(server, SableBridge.serverSubLevelOf(this));
             pilot.staff(staff != AerialReflect.STAFF_NONE);
@@ -381,7 +389,6 @@ public class AerialBE extends BlockEntity implements IHaveGoggleInformation, Aer
         cost.endTick();
     }
 
-    // world heightmap, ships live in the plot grid. loaded chunks only
     private void readTerrain(ServerLevel server, Reading r) {
         if (!pilot.mode().flying() || r.bounds == null) {
             pilot.terrain(null);
@@ -672,7 +679,6 @@ public class AerialBE extends BlockEntity implements IHaveGoggleInformation, Aer
         envelopeBits(hull.envelope(com.x, com.y, com.z), f);
     }
 
-    // read the section palette, getBlockState looks the chunk up again per cell
     private static int readSection(ServerLevel server, HullShape hull, int sx, int sy, int sz,
                                    int x0, int y0, int z0, int x1, int y1, int z1) {
         if (!(server.getChunkSource().getChunkNow(sx, sz) instanceof LevelChunk chunk)) return 0;

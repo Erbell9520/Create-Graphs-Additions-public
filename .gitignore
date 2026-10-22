@@ -24,6 +24,8 @@ gradle-app.setting
 
 # Runtime
 run/
+# Foreign FE mods for the coupler compat GameTests (fetch_foreign_mods.py), never committed
+run_foreign/
 logs/
 /.local-jdk
 modrinth_description.txt

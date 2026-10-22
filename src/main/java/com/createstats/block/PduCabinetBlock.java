@@ -1,6 +1,7 @@
 package com.createstats.block;
 
 import com.createstats.blockentity.PduCabinetBE;
+import com.createstats.guard.BlockFault;
 import com.createstats.pducabinet.CabinetGeometry;
 import com.createstats.pducabinet.CabinetShapeCache;
 import com.createstats.registry.ModBlockEntities;
@@ -131,7 +132,8 @@ public class PduCabinetBlock extends PowerDistributionUnitBlock {
     @Override @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return !level.isClientSide() && state.getValue(HALF) == DoubleBlockHalf.LOWER
-                && type == ModBlockEntities.PDU_CABINET.get() ? (l, p, s, b) -> ((PduCabinetBE) b).tick() : null;
+                && type == ModBlockEntities.PDU_CABINET.get()
+                ? (l, p, s, b) -> BlockFault.tick("PDU Cabinet", b, ((PduCabinetBE) b)::tick) : null;
     }
 
     @Override

@@ -73,8 +73,7 @@ public class PduCabinetBE extends PowerDistributionUnitBE {
     public boolean doorOpen() { return doorOpen; }
 
     private double instrument(double from, double target, float partial) {
-        double t = Math.max(0, Math.min(1, ((level == null ? instrumentStart : level.getGameTime() + partial)
-                - instrumentStart) / 6.0));
+        double t = Math.max(0, Math.min(1, (level == null ? 0 : level.getGameTime() - instrumentStart + partial) / 6.0));
         return from + (target - from) * t * t * (3 - 2 * t);
     }
 
@@ -82,7 +81,7 @@ public class PduCabinetBE extends PowerDistributionUnitBE {
 
     public double doorAngle(float partial) {
         return CabinetGeometry.doorAngle(doorFrom, doorOpen,
-                (level == null ? doorStart : level.getGameTime() + partial) - doorStart, doorDuration);
+                level == null ? 0 : level.getGameTime() - doorStart + partial, doorDuration);
     }
 
     public void toggleDoor() {

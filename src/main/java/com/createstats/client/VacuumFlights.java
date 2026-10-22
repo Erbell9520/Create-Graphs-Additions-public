@@ -55,7 +55,7 @@ public final class VacuumFlights {
             return;
         }
         final float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-        final double now = level.getGameTime() + partial;
+        final double now = AnimationClock.time(level, partial);
         final Vec3 cam = event.getCamera().getPosition();
         final PoseStack ps = event.getPoseStack();
         final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();

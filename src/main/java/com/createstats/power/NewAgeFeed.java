@@ -82,27 +82,17 @@ public final class NewAgeFeed {
             return false;
         }
 
-        final BlockPos wired = coupler.wiredSeamPos();
-        final BlockPos endpointPos = wired != null ? wired : couplerPos.relative(seamFace);
-        final boolean served = wired != null
-                ? com.createstats.blockentity.UniversalPowerCouplerBE.isSeamTarget(level, wired)
-                : isForeignSeam(level, couplerPos, seamFace);
-        if (!served) {
+        if (!coupler.foreignEndpoint().present()) {
             return false;
         }
         final long key = couplerPos.asLong();
-        final int cap = com.createstats.blockentity.UniversalPowerCouplerBE.RATE_FE_PER_TICK;
-        final BlockEntity endpoint = level.isLoaded(endpointPos)
-                ? level.getBlockEntity(endpointPos) : null;
-        final NewAgeCompatHelper.NetworkView view =
-                NewAgeCompat.isAvailable() ? NewAgeCompatHelper.surveyNetwork(endpoint) : null;
+        final int cap = coupler.ratingFePerTick();
+        final NewAgeCompatHelper.NetworkView view = coupler.theirSurvey();
         if (view != null && seen.add(view.networkId())) {
-            int theirGen = 0;
             for (NewAgeCompatHelper.Source source : view.sources()) {
-                theirGen += Math.max(0, source.fePerTick());
                 builder.foldSourceFingerprint(source.pos().asLong());
             }
-            builder.addSource(key, Math.min(cap, theirGen));
+            builder.addSource(key, Math.min(cap, coupler.supplyFePerTick()));
             for (NewAgeCompatHelper.Tank tank : view.tanks()) {
                 if (tank.spendable()) {
                     builder.addTank(tank.pos().asLong(), FeReserve.DEFAULT_RANK,
@@ -112,7 +102,8 @@ public final class NewAgeFeed {
             return true;
         }
 
-        builder.addSource(key, Math.min(cap, Math.max(0, coupler.importFePerTick())));
+        builder.addSource(key, Math.min(cap, view != null
+                ? Math.max(0, coupler.importFePerTick()) : coupler.supplyFePerTick()));
         return true;
     }
 
@@ -146,20 +137,58 @@ public final class NewAgeFeed {
 
     public static boolean isForeignSeam(@Nullable Level level, BlockPos couplerPos,
                                         Direction foreignFace) {
+        return foreignVerdict(level, couplerPos, foreignFace).isEndpoint();
+    }
+
+    public static CouplerForeign.Verdict foreignVerdict(@Nullable Level level, BlockPos couplerPos,
+                                                        Direction foreignFace) {
         if (level == null) {
-            return false;
+            return CouplerForeign.Verdict.EMPTY;
         }
         final BlockPos at = couplerPos.relative(foreignFace);
-        if (NewAgeCompat.isAvailable() && isFeedOn(level, at, couplerPos)) {
-            return true;
-        }
         if (!level.isLoaded(at)) {
-            return false;
+            return CouplerForeign.Verdict.EMPTY;
         }
-        return level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
+        final BlockEntity be = level.getBlockEntity(at);
+        final String beClass = be == null ? null : be.getClass().getName();
+        final String blockClass = level.getBlockState(at).getBlock().getClass().getName();
+        if (CouplerForeign.isOurs(beClass, blockClass)) {
+            return CouplerForeign.Verdict.OURS;
+        }
+        final boolean connector = NewAgeCompat.isAvailable() && NewAgeCompatHelper.isElectricalConnector(be);
+        final boolean supportsThis = connector && isFeedOn(level, at, couplerPos);
+        final boolean holdsFe = !connector && (level.getCapability(
+                        net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
                         at, foreignFace.getOpposite()) != null
                 || level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
-                        at, null) != null;
+                        at, null) != null);
+        return CouplerForeign.bolted(beClass, blockClass, connector, supportsThis, holdsFe);
+    }
+
+    public static CouplerForeign.Verdict farVerdict(@Nullable Level level, @Nullable BlockPos far) {
+        if (level == null || far == null || !level.isLoaded(far)) {
+            return CouplerForeign.Verdict.EMPTY;
+        }
+        final BlockEntity be = level.getBlockEntity(far);
+        final String beClass = be == null ? null : be.getClass().getName();
+        final String blockClass = level.getBlockState(far).getBlock().getClass().getName();
+        if (CouplerForeign.isOurs(beClass, blockClass)) {
+            return CouplerForeign.Verdict.OURS;
+        }
+        final boolean connector = NewAgeCompat.isAvailable() && NewAgeCompatHelper.isElectricalConnector(be);
+        boolean holdsFe = connector || ForeignTerminalNode.isBridgeTarget(level, far);
+        if (!holdsFe) {
+            holdsFe = level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
+                    far, null) != null;
+            for (Direction face : Direction.values()) {
+                if (holdsFe) {
+                    break;
+                }
+                holdsFe = level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
+                        far, face) != null;
+            }
+        }
+        return CouplerForeign.wired(beClass, blockClass, connector, holdsFe);
     }
 
     public static IEnergyStorage mouth(BlockEntity connector, IEnergyStorage handler) {
@@ -225,7 +254,9 @@ public final class NewAgeFeed {
             if (!simulate) {
                 return handler.receiveEnergy(maxReceive, false);
             }
-            return Math.min(maxReceive, NewAgeCompatHelper.acceptanceFePerTick(connector, null));
+
+            return Math.min(maxReceive, NewAgeCompatHelper.acceptanceFePerTick(connector,
+                    NewAgeCompatHelper.supportingPosOf(connector)));
         }
 
         @Override

@@ -41,6 +41,12 @@ public final class AerialPilot {
 
     static final double FAST_BAND_SHARE = 0.05;
 
+    public static final String LEVITITE_STILL =
+            "Levitite floats the ship and nothing aboard pushes it up or down: add a prop or thruster that does, or a balloon.";
+
+    public static final String LEVITITE_NO_DOWN =
+            "Levitite holds the whole ship and nothing aboard pushes it down: add a prop or thruster that pushes down.";
+
     static final double ACROSS_SHARE = 0.1;
 
     static final double ASTERN_FLOW = 0.5;
@@ -159,6 +165,8 @@ public final class AerialPilot {
 
     private double flown = Double.NaN;
 
+    private Levitation levitation = Levitation.NONE;
+
     public AerialPilot() {
         this(new AerialSetup());
     }
@@ -200,6 +208,14 @@ public final class AerialPilot {
         boolean moved = !Double.isFinite(dragPrior) || Math.abs(drag - dragPrior) > 0.01 * dragPrior;
         dragPrior = drag;
         if (moved && initialised) vertical.setDragPrior(drag);
+    }
+
+    public void levitation(Levitation lev) {
+        levitation = lev == null ? Levitation.NONE : lev;
+    }
+
+    public Levitation levitation() {
+        return levitation;
     }
 
     public int frozen() {
@@ -290,7 +306,10 @@ public final class AerialPilot {
         Keys k = keys == null ? Keys.NONE : keys;
         List<String> notes = new ArrayList<>();
         Feel feel = setup.feel;
-        double passive = Double.isFinite(s.passiveLift()) ? s.passiveLift() : 0.0;
+        double hand = Double.isFinite(s.passiveLift()) ? s.passiveLift() : 0.0;
+
+        double floated = levitation.lift(s.mass(), s.g());
+        double passive = hand + floated;
 
         double loadRoom = AltitudeLaw.maxLift(s.cells(), s.g()) + Math.max(0.0, s.thrust().maxUp()) + passive;
         if (!initialised && s.mass() > 0.0) {
@@ -378,8 +397,6 @@ public final class AerialPilot {
                 anchorZ = destination[1];
                 anchoring = true;
             } else if (rudderOnly(s) && dist < CAPTURE && dx * s.vx() + dz * s.vz() < 0.0) {
-                // rudder only ships can't turn tighter than the rudder, anchor and close along the nose
-
                 mode = Mode.ANCHOR;
                 anchorX = destination[0];
                 anchorZ = destination[1];
@@ -526,13 +543,21 @@ public final class AerialPilot {
         double weight = mass * s.g();
         double up = 0.0;
         double upCare = 0.0;
-        if (s.thrust().maxUp() > FAST_BAND_SHARE * weight) {
+
+        double band = FAST_BAND_SHARE * weight;
+        if (s.thrust().maxUp() > band || (floated > 0.0 && s.thrust().maxDown() > band)) {
             up = Math.max(-s.thrust().maxDown(), Math.min(s.thrust().maxUp(), plan.force() - AltitudeLaw.lift(s.cells(), s.g())));
             upCare = 1.0;
         }
         double maxLift = AltitudeLaw.maxLift(s.cells(), s.g());
-        if (s.cells().isEmpty()) {
-            notes.add(passive > 0.0
+        if (s.cells().isEmpty() && floated > 0.0) {
+            if (!(s.thrust().maxUp() > band) && !(s.thrust().maxDown() > band)) {
+                notes.add(LEVITITE_STILL);
+            } else if (floated >= (1.0 - FAST_BAND_SHARE) * weight && !(s.thrust().maxDown() > band) && flown < s.y() - 1.0) {
+                notes.add(LEVITITE_NO_DOWN);
+            }
+        } else if (s.cells().isEmpty()) {
+            notes.add(hand > 0.0
                     ? "Every balloon is on hand control: the Aerial holds no altitude."
                     : "No balloon with a burner or vent under it: nothing to hold the ship up with.");
         } else if (plan.short_() && maxLift + s.thrust().maxUp() < plan.force()) {
@@ -694,7 +719,6 @@ public final class AerialPilot {
     private void learn(Sense s) {
         Sense l = last;
         last = s;
-        // sable only wakes a body on force change, a hovering ship falls asleep. asleep reads as hidden lift. sable tax #16
 
         frozen = l != null && s.vx() == l.vx() && s.vy() == l.vy() && s.vz() == l.vz() ? frozen + 1 : 0;
 
@@ -709,7 +733,7 @@ public final class AerialPilot {
             double gas = 0.5 * (Math.max(0.0, was.gas()) + Math.max(0.0, s.cells().get(i).gas()));
             lift += gas * was.forcePerGas(l.g());
         }
-        double passive = Double.isFinite(l.passiveLift()) ? l.passiveLift() : 0.0;
+        double passive = (Double.isFinite(l.passiveLift()) ? l.passiveLift() : 0.0) + levitation.lift(l.mass(), l.g());
         double known = lift + passive + lastUp - l.mass() * l.g();
 
         double carried = l.mass() + loadMass(l.g());
@@ -731,7 +755,7 @@ public final class AerialPilot {
 
     public double balloonCeiling(Sense s) {
         if (s.cells().isEmpty()) return Double.NaN;
-        double passive = Double.isFinite(s.passiveLift()) ? s.passiveLift() : 0.0;
+        double passive = (Double.isFinite(s.passiveLift()) ? s.passiveLift() : 0.0) + levitation.lift(s.mass(), s.g());
         double hidden = vertical.predict(VerticalObserver.regressors(0.0, s.airspeed(), 0.0, s.pressure())) + passive;
         return AltitudeLaw.ceiling(s.mass(), s.g(), hidden, s.cells(), s.air());
     }

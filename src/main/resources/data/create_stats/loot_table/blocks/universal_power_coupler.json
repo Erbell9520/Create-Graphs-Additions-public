@@ -6,7 +6,16 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "create_stats:universal_power_coupler"
+          "name": "create_stats:universal_power_coupler",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "source": "block_entity",
+              "include": [
+                "create_stats:stored_fe"
+              ]
+            }
+          ]
         }
       ],
       "conditions": [

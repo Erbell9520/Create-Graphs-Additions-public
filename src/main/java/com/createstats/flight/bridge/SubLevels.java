@@ -1,6 +1,5 @@
 package com.createstats.flight.bridge;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public final class SubLevels {
@@ -16,28 +14,7 @@ public final class SubLevels {
     }
 
     public static List<Object> listActive(ServerLevel level) {
-        try {
-            Class<?> containerClass = Class.forName("dev.ryanhcode.sable.api.sublevel.SubLevelContainer");
-            Object container = containerClass.getMethod("getContainer", Level.class).invoke(null, level);
-            Object all = container.getClass().getMethod("getAllSubLevels").invoke(container);
-            List<Object> out = new ArrayList<>();
-            if (all instanceof Iterable<?> iterable) {
-                for (Object o : iterable) {
-                    if (o != null) {
-                        out.add(o);
-                    }
-                }
-            } else if (all instanceof Object[] array) {
-                for (Object o : array) {
-                    if (o != null) {
-                        out.add(o);
-                    }
-                }
-            }
-            return out;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return List.of();
-        }
+        return SableContainers.subLevels(level);
     }
 
     @Nullable

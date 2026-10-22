@@ -2,6 +2,7 @@ package com.createstats.client.battle;
 
 import com.createstats.battle.DamageObserverVoxelMap;
 import com.createstats.blockentity.StatsDisplayPanelBE;
+import com.createstats.client.AnimationClock;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -64,7 +65,7 @@ public final class BattleTacticalV2PanelHologram {
 
         final Level level = be.getLevel();
         final long time = level == null ? 0L : level.getGameTime();
-        final float yaw = ((time + partialTick) * 0.6f) % 360f;
+        final float yaw = (float) ((AnimationClock.time(time, partialTick) * 0.6) % 360.0);
 
         ps.pushPose();
 

@@ -26,7 +26,6 @@ final class VcuActuators {
     static final String WHEEL_MOUNT = "dev.ryanhcode.offroad.content.blocks.wheel_mount.WheelMountBlockEntity";
     static final String BURNER = "dev.eriksonn.aeronautics.content.blocks.hot_air.hot_air_burner.HotAirBurnerBlockEntity";
     static final String VENT = "dev.eriksonn.aeronautics.content.blocks.hot_air.steam_vent.SteamVentBlockEntity";
-    private static final String CONTAINER = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
     private static final String PIPELINE = "dev.ryanhcode.sable.api.physics.PhysicsPipeline";
     private static final String SERVER_SUB_LEVEL = "dev.ryanhcode.sable.sublevel.ServerSubLevel";
 
@@ -172,31 +171,7 @@ final class VcuActuators {
     }
 
     static void wake(ServerLevel level, @Nullable Object subLevel) {
-        if (subLevel == null) return;
-        try {
-            Class<?> ssl = cls(SERVER_SUB_LEVEL);
-            Class<?> pipelineClass = cls(PIPELINE);
-            Class<?> containerClass = cls(CONTAINER);
-            if (ssl == null || pipelineClass == null || containerClass == null || !ssl.isInstance(subLevel)) return;
-            Method getContainer = null;
-            for (Method m : containerClass.getMethods()) {
-                if (m.getName().equals("getContainer") && Modifier.isStatic(m.getModifiers())
-                        && m.getParameterCount() == 1 && m.getParameterTypes()[0].isInstance(level)) {
-                    getContainer = m;
-                    break;
-                }
-            }
-            if (getContainer == null) return;
-            Object container = getContainer.invoke(null, level);
-            if (container == null) return;
-            Object system = container.getClass().getMethod("physicsSystem").invoke(container);
-            if (system == null) return;
-            Object pipeline = system.getClass().getMethod("getPipeline").invoke(system);
-            if (pipeline == null) return;
-            pipelineClass.getMethod("wakeUp", ssl).invoke(pipeline, subLevel);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-            warnOnce("wake", e);
-        }
+        com.createstats.flight.bridge.SableWake.wake(level, subLevel);
     }
 
     @SuppressWarnings("unchecked")

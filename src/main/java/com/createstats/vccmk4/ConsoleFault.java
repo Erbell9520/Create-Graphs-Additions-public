@@ -1,6 +1,7 @@
 package com.createstats.vccmk4;
 
 import com.createstats.CreateStats;
+import com.createstats.flight.bridge.ForeignHandles;
 import com.createstats.flight.bridge.SableBridge;
 import com.createstats.vccmk4.air.AerialBE;
 import com.createstats.vccmk4.core.FaultRule;
@@ -8,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -61,7 +63,8 @@ public final class ConsoleFault {
         long t0 = System.nanoTime();
         try {
             tick.run();
-        } catch (RuntimeException | LinkageError | StackOverflowError e) {
+        } catch (Throwable e) {
+            if (ForeignHandles.fatal(e)) throw e;
             leave(server, be, e, null, null);
             return;
         }
@@ -75,7 +78,8 @@ public final class ConsoleFault {
     private static void clientTick(BlockEntity be, Runnable tick) {
         try {
             tick.run();
-        } catch (RuntimeException | LinkageError | StackOverflowError e) {
+        } catch (Throwable e) {
+            if (ForeignHandles.fatal(e)) throw e;
             GONE.add(be);
             CreateStats.LOGGER.error("[VCC Mk IV] client tick of the console at {} failed; it stops ticking on this client: {}",
                     be.getBlockPos(), FaultRule.summary(e), e);
@@ -105,6 +109,17 @@ public final class ConsoleFault {
     static void leave(ServerLevel server, BlockEntity be, @Nullable Throwable error, @Nullable String reason,
                       @Nullable ServerPlayer giveTo) {
         if (!GONE.add(be)) return;
+
+        try {
+            depart(server, be, error, reason, giveTo);
+        } catch (Throwable t) {
+            if (ForeignHandles.fatal(t)) throw t;
+            CreateStats.LOGGER.error("[VCC Mk IV] the console at {} is stopped, but its removal failed", be.getBlockPos(), t);
+        }
+    }
+
+    private static void depart(ServerLevel server, BlockEntity be, @Nullable Throwable error, @Nullable String reason,
+                               @Nullable ServerPlayer giveTo) {
         BlockPos pos = be.getBlockPos().immutable();
         BlockState state = be.getBlockState();
         Vec3 world = worldPos(be);
@@ -121,7 +136,9 @@ public final class ConsoleFault {
             while (RECENT.size() > RECENT_MAX) RECENT.removeFirst();
         }
         if (giveTo == null) tell(server, world, state, error != null, why);
-        server.getServer().execute(() -> remove(server, be, pos, state, world, giveTo));
+
+        server.getServer().tell(new TickTask(server.getServer().getTickCount(),
+                () -> remove(server, be, pos, state, world, giveTo)));
     }
 
     private static void tell(ServerLevel server, Vec3 world, BlockState state, boolean failed, String why) {
@@ -140,20 +157,27 @@ public final class ConsoleFault {
         try {
             if (server.getBlockEntity(pos) != be) return;
             if (!server.removeBlock(pos, false)) return;
-        } catch (RuntimeException | LinkageError e) {
+        } catch (Throwable e) {
+            if (ForeignHandles.fatal(e)) throw e;
             CreateStats.LOGGER.error("[VCC Mk IV] could not remove the console at {}; it stays stopped for this session", pos, e);
             return;
         }
-        ItemStack stack = new ItemStack(state.getBlock().asItem());
-        if (stack.isEmpty()) return;
-        ServerPlayer to = giveTo != null ? giveTo : nearest(server, world);
-        if (to != null) {
-            if (!to.getInventory().add(stack)) to.drop(stack, false);
-            return;
+
+        try {
+            ItemStack stack = new ItemStack(state.getBlock().asItem());
+            if (stack.isEmpty()) return;
+            ServerPlayer to = giveTo != null ? giveTo : nearest(server, world);
+            if (to != null) {
+                if (!to.getInventory().add(stack)) to.drop(stack, false);
+                return;
+            }
+            ItemEntity item = new ItemEntity(server, world.x, world.y + 0.5, world.z, stack);
+            item.setDefaultPickUpDelay();
+            server.addFreshEntity(item);
+        } catch (Throwable e) {
+            if (ForeignHandles.fatal(e)) throw e;
+            CreateStats.LOGGER.error("[VCC Mk IV] the console at {} is gone, but its item could not be handed back", pos, e);
         }
-        ItemEntity item = new ItemEntity(server, world.x, world.y + 0.5, world.z, stack);
-        item.setDefaultPickUpDelay();
-        server.addFreshEntity(item);
     }
 
     @Nullable

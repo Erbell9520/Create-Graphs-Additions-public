@@ -36,7 +36,7 @@ public final class ReflectionAccessors {
             Class<?> c = Class.forName(fqn, false, ReflectionAccessors.class.getClassLoader());
             CLASS_CACHE.put(fqn, c);
             return c;
-        } catch (ClassNotFoundException | LinkageError ex) {
+        } catch (ClassNotFoundException | LinkageError | RuntimeException ex) {
             CLASS_CACHE.put(fqn, MISSING);
             return null;
         }
@@ -46,13 +46,22 @@ public final class ReflectionAccessors {
     public static Class<?> initClass(String fqn) {
         try {
             return Class.forName(fqn, true, ReflectionAccessors.class.getClassLoader());
-        } catch (ClassNotFoundException | LinkageError ex) {
+        } catch (ClassNotFoundException | LinkageError | RuntimeException ex) {
             return null;
         }
     }
 
     @Nullable
     public static Method findMethodAccepting(Class<?> owner, String name, Class<?>... argTypes) {
+        try {
+            return firstAccepting(owner, name, argTypes);
+        } catch (RuntimeException | LinkageError ex) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private static Method firstAccepting(Class<?> owner, String name, Class<?>... argTypes) {
         for (Method m : owner.getMethods()) {
             if (!m.getName().equals(name)) continue;
             Class<?>[] params = m.getParameterTypes();
@@ -80,7 +89,7 @@ public final class ReflectionAccessors {
             m.setAccessible(true);
             METHOD_CACHE.put(key, m);
             return m;
-        } catch (NoSuchMethodException | LinkageError ex) {
+        } catch (NoSuchMethodException | LinkageError | RuntimeException ex) {
             if (params.length == 0) {
                 Class<?> p = owner.getSuperclass();
                 while (p != null && p != Object.class) {
@@ -89,7 +98,7 @@ public final class ReflectionAccessors {
                         m.setAccessible(true);
                         METHOD_CACHE.put(key, m);
                         return m;
-                    } catch (NoSuchMethodException ignore) {
+                    } catch (NoSuchMethodException | LinkageError | RuntimeException ignore) {
                         p = p.getSuperclass();
                     }
                 }
@@ -112,7 +121,7 @@ public final class ReflectionAccessors {
                 f.setAccessible(true);
                 FIELD_CACHE.put(key, f);
                 return f;
-            } catch (NoSuchFieldException ignore) {
+            } catch (NoSuchFieldException | LinkageError | RuntimeException ignore) {
                 p = p.getSuperclass();
             }
         }

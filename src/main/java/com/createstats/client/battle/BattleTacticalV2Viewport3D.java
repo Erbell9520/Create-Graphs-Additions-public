@@ -2,6 +2,7 @@ package com.createstats.client.battle;
 
 import com.createstats.battle.DamageObserverVoxelMap;
 import com.createstats.blockentity.StatsDisplayPanelBE;
+import com.createstats.client.AnimationClock;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -106,7 +107,7 @@ public final class BattleTacticalV2Viewport3D {
             cam.yClipLevel = structureMaxY;
         }
         if (!cam.frozen && !cam.userDraggedThisSession) {
-            float autoYaw = (renderTick + partialTick) * 0.5f;
+            float autoYaw = (float) ((AnimationClock.time(renderTick, partialTick) * 0.5) % 360.0);
             cam.yaw = ((autoYaw % 360f) + 360f) % 360f;
         }
 

@@ -327,6 +327,22 @@ public class ModSounds {
             SOUNDS.register("spark_crown_land", () -> SoundEvent.createVariableRangeEvent(
                     ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "spark_crown_land")));
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> COUPLER_CRACKLE =
+            SOUNDS.register("coupler_crackle", () -> SoundEvent.createVariableRangeEvent(
+                    ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "coupler_crackle")));
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> COUPLER_SEAT =
+            SOUNDS.register("coupler_seat", () -> SoundEvent.createVariableRangeEvent(
+                    ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "coupler_seat")));
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> COUPLER_INDEX =
+            SOUNDS.register("coupler_index", () -> SoundEvent.createVariableRangeEvent(
+                    ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "coupler_index")));
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> COUPLER_TRIP =
+            SOUNDS.register("coupler_trip", () -> SoundEvent.createVariableRangeEvent(
+                    ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "coupler_trip")));
+
     public static SoundEvent doorClip(com.createstats.sound.DoorClip clip) {
         return DOOR.get(clip).get();
     }

@@ -18,7 +18,6 @@ import net.minecraft.nbt.CompoundTag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,11 +34,10 @@ class PduPlatesTest {
     @Test
     void theRecordIsWhatTheScreenDrawsNow() throws IOException {
         final String now = PduPlates.json(PduRig.record());
-        final String kept;
-        try (InputStream in = PduPlates.class.getResourceAsStream(PduPlates.RECORD)) {
-            assertNotNull(in, PduPlates.RECORD + " is missing: run PduRig.main to write it");
-            kept = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        }
+
+        final java.nio.file.Path record = java.nio.file.Path.of("src/main/resources" + PduPlates.RECORD);
+        assertTrue(java.nio.file.Files.exists(record), PduPlates.RECORD + " is missing: run PduRig.main to write it");
+        final String kept = java.nio.file.Files.readString(record, StandardCharsets.UTF_8);
         assertEquals(kept, now, PduPlates.RECORD + " is stale: the screen or the example moved. Run PduRig.main "
                 + "(python -B book.py run com.createstats.book.PduRig) and look at the plates again");
     }

@@ -1,0 +1,130 @@
+{
+  "bench": "NeoForge 21.1.251, Create 6.0.10, 2026-10-21",
+  "tested": [
+    {
+      "modid": "create_new_age",
+      "name": "Create: New Age",
+      "version": "1.2.0+mc1.21.1",
+      "passed": true,
+      "cases": [
+        "bolted PULL",
+        "bolted PUSH",
+        "wired PULL",
+        "wired PUSH"
+      ],
+      "results": {
+        "bolted PULL": "PASS",
+        "bolted PUSH": "PASS",
+        "wired PULL": "PASS",
+        "wired PUSH": "PASS"
+      }
+    },
+    {
+      "modid": "createaddition",
+      "name": "Create Crafts & Additions",
+      "version": "1.7.1",
+      "passed": true,
+      "cases": [
+        "bolted PULL",
+        "bolted PUSH",
+        "wired PULL",
+        "wired PUSH"
+      ],
+      "results": {
+        "bolted PULL": "PASS",
+        "bolted PUSH": "PASS",
+        "wired PULL": "PASS",
+        "wired PUSH": "PASS",
+        "connector bolted PULL": "PASS",
+        "connector bolted PUSH": "PASS",
+        "connector wired PULL": "PASS",
+        "connector wired PUSH": "PASS",
+        "creative wired PULL": "PASS",
+        "network wired PULL": "PASS",
+        "network wired PUSH": "PASS"
+      }
+    },
+    {
+      "modid": "enderio",
+      "name": "Ender IO",
+      "version": "8.2.12-beta",
+      "passed": true,
+      "cases": [
+        "bolted PULL",
+        "bolted PUSH",
+        "wired PULL",
+        "wired PUSH"
+      ],
+      "results": {
+        "bolted PULL": "PASS",
+        "bolted PUSH": "PASS",
+        "wired PULL": "PASS",
+        "wired PUSH": "PASS",
+        "conduit bolted PULL": "PASS",
+        "conduit bolted PUSH": "PASS"
+      }
+    },
+    {
+      "modid": "immersiveengineering",
+      "name": "Immersive Engineering",
+      "version": "12.4.2-194",
+      "passed": true,
+      "cases": [
+        "bolted PULL",
+        "bolted PUSH",
+        "wired PULL",
+        "wired PUSH"
+      ],
+      "results": {
+        "bolted PULL": "PASS",
+        "bolted PUSH": "PASS",
+        "wired PULL": "PASS",
+        "wired PUSH": "PASS",
+        "connector bolted PULL": "PASS",
+        "connector bolted PUSH": "PASS",
+        "connector wired PULL": "PASS",
+        "connector wired PUSH": "PASS"
+      }
+    },
+    {
+      "modid": "mekanism",
+      "name": "Mekanism",
+      "version": "10.7.19",
+      "passed": true,
+      "cases": [
+        "bolted PULL",
+        "bolted PUSH",
+        "wired PULL",
+        "wired PUSH"
+      ],
+      "results": {
+        "bolted PULL": "PASS",
+        "bolted PUSH": "PASS",
+        "wired PULL": "PASS",
+        "wired PUSH": "PASS",
+        "cable bolted PULL": "PASS",
+        "cable bolted PUSH": "PASS"
+      }
+    },
+    {
+      "modid": "powah",
+      "name": "Powah",
+      "version": "6.2.10",
+      "passed": true,
+      "cases": [
+        "bolted PULL",
+        "bolted PUSH",
+        "wired PULL",
+        "wired PUSH"
+      ],
+      "results": {
+        "bolted PULL": "PASS",
+        "bolted PUSH": "PASS",
+        "wired PULL": "PASS",
+        "wired PUSH": "PASS",
+        "cable bolted PULL": "PASS",
+        "cable bolted PUSH": "PASS"
+      }
+    }
+  ]
+}

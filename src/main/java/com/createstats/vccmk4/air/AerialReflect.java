@@ -2,6 +2,8 @@ package com.createstats.vccmk4.air;
 
 import com.createstats.CreateStats;
 import com.createstats.flight.bridge.ReflectionAccessors;
+import com.createstats.flight.bridge.SableWake;
+import com.createstats.vccmk4.air.core.Levitation;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
 import dev.ryanhcode.sable.companion.math.BoundingBox3dc;
 import dev.ryanhcode.sable.companion.math.BoundingBox3ic;
@@ -14,6 +16,8 @@ import org.joml.Vector3dc;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,15 +28,9 @@ final class AerialReflect {
     static final String PROPELLER = "dev.ryanhcode.sable.api.block.propeller.BlockEntityPropeller";
     static final String PHYSICS_DATA = "dev.ryanhcode.sable.physics.config.dimension_physics.DimensionPhysicsData";
 
-    static final String SUB_LEVEL_CONTAINER = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
-    static final String PIPELINE = "dev.ryanhcode.sable.api.physics.PhysicsPipeline";
-    static final String SERVER_SUB_LEVEL = "dev.ryanhcode.sable.sublevel.ServerSubLevel";
-
     private static final Set<String> WARNED = ConcurrentHashMap.newKeySet();
     private static volatile Method airPressure;
     private static volatile boolean airPressureMissing;
-    private static volatile Method[] wakePath;
-    private static volatile boolean wakeMissing;
 
     private AerialReflect() {
     }
@@ -166,43 +164,7 @@ final class AerialReflect {
     }
 
     static void wake(Level level, @Nullable Object serverSubLevel) {
-        if (serverSubLevel == null || wakeMissing) return;
-        Method[] path = wakePath;
-        if (path == null) {
-            Class<?> container = ReflectionAccessors.findClass(SUB_LEVEL_CONTAINER);
-            Class<?> pipelineClass = ReflectionAccessors.findClass(PIPELINE);
-            Class<?> ssl = ReflectionAccessors.findClass(SERVER_SUB_LEVEL);
-            Method getContainer = null;
-            if (container != null) {
-                for (Method m : container.getMethods()) {
-                    if (m.getName().equals("getContainer") && java.lang.reflect.Modifier.isStatic(m.getModifiers())
-                            && m.getParameterCount() == 1 && m.getParameterTypes()[0].isInstance(level)) {
-                        getContainer = m;
-                        break;
-                    }
-                }
-            }
-            Method wakeUp = pipelineClass == null || ssl == null ? null : ReflectionAccessors.findMethodAccepting(pipelineClass, "wakeUp", ssl);
-            if (getContainer == null || wakeUp == null) {
-                wakeMissing = true;
-                warnOnce("wake", "SubLevelContainer.getContainer or PhysicsPipeline.wakeUp not found");
-                return;
-            }
-            path = new Method[] {getContainer, wakeUp};
-            wakePath = path;
-        }
-        try {
-            Object c = path[0].invoke(null, level);
-            if (c == null) return;
-            Object system = c.getClass().getMethod("physicsSystem").invoke(c);
-            if (system == null) return;
-            Object pipeline = system.getClass().getMethod("getPipeline").invoke(system);
-            if (pipeline == null || !path[1].getDeclaringClass().isInstance(pipeline)
-                    || !path[1].getParameterTypes()[0].isInstance(serverSubLevel)) return;
-            path[1].invoke(pipeline, serverSubLevel);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-            warnOnce("wake", e.toString());
-        }
+        SableWake.wake(level, serverSubLevel);
     }
 
     static final String STAFF_HANDLER = "dev.simulated_team.simulated.content.physics_staff.PhysicsStaffServerHandler";
@@ -221,13 +183,18 @@ final class AerialReflect {
             Class<?> session = ReflectionAccessors.findClass(STAFF_HANDLER + "$DragSession");
             Method get = handler == null ? null : ReflectionAccessors.findMethodAccepting(handler, "get", ServerLevel.class);
             Method isLocked = null;
-            if (handler != null) {
-                for (Method m : handler.getMethods()) {
-                    if (m.getName().equals("isLocked") && m.getParameterCount() == 1) {
-                        isLocked = m;
-                        break;
+
+            try {
+                if (handler != null) {
+                    for (Method m : handler.getMethods()) {
+                        if (m.getName().equals("isLocked") && m.getParameterCount() == 1) {
+                            isLocked = m;
+                            break;
+                        }
                     }
                 }
+            } catch (RuntimeException | LinkageError e) {
+                warnOnce("staff", e.toString());
             }
             java.lang.reflect.Field sessions = null;
             java.lang.reflect.Field held = null;
@@ -276,6 +243,42 @@ final class AerialReflect {
         Object plot = call(subLevel, "getPlot");
         if (!(call(plot, "getBoundingBox") instanceof BoundingBox3ic b)) return null;
         return new int[] {b.minX(), b.minY(), b.minZ(), b.maxX(), b.maxY(), b.maxZ()};
+    }
+
+    static List<Levitation.Cluster> floating(@Nullable Object serverSubLevel) {
+        if (serverSubLevel == null) return List.of();
+        Object controller = call(serverSubLevel, "getFloatingBlockController");
+        if (controller == null) return List.of();
+        try {
+            List<Object> containers = new ArrayList<>();
+            Object all = ReflectionAccessors.read(ReflectionAccessors.field(controller.getClass(), "containers"), controller);
+            if (all instanceof List<?> l) containers.addAll(l);
+            if (containers.isEmpty()) {
+                Object own = ReflectionAccessors.read(ReflectionAccessors.field(controller.getClass(), "sublevelContainer"), controller);
+                if (own != null) containers.add(own);
+            }
+            List<Levitation.Cluster> out = new ArrayList<>();
+            for (Object container : containers) {
+                if (container == null) continue;
+                Object clusters = ReflectionAccessors.read(ReflectionAccessors.field(container.getClass(), "clusters"), container);
+                if (!(clusters instanceof List<?> list)) continue;
+                for (Object cluster : new ArrayList<>(list)) {
+                    Object material = call(cluster, "getMaterial");
+                    Object data = call(cluster, "getBlockData");
+                    if (material == null || data == null) continue;
+                    double scale = number(ReflectionAccessors.read(ReflectionAccessors.field(data.getClass(), "totalScale"), data), 0.0);
+                    out.add(new Levitation.Cluster(number(call(material, "liftStrength"), 0.0), scale,
+                            number(call(data, "getPressureScale"), 1.0), Boolean.TRUE.equals(call(material, "preventSelfLift")),
+                            Boolean.TRUE.equals(call(material, "scaleWithPressure")), Boolean.TRUE.equals(call(material, "scaleWithGravity")),
+                            number(call(material, "slowVerticalFriction"), 0.0), number(call(material, "fastVerticalFriction"), 0.0),
+                            number(call(material, "transitionSpeed"), 0.0)));
+                }
+            }
+            return out;
+        } catch (RuntimeException | LinkageError e) {
+            warnOnce("floating", e.toString());
+            return List.of();
+        }
     }
 
     @Nullable

@@ -1,6 +1,7 @@
 package com.createstats.aviatorhelmet.client;
 
 import com.createstats.aviatorhelmet.AviatorGoggles;
+import com.createstats.client.AnimationClock;
 import com.createstats.aviatorhelmet.GoggleMotion;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,7 +28,8 @@ public final class GoggleView {
 
     static double now() {
         final Minecraft mc = Minecraft.getInstance();
-        return mc.level == null ? 0.0 : mc.level.getGameTime() + AnimationTickHolder.getPartialTicks();
+
+        return mc.level == null ? 0.0 : AnimationClock.time(mc.level, AnimationTickHolder.getPartialTicks());
     }
 
     static double secondsInto(boolean down, long strokeTick) {

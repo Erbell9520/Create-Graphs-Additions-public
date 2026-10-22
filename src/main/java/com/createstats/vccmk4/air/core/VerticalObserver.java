@@ -1,6 +1,5 @@
 package com.createstats.vccmk4.air.core;
 
-// learn the lift nobody commanded
 public final class VerticalObserver {
     public static final int DRAG = 0;
     public static final int WING = 1;

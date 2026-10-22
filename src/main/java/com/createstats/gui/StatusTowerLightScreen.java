@@ -1,6 +1,7 @@
 package com.createstats.gui;
 
 import com.createstats.blockentity.SignalPattern;
+import com.createstats.client.AnimationClock;
 import com.createstats.blockentity.StatusTowerLightBE;
 import com.createstats.blockentity.StatusTowerLightSettings;
 import com.createstats.gui.pdu.Ease;
@@ -178,7 +179,7 @@ public class StatusTowerLightScreen extends Screen {
         final StatusTowerLightBE.SignalState severity = previewSeverity();
         final SignalPattern pattern = settings.getAlertStyle().patternFor(severity);
         final int colour = previewColour(severity);
-        final double seconds = (gameTime() + partialTick) / 20.0D;
+        final double seconds = AnimationClock.time(gameTime(), partialTick) / 20.0D;
 
         final float level = (float) pattern.brightness(seconds, 0.0D, 0.35D);
         shownLevel = shownLevel < 0.0f ? level : Ease.ease(shownLevel, level, 24.0f, partialTick);

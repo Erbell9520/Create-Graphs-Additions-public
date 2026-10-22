@@ -2,6 +2,8 @@ package com.createstats.compat;
 
 import com.createstats.blockentity.IAutoDataReceiver;
 import com.createstats.data.MetricType;
+import com.createstats.power.CouplerForeign;
+import com.createstats.power.CreateAdditionFeed;
 import com.createstats.util.InstrumentSourceHelper;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -47,6 +49,101 @@ public final class CreateAdditionCompatHelper {
     private static final Map<BlockEntity, EnergyAccumulatorState> ENERGY_STATES = new WeakHashMap<>();
 
     private CreateAdditionCompatHelper() {
+    }
+
+    @Nullable
+    public static IEnergyStorage seamMouth(@Nullable BlockEntity be) {
+        if (be == null || !CouplerForeign.isCreateAdditionConnector(be.getClass().getName())) {
+            return null;
+        }
+        final Method[] calls = CONNECTOR_CALLS.get(be.getClass());
+        return calls == null ? null : CreateAdditionFeed.mouth(new SeamConnector(be, calls));
+    }
+
+    private static final ClassValue<Method[]> CONNECTOR_CALLS = new ClassValue<>() {
+        @Override
+        protected Method[] computeValue(Class<?> type) {
+            return methods(type, new String[]{"getNetwork", "getMaxIn", "getMaxOut"},
+                    new Class<?>[][]{{int.class}, {}, {}});
+        }
+    };
+
+    private static final ClassValue<Method[]> NETWORK_CALLS = new ClassValue<>() {
+        @Override
+        protected Method[] computeValue(Class<?> type) {
+            return methods(type, new String[]{"isValid", "pull", "push", "demand"},
+                    new Class<?>[][]{{}, {int.class, boolean.class}, {int.class, boolean.class}, {int.class}});
+        }
+    };
+
+    @Nullable
+    private static Method[] methods(Class<?> type, String[] names, Class<?>[][] parameters) {
+        final Method[] out = new Method[names.length];
+        try {
+            for (int i = 0; i < names.length; i++) {
+                out[i] = type.getMethod(names[i], parameters[i]);
+                out[i].setAccessible(true);
+            }
+            return out;
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError missing) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private static Object call(Method method, Object target, Object... args) {
+        try {
+            return method.invoke(target, args);
+        } catch (ReflectiveOperationException | RuntimeException failed) {
+            return null;
+        }
+    }
+
+    private record SeamConnector(BlockEntity be, Method[] calls) implements CreateAdditionFeed.Connector {
+        @Nullable
+        @Override
+        public CreateAdditionFeed.Network network() {
+            if (this.be.isRemoved()) {
+                return null;
+            }
+
+            final Object network = call(this.calls[0], this.be, 0);
+            if (network == null) {
+                return null;
+            }
+            final Method[] on = NETWORK_CALLS.get(network.getClass());
+            if (on == null || !(call(on[0], network) instanceof Boolean valid) || !valid) {
+                return null;
+            }
+            return new SeamNetwork(network, on);
+        }
+
+        @Override
+        public int maxIn() {
+            return call(this.calls[1], this.be) instanceof Integer v ? v : 0;
+        }
+
+        @Override
+        public int maxOut() {
+            return call(this.calls[2], this.be) instanceof Integer v ? v : 0;
+        }
+    }
+
+    private record SeamNetwork(Object network, Method[] calls) implements CreateAdditionFeed.Network {
+        @Override
+        public int pull(int energy, boolean simulate) {
+            return call(this.calls[1], this.network, energy, simulate) instanceof Integer v ? v : 0;
+        }
+
+        @Override
+        public int push(int energy, boolean simulate) {
+            return call(this.calls[2], this.network, energy, simulate) instanceof Integer v ? v : 0;
+        }
+
+        @Override
+        public void demand(int energy) {
+            call(this.calls[3], this.network, energy);
+        }
     }
 
     public static boolean supportsCompactAutoRead(@Nullable BlockEntity sourceBE) {
@@ -221,9 +318,6 @@ public final class CreateAdditionCompatHelper {
         putEnergyMetrics(metrics, sourceBE, energy);
     }
 
-    // IEnergyStorage can't say what a generator could make or what a machine costs. so ask the block
-
-    // without this an alternator branch had zero known generation and lagged every speed change
     public static int generationPotentialFePerTick(@Nullable BlockEntity sourceBE) {
         if (!CreateAdditionCompat.isAvailable() || sourceBE == null
                 || !isCreateAdditionBlockEntity(sourceBE)) {

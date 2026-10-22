@@ -240,6 +240,22 @@ class AerialWiringTest {
         assertTrue(!AerialBE.turnsAGun(machine.apply(List.of())));
     }
 
+    @Test
+    void noTickStampWrapsOnItsFirstCheck() throws IOException {
+        String src = read(AIR.resolve("AerialBE.java"));
+        Matcher field = Pattern.compile("\\blong (\\w+) = Long\\.MIN_VALUE;").matcher(src);
+        List<String> problems = new ArrayList<>();
+        while (field.find()) {
+            String name = field.group(1);
+            Pattern use = Pattern.compile("\\bnow - " + name + "\\b");
+            Pattern guard = Pattern.compile("\\b" + name + " [!=]= Long\\.MIN_VALUE\\b");
+            for (String line : src.split("\\R")) {
+                if (use.matcher(line).find() && !guard.matcher(line).find()) problems.add(name + ": " + line.strip());
+            }
+        }
+        assertTrue(problems.isEmpty(), "Tick stamps at Long.MIN_VALUE subtracted unguarded:\n  " + String.join("\n  ", problems));
+    }
+
     private static String body(String src, String signature) {
         int at = src.indexOf(signature);
         if (at < 0) return null;

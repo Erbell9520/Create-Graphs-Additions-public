@@ -1,5 +1,6 @@
 package com.createstats.pathfinder.client;
 
+import com.createstats.client.AnimationClock;
 import com.createstats.pathfinder.block.PathScannerBlock;
 import com.createstats.pathfinder.blockentity.PathScannerBE;
 import com.createstats.renderer.HologramRenderHelper;
@@ -69,7 +70,7 @@ public class PathScannerRenderer implements BlockEntityRenderer<PathScannerBE> {
     }
 
     private static void renderLensSweep(VertexConsumer glow, PoseStack poseStack, long gameTime, float partialTick, int alpha) {
-        float start = ((gameTime + partialTick) % 48.0f) / 48.0f * ((float)Math.PI * 2.0f);
+        float start = (float) (AnimationClock.time(gameTime, partialTick) % 48.0) / 48.0f * ((float)Math.PI * 2.0f);
         PathfinderBlockVisuals.frontArc(glow, poseStack, 0.5f, 0.445f, FRONT_Z - 0.002f,
             0.18f, 0.215f, start, 1.35f, 8,
             PathfinderBlockVisuals.CYAN_R, PathfinderBlockVisuals.CYAN_G, PathfinderBlockVisuals.CYAN_B,
@@ -88,7 +89,7 @@ public class PathScannerRenderer implements BlockEntityRenderer<PathScannerBE> {
             PathfinderBlockVisuals.CYAN_R, PathfinderBlockVisuals.CYAN_G, PathfinderBlockVisuals.CYAN_B,
             fanAlpha, HologramRenderHelper.FULL_BRIGHT, 0.0f, 1.0f, 0.0f);
 
-        float travel = ((gameTime + partialTick) % 30.0f) / 30.0f;
+        float travel = (float) (AnimationClock.time(gameTime, partialTick) % 30.0) / 30.0f;
         float beadZ = -0.11f - travel * 0.56f;
         HologramRenderHelper.emitCube(glow, matrix, normal, 0.5f, 0.455f, beadZ, 0.018f,
             PathfinderBlockVisuals.CYAN_R, PathfinderBlockVisuals.CYAN_G, PathfinderBlockVisuals.CYAN_B,

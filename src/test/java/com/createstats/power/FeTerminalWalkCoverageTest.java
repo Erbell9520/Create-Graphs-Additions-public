@@ -79,7 +79,7 @@ class FeTerminalWalkCoverageTest {
         final int branch = network.indexOf("UniversalPowerCouplerBE coupler");
         assertTrue(branch >= 0, "the walk has no Universal Power Coupler branch");
 
-        final int chainEnd = network.indexOf("// A machine already served by a connector", branch);
+        final int chainEnd = network.indexOf("} else if (node instanceof", branch);
         assertTrue(chainEnd > branch, "the walk's shape changed; this test can no longer find its end");
         final String body = network.substring(branch, chainEnd);
         assertTrue(body.contains("new FeAttachment("),

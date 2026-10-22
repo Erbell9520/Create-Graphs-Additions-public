@@ -175,31 +175,8 @@ public final class SableBridge {
         return ReflectionAccessors.invoke(c.getContaining, c.instance, be);
     }
 
-    private static final String SUBLEVEL_CONTAINER_CLASS = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
-
     public static List<Object> listSubLevels(@Nullable Level level) {
-        if (level == null) return List.of();
-        try {
-            Class<?> containerClass = Class.forName(SUBLEVEL_CONTAINER_CLASS);
-            Object container = invokeStaticOneArg(containerClass, "getContainer", level);
-            Object all = invokeNoArg(container, "getAllSubLevels");
-            if (all instanceof Iterable<?> it) {
-                List<Object> out = new ArrayList<>();
-                for (Object s : it) {
-                    if (s != null) out.add(s);
-                }
-                return out;
-            }
-            if (all instanceof Object[] arr) {
-                List<Object> out = new ArrayList<>(arr.length);
-                for (Object s : arr) {
-                    if (s != null) out.add(s);
-                }
-                return out;
-            }
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-        }
-        return List.of();
+        return SableContainers.subLevels(level);
     }
 
     @Nullable
@@ -248,24 +225,6 @@ public final class SableBridge {
                 if (m.getName().equals(name) && m.getParameterCount() == 0) {
                     m.setAccessible(true);
                     return m.invoke(owner);
-                }
-            }
-            cursor = cursor.getSuperclass();
-        }
-        return null;
-    }
-
-    @Nullable
-    private static Object invokeStaticOneArg(Class<?> ownerClass, String name, Object arg) throws ReflectiveOperationException {
-        Class<?> cursor = ownerClass;
-        while (cursor != null) {
-            for (Method m : cursor.getDeclaredMethods()) {
-                if (m.getName().equals(name) && m.getParameterCount() == 1) {
-                    try {
-                        m.setAccessible(true);
-                        return m.invoke(null, arg);
-                    } catch (IllegalArgumentException ignored) {
-                    }
                 }
             }
             cursor = cursor.getSuperclass();

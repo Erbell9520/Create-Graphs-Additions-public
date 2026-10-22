@@ -57,6 +57,8 @@ public class CreateStatsPonderPlugin implements PonderPlugin {
 
         itemHelper.addStoryBoard(ModBlocks.SPARK_CROWN.get(), "spark_crown/station", SparkCrownScenes::crown);
         itemHelper.addStoryBoard(ModBlocks.STORM_COIL.get(), "storm_coil/yard", StormCoilScenes::coil);
+
+        itemHelper.addStoryBoard(ModBlocks.UNIVERSAL_POWER_COUPLER.get(), "coupler/exchange", CouplerScenes::exchange);
     }
 
     @Override

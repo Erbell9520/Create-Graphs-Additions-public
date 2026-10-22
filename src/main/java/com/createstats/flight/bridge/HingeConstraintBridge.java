@@ -28,9 +28,7 @@ public final class HingeConstraintBridge {
         final Method pipelineAddConstraint;
         final Method pipelineApplyImpulse;
         final @Nullable Method pipelineWakeUp;
-        final Method containerGetContainer;
-        final Method containerGetAll;
-        final Method containerGetById;
+
         final Method subLevelLogicalPose;
         final Method subLevelGetUniqueId;
         final Method poseTransform;
@@ -47,8 +45,7 @@ public final class HingeConstraintBridge {
 
         Caps(Method systemRequire, Method systemGetPipeline, Method pipelineAddConstraint,
              Method pipelineApplyImpulse, @Nullable Method pipelineWakeUp,
-             Method containerGetContainer, Method containerGetAll,
-             Method containerGetById, Method subLevelLogicalPose, Method subLevelGetUniqueId,
+             Method subLevelLogicalPose, Method subLevelGetUniqueId,
              Method poseTransform, Method poseTransformInverse, Method poseOrientation,
              Method posePosition, Constructor<?> rotaryCtor, Method handleRemove, Method handleIsValid,
              @Nullable Method handleSetContacts,
@@ -59,9 +56,6 @@ public final class HingeConstraintBridge {
             this.pipelineAddConstraint = pipelineAddConstraint;
             this.pipelineApplyImpulse = pipelineApplyImpulse;
             this.pipelineWakeUp = pipelineWakeUp;
-            this.containerGetContainer = containerGetContainer;
-            this.containerGetAll = containerGetAll;
-            this.containerGetById = containerGetById;
             this.subLevelLogicalPose = subLevelLogicalPose;
             this.subLevelGetUniqueId = subLevelGetUniqueId;
             this.poseTransform = poseTransform;
@@ -104,11 +98,10 @@ public final class HingeConstraintBridge {
     private static Caps bootstrap() throws ReflectiveOperationException {
         Class<?> systemClass = ReflectionAccessors.findClass("dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem");
         Class<?> pipelineClass = ReflectionAccessors.findClass("dev.ryanhcode.sable.api.physics.PhysicsPipeline");
-        Class<?> containerClass = ReflectionAccessors.findClass("dev.ryanhcode.sable.api.sublevel.SubLevelContainer");
         Class<?> serverSubLevelClass = ReflectionAccessors.findClass("dev.ryanhcode.sable.sublevel.ServerSubLevel");
         Class<?> rotaryConfigClass = ReflectionAccessors.findClass("dev.ryanhcode.sable.api.physics.constraint.rotary.RotaryConstraintConfiguration");
         Class<?> handleClass = ReflectionAccessors.findClass("dev.ryanhcode.sable.api.physics.constraint.PhysicsConstraintHandle");
-        if (systemClass == null || pipelineClass == null || containerClass == null
+        if (systemClass == null || pipelineClass == null || !SableContainers.present()
                 || serverSubLevelClass == null || rotaryConfigClass == null || handleClass == null) {
             return null;
         }
@@ -121,7 +114,6 @@ public final class HingeConstraintBridge {
                 pipelineClass, "applyImpulse", serverSubLevelClass, Vector3dc.class, Vector3dc.class);
 
         Method pipelineWakeUp = ReflectionAccessors.findMethodAccepting(pipelineClass, "wakeUp", serverSubLevelClass);
-        Method containerGetContainer = ReflectionAccessors.findMethodAccepting(containerClass, "getContainer", ServerLevel.class);
         Method subLevelGetUniqueId = ReflectionAccessors.findMethodAccepting(serverSubLevelClass, "getUniqueId");
         Method subLevelLogicalPose = ReflectionAccessors.findMethodAccepting(serverSubLevelClass, "logicalPose");
         Method handleRemove = ReflectionAccessors.findMethodAccepting(handleClass, "remove");
@@ -130,15 +122,11 @@ public final class HingeConstraintBridge {
         Method handleSetContacts = ReflectionAccessors.findMethodAccepting(handleClass, "setContactsEnabled", boolean.class);
 
         if (systemRequire == null || systemGetPipeline == null || pipelineAddConstraint == null
-                || pipelineApplyImpulse == null || containerGetContainer == null
+                || pipelineApplyImpulse == null
                 || subLevelGetUniqueId == null || subLevelLogicalPose == null
                 || handleRemove == null || handleIsValid == null) {
             return null;
         }
-
-        Class<?> serverContainerClass = containerGetContainer.getReturnType();
-        Method containerGetAll = ReflectionAccessors.findMethodAccepting(serverContainerClass, "getAllSubLevels");
-        Method containerGetById = ReflectionAccessors.findMethodAccepting(containerClass, "getSubLevel", UUID.class);
 
         Class<?> poseClass = subLevelLogicalPose.getReturnType();
         Method poseTransform = ReflectionAccessors.findMethodAccepting(poseClass, "transformPosition", Vector3dc.class, Vector3d.class);
@@ -148,7 +136,7 @@ public final class HingeConstraintBridge {
 
         Constructor<?> rotaryCtor = rotaryConfigClass.getConstructor(Vector3dc.class, Vector3dc.class, Vector3dc.class, Vector3dc.class);
 
-        if (containerGetAll == null || poseTransform == null || poseTransformInverse == null
+        if (poseTransform == null || poseTransformInverse == null
                 || poseOrientation == null || posePosition == null) {
             return null;
         }
@@ -166,7 +154,7 @@ public final class HingeConstraintBridge {
         CreateStats.LOGGER.info("[Hinge/Bridge] Sable constraint API bootstrapped (wakeUp={}, setContacts={}).",
                 pipelineWakeUp != null, handleSetContacts != null);
         return new Caps(systemRequire, systemGetPipeline, pipelineAddConstraint, pipelineApplyImpulse,
-                pipelineWakeUp, containerGetContainer, containerGetAll, containerGetById, subLevelLogicalPose,
+                pipelineWakeUp, subLevelLogicalPose,
                 subLevelGetUniqueId, poseTransform, poseTransformInverse, poseOrientation,
                 posePosition, rotaryCtor, handleRemove, handleIsValid, handleSetContacts,
                 pushEntityLocal, popEntityLocal, serverSubLevelClass);
@@ -176,22 +164,12 @@ public final class HingeConstraintBridge {
         return caps() != null;
     }
 
-    @SuppressWarnings("unchecked")
     public static List<Object> allServerSubLevels(@Nullable ServerLevel level) {
         Caps c = caps();
         if (c == null || level == null) {
             return List.of();
         }
-        try {
-            Object container = c.containerGetContainer.invoke(null, level);
-            if (container == null) {
-                return List.of();
-            }
-            Object list = c.containerGetAll.invoke(container);
-            return list instanceof List ? (List<Object>) list : List.of();
-        } catch (Throwable ex) {
-            return List.of();
-        }
+        return SableContainers.subLevels(level);
     }
 
     @Nullable

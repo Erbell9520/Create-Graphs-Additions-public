@@ -25,20 +25,52 @@ public final class CouplerSockets {
     }
 
     public static AABB local(Direction facing, End end) {
-        if (end == End.FOREIGN) {
-            return switch (facing) {
-                case SOUTH -> new AABB(0.38750, 0.10625, 0.92500, 0.61250, 0.35000, 1.06250);
-                case EAST -> new AABB(0.92500, 0.10625, 0.38750, 1.06250, 0.35000, 0.61250);
-                case WEST -> new AABB(-0.06250, 0.10625, 0.38750, 0.07500, 0.35000, 0.61250);
-                default -> new AABB(0.38750, 0.10625, -0.06250, 0.61250, 0.35000, 0.07500);
-            };
-        }
+        return turn(end == End.FOREIGN ? FOREIGN_NORTH : GRID_NORTH, facing);
+    }
+
+    private static final AABB FOREIGN_NORTH = new AABB(0.671875, 0.78125, 0.015625, 0.828125, 0.96875, 0.140625);
+    private static final Vec3 FOREIGN_ANCHOR_NORTH = new Vec3(0.75, 0.953125, 0.078125);
+
+    private static final AABB GRID_NORTH = new AABB(0.671875, 0.78125, 0.859375, 0.828125, 0.9375, 0.984375);
+    private static final Vec3 GRID_ANCHOR_NORTH = new Vec3(0.75, 0.921875, 0.921875);
+
+    private static final double HIT_SLACK = 1.0 / 16;
+
+    public static AABB turn(AABB box, Direction facing) {
         return switch (facing) {
-            case SOUTH -> new AABB(0.35625, 0.09375, -0.02500, 0.64375, 0.36875, 0.13125);
-            case EAST -> new AABB(-0.02500, 0.09375, 0.35625, 0.13125, 0.36875, 0.64375);
-            case WEST -> new AABB(0.86875, 0.09375, 0.35625, 1.02500, 0.36875, 0.64375);
-            default -> new AABB(0.35625, 0.09375, 0.86875, 0.64375, 0.36875, 1.02500);
+            case SOUTH -> new AABB(1 - box.maxX, box.minY, 1 - box.maxZ, 1 - box.minX, box.maxY, 1 - box.minZ);
+            case EAST -> new AABB(1 - box.maxZ, box.minY, box.minX, 1 - box.minZ, box.maxY, box.maxX);
+            case WEST -> new AABB(box.minZ, box.minY, 1 - box.maxX, box.maxZ, box.maxY, 1 - box.minX);
+            default -> box;
         };
+    }
+
+    public static Vec3 turn(Vec3 p, Direction facing) {
+        return switch (facing) {
+            case SOUTH -> new Vec3(1 - p.x, p.y, 1 - p.z);
+            case EAST -> new Vec3(1 - p.z, p.y, p.x);
+            case WEST -> new Vec3(p.z, p.y, 1 - p.x);
+            default -> p;
+        };
+    }
+
+    @Nullable
+    public static End endAt(@Nullable Direction facing, @Nullable Vec3 localHit, @Nullable Direction face) {
+        if (facing != null && localHit != null) {
+            if (local(facing, End.FOREIGN).inflate(HIT_SLACK).contains(localHit)) {
+                return End.FOREIGN;
+            }
+            if (local(facing, End.GRID).inflate(HIT_SLACK).contains(localHit)) {
+                return End.GRID;
+            }
+        }
+        return endOn(facing, face);
+    }
+
+    @Nullable
+    public static End endAt(@Nullable BlockState state, BlockPos pos, @Nullable Vec3 hit, @Nullable Direction face) {
+        final Vec3 local = hit == null ? null : hit.subtract(pos.getX(), pos.getY(), pos.getZ());
+        return endAt(facingOf(state), local, face);
     }
 
     @Nullable
@@ -71,6 +103,41 @@ public final class CouplerSockets {
         return along > 0 ? End.FOREIGN : End.GRID;
     }
 
+    public static End endFor(@Nullable net.minecraft.world.level.BlockGetter level, BlockPos couplerPos,
+                             BlockPos far) {
+        final net.minecraft.world.level.block.entity.BlockEntity be =
+                level == null ? null : level.getBlockEntity(couplerPos);
+        if (be instanceof com.createstats.blockentity.UniversalPowerCouplerBE coupler
+                && coupler.links().contains(far)) {
+            return coupler.socketOf(far);
+        }
+        return endToward(level == null ? null : level.getBlockState(couplerPos), couplerPos, far);
+    }
+
+    public static End endOf(boolean seamFlag) {
+        return seamFlag ? End.FOREIGN : End.GRID;
+    }
+
+    public static final String SEAM_ONLY = "message.create_stats.copper_wire.seam_only";
+
+    public static final String FOREIGN_WANTS_SEAM = "message.create_stats.coupler.foreign_wants_seam";
+
+    public static final String GRID_WANTS_OURS = "message.create_stats.coupler.grid_wants_ours";
+
+    @Nullable
+    public static String refusalKey(@Nullable End socket, boolean farForeign, boolean foreignFirst) {
+        if (socket == null) {
+            return null;
+        }
+        if (socket == End.FOREIGN) {
+            return farForeign ? null : SEAM_ONLY;
+        }
+        if (!farForeign) {
+            return null;
+        }
+        return foreignFirst ? FOREIGN_WANTS_SEAM : GRID_WANTS_OURS;
+    }
+
     @Nullable
     public static AABB world(@Nullable BlockState state, BlockPos pos, End end) {
         final AABB box = local(state, end);
@@ -83,16 +150,7 @@ public final class CouplerSockets {
     }
 
     public static Vec3 anchor(Direction facing, End end) {
-        final Direction out = end == End.FOREIGN ? facing : facing.getOpposite();
-
-        final double y = end == End.FOREIGN ? 0.22812 : 0.23125;
-        return switch (out) {
-            case NORTH -> new Vec3(0.50000, y, -0.01875);
-            case SOUTH -> new Vec3(0.50000, y, 1.01875);
-            case EAST -> new Vec3(1.01875, y, 0.50000);
-            case WEST -> new Vec3(-0.01875, y, 0.50000);
-            default -> new Vec3(0.5, y, 0.5);
-        };
+        return turn(end == End.FOREIGN ? FOREIGN_ANCHOR_NORTH : GRID_ANCHOR_NORTH, facing);
     }
 
     @Nullable

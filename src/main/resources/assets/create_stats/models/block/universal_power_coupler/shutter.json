@@ -1,0 +1,79 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "create_stats:block/universal_power_coupler/sheet_0",
+    "sheet_3": "create_stats:block/universal_power_coupler/sheet_3",
+    "sheet_4": "create_stats:block/universal_power_coupler/sheet_4"
+  },
+  "elements": [
+    {
+      "name": "shutter",
+      "from": [
+        15.35,
+        2.25,
+        11
+      ],
+      "to": [
+        15.7,
+        5.5,
+        13.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            12,
+            10,
+            12.35,
+            12.5
+          ],
+          "texture": "#sheet_4"
+        },
+        "up": {
+          "uv": [
+            12,
+            10,
+            12.35,
+            12.5
+          ],
+          "texture": "#sheet_4"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            0.35,
+            3.25
+          ],
+          "texture": "#sheet_4"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            0.35,
+            3.25
+          ],
+          "texture": "#sheet_4"
+        },
+        "west": {
+          "uv": [
+            9,
+            10,
+            11.5,
+            13.25
+          ],
+          "texture": "#sheet_3"
+        },
+        "east": {
+          "uv": [
+            9,
+            10,
+            11.5,
+            13.25
+          ],
+          "texture": "#sheet_3"
+        }
+      }
+    }
+  ]
+}

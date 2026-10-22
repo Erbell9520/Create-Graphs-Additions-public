@@ -3,6 +3,7 @@ package com.createstats.seismic.client;
 import com.createstats.CreateStats;
 import com.createstats.block.SeismicScannerBlock;
 import com.createstats.blockentity.SeismicScannerBE;
+import com.createstats.client.AnimationClock;
 import com.createstats.client.ThroughWalls;
 import com.createstats.network.SeismicRereadPacket;
 import com.createstats.network.SeismicVeinsPacket;
@@ -690,7 +691,7 @@ public final class SeismicReveals {
             return;
         }
         final float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-        final double now = mc.level.getGameTime() + partial;
+        final double now = AnimationClock.time(mc.level, partial);
         final Vec3 camera = event.getCamera().getPosition();
         final PoseStack ms = event.getPoseStack();
         final MultiBufferSource.BufferSource buffers = Gpu.BUFFERS;

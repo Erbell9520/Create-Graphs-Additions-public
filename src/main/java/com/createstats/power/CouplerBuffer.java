@@ -13,6 +13,9 @@ public final class CouplerBuffer {
 
     private int gridMoved;
 
+    private long allowanceTick = Long.MIN_VALUE;
+    private int allowanceUsed;
+
     public record Tick(int seamMoved, int gridMoved) {
     }
 
@@ -71,24 +74,36 @@ public final class CouplerBuffer {
         return taken;
     }
 
-    public int gridReceive(int maxReceive, boolean simulate, int rate) {
-        final int allowance = Math.max(0, rate - this.gridMoved);
-        final int room = Math.max(0, Math.min(Math.min(Math.max(0, maxReceive), allowance),
+    public int gridAllowance(int rate, long now) {
+        return Math.max(0, rate - (now == this.allowanceTick ? this.allowanceUsed : 0));
+    }
+
+    private void spendAllowance(int fe, long now) {
+        if (now != this.allowanceTick) {
+            this.allowanceTick = now;
+            this.allowanceUsed = 0;
+        }
+        this.allowanceUsed += fe;
+    }
+
+    public int gridReceive(int maxReceive, boolean simulate, int rate, long now) {
+        final int room = Math.max(0, Math.min(Math.min(Math.max(0, maxReceive), this.gridAllowance(rate, now)),
                 this.capacity - this.energy));
         if (room > 0 && !simulate) {
             this.energy += room;
             this.gridMoved += room;
+            this.spendAllowance(room, now);
         }
         return room;
     }
 
-    public int gridExtract(int maxExtract, boolean simulate, int rate) {
-        final int allowance = Math.max(0, rate - this.gridMoved);
-        final int taken =
-                Math.max(0, Math.min(Math.min(Math.max(0, maxExtract), allowance), this.energy));
+    public int gridExtract(int maxExtract, boolean simulate, int rate, long now) {
+        final int taken = Math.max(0, Math.min(Math.min(Math.max(0, maxExtract), this.gridAllowance(rate, now)),
+                this.energy));
         if (taken > 0 && !simulate) {
             this.energy -= taken;
             this.gridMoved += taken;
+            this.spendAllowance(taken, now);
         }
         return taken;
     }

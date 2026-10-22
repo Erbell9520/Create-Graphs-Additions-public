@@ -1,6 +1,7 @@
 package com.createstats.block;
 
 import com.createstats.blockentity.PowerDistributionUnitBE;
+import com.createstats.guard.BlockFault;
 import com.createstats.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -58,10 +59,11 @@ public class PowerDistributionUnitBlock extends Block implements EntityBlock {
         if (level.isClientSide() || type != ModBlockEntities.POWER_DISTRIBUTION_UNIT.get()) {
             return null;
         }
-        return (lvl, pos, blockState, be) -> ((PowerDistributionUnitBE) be).tick();
+
+        return (lvl, pos, blockState, be) -> BlockFault.tick("Power Distribution Unit", be,
+                ((PowerDistributionUnitBE) be)::tick);
     }
 
-    // conductor in hand = wiring. otherwise the screen opened on every click and no stud was reachable
     @Override
     protected net.minecraft.world.ItemInteractionResult useItemOn(
             ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,

@@ -2,6 +2,7 @@ package com.createstats.vccmk4.route;
 
 import com.createstats.CreateStats;
 import com.createstats.flight.bridge.ReflectionAccessors;
+import com.createstats.flight.bridge.SableContainers;
 import com.mojang.serialization.Codec;
 import dev.ryanhcode.sable.companion.math.BoundingBox3dc;
 import dev.ryanhcode.sable.companion.math.BoundingBox3ic;
@@ -22,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class RouteReflect {
     static final String TICKET_TYPE = "dev.ryanhcode.sable.api.sublevel.ticket.SubLevelLoadingTicketType";
     static final String TICKET = "dev.ryanhcode.sable.api.sublevel.ticket.SubLevelLoadingTicket";
-    static final String CONTAINER = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
     static final String SERVER_SUB_LEVEL = "dev.ryanhcode.sable.sublevel.ServerSubLevel";
     static final String STAFF_HANDLER = "dev.simulated_team.simulated.content.physics_staff.PhysicsStaffServerHandler";
     public static final ResourceLocation TICKET_ID = ResourceLocation.fromNamespaceAndPath(CreateStats.MOD_ID, "vehicle_route");
@@ -52,21 +52,10 @@ public final class RouteReflect {
     public static boolean forceLoad(ServerLevel level, @Nullable Object serverSubLevel, UUID console, boolean hold) {
         Object type = ticketType;
         if (type == null || serverSubLevel == null) return false;
-        try {
-            Object container = container(level);
-            if (container == null) return false;
-            String name = hold ? "addForceLoadTicket" : "removeForceLoadTicket";
-            Method m = method(container.getClass(), name, 3);
-            if (m == null) {
-                warnOnce(name, "no " + name + " on " + container.getClass().getName());
-                return false;
-            }
-            Object r = m.invoke(container, serverSubLevel, type, console.toString());
-            return !(r instanceof Boolean b) || b || hold;
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-            warnOnce("forceLoad", e.toString());
-            return false;
-        }
+
+        Boolean r = SableContainers.forceLoadTicket(level, serverSubLevel, type, console.toString(), hold);
+        if (r == null) return false;
+        return r || hold;
     }
 
     public static List<Object[]> heldTickets(ServerLevel level) {
@@ -74,10 +63,8 @@ public final class RouteReflect {
         Object type = ticketType;
         if (type == null) return out;
         try {
-            Object container = container(level);
-            if (container == null) return out;
-            Method all = method(container.getClass(), "getAllTickets", 0);
-            if (all == null || !(all.invoke(container) instanceof Map<?, ?> map)) return out;
+            Map<?, ?> map = SableContainers.allTickets(level);
+            if (map == null) return out;
             for (Map.Entry<?, ?> e : map.entrySet()) {
                 if (!(e.getKey() instanceof UUID subLevel)) continue;
                 Method tickets = method(e.getValue().getClass(), "tickets", 0);
@@ -98,31 +85,8 @@ public final class RouteReflect {
     public static void releaseById(ServerLevel level, UUID subLevel, String console) {
         Object type = ticketType;
         if (type == null) return;
-        try {
-            Object container = container(level);
-            if (container == null) return;
-            Method get = method(container.getClass(), "getSubLevel", 1, UUID.class);
-            Object sub = get == null ? null : get.invoke(container, subLevel);
-            if (sub != null) {
-                Method m = method(container.getClass(), "removeForceLoadTicket", 3);
-                if (m != null) m.invoke(container, sub, type, console);
-            }
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-            warnOnce("releaseById", e.toString());
-        }
-    }
-
-    @Nullable
-    private static Object container(Level level) throws ReflectiveOperationException {
-        Class<?> c = Class.forName(CONTAINER);
-        for (Method m : c.getMethods()) {
-            if (m.getName().equals("getContainer") && java.lang.reflect.Modifier.isStatic(m.getModifiers())
-                    && m.getParameterCount() == 1 && m.getParameterTypes()[0].isInstance(level)) {
-                return m.invoke(null, level);
-            }
-        }
-        warnOnce("container", "SubLevelContainer.getContainer(Level) not found");
-        return null;
+        Object sub = SableContainers.subLevel(level, subLevel);
+        if (sub != null) SableContainers.forceLoadTicket(level, sub, type, console, false);
     }
 
     @Nullable

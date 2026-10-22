@@ -1,5 +1,6 @@
 package com.createstats.gui.weather;
 
+import com.createstats.client.AnimationClock;
 import com.createstats.gui.UiFx;
 import com.createstats.weather.ClimateModel;
 import com.createstats.weather.Condition;
@@ -47,7 +48,7 @@ public final class SkyCard {
         final int horizonTop = y + h - WeatherTheme.HORIZON_H;
 
         final var level = ctx.panel().getLevel();
-        final float time = level == null ? 0f : level.getGameTime() + ctx.partialTick();
+        final float time = level == null ? 0f : AnimationClock.wrapped(level, ctx.partialTick());
 
         stars(g, x, y, w, horizonTop, ctx.nightness(), time);
         celestialBody(g, x, y, w, horizonTop, dayFraction, ctx, p);

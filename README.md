@@ -7,7 +7,7 @@ A NeoForge addon for Create on Minecraft 1.21.1. It started as a few stat panels
 ## What's in it
 
 **Power**
-Surface cable, cable trays, bus ducts, indoor cable, copper wire with connectors, bores through walls. Dynamos, biofuel burners, solar panels, capacitor banks, the Starter Capacitor. The Power Distribution Unit sheds low priority loads when supply runs short, the Battery Controller manages a reserve between banks and boards, and the Power Meter, Power Limiter and Main Breaker sit inline where you want them. Plays along with Create: New Age and Create Crafts & Additions wiring.
+Surface cable, cable trays, bus ducts, indoor cable, copper wire with connectors, bores through walls. Dynamos, biofuel burners, solar panels, capacitor banks, the Starter Capacitor. The Power Distribution Unit sheds low priority loads when supply runs short, the Battery Controller manages a reserve between banks and boards, and the Power Meter, Power Limiter and Main Breaker sit inline where you want them. The Universal Power Coupler trades FE with other mods through their own cables and connectors: Create: New Age, Create Crafts & Additions, Mekanism, Immersive Engineering, Ender IO and Powah.
 
 **Displays**
 Stats Display Mk III wall panels and consoles (live graphs, alerts, a compose editor, special pages for stress, power, storage, trains, diesel, Refined Storage, flight and seismic surveys), holographic projectors, e-ink panels, data dials, the Inventory Display, dispatch boards and a railway map.

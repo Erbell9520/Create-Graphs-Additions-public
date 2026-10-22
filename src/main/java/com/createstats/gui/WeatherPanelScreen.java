@@ -2,6 +2,7 @@ package com.createstats.gui;
 
 import com.createstats.ModConfiguration;
 import com.createstats.blockentity.WeatherPanelBE;
+import com.createstats.client.AnimationClock;
 import com.createstats.gui.weather.BarometerDial;
 import com.createstats.gui.weather.DayStrip;
 import com.createstats.gui.weather.NextStrip;
@@ -26,7 +27,7 @@ public class WeatherPanelScreen extends Screen {
     private final WeatherPanelBE panel;
     private int left;
     private int top;
-    private float openedAt = Float.NaN;
+    private double openedAt = Double.NaN;
 
     public WeatherPanelScreen(WeatherPanelBE panel) {
         super(Component.translatable("block.create_stats.weather_panel"));
@@ -53,8 +54,8 @@ public class WeatherPanelScreen extends Screen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
 
-        final float now = clock(partialTick);
-        if (Float.isNaN(openedAt)) {
+        final double now = clock(partialTick);
+        if (Double.isNaN(openedAt)) {
             openedAt = now;
         }
         final WeatherAnim anim = WeatherFaceTextureManager.animFor(panel);
@@ -94,9 +95,9 @@ public class WeatherPanelScreen extends Screen {
         void draw(GuiGraphics g, int x, int y, int w, int h, WeatherContext ctx);
     }
 
-    private void card(GuiGraphics g, WeatherContext ctx, int index, float now,
+    private void card(GuiGraphics g, WeatherContext ctx, int index, double now,
                       int x, int y, int w, int h, CardDraw draw) {
-        final float t = UiFx.clamp01((now - openedAt - index * CARD_STAGGER) / OPEN_TICKS);
+        final float t = UiFx.clamp01((float) ((now - openedAt - index * CARD_STAGGER) / OPEN_TICKS));
         final float eased = UiFx.easeOut(t);
         final int rise = Math.round((1f - eased) * 6f);
         draw.draw(g, x, y - rise, w, h, ctx);
@@ -209,7 +210,7 @@ public class WeatherPanelScreen extends Screen {
         return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
     }
 
-    private void feed(WeatherAnim anim, float now, float partialTick) {
+    private void feed(WeatherAnim anim, double now, float partialTick) {
         final var level = panel.getLevel();
         final float rain = level == null ? 0f : level.getRainLevel(partialTick);
         final int next = panel.ticksToNextChange();
@@ -221,9 +222,9 @@ public class WeatherPanelScreen extends Screen {
         anim.updateTo(now);
     }
 
-    private float clock(float partialTick) {
+    private double clock(float partialTick) {
         final var level = panel.getLevel();
-        return level == null ? 0f : level.getGameTime() + partialTick;
+        return level == null ? 0.0 : AnimationClock.time(level, partialTick);
     }
 
     private float elapsedSinceSync(float partialTick) {
@@ -231,7 +232,7 @@ public class WeatherPanelScreen extends Screen {
         if (level == null || panel.syncGameTime() == 0L) {
             return 0f;
         }
-        return Math.max(0f, level.getGameTime() + partialTick - panel.syncGameTime());
+        return Math.max(0f, level.getGameTime() - panel.syncGameTime() + partialTick);
     }
 
     private float nightness(float partialTick) {

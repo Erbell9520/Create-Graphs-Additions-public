@@ -5,6 +5,7 @@ import com.createstats.chunkloader.CrownConfig;
 import com.createstats.chunkloader.CrownOwners;
 import com.createstats.chunkloader.CrownScreenAccess;
 import com.createstats.chunkloader.core.CrownLaw;
+import com.createstats.guard.BlockFault;
 import com.createstats.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -26,6 +27,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -132,6 +135,15 @@ public class SparkCrownBlock extends HorizontalDirectionalBlock implements IBE<S
 
     private static String fmt(long v) {
         return String.format(java.util.Locale.ROOT, "%,d", v);
+    }
+
+    @Override
+    public <S extends BlockEntity> BlockEntityTicker<S> getTicker(Level level, BlockState state, BlockEntityType<S> type) {
+        return (lvl, pos, blockState, be) -> {
+            if (!(be instanceof SparkCrownBE crown)) return;
+            if (!crown.hasLevel()) crown.setLevel(lvl);
+            BlockFault.tick("Spark Crown", crown, crown::tick);
+        };
     }
 
     @Override

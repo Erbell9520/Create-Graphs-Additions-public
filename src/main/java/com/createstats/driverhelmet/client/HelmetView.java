@@ -1,5 +1,6 @@
 package com.createstats.driverhelmet.client;
 
+import com.createstats.client.AnimationClock;
 import com.createstats.driverhelmet.HelmetVisor;
 import com.createstats.driverhelmet.VisorMotion;
 import java.util.LinkedHashMap;
@@ -24,7 +25,7 @@ public final class HelmetView {
 
     static double now() {
         final Minecraft mc = Minecraft.getInstance();
-        return mc.level == null ? 0.0 : mc.level.getGameTime() + AnimationTickHolder.getPartialTicks();
+        return mc.level == null ? 0.0 : AnimationClock.time(mc.level, AnimationTickHolder.getPartialTicks());
     }
 
     static double secondsInto(boolean open, long strokeTick) {

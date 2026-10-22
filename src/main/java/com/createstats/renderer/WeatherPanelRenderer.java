@@ -2,6 +2,7 @@ package com.createstats.renderer;
 
 import com.createstats.block.WeatherPanelBlock;
 import com.createstats.blockentity.WeatherPanelBE;
+import com.createstats.client.AnimationClock;
 import com.createstats.gui.weather.WeatherAnim;
 import com.createstats.gui.weather.WeatherTheme;
 import com.createstats.weather.Condition;
@@ -107,7 +108,7 @@ public class WeatherPanelRenderer implements BlockEntityRenderer<WeatherPanelBE>
         final float approaching = building ? 1f - Math.min(1f, next / 8000f) : 0f;
         anim.sync(be.condition(), WeatherFaceTextureManager.displayTemperature(be), be.pressure(), be.humidity(),
                 Math.max(rain, approaching), rain, be.forecast());
-        anim.updateTo(level == null ? 0f : level.getGameTime() + partialTick);
+        anim.updateTo(level == null ? 0.0 : AnimationClock.time(level, partialTick));
     }
 
     private static float nightness(WeatherPanelBE be, float partialTick) {
@@ -173,7 +174,7 @@ public class WeatherPanelRenderer implements BlockEntityRenderer<WeatherPanelBE>
         }
         final boolean snow = condition == Condition.SNOW;
         final var level = be.getLevel();
-        final float time = level == null ? 0f : level.getGameTime() + partialTick;
+        final float time = level == null ? 0f : AnimationClock.wrapped(level, partialTick);
         final float speed = snow ? 0.9f : 4.2f;
         final float length = snow ? 3.0f : 13.0f;
         final int colour = fade(snow ? 0xFFFFFFFF : palette.ink(), snow ? 0.85f : 0.30f);
@@ -227,7 +228,7 @@ public class WeatherPanelRenderer implements BlockEntityRenderer<WeatherPanelBE>
         if (level == null || be.syncGameTime() == 0L) {
             return 0f;
         }
-        return Math.max(0f, level.getGameTime() + partialTick - be.syncGameTime());
+        return Math.max(0f, level.getGameTime() - be.syncGameTime() + partialTick);
     }
 
     private static int fade(int argb, float factor) {

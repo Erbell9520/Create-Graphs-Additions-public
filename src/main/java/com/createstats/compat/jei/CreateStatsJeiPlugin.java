@@ -175,6 +175,14 @@ public class CreateStatsJeiPlugin implements IModPlugin {
                         com.createstats.power.FeRates.perTick(com.createstats.powertrack.core.RailPower.collectorRate(com.createstats.power.FeRates.base())),
                         com.createstats.powertrack.core.RailPower.MAX_COLLECTORS_PER_CAR));
 
+        registration.addIngredientInfo(ModBlocks.UNIVERSAL_POWER_COUPLER.get(),
+                net.minecraft.network.chat.Component.translatable("create_stats.jei.universal_power_coupler.info",
+                        com.createstats.power.FeRates.perTick(com.createstats.power.CouplerRating.rating(
+                                com.createstats.blockentity.PowerConnectorBE.baseTransferRate(),
+                                com.createstats.compat.NewAgeCompatHelper.bestWireConductivity(),
+                                com.createstats.blockentity.UniversalPowerCouplerBE.BUFFER_FE)),
+                        com.createstats.power.FeRates.amount(com.createstats.blockentity.UniversalPowerCouplerBE.BUFFER_FE)));
+
         for (com.createstats.security.SensorKind kind : com.createstats.security.SensorKind.all()) {
             registration.addIngredientInfo(ModBlocks.securitySensor(kind).get(),
                     net.minecraft.network.chat.Component.translatable(

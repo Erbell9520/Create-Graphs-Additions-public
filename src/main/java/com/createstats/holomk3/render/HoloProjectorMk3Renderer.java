@@ -1,5 +1,6 @@
 package com.createstats.holomk3.render;
 
+import com.createstats.client.AnimationClock;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
@@ -106,7 +107,8 @@ public class HoloProjectorMk3Renderer implements BlockEntityRenderer<HoloProject
                     -Minecraft.getInstance().gameRenderer.getMainCamera().getYRot()));
             case SPIN -> {
                 final long t = be.getLevel() == null ? 0L : be.getLevel().getGameTime();
-                ps.mulPose(Axis.YP.rotationDegrees((t + partialTick) * cfg.getSpinSpeed()));
+
+                ps.mulPose(Axis.YP.rotationDegrees((float) ((AnimationClock.time(t, partialTick) * cfg.getSpinSpeed()) % 360.0)));
             }
 
             default -> ps.mulPose(Axis.YP.rotationDegrees(yawFor(be.getBlockState())));

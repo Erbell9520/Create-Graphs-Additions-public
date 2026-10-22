@@ -501,11 +501,24 @@ public final class NewAgeCompatHelper {
     public record NetworkView(int networkId, int nodeCount, int sourceCount, int consumerCount,
                               int generation, int demand, int stored, int capacity,
                               int conductivity, List<Source> sources, List<Tank> tanks,
-                              List<BlockPos> supportedPositions) {
+                              List<BlockPos> supportedPositions, int pulledGeneration,
+                              List<Source> pulledSources, List<Source> consumers) {
         public NetworkView {
             sources = List.copyOf(sources);
             tanks = List.copyOf(tanks);
             supportedPositions = List.copyOf(supportedPositions);
+            pulledSources = List.copyOf(pulledSources);
+            consumers = List.copyOf(consumers);
+        }
+
+        public int demandExcluding(@Nullable BlockPos exclude) {
+            long total = 0L;
+            for (Source c : this.consumers) {
+                if (exclude == null || !exclude.equals(c.pos())) {
+                    total += Math.max(0, c.fePerTick());
+                }
+            }
+            return (int) Math.min(Integer.MAX_VALUE, total);
         }
     }
 
@@ -541,9 +554,12 @@ public final class NewAgeCompatHelper {
         final Level level = connector.getLevel();
         final int probe = probeSize(conductivityOf(connector));
         final List<Source> sources = new ArrayList<>(2);
+        final List<Source> pulled = new ArrayList<>(2);
+        final List<Source> consumerDemands = new ArrayList<>(2);
         final List<Tank> tanks = new ArrayList<>(2);
         final Set<BlockPos> seenSupports = new java.util.HashSet<>();
         int generation = 0;
+        int pulledGeneration = 0;
         int demand = 0;
         int stored = 0;
         int capacity = 0;
@@ -574,6 +590,11 @@ public final class NewAgeCompatHelper {
                 final int made = generationPotentialFePerTick(machine);
                 generation += made;
                 sources.add(new Source(support, made));
+
+                if (isPullMode(nodeBE.getBlockState())) {
+                    pulledGeneration += made;
+                    pulled.add(new Source(support, made));
+                }
                 continue;
             }
 
@@ -596,11 +617,13 @@ public final class NewAgeCompatHelper {
                 continue;
             }
             consumers++;
-            demand += Math.max(0, handler.receiveEnergy(probe, true));
+            final int wants = Math.max(0, handler.receiveEnergy(probe, true));
+            demand += wants;
+            consumerDemands.add(new Source(support, wants));
         }
         return new NetworkView(System.identityHashCode(network), Math.min(walked, nodeList.size()),
                 sources.size(), consumers, generation, demand, stored, capacity, conductivity,
-                sources, tanks, new ArrayList<>(seenSupports));
+                sources, tanks, new ArrayList<>(seenSupports), pulledGeneration, pulled, consumerDemands);
     }
 
     public static int acceptanceFePerTick(@Nullable BlockEntity connector, @Nullable BlockPos exclude) {
@@ -643,8 +666,9 @@ public final class NewAgeCompatHelper {
                 continue;
             }
             final BlockPos support = supportingPosOf(nodeBE);
+
             if (support == null || support.equals(exclude) || !level.isLoaded(support)
-                    || !seen.add(support)) {
+                    || !seen.add(support) || level.getBlockEntity(support) == null) {
                 continue;
             }
             final IEnergyStorage handler = level.getCapability(Capabilities.EnergyStorage.BLOCK,
@@ -662,7 +686,6 @@ public final class NewAgeCompatHelper {
         return wire <= 0 ? accepted : Math.min(wire, accepted);
     }
 
-    // their extract returns 0. always. their own network tick pulls from the supporting block instead, so do that
     public static int drainNetwork(@Nullable BlockEntity connector, int maxFe, boolean simulate) {
         if (!NewAgeCompat.isAvailable() || maxFe <= 0 || connector == null
                 || connector.getLevel() == null || connector.getLevel().isClientSide()
@@ -688,7 +711,9 @@ public final class NewAgeCompatHelper {
                 continue;
             }
             final BlockPos support = supportingPosOf(nodeBE);
-            if (support == null || !level.isLoaded(support) || !seen.add(support)) {
+
+            if (support == null || !level.isLoaded(support) || !seen.add(support)
+                    || level.getBlockEntity(support) == null) {
                 continue;
             }
 
@@ -700,9 +725,132 @@ public final class NewAgeCompatHelper {
             if (handler == null || !handler.canExtract() || isNetworkMouthHandler(handler)) {
                 continue;
             }
-            drawn += Math.max(0, handler.extractEnergy(maxFe - drawn, simulate));
+
+            final boolean own = nodeBE == connector;
+            final Object path = own ? null : PathAccess.find(network, nodeBE, connector);
+            final long room;
+            if (own) {
+                room = maxFe - drawn;
+            } else if (path != null) {
+                room = Math.min(maxFe - drawn, PathAccess.conductivity(network, path));
+            } else if (PathAccess.available()) {
+                continue;
+            } else {
+                room = Math.min(maxFe - drawn, Math.max(0, conductivityOf(connector) - drawn));
+            }
+            if (room <= 0) {
+                continue;
+            }
+            final int took = Math.max(0, handler.extractEnergy((int) room, simulate));
+            drawn += took;
+            if (!simulate && took > 0 && path != null) {
+                PathAccess.spend(network, path, took);
+            }
         }
         return Math.min(maxFe, Math.max(0, drawn));
+    }
+
+    private static final class PathAccess {
+        private static volatile boolean resolved;
+        @Nullable
+        private static Method getPathManager;
+        @Nullable
+        private static Method findPath;
+        @Nullable
+        private static Method getContext;
+        @Nullable
+        private static Method conductivity;
+        @Nullable
+        private static Method decrease;
+
+        private PathAccess() {
+        }
+
+        private static synchronized void resolve() {
+            if (resolved) {
+                return;
+            }
+            resolved = true;
+            try {
+                final ClassLoader loader = NewAgeCompatHelper.class.getClassLoader();
+                final String pkg = "org.antarcticgardens.cna.content.electricity.network.";
+                final Class<?> networkType = Class.forName(pkg + "ElectricalNetwork", false, loader);
+                final Class<?> managerType = Class.forName(pkg + "NetworkPathManager", false, loader);
+                final Class<?> contextType = Class.forName(pkg + "NetworkPathConductivityContext", false, loader);
+                final Class<?> pathType = Class.forName(pkg + "NetworkPath", false, loader);
+                final Class<?> connectorType = Class.forName(CONNECTOR_BASE, false, loader);
+                final Method pm = networkType.getDeclaredMethod("getPathManager");
+                final Method fp = managerType.getDeclaredMethod("findConductiblePath", connectorType, connectorType);
+                final Method gc = managerType.getDeclaredMethod("getConductivityContext");
+                final Method cc = contextType.getDeclaredMethod("calculatePathConductivity", pathType);
+                final Method dc = contextType.getDeclaredMethod("decreasePathConductivity", pathType, long.class);
+                for (Method m : new Method[] {pm, fp, gc, cc, dc}) {
+                    m.setAccessible(true);
+                }
+                findPath = fp;
+                getContext = gc;
+                conductivity = cc;
+                decrease = dc;
+                getPathManager = pm;
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError missing) {
+                getPathManager = null;
+            }
+        }
+
+        static boolean available() {
+            resolve();
+            return getPathManager != null;
+        }
+
+        @Nullable
+        static Object find(Object network, Object from, Object to) {
+            if (!available()) {
+                return null;
+            }
+            try {
+                final Object manager = getPathManager.invoke(network);
+                return manager == null ? null : findPath.invoke(manager, from, to);
+            } catch (ReflectiveOperationException | RuntimeException failed) {
+                return null;
+            }
+        }
+
+        static long conductivity(Object network, Object path) {
+            try {
+                final Object context = getContext.invoke(getPathManager.invoke(network));
+                final Object left = conductivity.invoke(context, path);
+                return left instanceof Number n ? Math.max(0L, Math.min(Integer.MAX_VALUE, n.longValue())) : 0L;
+            } catch (ReflectiveOperationException | RuntimeException failed) {
+                return 0L;
+            }
+        }
+
+        static void spend(Object network, Object path, long fe) {
+            try {
+                decrease.invoke(getContext.invoke(getPathManager.invoke(network)), path, fe);
+            } catch (ReflectiveOperationException | RuntimeException ignored) {
+            }
+        }
+    }
+
+    public static long bestWireConductivity() {
+        if (!NewAgeCompat.isAvailable()) {
+            return 0L;
+        }
+        try {
+            final Class<?> wireType = Class.forName("org.antarcticgardens.cna.content.electricity.wire.WireType",
+                    false, NewAgeCompatHelper.class.getClassLoader());
+            long best = 0L;
+            for (Object constant : wireType.getEnumConstants()) {
+                final Object rate = invoke(constant, "getConductivity");
+                if (rate instanceof Number n) {
+                    best = Math.max(best, n.longValue());
+                }
+            }
+            return Math.max(0L, best);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError missing) {
+            return 0L;
+        }
     }
 
     public static int pullSourceCount(@Nullable BlockEntity connector) {
@@ -730,6 +878,7 @@ public final class NewAgeCompatHelper {
             }
             final BlockPos support = supportingPosOf(nodeBE);
             if (support == null || !level.isLoaded(support) || !seen.add(support)
+                    || level.getBlockEntity(support) == null
                     || !com.createstats.blockentity.UniversalPowerCouplerBE.isSeamTarget(level, support)) {
                 continue;
             }

@@ -3,11 +3,12 @@ package com.createstats.power;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
-// PUSH needs their connector on PULL. each block named for its own action. yes it reads backwards
 public enum PowerCouplerMode implements StringRepresentable {
     PULL("pull"),
 
-    PUSH("push");
+    PUSH("push"),
+
+    OFF("off");
 
     private final String serialized;
 
@@ -36,8 +37,20 @@ public enum PowerCouplerMode implements StringRepresentable {
         return this == PULL;
     }
 
+    public boolean isDirection() {
+        return this != OFF;
+    }
+
     public PowerCouplerMode next() {
         return this == PULL ? PUSH : PULL;
+    }
+
+    public PowerCouplerMode click(PowerCouplerMode remembered, boolean sneaking) {
+        final PowerCouplerMode back = remembered != null && remembered.isDirection() ? remembered : PULL;
+        if (this == OFF) {
+            return back;
+        }
+        return sneaking ? OFF : this.next();
     }
 
     public static PowerCouplerMode byOrdinal(int ordinal) {

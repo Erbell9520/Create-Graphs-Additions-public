@@ -14,8 +14,10 @@ class PowerCouplerModeTest {
         for (PowerCouplerMode mode : PowerCouplerMode.values()) {
             assertFalse(mode.seamReceives() && mode.seamGives(), mode + " seam claims both ways");
             assertFalse(mode.gridReceives() && mode.gridGives(), mode + " grid claims both ways");
-            assertTrue(mode.seamReceives() || mode.seamGives(), mode + " seam is dead");
-            assertTrue(mode.gridReceives() || mode.gridGives(), mode + " grid is dead");
+            if (mode.isDirection()) {
+                assertTrue(mode.seamReceives() || mode.seamGives(), mode + " seam is dead");
+                assertTrue(mode.gridReceives() || mode.gridGives(), mode + " grid is dead");
+            }
         }
     }
 
@@ -49,6 +51,42 @@ class PowerCouplerModeTest {
         assertEquals(PowerCouplerMode.PULL, PowerCouplerMode.PUSH.next());
         assertEquals("pull", PowerCouplerMode.PULL.getSerializedName());
         assertEquals("push", PowerCouplerMode.PUSH.getSerializedName());
+        assertEquals("off", PowerCouplerMode.OFF.getSerializedName());
+    }
+
+    @Test
+    @DisplayName("OFF shuts every port both ways: neither a load nor a source, nothing for their classifier")
+    void offShutsEverything() {
+        final PowerCouplerMode off = PowerCouplerMode.OFF;
+        assertFalse(off.seamReceives(), "their network must not read OFF as a consumer");
+        assertFalse(off.seamGives(), "their network must not read OFF as a pulled source");
+        assertFalse(off.gridReceives(), "OFF is no load to a board");
+        assertFalse(off.gridGives(), "OFF is no source to a board");
+        assertFalse(off.isDirection());
+        assertTrue(PowerCouplerMode.PULL.isDirection() && PowerCouplerMode.PUSH.isDirection());
+    }
+
+    @Test
+    @DisplayName("the lever: a click flips PULL and PUSH, a sneaking click toggles OFF, from OFF it goes back")
+    void theLeverRule() {
+        for (PowerCouplerMode remembered : PowerCouplerMode.values()) {
+            assertEquals(PowerCouplerMode.PUSH, PowerCouplerMode.PULL.click(remembered, false));
+            assertEquals(PowerCouplerMode.PULL, PowerCouplerMode.PUSH.click(remembered, false));
+
+            assertEquals(PowerCouplerMode.OFF, PowerCouplerMode.PULL.click(remembered, true));
+            assertEquals(PowerCouplerMode.OFF, PowerCouplerMode.PUSH.click(remembered, true));
+        }
+
+        for (boolean sneaking : new boolean[] {false, true}) {
+            assertEquals(PowerCouplerMode.PUSH, PowerCouplerMode.OFF.click(PowerCouplerMode.PUSH, sneaking));
+            assertEquals(PowerCouplerMode.PULL, PowerCouplerMode.OFF.click(PowerCouplerMode.PULL, sneaking));
+
+            assertEquals(PowerCouplerMode.PULL, PowerCouplerMode.OFF.click(PowerCouplerMode.OFF, sneaking));
+            assertEquals(PowerCouplerMode.PULL, PowerCouplerMode.OFF.click(null, sneaking));
+        }
+
+        final PowerCouplerMode off = PowerCouplerMode.PUSH.click(PowerCouplerMode.PUSH, true);
+        assertEquals(PowerCouplerMode.PUSH, off.click(PowerCouplerMode.PUSH, false));
     }
 
     @Test
@@ -57,5 +95,6 @@ class PowerCouplerModeTest {
         assertEquals(PowerCouplerMode.PULL, PowerCouplerMode.byOrdinal(-1));
         assertEquals(PowerCouplerMode.PULL, PowerCouplerMode.byOrdinal(99));
         assertEquals(PowerCouplerMode.PUSH, PowerCouplerMode.byOrdinal(1));
+        assertEquals(PowerCouplerMode.OFF, PowerCouplerMode.byOrdinal(2));
     }
 }

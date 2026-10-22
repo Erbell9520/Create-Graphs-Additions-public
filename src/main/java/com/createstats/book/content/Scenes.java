@@ -44,6 +44,9 @@ public final class Scenes {
 
             new Row(Section.POWER, P + "spark_crown", "create_stats.ponder.spark_crown.header", List.of()),
 
+            new Row(Section.POWER, P + "universal_power_coupler", "create_stats.ponder.universal_power_coupler.header",
+                    List.of()),
+
             new Row(Section.MACHINES, P + "seismic_scanner", "create_stats.book.ponder.seismic_scanner", List.of()),
 
             new Row(Section.TRANSPORT, P + "vcc_mk4_aerial", "create_stats.book.ponder.vcc_mk4_aerial", List.of()));

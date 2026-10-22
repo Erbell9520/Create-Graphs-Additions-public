@@ -2,6 +2,7 @@ package com.createstats.battle.world;
 
 import com.createstats.CreateStats;
 import com.createstats.flight.bridge.SableBridge;
+import com.createstats.flight.bridge.SableContainers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -23,27 +24,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public final class SablePlots {
-    static final String CONTAINER = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
     static final String HEAT_MANAGER = "dev.ryanhcode.sable.sublevel.plot.heat.SubLevelHeatMapManager";
     static final String SPLIT_LISTENER = HEAT_MANAGER + "$SplitListener";
 
     private static final Map<String, Optional<Method>> METHODS = new ConcurrentHashMap<>();
     private static final AtomicBoolean SPLIT_REGISTERED = new AtomicBoolean(false);
-    @Nullable
-    private static volatile Optional<Class<?>> containerClass;
 
     private SablePlots() {
     }
 
     public static boolean present() {
-        return containerClass() != null;
+        return SableContainers.present();
     }
 
     @Nullable
     public static Object subLevelAt(Level level, BlockPos pos) {
-        Object container = container(level);
-        if (container == null || !Boolean.TRUE.equals(call(container, "inBounds", pos))) return null;
-        return call(call(container, "getPlot", new ChunkPos(pos)), "getSubLevel");
+        if (!SableContainers.inBounds(level, pos)) return null;
+        return call(SableContainers.plot(level, new ChunkPos(pos)), "getSubLevel");
     }
 
     @Nullable
@@ -117,43 +114,12 @@ public final class SablePlots {
     }
 
     @Nullable
-    static Object container(@Nullable Level level) {
-        Class<?> owner = containerClass();
-        return level == null || owner == null ? null : callStatic(owner, "getContainer", level);
-    }
-
-    @Nullable
-    private static Class<?> containerClass() {
-        Optional<Class<?>> c = containerClass;
-        if (c == null) {
-            try {
-                c = Optional.of(Class.forName(CONTAINER));
-            } catch (ClassNotFoundException | LinkageError e) {
-                c = Optional.empty();
-            }
-            containerClass = c;
-        }
-        return c.orElse(null);
-    }
-
-    @Nullable
     static Object call(@Nullable Object target, String name, Object... args) {
         if (target == null) return null;
         Method m = find(target.getClass(), name, args);
         if (m == null) return null;
         try {
             return m.invoke(target, args);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-            return null;
-        }
-    }
-
-    @Nullable
-    private static Object callStatic(Class<?> owner, String name, Object... args) {
-        Method m = find(owner, name, args);
-        if (m == null) return null;
-        try {
-            return m.invoke(null, args);
         } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
             return null;
         }

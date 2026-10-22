@@ -1,5 +1,6 @@
 package com.createstats.pathfinder.client;
 
+import com.createstats.client.AnimationClock;
 import com.createstats.pathfinder.block.PathfinderComputerBlock;
 import com.createstats.pathfinder.blockentity.PathfinderComputerBE;
 import com.createstats.pathfinder.model.RouteGuidance;
@@ -153,7 +154,7 @@ public class PathfinderComputerRenderer implements BlockEntityRenderer<Pathfinde
         if (!hasScanner && !routeReady && !holdingRoute) {
             return;
         }
-        float start = ((gameTime + partialTick) % 72.0f) / 72.0f * ((float)Math.PI * 2.0f);
+        float start = (float) (AnimationClock.time(gameTime, partialTick) % 72.0) / 72.0f * ((float)Math.PI * 2.0f);
         int red = scannerStale || holdingRoute ? PathfinderBlockVisuals.AMBER_R
             : routeReady ? PathfinderBlockVisuals.GREEN_R : PathfinderBlockVisuals.CYAN_R;
         int green = scannerStale || holdingRoute ? PathfinderBlockVisuals.AMBER_G

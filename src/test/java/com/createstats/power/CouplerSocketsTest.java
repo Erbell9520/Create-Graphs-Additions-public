@@ -36,8 +36,8 @@ class CouplerSocketsTest {
         assertTrue(Math.abs(along - expected) < 0.25,
                 facing + "/" + end + ": socket centre is " + along + " along " + out.getAxis()
                         + ", which is not the " + out + " end");
-        assertTrue(Math.abs(across - 0.5) < 1.0e-6,
-                facing + "/" + end + ": socket is off the bar's centre line at " + across);
+        assertTrue(across > 0 && across < 1,
+                facing + "/" + end + ": socket is outside the block across the axis at " + across);
     }
 
     @Test
@@ -63,6 +63,9 @@ class CouplerSocketsTest {
             assertFalse(foreign.intersects(grid),
                     facing + ": the foreign and grid sockets overlap, so the guide would draw both "
                             + "outlines in the same place");
+
+            assertFalse(foreign.inflate(1.0 / 16).intersects(grid.inflate(1.0 / 16)),
+                    facing + ": the two posts' click boxes overlap");
         }
     }
 
@@ -114,24 +117,45 @@ class CouplerSocketsTest {
     }
 
     @Test
-    @DisplayName("a socket is on the face its own box pokes out of")
-    void endOnAgreesWithTheGeometry() {
+    @DisplayName("a click on a post means that post's socket; elsewhere the end face decides, and a flank or the top nothing")
+    void aClickMeansTheSocketItLandedOn() {
         for (Direction facing : FACINGS) {
             for (CouplerSockets.End end : CouplerSockets.End.values()) {
-                final Vec3 anchor = CouplerSockets.anchor(facing, end);
+                final AABB box = CouplerSockets.local(facing, end);
+                assertTrue(CouplerSockets.endAt(facing, CouplerSockets.anchor(facing, end), null) == end,
+                        facing + "/" + end + ": a click on the post's anchor did not pick its socket");
 
-                Direction pokes = null;
-                for (Direction face : Direction.values()) {
-                    final double coord = anchor.get(face.getAxis());
-                    if (face.getAxisDirection() == Direction.AxisDirection.POSITIVE
-                            ? coord > 1 : coord < 0) {
-                        pokes = face;
-                    }
-                }
-                assertTrue(pokes != null, facing + "/" + end + ": anchor is inside the block");
-                assertTrue(CouplerSockets.endOn(facing, pokes) == end,
-                        facing + "/" + end + ": the anchor pokes out of " + pokes
-                                + ", which endOn calls " + CouplerSockets.endOn(facing, pokes));
+                assertTrue(CouplerSockets.endAt(facing, new Vec3(box.getCenter().x, box.maxY, box.getCenter().z),
+                        Direction.UP) == end, facing + "/" + end + ": a click on the top of the post");
+                assertTrue(CouplerSockets.endAt(facing, new Vec3(box.minX - 0.03, box.getCenter().y,
+                        box.getCenter().z), Direction.WEST) == end, facing + "/" + end + ": a hair off the post");
+            }
+
+            assertTrue(CouplerSockets.endAt(facing, new Vec3(0.5, 0.9, 0.5), Direction.UP) == null,
+                    facing + ": a click on the middle of the top picked a socket");
+
+            final Vec3 foreignFace = new Vec3(0.5 + facing.getStepX() * 0.5, 0.2, 0.5 + facing.getStepZ() * 0.5);
+            assertTrue(CouplerSockets.endAt(facing, foreignFace, facing) == CouplerSockets.End.FOREIGN,
+                    facing + ": a click on the foreign end face");
+            final Vec3 gridFace = new Vec3(0.5 - facing.getStepX() * 0.5, 0.2, 0.5 - facing.getStepZ() * 0.5);
+            assertTrue(CouplerSockets.endAt(facing, gridFace, facing.getOpposite()) == CouplerSockets.End.GRID,
+                    facing + ": a click on the grid end face");
+        }
+    }
+
+    @Test
+    @DisplayName("both posts and the lever are inside the block's shape, or no click could reach them")
+    void everythingClickableIsInsideTheShape() {
+        for (Direction facing : FACINGS) {
+            for (CouplerSockets.End end : CouplerSockets.End.values()) {
+                assertTrue(CouplerShape.contains(facing, CouplerSockets.local(facing, end)),
+                        facing + "/" + end + ": the socket post sticks out of the shape");
+            }
+            assertTrue(CouplerShape.contains(facing, CouplerLever.local(facing)),
+                    facing + ": the lever's swept box sticks out of the shape");
+            for (AABB part : CouplerShape.boxes(facing)) {
+                assertTrue(part.minX >= 0 && part.minY >= 0 && part.minZ >= 0 && part.maxX <= 1 && part.maxY <= 1
+                        && part.maxZ <= 1, facing + ": a shape box leaves its block: " + part);
             }
         }
     }
@@ -152,5 +176,34 @@ class CouplerSocketsTest {
                             == CouplerSockets.End.GRID,
                     facing + ": a far end level with the block must fall to the grid socket");
         }
+    }
+
+    @Test
+    @DisplayName("what a span means is its stored flag, wherever its far end stands (KI-214)")
+    void theDrawnSocketIsTheStoredSocket() {
+        assertTrue(CouplerSockets.endOf(true) == CouplerSockets.End.FOREIGN);
+        assertTrue(CouplerSockets.endOf(false) == CouplerSockets.End.GRID);
+        final net.minecraft.core.BlockPos origin = new net.minecraft.core.BlockPos(0, 64, 0);
+        for (Direction facing : FACINGS) {
+            final net.minecraft.core.BlockPos beyond = origin.relative(facing, 3);
+            assertTrue(CouplerSockets.endToward(facing, origin, beyond) != CouplerSockets.endOf(false),
+                    "the case the stored flag exists for: " + facing);
+        }
+    }
+
+    @Test
+    @DisplayName("one socket table for all four wiring routes (KI-215)")
+    void theSocketTable() {
+        assertTrue(CouplerSockets.refusalKey(CouplerSockets.End.FOREIGN, true, false) == null);
+        assertTrue(CouplerSockets.refusalKey(CouplerSockets.End.FOREIGN, true, true) == null);
+        assertTrue(CouplerSockets.SEAM_ONLY.equals(CouplerSockets.refusalKey(CouplerSockets.End.FOREIGN, false, false)));
+
+        assertTrue(CouplerSockets.refusalKey(CouplerSockets.End.GRID, false, false) == null);
+        assertTrue(CouplerSockets.GRID_WANTS_OURS.equals(CouplerSockets.refusalKey(CouplerSockets.End.GRID, true, false)));
+        assertTrue(CouplerSockets.FOREIGN_WANTS_SEAM.equals(
+                CouplerSockets.refusalKey(CouplerSockets.End.GRID, true, true)),
+                "our wire begun on their connector and finished on the gland used to be filed, unasked");
+
+        assertTrue(CouplerSockets.refusalKey(null, true, true) == null);
     }
 }

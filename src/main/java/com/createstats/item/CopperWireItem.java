@@ -113,7 +113,8 @@ public class CopperWireItem extends Item {
             return InteractionResult.PASS;
         }
 
-        if (!takesWireOn(level, pos, level.getBlockState(pos), context.getClickedFace())) {
+        if (!takesWireOn(level, pos, level.getBlockState(pos), context.getClickedFace(),
+                context.getClickLocation())) {
             return InteractionResult.PASS;
         }
 
@@ -182,23 +183,22 @@ public class CopperWireItem extends Item {
 
     private static boolean takesWireOn(Level level, BlockPos pos,
                                        net.minecraft.world.level.block.state.BlockState state,
-                                       Direction face) {
+                                       Direction face, Vec3 hit) {
         if (state.getBlock() instanceof com.createstats.block.UniversalPowerCouplerBlock) {
-            return com.createstats.power.CouplerSockets.endOn(state, face) != null;
+            return com.createstats.power.CouplerSockets.endAt(state, pos, hit, face) != null;
         }
         final Direction only = wireFaceOf(level, pos, state);
         return only == null || face == only;
     }
 
-    // the coupler's two ends look alike and are one block apart. say which one
     private static Component attachedMessage(Level level, BlockPos pos,
                                              net.minecraft.world.level.block.state.BlockState state,
-                                             Direction face) {
+                                             Direction face, Vec3 hit) {
         if (!(state.getBlock() instanceof com.createstats.block.UniversalPowerCouplerBlock)) {
             return Component.translatable("message.create_stats.copper_wire.attached");
         }
         return Component.translatable(
-                com.createstats.power.CouplerSockets.endOn(state, face)
+                com.createstats.power.CouplerSockets.endAt(state, pos, hit, face)
                         == com.createstats.power.CouplerSockets.End.FOREIGN
                         ? "message.create_stats.coupler.seam_socket_attached"
                         : "message.create_stats.coupler.grid_socket_attached");
@@ -289,7 +289,6 @@ public class CopperWireItem extends Item {
                 controller.studLinkCount(port), controller.maxLinksPerStud(), tier, stock);
     }
 
-    // stud panel, two studs two circuits. a plain terminal can't say which one you hit
     private static InteractionResult useOnMainBreaker(UseOnContext context, Level level, BlockPos pos,
                                                       Player player,
                                                       com.createstats.power.WireTier tier,
@@ -453,8 +452,8 @@ public class CopperWireItem extends Item {
             }
 
             final com.createstats.power.CouplerSockets.End socket =
-                    com.createstats.power.CouplerSockets.endOn(
-                            level.getBlockState(BlockPos.of(here.pos())), context.getClickedFace());
+                    com.createstats.power.CouplerSockets.endAt(level.getBlockState(BlockPos.of(here.pos())),
+                            BlockPos.of(here.pos()), context.getClickLocation(), context.getClickedFace());
 
             if (socket != null
                     && level.getBlockEntity(BlockPos.of(here.pos()))
@@ -498,7 +497,8 @@ public class CopperWireItem extends Item {
                     : here.isStud()
                     ? Component.translatable("message.create_stats.copper_wire.stud_attached", here.stud() + 1)
                     : attachedMessage(level, BlockPos.of(here.pos()),
-                            level.getBlockState(BlockPos.of(here.pos())), context.getClickedFace()));
+                            level.getBlockState(BlockPos.of(here.pos())), context.getClickedFace(),
+                            context.getClickLocation()));
             return InteractionResult.CONSUME;
         }
 
@@ -572,8 +572,8 @@ public class CopperWireItem extends Item {
 
         final Component wrongSocket = socketMismatch(level, pendingPos,
                 PENDING_SOCKET.get(player.getUUID()), herePos,
-                com.createstats.power.CouplerSockets.endOn(level.getBlockState(herePos),
-                        context.getClickedFace()));
+                com.createstats.power.CouplerSockets.endAt(level.getBlockState(herePos), herePos,
+                        context.getClickLocation(), context.getClickedFace()));
         final Component objection = wrongSocket != null ? wrongSocket
                 : firstObjection(level, pendingPos, herePos);
         if (objection != null) {
@@ -651,12 +651,9 @@ public class CopperWireItem extends Item {
         }
         final boolean foreignFar =
                 com.createstats.blockentity.UniversalPowerCouplerBE.isSeamTarget(level, far);
-        if (socket == com.createstats.power.CouplerSockets.End.FOREIGN) {
-            return foreignFar ? null
-                    : Component.translatable("message.create_stats.copper_wire.seam_only");
-        }
-        return foreignFar
-                ? Component.translatable("message.create_stats.coupler.grid_wants_ours") : null;
+
+        final String refusal = com.createstats.power.CouplerSockets.refusalKey(socket, foreignFar, false);
+        return refusal == null ? null : Component.translatable(refusal);
     }
 
     @org.jetbrains.annotations.Nullable

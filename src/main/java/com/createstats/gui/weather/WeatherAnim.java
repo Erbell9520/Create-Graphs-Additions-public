@@ -46,7 +46,7 @@ public final class WeatherAnim {
 
     private float sinceDigitChange = DIGIT_ROLL_TICKS;
 
-    private float lastUpdate = Float.NaN;
+    private double lastUpdate = Double.NaN;
     private int shownWholeTemperature;
     private int previousWholeTemperature;
 
@@ -95,12 +95,12 @@ public final class WeatherAnim {
         lastTodayIndex = todayIndex;
     }
 
-    public void updateTo(float nowTicks) {
-        if (Float.isNaN(lastUpdate)) {
+    public void updateTo(double nowTicks) {
+        if (Double.isNaN(lastUpdate)) {
             lastUpdate = nowTicks;
             return;
         }
-        final float dt = nowTicks - lastUpdate;
+        final float dt = (float) (nowTicks - lastUpdate);
         if (dt <= 0f) {
             return;
         }

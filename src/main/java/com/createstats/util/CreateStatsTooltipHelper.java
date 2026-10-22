@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 
 public final class CreateStatsTooltipHelper {
     private static final String HOLD_SHIFT_KEY = "create_stats.tooltip.hold_shift";
+    private static final String HOLD_SHIFT_ALT_KEY = "create_stats.tooltip.hold_shift_alt";
 
     private CreateStatsTooltipHelper() {
     }
@@ -32,6 +33,28 @@ public final class CreateStatsTooltipHelper {
         } else {
             tooltip.add(holdShift());
         }
+    }
+
+    public static void addBlockTooltip(List<Component> tooltip, String keyPrefix, List<Component> specs,
+                                       List<Component> extraDetail,
+                                       java.util.function.Supplier<List<Component>> altDetail) {
+        if (Screen.hasAltDown()) {
+            tooltip.add(Component.translatable(keyPrefix + ".tooltip").withStyle(ChatFormatting.GRAY));
+            tooltip.addAll(specs);
+            tooltip.addAll(altDetail.get());
+            return;
+        }
+        if (Screen.hasShiftDown()) {
+            addBlockTooltip(tooltip, keyPrefix, specs, extraDetail);
+            return;
+        }
+        tooltip.add(Component.translatable(keyPrefix + ".tooltip").withStyle(ChatFormatting.GRAY));
+        tooltip.addAll(specs);
+        tooltip.add(holdShiftOrAlt());
+    }
+
+    public static Component holdShiftOrAlt() {
+        return Component.translatable(HOLD_SHIFT_ALT_KEY).withStyle(ChatFormatting.DARK_GRAY);
     }
 
     public static Component note(String key) {

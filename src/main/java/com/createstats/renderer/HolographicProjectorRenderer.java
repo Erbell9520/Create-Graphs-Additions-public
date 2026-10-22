@@ -2,6 +2,7 @@ package com.createstats.renderer;
 
 import java.util.Objects;
 import org.joml.Matrix4f;
+import com.createstats.client.AnimationClock;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -74,7 +75,9 @@ public class HolographicProjectorRenderer implements BlockEntityRenderer<Hologra
             }
             case SPIN -> {
                 final long gameTime = (be.getLevel() != null) ? be.getLevel().getGameTime() : 0L;
-                ps.mulPose(Axis.YP.rotationDegrees((gameTime + partialTick) * settings.getRotationSpeed()));
+
+                ps.mulPose(Axis.YP.rotationDegrees((float) ((AnimationClock.time(gameTime, partialTick)
+                        * settings.getRotationSpeed()) % 360.0)));
             }
 
             default -> ps.mulPose(Axis.YP.rotationDegrees(railYRot(be.getBlockState())));

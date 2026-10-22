@@ -274,7 +274,8 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         if (effect != EFFECT_STROBE && effect != EFFECT_PULSE) {
             return 1.0f;
         }
-        final double t = gameTime + partialTick;
+
+        final double t = (double) gameTime + partialTick;
         final double tempo = 1.0 + (Mth.clamp(speed, MIN_EFFECT_SPEED, MAX_EFFECT_SPEED) - 1) * 0.35;
         if (effect == EFFECT_STROBE) {
             final double period = 30.0 / tempo;
@@ -291,7 +292,7 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         }
         final double tempo = 1.0 + (Mth.clamp(speed, MIN_EFFECT_SPEED, MAX_EFFECT_SPEED) - 1) * 0.35;
         final double period = 200.0 / tempo;
-        final float hue = (float) (((gameTime + partialTick) % period) / period);
+        final float hue = (float) ((((double) gameTime + partialTick) % period) / period);
         return Mth.hsvToRgb(hue, 0.85f, 1.0f) & 0xFFFFFF;
     }
 
@@ -547,8 +548,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         return baseRadius * Math.sqrt(this.range / (double) this.getPeakRange());
     }
 
-    // invisible real light block where the beam lands. not on flying ships, moving a block every tick would kill the light engine
-
     private void updateProjectedLight() {
         if (!(this.level instanceof net.minecraft.server.level.ServerLevel sl)) {
             return;
@@ -600,7 +599,6 @@ public class StageLightBE extends SmartBlockEntity implements com.createstats.po
         if (this.projectedLightPos == null || !sl.isLoaded(this.projectedLightPos)) {
             return;
         }
-        // strobe keeps the real light solid, toggling it would thrash the light engine
 
         int lum = Mth.clamp(this.computePoolLuminance(), 1, MAX_BRIGHTNESS);
         if (this.effect == EFFECT_PULSE) {

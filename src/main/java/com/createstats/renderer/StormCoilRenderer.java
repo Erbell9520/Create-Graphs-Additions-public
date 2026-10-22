@@ -2,6 +2,7 @@ package com.createstats.renderer;
 
 import com.createstats.block.StormCoilBlock;
 import com.createstats.blockentity.StormCoilBE;
+import com.createstats.client.AnimationClock;
 import com.createstats.holomk3.render.HoloRenderTypes;
 import com.createstats.powertrack.client.ArcEffects;
 import com.createstats.stormcoil.CoilAim;
@@ -130,7 +131,7 @@ public class StormCoilRenderer implements BlockEntityRenderer<StormCoilBE> {
         }
 
         final long now = com.createstats.client.ponder.SceneClock.now(be.getLevel());
-        final double t = now + partial;
+        final double t = AnimationClock.time(now, partial);
         final double nudge = be.motion.nudge(partial);
         final CoilForm form = CoilForm.at(be.motion.height(partial) + nudge);
 

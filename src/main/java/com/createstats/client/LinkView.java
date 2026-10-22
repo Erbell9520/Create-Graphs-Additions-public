@@ -225,7 +225,7 @@ public final class LinkView {
         if (shown == Mode.WRENCH && selection.isEmpty()) {
             return;
         }
-        final double march = LinkWeb.marchAt(mc.level.getGameTime() + partial);
+        final double march = LinkWeb.marchAt(AnimationClock.time(mc.level, partial));
         final Vec3 camera = event.getCamera().getPosition();
         final PoseStack ms = event.getPoseStack();
         final MultiBufferSource.BufferSource buffers = Gpu.BUFFERS;

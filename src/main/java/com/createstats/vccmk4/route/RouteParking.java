@@ -1,5 +1,7 @@
 package com.createstats.vccmk4.route;
 
+import com.createstats.flight.bridge.SableContainers;
+import com.createstats.flight.bridge.SableWake;
 import com.createstats.surveyor.core.RigidMove;
 import dev.ryanhcode.sable.companion.math.BoundingBox3d;
 import dev.ryanhcode.sable.companion.math.Pose3d;
@@ -15,7 +17,6 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -24,7 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 
 public final class RouteParking {
-    static final String CONTAINER = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
     static final String HOLDING_CHUNK = "dev.ryanhcode.sable.sublevel.storage.holding.SubLevelHoldingChunk";
     static final String POINTER = "dev.ryanhcode.sable.sublevel.storage.holding.GlobalSavedSubLevelPointer";
 
@@ -80,10 +80,7 @@ public final class RouteParking {
 
     @Nullable
     public static Object liveBody(ServerLevel level, UUID body) {
-        Object container = container(level);
-        if (container == null || body == null) return null;
-        Method get = method(container.getClass(), "getSubLevel", 1, UUID.class);
-        return get == null ? null : call(get, container, body);
+        return SableContainers.subLevel(level, body);
     }
 
     @Nullable
@@ -354,13 +351,7 @@ public final class RouteParking {
 
     public static void wake(ServerLevel level, UUID body) {
         Object sub = liveBody(level, body);
-        Object container = container(level);
-        if (sub == null || container == null) return;
-        Object system = call0(container, "physicsSystem");
-        Object pipeline = system == null ? null : call0(system, "getPipeline");
-        if (pipeline == null) return;
-        Method wake = method(pipeline.getClass(), "wakeUp", 1, sub.getClass());
-        if (wake != null) call(wake, pipeline, sub);
+        if (sub != null) SableWake.wake(level, sub);
     }
 
     @Nullable
@@ -377,26 +368,7 @@ public final class RouteParking {
 
     @Nullable
     private static Object holdingMap(ServerLevel level) {
-        Object container = container(level);
-        return container == null ? null : call0(container, "getHoldingChunkMap");
-    }
-
-    @Nullable
-    private static Object container(Level level) {
-        try {
-            Class<?> c = Class.forName(CONTAINER);
-            for (Method m : c.getMethods()) {
-                if (m.getName().equals("getContainer") && Modifier.isStatic(m.getModifiers())
-                        && m.getParameterCount() == 1 && m.getParameterTypes()[0].isInstance(level)) {
-                    return m.invoke(null, level);
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            return null;
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-            RouteReflect.warnOnce("parkingContainer", e.toString());
-        }
-        return null;
+        return SableContainers.holdingChunkMap(level);
     }
 
     @Nullable

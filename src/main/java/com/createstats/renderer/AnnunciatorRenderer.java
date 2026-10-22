@@ -1,6 +1,7 @@
 package com.createstats.renderer;
 
 import com.createstats.alarm.annunciator.AlarmSeverity;
+import com.createstats.client.AnimationClock;
 import com.createstats.alarm.annunciator.AnnunciatorState;
 import com.createstats.alarm.annunciator.AnnunciatorVariant;
 import com.createstats.alarm.annunciator.LampPattern;
@@ -128,7 +129,7 @@ public class AnnunciatorRenderer implements BlockEntityRenderer<AnnunciatorBE> {
         final float[] lensSpan = AnnunciatorGeometry.KLAXON_LENS;
 
         final boolean spinning = be.getDeviceState() == AnnunciatorState.ALARM || test;
-        final double sweep = spinning ? ((gameTime + partialTick) * 0.11) % (Math.PI * 2.0) : 0.0;
+        final double sweep = spinning ? (AnimationClock.time(gameTime, partialTick) * 0.11) % (Math.PI * 2.0) : 0.0;
         final VertexConsumer glass = Buffers.live(buffers, RenderType.entityTranslucentEmissive(LENS));
         for (int side = 0; side < 4; side++) {
             final double bearing = side * Math.PI * 0.5;
@@ -240,7 +241,7 @@ public class AnnunciatorRenderer implements BlockEntityRenderer<AnnunciatorBE> {
                 blind ? 0xFF161326 : idle ? 0xFF0E1A12 : dim(colour, 0.16f), 1.0f, light);
 
         if (idle) {
-            final float sweep = (float) ((gameTime + partialTick) % 80L) / 80.0f;
+            final float sweep = (float) (AnimationClock.time(gameTime, partialTick) % 80.0) / 80.0f;
             final float y = screen[1] + (screen[3] - screen[1]) * sweep;
             this.glowPanel(ps, buffers, screen[0] + 0.3f, y, screen[2] - 0.3f, y + 0.18f,
                     AnnunciatorGeometry.FRONT - LIFT - 0.06f, blind ? 0xFF7A6BC4 : 0xFF2FB36D,

@@ -42,7 +42,6 @@ public final class Vcc4Reflect {
     static final String ROPE_HOLDER = "dev.simulated_team.simulated.content.blocks.rope.RopeStrandHolderBlockEntity";
     static final String SPRING = "dev.simulated_team.simulated.content.blocks.spring.SpringBlockEntity";
     static final String DOCKING_CONNECTOR = "dev.simulated_team.simulated.content.blocks.docking_connector.DockingConnectorBlockEntity";
-    private static final String CONTAINER = "dev.ryanhcode.sable.api.sublevel.SubLevelContainer";
     private static final String PIPELINE = "dev.ryanhcode.sable.api.physics.PhysicsPipeline";
     private static final String SERVER_SUB_LEVEL = "dev.ryanhcode.sable.sublevel.ServerSubLevel";
     private static final String BRAKE_HANDLER = "createStats$brakeSignal";
@@ -211,33 +210,7 @@ public final class Vcc4Reflect {
     }
 
     static void wake(ServerLevel level, @Nullable Object subLevel) {
-        if (subLevel == null) return;
-        try {
-            Class<?> ssl = cls(SERVER_SUB_LEVEL);
-            Class<?> pipelineClass = cls(PIPELINE);
-            Class<?> containerClass = cls(CONTAINER);
-            if (ssl == null || pipelineClass == null || containerClass == null || !ssl.isInstance(subLevel)) return;
-            Method getContainer = null;
-            for (Method m : containerClass.getMethods()) {
-                if (m.getName().equals("getContainer") && Modifier.isStatic(m.getModifiers())
-                        && m.getParameterCount() == 1 && m.getParameterTypes()[0].isInstance(level)) {
-                    getContainer = m;
-                    break;
-                }
-            }
-            if (getContainer == null) return;
-            Object container = getContainer.invoke(null, level);
-            if (container == null) return;
-            Object system = container.getClass().getMethod("physicsSystem").invoke(container);
-            if (system == null) return;
-            Object pipeline = system.getClass().getMethod("getPipeline").invoke(system);
-            if (pipeline == null) return;
-            Method wakeUp = com.createstats.flight.bridge.ReflectionAccessors.findMethodAccepting(pipelineClass, "wakeUp", ssl);
-            if (wakeUp == null) throw new NoSuchMethodException(pipelineClass.getName() + ".wakeUp(<" + ssl.getName() + ">)");
-            wakeUp.invoke(pipeline, subLevel);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-            warnOnce("wake", e);
-        }
+        com.createstats.flight.bridge.SableWake.wake(level, subLevel);
     }
 
     @Nullable

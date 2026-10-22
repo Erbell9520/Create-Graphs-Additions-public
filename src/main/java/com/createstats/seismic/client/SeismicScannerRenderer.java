@@ -2,6 +2,7 @@ package com.createstats.seismic.client;
 
 import com.createstats.block.SeismicScannerBlock;
 import com.createstats.blockentity.SeismicScannerBE;
+import com.createstats.client.AnimationClock;
 import com.createstats.client.ModPartialModels;
 import com.createstats.seismic.SeismicCatalog;
 import com.createstats.seismic.SeismicCharge;
@@ -64,7 +65,7 @@ public class SeismicScannerRenderer implements BlockEntityRenderer<SeismicScanne
             return;
         }
         final long now = level.getGameTime();
-        final double t = now + partial;
+        final double t = AnimationClock.time(now, partial);
         ms.pushPose();
         applyFacing(ms, state.getValue(HorizontalDirectionalBlock.FACING));
 

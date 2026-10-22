@@ -233,8 +233,27 @@ public class ModPartialModels {
         return out;
     }
 
-    public static final PartialModel UNIVERSAL_POWER_COUPLER_SHUTTLE = block("universal_power_coupler/shuttle");
-    public static final PartialModel UNIVERSAL_POWER_COUPLER_LINK = block("universal_power_coupler/link_lit");
+    public static final PartialModel COUPLER_DRUM = block("universal_power_coupler/drum");
+    public static final PartialModel COUPLER_CASSETTE_DARK = block("universal_power_coupler/cassette_0");
+    public static final PartialModel[] COUPLER_CASSETTE_AMBER = {
+            block("universal_power_coupler/cassette_amber_1"),
+            block("universal_power_coupler/cassette_amber_2"),
+            block("universal_power_coupler/cassette_amber_3")};
+    public static final PartialModel[] COUPLER_CASSETTE_CYAN = {
+            block("universal_power_coupler/cassette_cyan_1"),
+            block("universal_power_coupler/cassette_cyan_2"),
+            block("universal_power_coupler/cassette_cyan_3")};
+    public static final PartialModel COUPLER_DRIVER = block("universal_power_coupler/driver");
+    public static final PartialModel COUPLER_LEVER = block("universal_power_coupler/lever");
+    public static final PartialModel COUPLER_SHOES_NORTH = block("universal_power_coupler/shoes_north");
+    public static final PartialModel COUPLER_SHOES_SOUTH = block("universal_power_coupler/shoes_south");
+    public static final PartialModel COUPLER_LIFTER_NORTH = block("universal_power_coupler/lifter_north");
+    public static final PartialModel COUPLER_LIFTER_SOUTH = block("universal_power_coupler/lifter_south");
+    public static final PartialModel COUPLER_SHUTTER = block("universal_power_coupler/shutter");
+    public static final PartialModel COUPLER_LENS_NORTH_OFF = block("universal_power_coupler/lens_north_off");
+    public static final PartialModel COUPLER_LENS_NORTH_ON = block("universal_power_coupler/lens_north_on");
+    public static final PartialModel COUPLER_LENS_SOUTH_OFF = block("universal_power_coupler/lens_south_off");
+    public static final PartialModel COUPLER_LENS_SOUTH_ON = block("universal_power_coupler/lens_south_on");
 
     public record DoorModels(PartialModel leaf, PartialModel leafL, PartialModel leafR,
                              PartialModel seamHi, PartialModel seamLo,

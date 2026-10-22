@@ -113,10 +113,11 @@ public final class ForeignSpoolHandler {
             return InteractionResult.CONSUME;
         }
 
-        if (CopperWireItem.pendingSocketOf(player.getUUID())
-                == com.createstats.power.CouplerSockets.End.GRID) {
+        final String wrongSocket = com.createstats.power.CouplerSockets.refusalKey(
+                CopperWireItem.pendingSocketOf(player.getUUID()), true, false);
+        if (wrongSocket != null) {
             CopperWireItem.clearPending(player.getUUID());
-            actionBar(player, Component.translatable("message.create_stats.coupler.grid_wants_ours"));
+            actionBar(player, Component.translatable(wrongSocket));
             return InteractionResult.CONSUME;
         }
         final Component refusal = refuse(level, terminal, pos);
@@ -177,9 +178,24 @@ public final class ForeignSpoolHandler {
         if (!(state.getBlock() instanceof com.createstats.block.UniversalPowerCouplerBlock)) {
             return null;
         }
-        return com.createstats.power.CouplerSockets.endOn(state, context.getClickedFace())
-                == com.createstats.power.CouplerSockets.End.FOREIGN
-                ? null : Component.translatable("message.create_stats.coupler.foreign_wants_seam");
+
+        final com.createstats.power.CouplerSockets.End socket = com.createstats.power.CouplerSockets.endAt(state,
+                pos, context.getClickLocation(), context.getClickedFace());
+        final String refusal = com.createstats.power.CouplerSockets.refusalKey(
+                socket == null ? com.createstats.power.CouplerSockets.End.GRID : socket, true, true);
+        return refusal == null ? null : Component.translatable(refusal);
+    }
+
+    @Nullable
+    private static Component refuseForeignSocket(Level level, FeWireTerminal terminal, UseOnContext context) {
+        if (!(terminal instanceof com.createstats.blockentity.UniversalPowerCouplerBE coupler)) {
+            return null;
+        }
+        final com.createstats.power.CouplerSockets.End socket = com.createstats.power.CouplerSockets.endAt(
+                coupler.getBlockState(), coupler.getBlockPos(), context.getClickLocation(), context.getClickedFace());
+        final String refusal = com.createstats.power.CouplerSockets.refusalKey(
+                socket == null ? com.createstats.power.CouplerSockets.End.GRID : socket, true, true);
+        return refusal == null ? null : Component.translatable(refusal);
     }
 
     private static InteractionResult onForeignConnector(UseOnContext context, Level level, BlockPos pos,
@@ -198,11 +214,11 @@ public final class ForeignSpoolHandler {
                 return InteractionResult.CONSUME;
             }
 
-            if (CopperWireItem.pendingSocketOf(player.getUUID())
-                    == com.createstats.power.CouplerSockets.End.GRID) {
+            final String wrongSocket = com.createstats.power.CouplerSockets.refusalKey(
+                    CopperWireItem.pendingSocketOf(player.getUUID()), true, false);
+            if (wrongSocket != null) {
                 CopperWireItem.clearPending(player.getUUID());
-                actionBar(player,
-                        Component.translatable("message.create_stats.coupler.grid_wants_ours"));
+                actionBar(player, Component.translatable(wrongSocket));
                 return InteractionResult.CONSUME;
             }
             final Component refusal = refuse(level, terminal, pos);
@@ -246,6 +262,12 @@ public final class ForeignSpoolHandler {
         if (!level.isLoaded(foreign) || !ForeignTerminalNode.isBridgeTarget(level, foreign)) {
             PENDING_BRIDGE.remove(player.getUUID());
             actionBar(player, Component.translatable("message.create_stats.copper_wire.lost_first"));
+            return InteractionResult.CONSUME;
+        }
+
+        final Component wrongSocket = refuseForeignSocket(level, terminal, context);
+        if (wrongSocket != null) {
+            actionBar(player, wrongSocket);
             return InteractionResult.CONSUME;
         }
         final Component refusal = refuse(level, terminal, foreign);

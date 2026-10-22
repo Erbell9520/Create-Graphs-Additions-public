@@ -66,7 +66,7 @@ class CouplerBufferTest {
         buffer.roll(1L);
         assertEquals(1000, buffer.seamExtract(5000, true));
         assertEquals(CAPACITY - 1000, buffer.seamReceive(CAPACITY * 2, true));
-        assertEquals(1000, buffer.gridExtract(5000, true, RATE));
+        assertEquals(1000, buffer.gridExtract(5000, true, RATE, 1L));
         assertEquals(1000, buffer.energy());
         assertEquals(0, buffer.seamMoved());
         assertEquals(0, buffer.gridMoved());
@@ -90,7 +90,7 @@ class CouplerBufferTest {
         buffer.roll(1L);
         int total = 0;
         for (int i = 0; i < 50; i++) {
-            total += buffer.gridExtract(1000, false, RATE);
+            total += buffer.gridExtract(1000, false, RATE, 1L);
         }
         assertEquals(RATE, total);
         assertEquals(RATE, buffer.gridMoved());
@@ -103,7 +103,7 @@ class CouplerBufferTest {
         final CouplerBuffer buffer = new CouplerBuffer(CAPACITY);
         buffer.roll(1L);
         assertEquals(RATE, buffer.seamReceive(RATE, false));
-        assertEquals(RATE, buffer.gridExtract(RATE, false, RATE));
+        assertEquals(RATE, buffer.gridExtract(RATE, false, RATE, 1L));
         assertEquals(0, buffer.energy());
     }
 
@@ -113,7 +113,7 @@ class CouplerBufferTest {
         final CouplerBuffer buffer = new CouplerBuffer(CAPACITY);
         assertNull(buffer.roll(1L), "the first roll has no finished tick to report");
         buffer.seamReceive(500, false);
-        buffer.gridExtract(300, false, RATE);
+        buffer.gridExtract(300, false, RATE, 1L);
         assertNull(buffer.roll(1L), "a repeat within the same tick is not a new tick");
         final CouplerBuffer.Tick closed = buffer.roll(2L);
         assertNotNull(closed);
@@ -134,8 +134,8 @@ class CouplerBufferTest {
                 switch (random.nextInt(4)) {
                     case 0 -> buffer.seamReceive(amount, false);
                     case 1 -> buffer.seamExtract(amount, false);
-                    case 2 -> buffer.gridReceive(amount, false, RATE);
-                    default -> buffer.gridExtract(amount, false, RATE);
+                    case 2 -> buffer.gridReceive(amount, false, RATE, tick);
+                    default -> buffer.gridExtract(amount, false, RATE, tick);
                 }
                 assertTrue(buffer.energy() >= 0 && buffer.energy() <= CAPACITY,
                         "energy left its bounds: " + buffer.energy());
@@ -152,5 +152,35 @@ class CouplerBufferTest {
         assertEquals(CAPACITY, buffer.energy());
         buffer.setEnergy(-5);
         assertEquals(0, buffer.energy());
+    }
+
+    @Test
+    @DisplayName("the grid allowance belongs to the game tick it is spent in, not to the Coupler's own roll")
+    void theGridAllowanceIsKeyedOnGameTime() {
+        final CouplerBuffer buffer = new CouplerBuffer(CAPACITY);
+        buffer.setEnergy(CAPACITY);
+        assertEquals(RATE, buffer.gridExtract(RATE, false, RATE, 10L));
+        assertEquals(0, buffer.gridExtract(RATE, false, RATE, 10L), "the same tick has nothing left");
+
+        buffer.setEnergy(CAPACITY);
+        assertEquals(RATE, buffer.gridExtract(RATE, false, RATE, 11L));
+
+        buffer.setEnergy(CAPACITY);
+        buffer.roll(11L);
+        buffer.roll(12L);
+        assertEquals(0, buffer.gridExtract(RATE, false, RATE, 11L), "a roll is not a new game tick");
+    }
+
+    @Test
+    @DisplayName("a grid simulate reads the allowance and spends none of it")
+    void aGridSimulateSpendsNothing() {
+        final CouplerBuffer buffer = new CouplerBuffer(CAPACITY);
+        buffer.setEnergy(CAPACITY);
+        for (int i = 0; i < 5; i++) {
+            assertEquals(RATE, buffer.gridExtract(RATE, true, RATE, 3L));
+        }
+        assertEquals(RATE, buffer.gridAllowance(RATE, 3L));
+        assertEquals(RATE, buffer.gridExtract(RATE, false, RATE, 3L));
+        assertEquals(0, buffer.gridAllowance(RATE, 3L));
     }
 }

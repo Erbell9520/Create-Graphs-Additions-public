@@ -1,5 +1,6 @@
 package com.createstats.surveyor.client;
 
+import com.createstats.client.AnimationClock;
 import com.createstats.surveyor.PathwayChecks;
 import com.createstats.surveyor.RouteTrack;
 import com.createstats.surveyor.core.PathFairing;
@@ -89,7 +90,7 @@ public final class PathwayRenderer {
         boolean sight = RouteSight.wantsPathways(player);
         if (vis == Vis.NONE && !sight && !GhostRun.active()) return;
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-        double time = (level.getGameTime() + partial) / 20.0;
+        double time = AnimationClock.time(level, partial) / 20.0;
         Camera camera = event.getCamera();
         Vec3 cam = camera.getPosition();
         PoseStack ps = event.getPoseStack();

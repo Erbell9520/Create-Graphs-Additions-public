@@ -1,5 +1,6 @@
 package com.createstats.pathfinder.client;
 
+import com.createstats.client.AnimationClock;
 import com.createstats.renderer.HologramRenderHelper;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -77,7 +78,7 @@ final class PathfinderBlockVisuals {
     }
 
     static float pulse(long gameTime, float partialTick, float speed, float seed) {
-        return 0.5f + 0.5f * (float)Math.sin((gameTime + partialTick + seed) * speed);
+        return 0.5f + 0.5f * (float)Math.sin((AnimationClock.time(gameTime, partialTick) + seed) * speed);
     }
 
     static int alpha(float value) {

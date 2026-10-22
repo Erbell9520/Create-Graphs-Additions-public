@@ -163,6 +163,23 @@ tasks.named('processResources', ProcessResources).configure {
     filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand replaceProperties + [project: project]
     }
+
+    // Source recordings and editor droppings that the game never reads. Minecraft loads sounds as
+    // .ogg only, so alarm_ring.wav (159 KB, the source of alarm_ring.ogg) was dead weight in the jar.
+    exclude '**/*.wav', '**/.Rhistory'
+
+    // The JSON is hand-indented and datagen-pretty: 16.6 MB raw, 1.42 MB in the jar, and a sixth of
+    // that is whitespace. Minify after expand so the dev run reads the same bytes the jar ships.
+    // Unicode escaping stays off: the lang file would grow, and Minecraft reads it as UTF-8 anyway.
+    doLast {
+        def writer = new groovy.json.JsonGenerator.Options().disableUnicodeEscaping().build()
+        fileTree(destinationDir).matching { include '**/*.json', '**/*.mcmeta' }.each { File f ->
+            def text = f.getText('UTF-8')
+            // Gson skips a byte order mark, JsonSlurper does not (table_alarm_clock.json has one).
+            if (text.startsWith('﻿')) text = text.substring(1)
+            f.setText(writer.toJson(new groovy.json.JsonSlurper().parseText(text)), 'UTF-8')
+        }
+    }
 }
 
 tasks.named('jar', Jar).configure {
@@ -196,6 +213,13 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+// Ship line numbers and file names, drop local variable tables. The tables were 2.9 MB of the 34 MB
+// of classes and about 2 MB of the jar, and nothing reads them at runtime: reflection never sees
+// them, and Mixin's @Local reads the target's tables, not ours. Crash reports keep file:line.
+tasks.named('compileJava', JavaCompile).configure {
+    options.debugOptions.debugLevel = 'source,lines'
 }
 
 tasks.named('test').configure {

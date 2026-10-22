@@ -57,20 +57,30 @@ class UniversalPowerCouplerSeamTest {
     }
 
     @Test
-    @DisplayName("isForeignSeam replaces isCouplerSeam and checks the generic FE capability")
+    @DisplayName("isForeignSeam is the foreign verdict, which checks the generic FE capability and refuses ours first")
     void isForeignSeamIsBroadenedAndUngated() throws IOException {
         final String src = Files.readString(
-                Path.of("src/main/java/com/createstats/power/NewAgeFeed.java"), StandardCharsets.UTF_8);
+                Path.of("src/main/java/com/createstats/power/NewAgeFeed.java"), StandardCharsets.UTF_8)
+                .replace("\r\n", "\n");
         assertTrue(src.contains("public static boolean isForeignSeam("),
                 "isForeignSeam is missing");
         assertFalse(src.contains("isCouplerSeam"),
-                "isCouplerSeam still present -- rename it, do not leave a second predicate");
-        final int from = src.indexOf("public static boolean isForeignSeam(");
+                "isCouplerSeam still present: rename it, do not leave a second predicate");
+
+        final int seamFrom = src.indexOf("public static boolean isForeignSeam(");
+        final String seam = src.substring(seamFrom, src.indexOf("\n    }", seamFrom));
+        assertTrue(seam.contains("foreignVerdict("), "isForeignSeam no longer asks foreignVerdict");
+        final int from = src.indexOf("public static CouplerForeign.Verdict foreignVerdict(");
+        assertTrue(from > 0, "foreignVerdict is missing");
         final int to = src.indexOf("\n    }", from);
         final String body = src.substring(from, to);
-        assertTrue(body.contains("isFeedOn"), "isForeignSeam lost the New Age connector check");
+        assertTrue(body.contains("isFeedOn"), "the foreign verdict lost the New Age connector check");
         assertTrue(body.contains("Capabilities.EnergyStorage.BLOCK"),
-                "isForeignSeam has no generic FE capability check, so it only serves New Age");
+                "the foreign verdict has no generic FE capability check, so it only serves New Age");
+
+        final int ours = body.indexOf("CouplerForeign.isOurs(");
+        assertTrue(ours >= 0 && ours < body.indexOf("getCapability"),
+                "the foreign verdict must refuse a block of ours before it asks any capability");
 
         final int available = body.indexOf("NewAgeCompat.isAvailable()");
         final int capability = body.indexOf("getCapability");
